@@ -224,6 +224,9 @@ GameObject:
   m_Component:
   - component: {fileID: 524810708}
   - component: {fileID: 524810707}
+  - component: {fileID: 524810709}
+  - component: {fileID: 524810710}
+  - component: {fileID: 524810711}
   m_Layer: 0
   m_Name: MercenaryHireManager
   m_TagString: Untagged
@@ -245,6 +248,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   merchantData: {fileID: 1765243042}
   targetMercenary: {fileID: 11400000, guid: e1aa1773b51d99645ac3ee51a8c573b9, type: 2}
+  hiredMercenaries: []
 --- !u!4 &524810708
 Transform:
   m_ObjectHideFlags: 0
@@ -260,6 +264,59 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &524810709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 524810706}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 883fd0a04cc54e88912c28ed65d45d88, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  merchantData: {fileID: 1765243042}
+  hireManager: {fileID: 524810707}
+  partyManager: {fileID: 524810710}
+  mercenaryGenerator: {fileID: 524810711}
+  battleManager: {fileID: 0}
+  candidates:
+  - {fileID: 11400000, guid: e1aa1773b51d99645ac3ee51a8c573b9, type: 2}
+--- !u!114 &524810710
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 524810706}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6b431e723f543639ec5ac767fa2c36f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hireManager: {fileID: 524810707}
+  maxPartySize: 3
+  members: []
+--- !u!114 &524810711
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 524810706}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1387127ea9dc44a08980976a1a082dd8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  nameList: {fileID: 4900000, guid: a2850aa3c77143128f47728660c54ab9, type: 3}
+  archetypes:
+  - {fileID: 11400000, guid: df7e41a10e954723ae50c577bd0de8a6, type: 2}
+  candidateCount: 5
+  avoidDuplicateNames: 1
+  generateOnAwake: 1
+  candidates: []
 --- !u!1 &1029746121
 GameObject:
   m_ObjectHideFlags: 0
@@ -289,8 +346,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 706dbd558a9ceed41b7115334e9e7a5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mercenaryData: {fileID: 11400000, guid: e1aa1773b51d99645ac3ee51a8c573b9, type: 2}
+  partyManager: {fileID: 0}
+  merchantData: {fileID: 0}
   enemyData: {fileID: 11400000, guid: 239a8f3917ce33c469d7359348e47b0b, type: 2}
+  actionDelay: 0.5
 --- !u!4 &1029746123
 Transform:
   m_ObjectHideFlags: 0
