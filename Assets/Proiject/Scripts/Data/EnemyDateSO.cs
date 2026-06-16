@@ -16,4 +16,13 @@ public class EnemyDataSO : ScriptableObject
 
     [Header("Reward")]
     public int goldReward = 50;
+    public ItemDropEntry[] itemDrops;
+}
+
+[System.Serializable]
+public class ItemDropEntry
+{
+    public ItemDataSO item;
+    [Min(1)] public int amount = 1;
+    [Range(0f, 1f)] public float dropChance = 1f;
 }

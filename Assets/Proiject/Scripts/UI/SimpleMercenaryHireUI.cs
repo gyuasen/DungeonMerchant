@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class SimpleMercenaryHireUI : MonoBehaviour
 {
@@ -11,6 +14,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     [SerializeField] private MercenaryPartyManager partyManager;
     [SerializeField] private MercenaryGenerator mercenaryGenerator;
     [SerializeField] private BattleManager battleManager;
+    [SerializeField] private MerchantInventory merchantInventory;
 
     [Header("Hire Candidates")]
     [SerializeField] private List<MercenaryDataSO> candidates = new List<MercenaryDataSO>();
@@ -21,23 +25,29 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private readonly List<MercenaryInstance> displayedGeneratedCandidates =
         new List<MercenaryInstance>();
     private readonly HashSet<MercenaryDataSO> hiredCandidates = new HashSet<MercenaryDataSO>();
+    private readonly List<string> battleLogLines = new List<string>();
 
     private RectTransform hirePage;
     private RectTransform hireList;
     private RectTransform companyPage;
     private RectTransform partyPage;
     private RectTransform battlePage;
+    private RectTransform inventoryPage;
+    private RectTransform companyScrollContent;
     private RectTransform companyList;
     private RectTransform partyList;
+    private RectTransform inventoryList;
     private Button hireTabButton;
     private Button companyTabButton;
     private Button partyTabButton;
     private Button battleTabButton;
+    private Button inventoryTabButton;
     private Button startBattleButton;
     private Text goldText;
     private Text statusText;
     private Text battleLogText;
     private Font uiFont;
+    private RectTransform battleLogContent;
 
     private static readonly Color BackgroundColor = new Color(0.07f, 0.08f, 0.1f, 1f);
     private static readonly Color PanelColor = new Color(0.13f, 0.15f, 0.18f, 1f);
@@ -56,6 +66,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         }
 
         uiFont = LoadUIFont();
+        PopulateUniqueCandidatesIfNeeded();
         CacheAlreadyHiredCandidates();
         EnsureEventSystem();
         BuildUI();
@@ -63,8 +74,9 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         hireManager.MercenaryHired += HandleMercenaryHired;
         partyManager.PartyChanged += HandlePartyChanged;
         mercenaryGenerator.CandidatesChanged += HandleCandidatesChanged;
-        battleManager.BattleMessage += HandleBattleMessage;
+        battleManager.BattleMessageTyped += HandleBattleMessage;
         battleManager.BattleCompleted += HandleBattleCompleted;
+        merchantInventory.InventoryChanged += HandleInventoryChanged;
         ShowHirePage();
         RefreshUI();
     }
@@ -89,6 +101,21 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         if (battleManager == null)
         {
             battleManager = FindObjectOfType<BattleManager>();
+        }
+
+        if (merchantInventory == null)
+        {
+            merchantInventory = GetComponent<MerchantInventory>();
+        }
+
+        if (merchantInventory == null)
+        {
+            merchantInventory = FindObjectOfType<MerchantInventory>();
+        }
+
+        if (merchantInventory == null)
+        {
+            merchantInventory = gameObject.AddComponent<MerchantInventory>();
         }
 
         if (merchantData == null)
@@ -136,6 +163,12 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             hasAllReferences = false;
         }
 
+        if (merchantInventory == null)
+        {
+            Debug.LogError("Simple hire UI is missing MerchantInventory.", this);
+            hasAllReferences = false;
+        }
+
         return hasAllReferences;
     }
 
@@ -153,6 +186,60 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         }
 
         return font;
+    }
+
+    private void PopulateUniqueCandidatesIfNeeded()
+    {
+        RemoveMissingCandidates();
+        if (candidates.Count > 0)
+        {
+            return;
+        }
+
+        foreach (MercenaryDataSO candidate in Resources.LoadAll<MercenaryDataSO>(string.Empty))
+        {
+            AddUniqueCandidate(candidate);
+        }
+
+#if UNITY_EDITOR
+        string[] guids = AssetDatabase.FindAssets(
+            "t:MercenaryDataSO",
+            new[] { "Assets/Proiject/ScriptableObjects/Mercenaries" });
+
+        foreach (string guid in guids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            MercenaryDataSO candidate =
+                AssetDatabase.LoadAssetAtPath<MercenaryDataSO>(path);
+            AddUniqueCandidate(candidate);
+        }
+#endif
+
+        if (candidates.Count == 0)
+        {
+            Debug.LogWarning("No unique mercenary data assets were found.", this);
+        }
+    }
+
+    private void RemoveMissingCandidates()
+    {
+        for (int i = candidates.Count - 1; i >= 0; i--)
+        {
+            if (candidates[i] == null)
+            {
+                candidates.RemoveAt(i);
+            }
+        }
+    }
+
+    private void AddUniqueCandidate(MercenaryDataSO candidate)
+    {
+        if (candidate == null || candidates.Contains(candidate))
+        {
+            return;
+        }
+
+        candidates.Add(candidate);
     }
 
     private void OnDestroy()
@@ -179,8 +266,13 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
         if (battleManager != null)
         {
-            battleManager.BattleMessage -= HandleBattleMessage;
+            battleManager.BattleMessageTyped -= HandleBattleMessage;
             battleManager.BattleCompleted -= HandleBattleCompleted;
+        }
+
+        if (merchantInventory != null)
+        {
+            merchantInventory.InventoryChanged -= HandleInventoryChanged;
         }
     }
 
@@ -211,16 +303,23 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             "BATTLE",
             new Vector2(466f, -78f),
             ShowBattlePage);
+        inventoryTabButton = CreateNavigationButton(
+            panel,
+            "INVENTORY",
+            new Vector2(612f, -78f),
+            ShowInventoryPage);
 
         hirePage = CreatePage("Hire Page", panel);
         companyPage = CreatePage("Company Page", panel);
         partyPage = CreatePage("Party Page", panel);
         battlePage = CreatePage("Battle Page", panel);
+        inventoryPage = CreatePage("Inventory Page", panel);
 
         BuildHirePage();
         BuildCompanyPage();
         BuildPartyPage();
         BuildBattlePage();
+        BuildInventoryPage();
 
         statusText = CreateText(panel, "Select a mercenary to hire.", 15, FontStyle.Normal,
             TextAnchor.MiddleLeft, new Vector2(28f, 22f), new Vector2(-28f, 54f), MutedTextColor);
@@ -278,6 +377,11 @@ public class SimpleMercenaryHireUI : MonoBehaviour
                 continue;
             }
 
+            if (hiredCandidates.Contains(candidate))
+            {
+                continue;
+            }
+
             CreateCandidateRow(hireList, candidate, rowTop);
             rowTop -= 112f;
         }
@@ -301,11 +405,32 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         CreateText(companyPage, "Hired mercenaries", 15, FontStyle.Normal, TextAnchor.MiddleLeft,
             new Vector2(0f, -30f), new Vector2(0f, 0f), MutedTextColor);
 
-        companyList = CreateUIObject("Company List", companyPage);
-        companyList.anchorMin = new Vector2(0f, 0f);
-        companyList.anchorMax = new Vector2(1f, 1f);
-        companyList.offsetMin = Vector2.zero;
-        companyList.offsetMax = new Vector2(0f, -44f);
+        RectTransform viewport = CreateUIObject("Company Viewport", companyPage);
+        viewport.anchorMin = new Vector2(0f, 0f);
+        viewport.anchorMax = new Vector2(1f, 1f);
+        viewport.offsetMin = Vector2.zero;
+        viewport.offsetMax = new Vector2(0f, -44f);
+
+        Image viewportImage = viewport.gameObject.AddComponent<Image>();
+        viewportImage.color = new Color(0f, 0f, 0f, 0.01f);
+        Mask mask = viewport.gameObject.AddComponent<Mask>();
+        mask.showMaskGraphic = false;
+
+        companyScrollContent = CreateUIObject("Company Scroll Content", viewport);
+        companyScrollContent.anchorMin = new Vector2(0f, 1f);
+        companyScrollContent.anchorMax = new Vector2(1f, 1f);
+        companyScrollContent.pivot = new Vector2(0.5f, 1f);
+        companyScrollContent.anchoredPosition = Vector2.zero;
+
+        ScrollRect scrollRect = viewport.gameObject.AddComponent<ScrollRect>();
+        scrollRect.content = companyScrollContent;
+        scrollRect.viewport = viewport;
+        scrollRect.horizontal = false;
+        scrollRect.vertical = true;
+        scrollRect.movementType = ScrollRect.MovementType.Clamped;
+        scrollRect.scrollSensitivity = 28f;
+
+        companyList = companyScrollContent;
     }
 
     private void BuildPartyPage()
@@ -322,11 +447,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private void BuildBattlePage()
     {
-        EnemyDataSO enemy = battleManager.EnemyData;
-        string enemyDescription = enemy == null
-            ? "No enemy assigned"
-            : $"{enemy.enemyName}  |  HP {enemy.maxHP}  ATK {enemy.attack}  " +
-              $"DEF {enemy.defense}  |  Reward {enemy.goldReward} G";
+        string enemyDescription = battleManager.GetEncounterDescription();
 
         CreateText(battlePage, "Battle preparation", 15, FontStyle.Normal, TextAnchor.MiddleLeft,
             new Vector2(0f, -30f), new Vector2(0f, 0f), MutedTextColor);
@@ -353,14 +474,54 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         Image logBackground = logPanel.gameObject.AddComponent<Image>();
         logBackground.color = RowColor;
 
-        battleLogText = CreateText(logPanel, "Ready for battle.", 14, FontStyle.Normal,
+        RectTransform viewport = CreateUIObject("Battle Log Viewport", logPanel);
+        viewport.anchorMin = Vector2.zero;
+        viewport.anchorMax = Vector2.one;
+        viewport.offsetMin = new Vector2(16f, 16f);
+        viewport.offsetMax = new Vector2(-16f, -16f);
+
+        Image viewportImage = viewport.gameObject.AddComponent<Image>();
+        viewportImage.color = new Color(0f, 0f, 0f, 0.01f);
+        Mask mask = viewport.gameObject.AddComponent<Mask>();
+        mask.showMaskGraphic = false;
+
+        battleLogContent = CreateUIObject("Battle Log Content", viewport);
+        battleLogContent.anchorMin = new Vector2(0f, 1f);
+        battleLogContent.anchorMax = new Vector2(1f, 1f);
+        battleLogContent.pivot = new Vector2(0.5f, 1f);
+        battleLogContent.anchoredPosition = Vector2.zero;
+        battleLogContent.sizeDelta = new Vector2(0f, 430f);
+
+        ScrollRect scrollRect = viewport.gameObject.AddComponent<ScrollRect>();
+        scrollRect.content = battleLogContent;
+        scrollRect.viewport = viewport;
+        scrollRect.horizontal = false;
+        scrollRect.vertical = true;
+        scrollRect.movementType = ScrollRect.MovementType.Clamped;
+        scrollRect.scrollSensitivity = 28f;
+
+        battleLogText = CreateText(battleLogContent, "Ready for battle.", 14, FontStyle.Normal,
             TextAnchor.UpperLeft, new Vector2(16f, 16f), new Vector2(-16f, -16f),
             MutedTextColor);
+        battleLogText.supportRichText = true;
         battleLogText.rectTransform.anchorMin = Vector2.zero;
         battleLogText.rectTransform.anchorMax = Vector2.one;
         battleLogText.rectTransform.pivot = new Vector2(0.5f, 0.5f);
-        battleLogText.rectTransform.offsetMin = new Vector2(16f, 16f);
-        battleLogText.rectTransform.offsetMax = new Vector2(-16f, -16f);
+        battleLogText.rectTransform.offsetMin = Vector2.zero;
+        battleLogText.rectTransform.offsetMax = Vector2.zero;
+    }
+
+    private void BuildInventoryPage()
+    {
+        CreateText(inventoryPage, "Merchant inventory", 15, FontStyle.Normal,
+            TextAnchor.MiddleLeft, new Vector2(0f, -30f), new Vector2(0f, 0f),
+            MutedTextColor);
+
+        inventoryList = CreateUIObject("Inventory List", inventoryPage);
+        inventoryList.anchorMin = new Vector2(0f, 0f);
+        inventoryList.anchorMax = new Vector2(1f, 1f);
+        inventoryList.offsetMin = Vector2.zero;
+        inventoryList.offsetMax = new Vector2(0f, -44f);
     }
 
     private void RebuildCompanyList()
@@ -381,6 +542,8 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             CreateCompanyRow(companyList, mercenary, rowTop);
             rowTop -= 112f;
         }
+
+        companyList.sizeDelta = new Vector2(0f, Mathf.Max(430f, -rowTop));
     }
 
     private void RebuildPartyList()
@@ -399,6 +562,31 @@ public class SimpleMercenaryHireUI : MonoBehaviour
                 CreateEmptyPartyRow(partyList, slotIndex, rowTop);
             }
 
+            rowTop -= 112f;
+        }
+    }
+
+    private void RebuildInventoryList()
+    {
+        ClearChildren(inventoryList);
+
+        if (merchantInventory.Items.Count == 0)
+        {
+            CreateText(inventoryList, "No items in stock.", 18, FontStyle.Normal,
+                TextAnchor.MiddleCenter, new Vector2(0f, -180f), new Vector2(0f, -80f),
+                MutedTextColor);
+            return;
+        }
+
+        float rowTop = 0f;
+        foreach (InventoryItemStack stack in merchantInventory.Items)
+        {
+            if (stack == null || stack.Item == null || stack.Amount <= 0)
+            {
+                continue;
+            }
+
+            CreateInventoryRow(inventoryList, stack, rowTop);
             rowTop -= 112f;
         }
     }
@@ -502,6 +690,27 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             MutedTextColor);
     }
 
+    private void CreateInventoryRow(
+        RectTransform parent,
+        InventoryItemStack stack,
+        float top)
+    {
+        ItemDataSO item = stack.Item;
+        RectTransform row = CreateRow(item.itemName, parent, top);
+
+        CreateText(row, $"{item.itemName} x{stack.Amount}", 22, FontStyle.Bold,
+            TextAnchor.MiddleLeft, new Vector2(18f, -42f), new Vector2(-160f, -12f),
+            Color.white);
+
+        string details =
+            $"{item.rarity}  |  {item.itemType}  |  Sell {item.basePrice} G each";
+
+        CreateText(row, details, 14, FontStyle.Normal, TextAnchor.MiddleLeft,
+            new Vector2(18f, -76f), new Vector2(-160f, -48f), MutedTextColor);
+
+        CreateActionButton(row, "SELL", () => SellItem(item));
+    }
+
     private RectTransform CreateRow(string rowName, RectTransform parent, float top)
     {
         RectTransform row = CreateUIObject(rowName, parent);
@@ -583,6 +792,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
         hiredCandidates.Add(candidate);
         statusText.text = $"{candidate.mercenaryName} joined your company.";
+        RebuildHireList();
         RefreshUI();
     }
 
@@ -622,6 +832,12 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         RefreshUI();
     }
 
+    private void HandleInventoryChanged()
+    {
+        RebuildInventoryList();
+        RefreshUI();
+    }
+
     private void HandleGoldChanged(int currentGold)
     {
         RefreshUI();
@@ -629,7 +845,9 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private void StartPartyBattle()
     {
+        battleLogLines.Clear();
         battleLogText.text = string.Empty;
+        battleLogContent.sizeDelta = new Vector2(0f, 430f);
         startBattleButton.interactable = false;
 
         if (!battleManager.StartBattle(partyManager.Members))
@@ -638,16 +856,41 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         }
     }
 
-    private void HandleBattleMessage(string message)
+    private void HandleBattleMessage(string message, BattleLogType logType)
     {
-        if (string.IsNullOrEmpty(battleLogText.text))
+        string coloredMessage = ColorizeBattleMessage(message, logType);
+        battleLogLines.Add(coloredMessage);
+        battleLogText.text = string.Join("\n", battleLogLines);
+
+        if (battleLogContent != null)
         {
-            battleLogText.text = message;
+            float height = Mathf.Max(430f, battleLogLines.Count * 22f);
+            battleLogContent.sizeDelta = new Vector2(0f, height);
         }
-        else
+    }
+
+    private static string ColorizeBattleMessage(string message, BattleLogType logType)
+    {
+        string escapedMessage = EscapeRichText(message);
+        switch (logType)
         {
-            battleLogText.text += $"\n{message}";
+            case BattleLogType.Player:
+                return $"<color=#5CA8FF>{escapedMessage}</color>";
+            case BattleLogType.Enemy:
+                return $"<color=#FF6B6B>{escapedMessage}</color>";
+            case BattleLogType.Reward:
+                return $"<color=#6FE3A0>{escapedMessage}</color>";
+            default:
+                return escapedMessage;
         }
+    }
+
+    private static string EscapeRichText(string value)
+    {
+        return value
+            .Replace("&", "&amp;")
+            .Replace("<", "&lt;")
+            .Replace(">", "&gt;");
     }
 
     private void HandleBattleCompleted(bool victory)
@@ -676,6 +919,19 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         partyManager.Remove(mercenary);
     }
 
+    private void SellItem(ItemDataSO item)
+    {
+        if (!merchantInventory.SellItem(item, 1))
+        {
+            statusText.text = $"Could not sell {item.itemName}.";
+            RefreshUI();
+            return;
+        }
+
+        statusText.text = $"Sold {item.itemName}.";
+        RefreshUI();
+    }
+
     private void CacheAlreadyHiredCandidates()
     {
         foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
@@ -693,10 +949,12 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         companyPage.gameObject.SetActive(false);
         partyPage.gameObject.SetActive(false);
         battlePage.gameObject.SetActive(false);
+        inventoryPage.gameObject.SetActive(false);
         SetTabActive(hireTabButton, true);
         SetTabActive(companyTabButton, false);
         SetTabActive(partyTabButton, false);
         SetTabActive(battleTabButton, false);
+        SetTabActive(inventoryTabButton, false);
         statusText.text = "Select a mercenary to hire.";
     }
 
@@ -706,10 +964,12 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         companyPage.gameObject.SetActive(true);
         partyPage.gameObject.SetActive(false);
         battlePage.gameObject.SetActive(false);
+        inventoryPage.gameObject.SetActive(false);
         SetTabActive(hireTabButton, false);
         SetTabActive(companyTabButton, true);
         SetTabActive(partyTabButton, false);
         SetTabActive(battleTabButton, false);
+        SetTabActive(inventoryTabButton, false);
         RebuildCompanyList();
         statusText.text = $"Company mercenaries: {hireManager.HiredMercenaries.Count}";
     }
@@ -720,10 +980,12 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         companyPage.gameObject.SetActive(false);
         partyPage.gameObject.SetActive(true);
         battlePage.gameObject.SetActive(false);
+        inventoryPage.gameObject.SetActive(false);
         SetTabActive(hireTabButton, false);
         SetTabActive(companyTabButton, false);
         SetTabActive(partyTabButton, true);
         SetTabActive(battleTabButton, false);
+        SetTabActive(inventoryTabButton, false);
         RebuildPartyList();
         statusText.text = $"Party members: {partyManager.Members.Count}/{partyManager.MaxPartySize}";
     }
@@ -734,13 +996,31 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         companyPage.gameObject.SetActive(false);
         partyPage.gameObject.SetActive(false);
         battlePage.gameObject.SetActive(true);
+        inventoryPage.gameObject.SetActive(false);
         SetTabActive(hireTabButton, false);
         SetTabActive(companyTabButton, false);
         SetTabActive(partyTabButton, false);
         SetTabActive(battleTabButton, true);
+        SetTabActive(inventoryTabButton, false);
         startBattleButton.interactable =
             partyManager.Members.Count > 0 && !battleManager.IsBattling;
         statusText.text = $"Battle party: {partyManager.Members.Count} mercenaries";
+    }
+
+    private void ShowInventoryPage()
+    {
+        hirePage.gameObject.SetActive(false);
+        companyPage.gameObject.SetActive(false);
+        partyPage.gameObject.SetActive(false);
+        battlePage.gameObject.SetActive(false);
+        inventoryPage.gameObject.SetActive(true);
+        SetTabActive(hireTabButton, false);
+        SetTabActive(companyTabButton, false);
+        SetTabActive(partyTabButton, false);
+        SetTabActive(battleTabButton, false);
+        SetTabActive(inventoryTabButton, true);
+        RebuildInventoryList();
+        statusText.text = $"Inventory items: {merchantInventory.Items.Count}";
     }
 
     private void RefreshUI()

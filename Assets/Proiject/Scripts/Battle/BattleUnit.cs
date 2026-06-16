@@ -3,6 +3,7 @@ using UnityEngine;
 public class BattleUnit
 {
     public string UnitName { get; private set; }
+    public bool IsPlayerSide { get; private set; }
 
     public int MaxHP { get; private set; }
     public int CurrentHP { get; private set; }
@@ -13,9 +14,16 @@ public class BattleUnit
 
     public bool IsDead => CurrentHP <= 0;
 
-    public BattleUnit(string unitName, int maxHP, int attack, int defense, float attackSpeed)
+    public BattleUnit(
+        string unitName,
+        int maxHP,
+        int attack,
+        int defense,
+        float attackSpeed,
+        bool isPlayerSide)
     {
         UnitName = unitName;
+        IsPlayerSide = isPlayerSide;
         MaxHP = maxHP;
         CurrentHP = maxHP;
         Attack = attack;
