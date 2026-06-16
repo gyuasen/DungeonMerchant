@@ -1,0 +1,37 @@
+using UnityEngine;
+
+public static class DungeonMerchantBootstrap
+{
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void EnsureRuntimeObjects()
+    {
+        if (Object.FindObjectOfType<SimpleMercenaryHireUI>() != null)
+        {
+            return;
+        }
+
+        GameObject root = Object.FindObjectOfType<MercenaryHireManager>() != null
+            ? Object.FindObjectOfType<MercenaryHireManager>().gameObject
+            : new GameObject("DungeonMerchant Runtime");
+
+        EnsureComponent<MerchantData>(root);
+        EnsureComponent<MercenaryHireManager>(root);
+        EnsureComponent<MercenaryPartyManager>(root);
+        EnsureComponent<MercenaryGenerator>(root);
+        EnsureComponent<BattleManager>(root);
+        EnsureComponent<SimpleMercenaryHireUI>(root);
+
+        Debug.Log("DungeonMerchant runtime objects were created automatically.");
+    }
+
+    private static T EnsureComponent<T>(GameObject target) where T : Component
+    {
+        T component = target.GetComponent<T>();
+        if (component == null)
+        {
+            component = target.AddComponent<T>();
+        }
+
+        return component;
+    }
+}

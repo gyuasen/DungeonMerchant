@@ -1,0 +1,22 @@
+# One mercenary name per line.
+# Replace or extend this file with a UTF-8 name list.
+Alden
+Bran
+Celia
+Daria
+Edwin
+Faye
+Gareth
+Helena
+Iris
+Jonas
+Kara
+Leon
+Mira
+Nolan
+Orla
+Ronan
+Selene
+Tobias
+Vera
+Warren
