@@ -5,23 +5,24 @@ public static class DungeonMerchantBootstrap
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void EnsureRuntimeObjects()
     {
-        if (Object.FindObjectOfType<SimpleMercenaryHireUI>() != null)
-        {
-            return;
-        }
+        SimpleMercenaryHireUI existingUI =
+            Object.FindObjectOfType<SimpleMercenaryHireUI>();
 
-        GameObject root = Object.FindObjectOfType<MercenaryHireManager>() != null
+        GameObject root = existingUI != null
+            ? existingUI.gameObject
+            : Object.FindObjectOfType<MercenaryHireManager>() != null
             ? Object.FindObjectOfType<MercenaryHireManager>().gameObject
             : new GameObject("DungeonMerchant Runtime");
 
         EnsureComponent<MerchantData>(root);
+        EnsureComponent<MerchantInventory>(root);
         EnsureComponent<MercenaryHireManager>(root);
         EnsureComponent<MercenaryPartyManager>(root);
         EnsureComponent<MercenaryGenerator>(root);
         EnsureComponent<BattleManager>(root);
         EnsureComponent<SimpleMercenaryHireUI>(root);
 
-        Debug.Log("DungeonMerchant runtime objects were created automatically.");
+        Debug.Log("DungeonMerchant runtime objects were ensured automatically.");
     }
 
     private static T EnsureComponent<T>(GameObject target) where T : Component

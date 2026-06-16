@@ -2,24 +2,35 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class BattleManager : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private MercenaryPartyManager partyManager;
     [SerializeField] private MerchantData merchantData;
+    [SerializeField] private MerchantInventory merchantInventory;
 
     [Header("Battle Data")]
     [SerializeField] private EnemyDataSO enemyData;
+    [SerializeField] private List<EnemyDataSO> enemyPartyData =
+        new List<EnemyDataSO>();
+    [SerializeField, Min(1)] private int fallbackEnemyCount = 3;
     [SerializeField, Min(0.05f)] private float actionDelay = 0.5f;
 
     private readonly List<BattleUnit> playerUnits = new List<BattleUnit>();
-    private BattleUnit enemyUnit;
+    private readonly List<BattleUnit> enemyUnits = new List<BattleUnit>();
+    private readonly List<EnemyDataSO> battleEnemyData = new List<EnemyDataSO>();
+    private EnemyDataSO fallbackEnemyData;
+    private ItemDataSO fallbackDropItem;
 
     public bool IsBattling { get; private set; }
     public EnemyDataSO EnemyData => enemyData;
 
     public event Action<string> BattleMessage;
+    public event Action<string, BattleLogType> BattleMessageTyped;
     public event Action<bool> BattleCompleted;
 
     public bool StartBattle()
@@ -37,6 +48,8 @@ public class BattleManager : MonoBehaviour
 
     public bool StartBattle(IReadOnlyList<MercenaryInstance> partyMembers)
     {
+        ResolveReferences();
+
         if (IsBattling)
         {
             SendBattleMessage("A battle is already in progress.");
@@ -49,7 +62,7 @@ public class BattleManager : MonoBehaviour
             return false;
         }
 
-        if (enemyData == null)
+        if (BuildEnemyEncounterData().Count == 0)
         {
             SendBattleMessage("No enemy data is assigned.");
             return false;
@@ -58,6 +71,33 @@ public class BattleManager : MonoBehaviour
         CreateBattleUnits(partyMembers);
         StartCoroutine(BattleRoutine());
         return true;
+    }
+
+    public string GetEncounterDescription()
+    {
+        ResolveReferences();
+
+        List<EnemyDataSO> enemies = BuildEnemyEncounterData();
+        if (enemies.Count == 0)
+        {
+            return "No enemy assigned";
+        }
+
+        if (enemies.Count == 1)
+        {
+            EnemyDataSO enemy = enemies[0];
+            return $"{enemy.enemyName}  |  HP {enemy.maxHP}  ATK {enemy.attack}  " +
+                   $"DEF {enemy.defense}  |  Reward {enemy.goldReward} G";
+        }
+
+        int totalGold = 0;
+        foreach (EnemyDataSO enemy in enemies)
+        {
+            totalGold += enemy.goldReward;
+        }
+
+        return $"{enemies[0].enemyName} x{enemies.Count}  |  " +
+               $"Total reward {totalGold} G";
     }
 
     private void ResolveReferences()
@@ -71,11 +111,74 @@ public class BattleManager : MonoBehaviour
         {
             merchantData = FindObjectOfType<MerchantData>();
         }
+
+        if (merchantInventory == null)
+        {
+            merchantInventory = GetComponent<MerchantInventory>();
+        }
+
+        if (merchantInventory == null)
+        {
+            merchantInventory = FindObjectOfType<MerchantInventory>();
+        }
+
+        if (enemyData == null)
+        {
+            enemyData = FindEnemyData();
+        }
+    }
+
+    private EnemyDataSO FindEnemyData()
+    {
+        EnemyDataSO[] resourceEnemies = Resources.LoadAll<EnemyDataSO>(string.Empty);
+        if (resourceEnemies.Length > 0)
+        {
+            return resourceEnemies[0];
+        }
+
+#if UNITY_EDITOR
+        string[] guids = AssetDatabase.FindAssets(
+            "t:EnemyDataSO",
+            new[] { "Assets/Proiject/ScriptableObjects/Enemies" });
+
+        if (guids.Length > 0)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guids[0]);
+            EnemyDataSO foundEnemy =
+                AssetDatabase.LoadAssetAtPath<EnemyDataSO>(path);
+            if (foundEnemy != null)
+            {
+                return foundEnemy;
+            }
+        }
+#endif
+
+        return GetFallbackSlimeData();
+    }
+
+    private EnemyDataSO GetFallbackSlimeData()
+    {
+        if (fallbackEnemyData != null)
+        {
+            return fallbackEnemyData;
+        }
+
+        fallbackEnemyData = ScriptableObject.CreateInstance<EnemyDataSO>();
+        fallbackEnemyData.name = "Runtime Slime";
+        fallbackEnemyData.enemyName = "Slime";
+        fallbackEnemyData.maxHP = 20;
+        fallbackEnemyData.attack = 5;
+        fallbackEnemyData.defense = 1;
+        fallbackEnemyData.attackSpeed = 1f;
+        fallbackEnemyData.goldReward = 50;
+        return fallbackEnemyData;
     }
 
     private void CreateBattleUnits(IReadOnlyList<MercenaryInstance> partyMembers)
     {
         playerUnits.Clear();
+        enemyUnits.Clear();
+        battleEnemyData.Clear();
 
         foreach (MercenaryInstance mercenary in partyMembers)
         {
@@ -84,22 +187,64 @@ public class BattleManager : MonoBehaviour
                 mercenary.MaxHP,
                 mercenary.Attack,
                 mercenary.Defense,
-                mercenary.AttackSpeed));
+                mercenary.AttackSpeed,
+                true));
         }
 
-        enemyUnit = new BattleUnit(
-            enemyData.enemyName,
-            enemyData.maxHP,
-            enemyData.attack,
-            enemyData.defense,
-            enemyData.attackSpeed);
+        List<EnemyDataSO> enemies = BuildEnemyEncounterData();
+        for (int i = 0; i < enemies.Count; i++)
+        {
+            EnemyDataSO enemy = enemies[i];
+            string unitName = enemies.Count == 1
+                ? enemy.enemyName
+                : $"{enemy.enemyName} {i + 1}";
+
+            enemyUnits.Add(new BattleUnit(
+                unitName,
+                enemy.maxHP,
+                enemy.attack,
+                enemy.defense,
+                enemy.attackSpeed,
+                false));
+            battleEnemyData.Add(enemy);
+        }
+    }
+
+    private List<EnemyDataSO> BuildEnemyEncounterData()
+    {
+        List<EnemyDataSO> enemies = new List<EnemyDataSO>();
+
+        foreach (EnemyDataSO enemy in enemyPartyData)
+        {
+            if (enemy != null)
+            {
+                enemies.Add(enemy);
+            }
+        }
+
+        if (enemies.Count > 0)
+        {
+            return enemies;
+        }
+
+        if (enemyData != null)
+        {
+            int count = Mathf.Max(1, fallbackEnemyCount);
+            for (int i = 0; i < count; i++)
+            {
+                enemies.Add(enemyData);
+            }
+        }
+
+        return enemies;
     }
 
     private IEnumerator BattleRoutine()
     {
         IsBattling = true;
         SendBattleMessage(
-            $"Battle started: {playerUnits.Count} mercenaries vs {enemyUnit.UnitName}");
+            $"Battle started: {playerUnits.Count} mercenaries vs {enemyUnits.Count} enemies",
+            BattleLogType.System);
 
         while (IsBattling)
         {
@@ -111,9 +256,16 @@ public class BattleManager : MonoBehaviour
                 }
 
                 yield return new WaitForSeconds(actionDelay);
-                Attack(playerUnit, enemyUnit);
+                BattleUnit enemyTarget = GetFirstLivingEnemyUnit();
+                if (enemyTarget == null)
+                {
+                    CompleteBattle(true);
+                    yield break;
+                }
 
-                if (enemyUnit.IsDead)
+                Attack(playerUnit, enemyTarget);
+
+                if (GetFirstLivingEnemyUnit() == null)
                 {
                     CompleteBattle(true);
                     yield break;
@@ -127,13 +279,28 @@ public class BattleManager : MonoBehaviour
                 yield break;
             }
 
-            yield return new WaitForSeconds(actionDelay);
-            Attack(enemyUnit, target);
-
-            if (GetFirstLivingPlayerUnit() == null)
+            foreach (BattleUnit enemy in enemyUnits)
             {
-                CompleteBattle(false);
-                yield break;
+                if (enemy.IsDead)
+                {
+                    continue;
+                }
+
+                target = GetFirstLivingPlayerUnit();
+                if (target == null)
+                {
+                    CompleteBattle(false);
+                    yield break;
+                }
+
+                yield return new WaitForSeconds(actionDelay);
+                Attack(enemy, target);
+
+                if (GetFirstLivingPlayerUnit() == null)
+                {
+                    CompleteBattle(false);
+                    yield break;
+                }
             }
         }
     }
@@ -146,7 +313,8 @@ public class BattleManager : MonoBehaviour
 
         SendBattleMessage(
             $"{attacker.UnitName} attacked {target.UnitName}: " +
-            $"{damageDealt} damage, HP {target.CurrentHP}/{target.MaxHP}");
+            $"{damageDealt} damage, HP {target.CurrentHP}/{target.MaxHP}",
+            attacker.IsPlayerSide ? BattleLogType.Player : BattleLogType.Enemy);
     }
 
     private BattleUnit GetFirstLivingPlayerUnit()
@@ -162,30 +330,150 @@ public class BattleManager : MonoBehaviour
         return null;
     }
 
+    private BattleUnit GetFirstLivingEnemyUnit()
+    {
+        foreach (BattleUnit enemy in enemyUnits)
+        {
+            if (!enemy.IsDead)
+            {
+                return enemy;
+            }
+        }
+
+        return null;
+    }
+
     private void CompleteBattle(bool victory)
     {
         IsBattling = false;
+        ResolveReferences();
 
         if (victory)
         {
+            int totalGoldReward = CalculateGoldReward();
             if (merchantData != null)
             {
-                merchantData.AddGold(enemyData.goldReward);
+                merchantData.AddGold(totalGoldReward);
             }
 
-            SendBattleMessage($"Victory! Reward: {enemyData.goldReward} G");
+            SendBattleMessage($"Victory! Reward: {totalGoldReward} G", BattleLogType.Reward);
+            GrantItemRewards();
         }
         else
         {
-            SendBattleMessage("Defeat.");
+            SendBattleMessage("Defeat.", BattleLogType.System);
         }
 
         BattleCompleted?.Invoke(victory);
     }
 
+    private int CalculateGoldReward()
+    {
+        int totalGoldReward = 0;
+        foreach (EnemyDataSO enemy in battleEnemyData)
+        {
+            if (enemy != null)
+            {
+                totalGoldReward += enemy.goldReward;
+            }
+        }
+
+        return totalGoldReward;
+    }
+
+    private void GrantItemRewards()
+    {
+        ResolveReferences();
+
+        if (merchantInventory == null)
+        {
+            SendBattleMessage("No merchant inventory is assigned.", BattleLogType.System);
+            return;
+        }
+
+        bool droppedAnyItem = false;
+        foreach (EnemyDataSO defeatedEnemy in battleEnemyData)
+        {
+            if (defeatedEnemy == null || defeatedEnemy.itemDrops == null)
+            {
+                continue;
+            }
+
+            foreach (ItemDropEntry drop in defeatedEnemy.itemDrops)
+            {
+                if (drop == null || drop.item == null || drop.amount <= 0)
+                {
+                    continue;
+                }
+
+                if (UnityEngine.Random.value > drop.dropChance)
+                {
+                    continue;
+                }
+
+                merchantInventory.AddItem(drop.item, drop.amount);
+                SendBattleMessage($"Loot: {drop.item.itemName} x{drop.amount}", BattleLogType.Reward);
+                droppedAnyItem = true;
+            }
+        }
+
+        if (!droppedAnyItem)
+        {
+            ItemDataSO fallbackItem = GetFallbackDropItem();
+            merchantInventory.AddItem(fallbackItem, 1);
+            SendBattleMessage($"Loot: {fallbackItem.itemName} x1", BattleLogType.Reward);
+        }
+    }
+
+    private ItemDataSO GetFallbackDropItem()
+    {
+        if (fallbackDropItem != null)
+        {
+            return fallbackDropItem;
+        }
+
+        ItemDataSO[] resourceItems = Resources.LoadAll<ItemDataSO>(string.Empty);
+        if (resourceItems.Length > 0)
+        {
+            fallbackDropItem = resourceItems[0];
+            return fallbackDropItem;
+        }
+
+#if UNITY_EDITOR
+        string[] guids = AssetDatabase.FindAssets(
+            "t:ItemDataSO",
+            new[] { "Assets/Proiject/ScriptableObjects/Items" });
+
+        if (guids.Length > 0)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guids[0]);
+            fallbackDropItem = AssetDatabase.LoadAssetAtPath<ItemDataSO>(path);
+            if (fallbackDropItem != null)
+            {
+                return fallbackDropItem;
+            }
+        }
+#endif
+
+        fallbackDropItem = ScriptableObject.CreateInstance<ItemDataSO>();
+        fallbackDropItem.name = "Runtime Monster Fang";
+        fallbackDropItem.itemName = "Monster Fang";
+        fallbackDropItem.itemType = ItemType.Material;
+        fallbackDropItem.rarity = ItemRarity.Common;
+        fallbackDropItem.description = "A common monster material for testing trade flow.";
+        fallbackDropItem.basePrice = 25;
+        return fallbackDropItem;
+    }
+
     private void SendBattleMessage(string message)
+    {
+        SendBattleMessage(message, BattleLogType.System);
+    }
+
+    private void SendBattleMessage(string message, BattleLogType logType)
     {
         Debug.Log(message);
         BattleMessage?.Invoke(message);
+        BattleMessageTyped?.Invoke(message, logType);
     }
 }
