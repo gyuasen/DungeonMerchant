@@ -15,7 +15,10 @@ public static class DungeonMerchantBootstrap
             : new GameObject("DungeonMerchant Runtime");
 
         EnsureComponent<MerchantData>(root);
+        EnsureComponent<DayManager>(root);
+        EnsureComponent<MarketPriceManager>(root);
         EnsureComponent<MerchantInventory>(root);
+        EnsureComponent<MarketStockManager>(root);
         EnsureComponent<MercenaryHireManager>(root);
         EnsureComponent<MercenaryPartyManager>(root);
         EnsureComponent<MercenaryGenerator>(root);

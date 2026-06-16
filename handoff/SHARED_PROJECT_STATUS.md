@@ -32,6 +32,11 @@
 - 商人在庫 `MerchantInventory`
 - 戦闘勝利時のアイテム戦利品追加
 - `INVENTORY` タブで在庫確認と売却
+- 日数管理 `DayManager`
+- 日ごとの市場価格変動 `MarketPriceManager`
+- `INVENTORY` タブの `NEXT DAY` で日付を進め、売却価格を更新
+- 日ごとの仕入れ商品生成 `MarketStockManager`
+- `MARKET` タブで仕入れ商品を購入し、商人在庫へ追加
 - `COMPANY` タブは雇用人数が増えてもスクロール表示
 - ランタイム生成の簡易UGUI
 - シーン上の管理GameObjectが消えていても、再生時に最低限の管理オブジェクトとUIを自動生成するブートストラップ
@@ -59,4 +64,5 @@
 - `EnemyDateSO.cs` / `MercenaryDstsSO.cs` のファイル名タイポ修正
 - アイテムの種類追加
 - 敵ごとの正式なドロップテーブル設定
-- 仕入れ/販売価格変動システム
+- 仕入れ/販売価格変動システムの強化
+- 仕入れ商品の種類と価格バランス調整
