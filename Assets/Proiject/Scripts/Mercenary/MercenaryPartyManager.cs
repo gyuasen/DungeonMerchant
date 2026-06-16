@@ -44,6 +44,8 @@ public class MercenaryPartyManager : MonoBehaviour
 
     private bool IsHired(MercenaryInstance mercenary)
     {
+        ResolveReferences();
+
         if (hireManager == null)
         {
             return false;
@@ -58,5 +60,18 @@ public class MercenaryPartyManager : MonoBehaviour
         }
 
         return false;
+    }
+
+    private void ResolveReferences()
+    {
+        if (hireManager == null)
+        {
+            hireManager = GetComponent<MercenaryHireManager>();
+        }
+
+        if (hireManager == null)
+        {
+            hireManager = FindObjectOfType<MercenaryHireManager>();
+        }
     }
 }

@@ -4,6 +4,15 @@ using UnityEngine;
 
 public class MercenaryGenerator : MonoBehaviour
 {
+    private static readonly string[] FallbackNames =
+    {
+        "Alden",
+        "Brina",
+        "Cato",
+        "Daria",
+        "Elric"
+    };
+
     [Header("Generation Sources")]
     [SerializeField] private TextAsset nameList;
     [SerializeField] private List<MercenaryArchetypeSO> archetypes =
@@ -17,6 +26,8 @@ public class MercenaryGenerator : MonoBehaviour
     [Header("Generated Candidates")]
     [SerializeField] private List<MercenaryInstance> candidates =
         new List<MercenaryInstance>();
+
+    private MercenaryArchetypeSO fallbackArchetype;
 
     public IReadOnlyList<MercenaryInstance> Candidates => candidates;
 
@@ -34,13 +45,12 @@ public class MercenaryGenerator : MonoBehaviour
     public void GenerateCandidates()
     {
         List<string> availableNames = ParseNames();
+        List<MercenaryArchetypeSO> availableArchetypes = GetAvailableArchetypes();
         candidates.Clear();
 
-        if (availableNames.Count == 0 || archetypes.Count == 0)
+        if (availableNames.Count == 0)
         {
-            Debug.LogError("Mercenary generator requires names and archetypes.", this);
-            CandidatesChanged?.Invoke();
-            return;
+            availableNames.AddRange(FallbackNames);
         }
 
         int amount = avoidDuplicateNames
@@ -49,7 +59,7 @@ public class MercenaryGenerator : MonoBehaviour
 
         for (int i = 0; i < amount; i++)
         {
-            MercenaryArchetypeSO archetype = GetRandomArchetype();
+            MercenaryArchetypeSO archetype = GetRandomArchetype(availableArchetypes);
             if (archetype == null)
             {
                 continue;
@@ -117,17 +127,48 @@ public class MercenaryGenerator : MonoBehaviour
         return names;
     }
 
-    private MercenaryArchetypeSO GetRandomArchetype()
+    private List<MercenaryArchetypeSO> GetAvailableArchetypes()
     {
         List<MercenaryArchetypeSO> validArchetypes =
             archetypes.FindAll(archetype => archetype != null);
 
         if (validArchetypes.Count == 0)
         {
+            validArchetypes.Add(GetFallbackArchetype());
+        }
+
+        return validArchetypes;
+    }
+
+    private MercenaryArchetypeSO GetRandomArchetype(
+        List<MercenaryArchetypeSO> availableArchetypes)
+    {
+        if (availableArchetypes == null || availableArchetypes.Count == 0)
+        {
             return null;
         }
 
-        return validArchetypes[UnityEngine.Random.Range(0, validArchetypes.Count)];
+        int index = UnityEngine.Random.Range(0, availableArchetypes.Count);
+        return availableArchetypes[index];
+    }
+
+    private MercenaryArchetypeSO GetFallbackArchetype()
+    {
+        if (fallbackArchetype != null)
+        {
+            return fallbackArchetype;
+        }
+
+        fallbackArchetype = ScriptableObject.CreateInstance<MercenaryArchetypeSO>();
+        fallbackArchetype.name = "Runtime Warrior Archetype";
+        fallbackArchetype.mercenaryClass = MercenaryClass.Warrior;
+        fallbackArchetype.contractType = MercenaryContractType.Temporary;
+        fallbackArchetype.baseMaxHP = 100;
+        fallbackArchetype.baseAttack = 10;
+        fallbackArchetype.baseDefense = 3;
+        fallbackArchetype.baseAttackSpeed = 1f;
+        fallbackArchetype.baseHireCost = 100;
+        return fallbackArchetype;
     }
 
     private string TakeRandomName(List<string> availableNames)

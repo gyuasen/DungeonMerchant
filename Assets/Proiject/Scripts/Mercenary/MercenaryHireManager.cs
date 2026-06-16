@@ -51,6 +51,8 @@ public class MercenaryHireManager : MonoBehaviour
 
     public bool TryHireMercenary(MercenaryInstance mercenary)
     {
+        ResolveReferences();
+
         if (merchantData == null)
         {
             Debug.LogError("MerchantData is not assigned.");
@@ -75,13 +77,12 @@ public class MercenaryHireManager : MonoBehaviour
             return false;
         }
 
-        if (!merchantData.CanPay(mercenary.HireCost))
+        if (!merchantData.TryPayGold(mercenary.HireCost))
         {
             Debug.Log($"Not enough gold to hire {mercenary.MercenaryName}.");
             return false;
         }
 
-        merchantData.PayGold(mercenary.HireCost);
         hiredMercenaries.Add(mercenary);
         MercenaryHired?.Invoke(mercenary);
 
@@ -93,6 +94,8 @@ public class MercenaryHireManager : MonoBehaviour
 
     public bool CanAfford(MercenaryDataSO mercenary)
     {
+        ResolveReferences();
+
         return merchantData != null &&
                mercenary != null &&
                mercenary.hireCost >= 0 &&
@@ -101,9 +104,24 @@ public class MercenaryHireManager : MonoBehaviour
 
     public bool CanAfford(MercenaryInstance mercenary)
     {
+        ResolveReferences();
+
         return merchantData != null &&
                mercenary != null &&
                mercenary.HireCost >= 0 &&
                merchantData.CanPay(mercenary.HireCost);
+    }
+
+    private void ResolveReferences()
+    {
+        if (merchantData == null)
+        {
+            merchantData = GetComponent<MerchantData>();
+        }
+
+        if (merchantData == null)
+        {
+            merchantData = FindObjectOfType<MerchantData>();
+        }
     }
 }

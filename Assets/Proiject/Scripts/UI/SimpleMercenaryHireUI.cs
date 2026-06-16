@@ -55,10 +55,11 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             return;
         }
 
-        uiFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        uiFont = LoadUIFont();
         CacheAlreadyHiredCandidates();
         EnsureEventSystem();
         BuildUI();
+        merchantData.GoldChanged += HandleGoldChanged;
         hireManager.MercenaryHired += HandleMercenaryHired;
         partyManager.PartyChanged += HandlePartyChanged;
         mercenaryGenerator.CandidatesChanged += HandleCandidatesChanged;
@@ -88,6 +89,11 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         if (battleManager == null)
         {
             battleManager = FindObjectOfType<BattleManager>();
+        }
+
+        if (merchantData == null)
+        {
+            merchantData = GetComponent<MerchantData>();
         }
 
         if (merchantData == null)
@@ -133,8 +139,29 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         return hasAllReferences;
     }
 
+    private Font LoadUIFont()
+    {
+        Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        if (font == null)
+        {
+            font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        }
+
+        if (font == null)
+        {
+            Debug.LogError("Simple hire UI could not load a built-in font.", this);
+        }
+
+        return font;
+    }
+
     private void OnDestroy()
     {
+        if (merchantData != null)
+        {
+            merchantData.GoldChanged -= HandleGoldChanged;
+        }
+
         if (hireManager != null)
         {
             hireManager.MercenaryHired -= HandleMercenaryHired;
@@ -592,6 +619,11 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private void HandleCandidatesChanged()
     {
         RebuildHireList();
+        RefreshUI();
+    }
+
+    private void HandleGoldChanged(int currentGold)
+    {
         RefreshUI();
     }
 

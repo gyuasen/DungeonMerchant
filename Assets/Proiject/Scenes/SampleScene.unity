@@ -280,7 +280,7 @@ MonoBehaviour:
   hireManager: {fileID: 524810707}
   partyManager: {fileID: 524810710}
   mercenaryGenerator: {fileID: 524810711}
-  battleManager: {fileID: 0}
+  battleManager: {fileID: 1029746122}
   candidates:
   - {fileID: 11400000, guid: e1aa1773b51d99645ac3ee51a8c573b9, type: 2}
 --- !u!114 &524810710
@@ -346,8 +346,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 706dbd558a9ceed41b7115334e9e7a5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  partyManager: {fileID: 0}
-  merchantData: {fileID: 0}
+  partyManager: {fileID: 524810710}
+  merchantData: {fileID: 1765243042}
   enemyData: {fileID: 11400000, guid: 239a8f3917ce33c469d7359348e47b0b, type: 2}
   actionDelay: 0.5
 --- !u!4 &1029746123
