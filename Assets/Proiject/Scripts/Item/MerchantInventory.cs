@@ -5,6 +5,7 @@ using UnityEngine;
 public class MerchantInventory : MonoBehaviour
 {
     [SerializeField] private MerchantData merchantData;
+    [SerializeField] private MarketPriceManager marketPriceManager;
     [SerializeField] private List<InventoryItemStack> items =
         new List<InventoryItemStack>();
 
@@ -48,7 +49,7 @@ public class MerchantInventory : MonoBehaviour
             return false;
         }
 
-        merchantData.AddGold(item.basePrice * amount);
+        merchantData.AddGold(GetSellPrice(item) * amount);
 
         if (stack.Amount <= 0)
         {
@@ -58,6 +59,20 @@ public class MerchantInventory : MonoBehaviour
         Debug.Log($"Sold item: {item.itemName} x{amount}");
         InventoryChanged?.Invoke();
         return true;
+    }
+
+    public int GetSellPrice(ItemDataSO item)
+    {
+        ResolveReferences();
+
+        if (item == null)
+        {
+            return 0;
+        }
+
+        return marketPriceManager != null
+            ? marketPriceManager.GetSellPrice(item)
+            : item.basePrice;
     }
 
     private InventoryItemStack FindStack(ItemDataSO item)
@@ -83,6 +98,16 @@ public class MerchantInventory : MonoBehaviour
         if (merchantData == null)
         {
             merchantData = FindObjectOfType<MerchantData>();
+        }
+
+        if (marketPriceManager == null)
+        {
+            marketPriceManager = GetComponent<MarketPriceManager>();
+        }
+
+        if (marketPriceManager == null)
+        {
+            marketPriceManager = FindObjectOfType<MarketPriceManager>();
         }
     }
 }

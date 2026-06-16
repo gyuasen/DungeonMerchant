@@ -15,6 +15,9 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     [SerializeField] private MercenaryGenerator mercenaryGenerator;
     [SerializeField] private BattleManager battleManager;
     [SerializeField] private MerchantInventory merchantInventory;
+    [SerializeField] private DayManager dayManager;
+    [SerializeField] private MarketPriceManager marketPriceManager;
+    [SerializeField] private MarketStockManager marketStockManager;
 
     [Header("Hire Candidates")]
     [SerializeField] private List<MercenaryDataSO> candidates = new List<MercenaryDataSO>();
@@ -24,6 +27,9 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private readonly List<Button> generatedHireButtons = new List<Button>();
     private readonly List<MercenaryInstance> displayedGeneratedCandidates =
         new List<MercenaryInstance>();
+    private readonly List<Button> marketBuyButtons = new List<Button>();
+    private readonly List<MarketStockEntry> displayedMarketEntries =
+        new List<MarketStockEntry>();
     private readonly HashSet<MercenaryDataSO> hiredCandidates = new HashSet<MercenaryDataSO>();
     private readonly List<string> battleLogLines = new List<string>();
 
@@ -32,20 +38,25 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform companyPage;
     private RectTransform partyPage;
     private RectTransform battlePage;
+    private RectTransform marketPage;
     private RectTransform inventoryPage;
     private RectTransform companyScrollContent;
     private RectTransform companyList;
     private RectTransform partyList;
     private RectTransform inventoryList;
+    private RectTransform marketList;
     private Button hireTabButton;
     private Button companyTabButton;
     private Button partyTabButton;
     private Button battleTabButton;
+    private Button marketTabButton;
     private Button inventoryTabButton;
     private Button startBattleButton;
+    private Button nextDayButton;
     private Text goldText;
     private Text statusText;
     private Text battleLogText;
+    private Text marketInfoText;
     private Font uiFont;
     private RectTransform battleLogContent;
 
@@ -77,6 +88,9 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         battleManager.BattleMessageTyped += HandleBattleMessage;
         battleManager.BattleCompleted += HandleBattleCompleted;
         merchantInventory.InventoryChanged += HandleInventoryChanged;
+        dayManager.DayChanged += HandleDayChanged;
+        marketPriceManager.PricesChanged += HandlePricesChanged;
+        marketStockManager.StockChanged += HandleMarketStockChanged;
         ShowHirePage();
         RefreshUI();
     }
@@ -116,6 +130,51 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         if (merchantInventory == null)
         {
             merchantInventory = gameObject.AddComponent<MerchantInventory>();
+        }
+
+        if (dayManager == null)
+        {
+            dayManager = GetComponent<DayManager>();
+        }
+
+        if (dayManager == null)
+        {
+            dayManager = FindObjectOfType<DayManager>();
+        }
+
+        if (dayManager == null)
+        {
+            dayManager = gameObject.AddComponent<DayManager>();
+        }
+
+        if (marketPriceManager == null)
+        {
+            marketPriceManager = GetComponent<MarketPriceManager>();
+        }
+
+        if (marketPriceManager == null)
+        {
+            marketPriceManager = FindObjectOfType<MarketPriceManager>();
+        }
+
+        if (marketPriceManager == null)
+        {
+            marketPriceManager = gameObject.AddComponent<MarketPriceManager>();
+        }
+
+        if (marketStockManager == null)
+        {
+            marketStockManager = GetComponent<MarketStockManager>();
+        }
+
+        if (marketStockManager == null)
+        {
+            marketStockManager = FindObjectOfType<MarketStockManager>();
+        }
+
+        if (marketStockManager == null)
+        {
+            marketStockManager = gameObject.AddComponent<MarketStockManager>();
         }
 
         if (merchantData == null)
@@ -166,6 +225,24 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         if (merchantInventory == null)
         {
             Debug.LogError("Simple hire UI is missing MerchantInventory.", this);
+            hasAllReferences = false;
+        }
+
+        if (dayManager == null)
+        {
+            Debug.LogError("Simple hire UI is missing DayManager.", this);
+            hasAllReferences = false;
+        }
+
+        if (marketPriceManager == null)
+        {
+            Debug.LogError("Simple hire UI is missing MarketPriceManager.", this);
+            hasAllReferences = false;
+        }
+
+        if (marketStockManager == null)
+        {
+            Debug.LogError("Simple hire UI is missing MarketStockManager.", this);
             hasAllReferences = false;
         }
 
@@ -274,6 +351,21 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         {
             merchantInventory.InventoryChanged -= HandleInventoryChanged;
         }
+
+        if (dayManager != null)
+        {
+            dayManager.DayChanged -= HandleDayChanged;
+        }
+
+        if (marketPriceManager != null)
+        {
+            marketPriceManager.PricesChanged -= HandlePricesChanged;
+        }
+
+        if (marketStockManager != null)
+        {
+            marketStockManager.StockChanged -= HandleMarketStockChanged;
+        }
     }
 
     private void BuildUI()
@@ -291,34 +383,41 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         companyTabButton = CreateNavigationButton(
             panel,
             "COMPANY",
-            new Vector2(174f, -78f),
+            new Vector2(152f, -78f),
             ShowCompanyPage);
         partyTabButton = CreateNavigationButton(
             panel,
             "PARTY",
-            new Vector2(320f, -78f),
+            new Vector2(276f, -78f),
             ShowPartyPage);
         battleTabButton = CreateNavigationButton(
             panel,
             "BATTLE",
-            new Vector2(466f, -78f),
+            new Vector2(400f, -78f),
             ShowBattlePage);
+        marketTabButton = CreateNavigationButton(
+            panel,
+            "MARKET",
+            new Vector2(524f, -78f),
+            ShowMarketPage);
         inventoryTabButton = CreateNavigationButton(
             panel,
             "INVENTORY",
-            new Vector2(612f, -78f),
+            new Vector2(648f, -78f),
             ShowInventoryPage);
 
         hirePage = CreatePage("Hire Page", panel);
         companyPage = CreatePage("Company Page", panel);
         partyPage = CreatePage("Party Page", panel);
         battlePage = CreatePage("Battle Page", panel);
+        marketPage = CreatePage("Market Page", panel);
         inventoryPage = CreatePage("Inventory Page", panel);
 
         BuildHirePage();
         BuildCompanyPage();
         BuildPartyPage();
         BuildBattlePage();
+        BuildMarketPage();
         BuildInventoryPage();
 
         statusText = CreateText(panel, "Select a mercenary to hire.", 15, FontStyle.Normal,
@@ -517,11 +616,35 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             TextAnchor.MiddleLeft, new Vector2(0f, -30f), new Vector2(0f, 0f),
             MutedTextColor);
 
+        marketInfoText = CreateText(inventoryPage, string.Empty, 16, FontStyle.Bold,
+            TextAnchor.MiddleLeft, new Vector2(0f, -70f), new Vector2(-160f, -38f),
+            Color.white);
+
+        nextDayButton = CreateActionButton(inventoryPage, "NEXT DAY", AdvanceDay);
+        RectTransform nextDayRect = nextDayButton.GetComponent<RectTransform>();
+        nextDayRect.anchorMin = new Vector2(1f, 1f);
+        nextDayRect.anchorMax = new Vector2(1f, 1f);
+        nextDayRect.pivot = new Vector2(1f, 1f);
+        nextDayRect.anchoredPosition = new Vector2(0f, -34f);
+
         inventoryList = CreateUIObject("Inventory List", inventoryPage);
         inventoryList.anchorMin = new Vector2(0f, 0f);
         inventoryList.anchorMax = new Vector2(1f, 1f);
         inventoryList.offsetMin = Vector2.zero;
-        inventoryList.offsetMax = new Vector2(0f, -44f);
+        inventoryList.offsetMax = new Vector2(0f, -86f);
+    }
+
+    private void BuildMarketPage()
+    {
+        CreateText(marketPage, "Daily market stock", 15, FontStyle.Normal,
+            TextAnchor.MiddleLeft, new Vector2(0f, -30f), new Vector2(0f, 0f),
+            MutedTextColor);
+
+        marketList = CreateUIObject("Market List", marketPage);
+        marketList.anchorMin = new Vector2(0f, 0f);
+        marketList.anchorMax = new Vector2(1f, 1f);
+        marketList.offsetMin = Vector2.zero;
+        marketList.offsetMax = new Vector2(0f, -44f);
     }
 
     private void RebuildCompanyList()
@@ -587,6 +710,33 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             }
 
             CreateInventoryRow(inventoryList, stack, rowTop);
+            rowTop -= 112f;
+        }
+    }
+
+    private void RebuildMarketList()
+    {
+        ClearChildren(marketList);
+        marketBuyButtons.Clear();
+        displayedMarketEntries.Clear();
+
+        if (marketStockManager.Stock.Count == 0)
+        {
+            CreateText(marketList, "No goods are available today.", 18, FontStyle.Normal,
+                TextAnchor.MiddleCenter, new Vector2(0f, -180f), new Vector2(0f, -80f),
+                MutedTextColor);
+            return;
+        }
+
+        float rowTop = 0f;
+        foreach (MarketStockEntry entry in marketStockManager.Stock)
+        {
+            if (entry == null || entry.Item == null || entry.Quantity <= 0)
+            {
+                continue;
+            }
+
+            CreateMarketRow(marketList, entry, rowTop);
             rowTop -= 112f;
         }
     }
@@ -702,13 +852,41 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             TextAnchor.MiddleLeft, new Vector2(18f, -42f), new Vector2(-160f, -12f),
             Color.white);
 
+        int sellPrice = merchantInventory.GetSellPrice(item);
+        int percent = Mathf.RoundToInt(marketPriceManager.GetSellMultiplier(item) * 100f);
         string details =
-            $"{item.rarity}  |  {item.itemType}  |  Sell {item.basePrice} G each";
+            $"{item.rarity}  |  {item.itemType}  |  Base {item.basePrice} G  |  " +
+            $"Today {sellPrice} G ({percent}%)";
 
         CreateText(row, details, 14, FontStyle.Normal, TextAnchor.MiddleLeft,
             new Vector2(18f, -76f), new Vector2(-160f, -48f), MutedTextColor);
 
         CreateActionButton(row, "SELL", () => SellItem(item));
+    }
+
+    private void CreateMarketRow(
+        RectTransform parent,
+        MarketStockEntry entry,
+        float top)
+    {
+        ItemDataSO item = entry.Item;
+        RectTransform row = CreateRow(item.itemName, parent, top);
+
+        CreateText(row, $"{item.itemName} x{entry.Quantity}", 22, FontStyle.Bold,
+            TextAnchor.MiddleLeft, new Vector2(18f, -42f), new Vector2(-160f, -12f),
+            Color.white);
+
+        int sellPrice = merchantInventory.GetSellPrice(item);
+        string details =
+            $"{item.rarity}  |  {item.itemType}  |  Buy {entry.BuyPrice} G  |  " +
+            $"Today sell {sellPrice} G";
+
+        CreateText(row, details, 14, FontStyle.Normal, TextAnchor.MiddleLeft,
+            new Vector2(18f, -76f), new Vector2(-160f, -48f), MutedTextColor);
+
+        Button buyButton = CreateActionButton(row, "BUY", () => BuyMarketItem(entry));
+        marketBuyButtons.Add(buyButton);
+        displayedMarketEntries.Add(entry);
     }
 
     private RectTransform CreateRow(string rowName, RectTransform parent, float top)
@@ -735,7 +913,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         buttonRect.anchorMin = new Vector2(0f, 1f);
         buttonRect.anchorMax = new Vector2(0f, 1f);
         buttonRect.pivot = new Vector2(0f, 1f);
-        buttonRect.sizeDelta = new Vector2(132f, 38f);
+        buttonRect.sizeDelta = new Vector2(118f, 38f);
         buttonRect.anchoredPosition = position;
 
         Image image = buttonRect.gameObject.AddComponent<Image>();
@@ -838,6 +1016,26 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         RefreshUI();
     }
 
+    private void HandleMarketStockChanged()
+    {
+        RebuildMarketList();
+        RefreshUI();
+    }
+
+    private void HandleDayChanged(int currentDay)
+    {
+        RebuildMarketList();
+        RebuildInventoryList();
+        RefreshUI();
+        statusText.text = $"Day {currentDay} started. Market prices changed.";
+    }
+
+    private void HandlePricesChanged()
+    {
+        RebuildInventoryList();
+        RefreshUI();
+    }
+
     private void HandleGoldChanged(int currentGold)
     {
         RefreshUI();
@@ -921,6 +1119,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private void SellItem(ItemDataSO item)
     {
+        int sellPrice = merchantInventory.GetSellPrice(item);
         if (!merchantInventory.SellItem(item, 1))
         {
             statusText.text = $"Could not sell {item.itemName}.";
@@ -928,8 +1127,35 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             return;
         }
 
-        statusText.text = $"Sold {item.itemName}.";
+        statusText.text = $"Sold {item.itemName} for {sellPrice} G.";
         RefreshUI();
+    }
+
+    private void BuyMarketItem(MarketStockEntry entry)
+    {
+        if (entry == null || entry.Item == null)
+        {
+            return;
+        }
+
+        int buyPrice = entry.BuyPrice;
+        string itemName = entry.Item.itemName;
+        if (!marketStockManager.TryBuy(entry, 1))
+        {
+            statusText.text = $"Could not buy {itemName}.";
+            RefreshUI();
+            return;
+        }
+
+        statusText.text = $"Bought {itemName} for {buyPrice} G.";
+        RebuildMarketList();
+        RebuildInventoryList();
+        RefreshUI();
+    }
+
+    private void AdvanceDay()
+    {
+        dayManager.AdvanceDay();
     }
 
     private void CacheAlreadyHiredCandidates()
@@ -949,11 +1175,13 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         companyPage.gameObject.SetActive(false);
         partyPage.gameObject.SetActive(false);
         battlePage.gameObject.SetActive(false);
+        marketPage.gameObject.SetActive(false);
         inventoryPage.gameObject.SetActive(false);
         SetTabActive(hireTabButton, true);
         SetTabActive(companyTabButton, false);
         SetTabActive(partyTabButton, false);
         SetTabActive(battleTabButton, false);
+        SetTabActive(marketTabButton, false);
         SetTabActive(inventoryTabButton, false);
         statusText.text = "Select a mercenary to hire.";
     }
@@ -964,11 +1192,13 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         companyPage.gameObject.SetActive(true);
         partyPage.gameObject.SetActive(false);
         battlePage.gameObject.SetActive(false);
+        marketPage.gameObject.SetActive(false);
         inventoryPage.gameObject.SetActive(false);
         SetTabActive(hireTabButton, false);
         SetTabActive(companyTabButton, true);
         SetTabActive(partyTabButton, false);
         SetTabActive(battleTabButton, false);
+        SetTabActive(marketTabButton, false);
         SetTabActive(inventoryTabButton, false);
         RebuildCompanyList();
         statusText.text = $"Company mercenaries: {hireManager.HiredMercenaries.Count}";
@@ -980,11 +1210,13 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         companyPage.gameObject.SetActive(false);
         partyPage.gameObject.SetActive(true);
         battlePage.gameObject.SetActive(false);
+        marketPage.gameObject.SetActive(false);
         inventoryPage.gameObject.SetActive(false);
         SetTabActive(hireTabButton, false);
         SetTabActive(companyTabButton, false);
         SetTabActive(partyTabButton, true);
         SetTabActive(battleTabButton, false);
+        SetTabActive(marketTabButton, false);
         SetTabActive(inventoryTabButton, false);
         RebuildPartyList();
         statusText.text = $"Party members: {partyManager.Members.Count}/{partyManager.MaxPartySize}";
@@ -996,15 +1228,36 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         companyPage.gameObject.SetActive(false);
         partyPage.gameObject.SetActive(false);
         battlePage.gameObject.SetActive(true);
+        marketPage.gameObject.SetActive(false);
         inventoryPage.gameObject.SetActive(false);
         SetTabActive(hireTabButton, false);
         SetTabActive(companyTabButton, false);
         SetTabActive(partyTabButton, false);
         SetTabActive(battleTabButton, true);
+        SetTabActive(marketTabButton, false);
         SetTabActive(inventoryTabButton, false);
         startBattleButton.interactable =
             partyManager.Members.Count > 0 && !battleManager.IsBattling;
         statusText.text = $"Battle party: {partyManager.Members.Count} mercenaries";
+    }
+
+    private void ShowMarketPage()
+    {
+        hirePage.gameObject.SetActive(false);
+        companyPage.gameObject.SetActive(false);
+        partyPage.gameObject.SetActive(false);
+        battlePage.gameObject.SetActive(false);
+        marketPage.gameObject.SetActive(true);
+        inventoryPage.gameObject.SetActive(false);
+        SetTabActive(hireTabButton, false);
+        SetTabActive(companyTabButton, false);
+        SetTabActive(partyTabButton, false);
+        SetTabActive(battleTabButton, false);
+        SetTabActive(marketTabButton, true);
+        SetTabActive(inventoryTabButton, false);
+        RebuildMarketList();
+        statusText.text =
+            $"Market stock: {marketStockManager.Stock.Count} / {marketPriceManager.GetMarketSummary()}";
     }
 
     private void ShowInventoryPage()
@@ -1013,14 +1266,17 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         companyPage.gameObject.SetActive(false);
         partyPage.gameObject.SetActive(false);
         battlePage.gameObject.SetActive(false);
+        marketPage.gameObject.SetActive(false);
         inventoryPage.gameObject.SetActive(true);
         SetTabActive(hireTabButton, false);
         SetTabActive(companyTabButton, false);
         SetTabActive(partyTabButton, false);
         SetTabActive(battleTabButton, false);
+        SetTabActive(marketTabButton, false);
         SetTabActive(inventoryTabButton, true);
         RebuildInventoryList();
-        statusText.text = $"Inventory items: {merchantInventory.Items.Count}";
+        statusText.text =
+            $"Inventory items: {merchantInventory.Items.Count} / {marketPriceManager.GetMarketSummary()}";
     }
 
     private void RefreshUI()
@@ -1038,6 +1294,18 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         {
             generatedHireButtons[i].interactable =
                 hireManager.CanAfford(displayedGeneratedCandidates[i]);
+        }
+
+        for (int i = 0; i < marketBuyButtons.Count; i++)
+        {
+            marketBuyButtons[i].interactable =
+                marketStockManager.CanBuy(displayedMarketEntries[i]);
+        }
+
+        if (marketInfoText != null)
+        {
+            marketInfoText.text =
+                $"{marketPriceManager.GetMarketSummary()}  |  Sell prices refresh every day";
         }
     }
 
