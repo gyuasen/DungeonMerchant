@@ -21,8 +21,12 @@ public class BattleManager : MonoBehaviour
     [SerializeField, Min(0.05f)] private float actionDelay = 0.5f;
 
     private readonly List<BattleUnit> playerUnits = new List<BattleUnit>();
+    private readonly List<MercenaryInstance> battleMercenaries =
+        new List<MercenaryInstance>();
     private readonly List<BattleUnit> enemyUnits = new List<BattleUnit>();
     private readonly List<EnemyDataSO> battleEnemyData = new List<EnemyDataSO>();
+    private readonly List<EnemyDataSO> overrideEnemyEncounter =
+        new List<EnemyDataSO>();
     private EnemyDataSO fallbackEnemyData;
     private ItemDataSO fallbackDropItem;
 
@@ -48,6 +52,13 @@ public class BattleManager : MonoBehaviour
 
     public bool StartBattle(IReadOnlyList<MercenaryInstance> partyMembers)
     {
+        return StartBattle(partyMembers, null);
+    }
+
+    public bool StartBattle(
+        IReadOnlyList<MercenaryInstance> partyMembers,
+        IReadOnlyList<EnemyDataSO> enemyEncounter)
+    {
         ResolveReferences();
 
         if (IsBattling)
@@ -62,6 +73,8 @@ public class BattleManager : MonoBehaviour
             return false;
         }
 
+        SetOverrideEnemyEncounter(enemyEncounter);
+
         if (BuildEnemyEncounterData().Count == 0)
         {
             SendBattleMessage("No enemy data is assigned.");
@@ -71,6 +84,26 @@ public class BattleManager : MonoBehaviour
         CreateBattleUnits(partyMembers);
         StartCoroutine(BattleRoutine());
         return true;
+    }
+
+    public List<EnemyDataSO> CreateDefaultEnemyEncounter(int enemyCount)
+    {
+        ResolveReferences();
+
+        List<EnemyDataSO> enemies = new List<EnemyDataSO>();
+        EnemyDataSO enemy = enemyData != null ? enemyData : FindEnemyData();
+        if (enemy == null)
+        {
+            return enemies;
+        }
+
+        int count = Mathf.Max(1, enemyCount);
+        for (int i = 0; i < count; i++)
+        {
+            enemies.Add(enemy);
+        }
+
+        return enemies;
     }
 
     public string GetEncounterDescription()
@@ -177,18 +210,31 @@ public class BattleManager : MonoBehaviour
     private void CreateBattleUnits(IReadOnlyList<MercenaryInstance> partyMembers)
     {
         playerUnits.Clear();
+        battleMercenaries.Clear();
         enemyUnits.Clear();
         battleEnemyData.Clear();
 
         foreach (MercenaryInstance mercenary in partyMembers)
         {
+            if (mercenary.IsIncapacitated)
+            {
+                continue;
+            }
+
             playerUnits.Add(new BattleUnit(
                 mercenary.MercenaryName,
                 mercenary.MaxHP,
+                mercenary.CurrentHP,
                 mercenary.Attack,
                 mercenary.Defense,
                 mercenary.AttackSpeed,
                 true));
+            battleMercenaries.Add(mercenary);
+        }
+
+        if (playerUnits.Count == 0)
+        {
+            return;
         }
 
         List<EnemyDataSO> enemies = BuildEnemyEncounterData();
@@ -202,6 +248,7 @@ public class BattleManager : MonoBehaviour
             enemyUnits.Add(new BattleUnit(
                 unitName,
                 enemy.maxHP,
+                enemy.maxHP,
                 enemy.attack,
                 enemy.defense,
                 enemy.attackSpeed,
@@ -213,6 +260,19 @@ public class BattleManager : MonoBehaviour
     private List<EnemyDataSO> BuildEnemyEncounterData()
     {
         List<EnemyDataSO> enemies = new List<EnemyDataSO>();
+
+        foreach (EnemyDataSO enemy in overrideEnemyEncounter)
+        {
+            if (enemy != null)
+            {
+                enemies.Add(enemy);
+            }
+        }
+
+        if (enemies.Count > 0)
+        {
+            return enemies;
+        }
 
         foreach (EnemyDataSO enemy in enemyPartyData)
         {
@@ -239,9 +299,33 @@ public class BattleManager : MonoBehaviour
         return enemies;
     }
 
+    private void SetOverrideEnemyEncounter(IReadOnlyList<EnemyDataSO> enemyEncounter)
+    {
+        overrideEnemyEncounter.Clear();
+        if (enemyEncounter == null)
+        {
+            return;
+        }
+
+        foreach (EnemyDataSO enemy in enemyEncounter)
+        {
+            if (enemy != null)
+            {
+                overrideEnemyEncounter.Add(enemy);
+            }
+        }
+    }
+
     private IEnumerator BattleRoutine()
     {
         IsBattling = true;
+        if (playerUnits.Count == 0)
+        {
+            SendBattleMessage("All party members are incapacitated.", BattleLogType.System);
+            CompleteBattle(false);
+            yield break;
+        }
+
         SendBattleMessage(
             $"Battle started: {playerUnits.Count} mercenaries vs {enemyUnits.Count} enemies",
             BattleLogType.System);
@@ -347,6 +431,7 @@ public class BattleManager : MonoBehaviour
     {
         IsBattling = false;
         ResolveReferences();
+        ApplyBattleResultsToMercenaries();
 
         if (victory)
         {
@@ -365,6 +450,21 @@ public class BattleManager : MonoBehaviour
         }
 
         BattleCompleted?.Invoke(victory);
+        overrideEnemyEncounter.Clear();
+    }
+
+    private void ApplyBattleResultsToMercenaries()
+    {
+        for (int i = 0; i < battleMercenaries.Count && i < playerUnits.Count; i++)
+        {
+            MercenaryInstance mercenary = battleMercenaries[i];
+            BattleUnit unit = playerUnits[i];
+            mercenary.SetCurrentHP(unit.CurrentHP);
+            SendBattleMessage(
+                $"{mercenary.MercenaryName} HP carried over: " +
+                $"{mercenary.CurrentHP}/{mercenary.MaxHP}",
+                BattleLogType.System);
+        }
     }
 
     private int CalculateGoldReward()

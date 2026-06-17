@@ -32,6 +32,7 @@ public class MercenaryInstance
     public float AttackSpeed => attackSpeed;
     public int HireCost => hireCost;
     public bool IsUnique => baseData != null;
+    public bool IsIncapacitated => currentHP <= 0;
 
     public MercenaryInstance(MercenaryDataSO mercenaryData)
     {
@@ -80,5 +81,25 @@ public class MercenaryInstance
         defense = generatedDefense;
         attackSpeed = generatedAttackSpeed;
         hireCost = generatedHireCost;
+    }
+
+    public void SetCurrentHP(int value)
+    {
+        currentHP = Mathf.Clamp(value, 0, maxHP);
+    }
+
+    public void TakeDamage(int damage)
+    {
+        SetCurrentHP(currentHP - Mathf.Max(0, damage));
+    }
+
+    public void Heal(int amount)
+    {
+        SetCurrentHP(currentHP + Mathf.Max(0, amount));
+    }
+
+    public void RestoreFullHP()
+    {
+        currentHP = maxHP;
     }
 }
