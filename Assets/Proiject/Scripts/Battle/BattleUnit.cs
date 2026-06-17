@@ -17,6 +17,7 @@ public class BattleUnit
     public BattleUnit(
         string unitName,
         int maxHP,
+        int currentHP,
         int attack,
         int defense,
         float attackSpeed,
@@ -25,7 +26,7 @@ public class BattleUnit
         UnitName = unitName;
         IsPlayerSide = isPlayerSide;
         MaxHP = maxHP;
-        CurrentHP = maxHP;
+        CurrentHP = Mathf.Clamp(currentHP, 0, maxHP);
         Attack = attack;
         Defense = defense;
         AttackSpeed = attackSpeed;

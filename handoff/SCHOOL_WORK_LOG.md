@@ -155,3 +155,78 @@
 - 原因は、単一スクロール表示へ戻した際に `battleLogText` のRectTransformを上寄せアンカーにしたまま `offsetMin` / `offsetMax` を0にし、文字描画領域の高さが0になっていたこと。
 - `battleLogText.rectTransform.anchorMin = Vector2.zero`、`anchorMax = Vector2.one` にして、ログContent全体へストレッチするよう修正。
 - `dotnet build DungeonMerchant.sln` は警告0・エラー0で成功。
+
+## 2026-06-17
+
+### 家側作業内容を確認
+
+- ユーザーから「家での作業を共有してください」と指定あり。
+- `handoff/FROM_HOME_CHAT.md` を確認。
+- 家側で `.instructions.md`、`handoff/README.md`、`handoff/FROM_HOME_CHAT.md` の共有ルール追記が行われていた。
+- 家側で `DayManager`、`MarketPriceManager`、`MarketStockManager`、`MarketStockEntry` が追加されていた。
+- 家側で `MerchantInventory`、`SimpleMercenaryHireUI`、`DungeonMerchantBootstrap` が日数、市場価格、仕入れUIに対応していた。
+- `handoff/SHARED_PROJECT_STATUS.md` には、日数管理、市場価格変動、`MARKET` タブ、仕入れ購入が実装済みとして反映済みだった。
+- 対象ファイルが学校側環境にも存在することを確認。
+- `dotnet build DungeonMerchant.sln` は警告0・エラー0で成功。
+
+### 傭兵HPの戦闘後持ち越しを実装
+
+- ユーザーから「HP変更を作成してください」と指定あり。
+- `MercenaryInstance` に `SetCurrentHP`、`TakeDamage`、`Heal`、`RestoreFullHP`、`IsIncapacitated` を追加。
+- `BattleUnit` のコンストラクタに開始時の `currentHP` を渡せるように変更。
+- `BattleManager` が戦闘参加した `MercenaryInstance` と `BattleUnit` の対応を保持するようにした。
+- 戦闘開始時、傭兵の `CurrentHP` を `BattleUnit` にコピーするようにした。
+- HPが0の傭兵は戦闘参加ユニットに入れないようにした。
+- 戦闘終了時、各 `BattleUnit.CurrentHP` を元の `MercenaryInstance` に書き戻すようにした。
+- 戦闘ログに `HP carried over` を出し、持ち越し後HPを確認できるようにした。
+- `SimpleMercenaryHireUI` は戦闘完了時に `COMPANY` / `PARTY` リストを再構築し、HP表示を更新するようにした。
+- `dotnet build DungeonMerchant.sln` は警告0・エラー0で成功。
+
+### 連続戦闘ダンジョンの最小実装を追加
+
+- ユーザーから「連続戦闘のダンジョンの実装をします」と指定あり。
+- `Assets/Proiject/Scripts/Dungeon/DungeonRunManager.cs` を新規追加。
+- `DungeonRunManager` は3回の遭遇を順番に開始し、勝利時は次の遭遇、敗北時はラン終了にする。
+- 遭遇ごとに敵数が増える設定を追加。初期設定は2体、次が3体、次が4体。
+- `BattleManager` に今回だけの敵編成を渡せる `StartBattle(partyMembers, enemyEncounter)` を追加。
+- `BattleManager.CreateDefaultEnemyEncounter(enemyCount)` を追加し、ダンジョン側がスライム複数体の遭遇を作れるようにした。
+- `DungeonMerchantBootstrap` が `DungeonRunManager` を自動生成するようにした。
+- `SimpleMercenaryHireUI` に `DUNGEON` タブを追加。
+- `DUNGEON` タブの `ENTER` から連続戦闘を開始できるようにした。
+- タブ数増加に合わせてナビゲーションボタン幅と位置を調整し、1列に収まるようにした。
+- `Assembly-CSharp.csproj` に `DungeonRunManager.cs` を追加。
+- `dotnet build DungeonMerchant.sln` は警告0・エラー0で成功。
+
+### バトルログを最新行へ自動スクロールするように変更
+
+- ユーザーから「バトルログを一番最新のものへ自動でスクロールできるか」と要望あり。
+- `SimpleMercenaryHireUI` に `battleLogScrollRect` を保持するフィールドを追加。
+- ログ追加後に `ScrollBattleLogToLatest()` を呼び、1フレーム待ってから `verticalNormalizedPosition = 0f` にするようにした。
+- Unity UIのレイアウト反映前にスクロール位置を動かして失敗しないよう、コルーチンで `Canvas.ForceUpdateCanvases()` 後に最下部へ移動する。
+- `dotnet build DungeonMerchant.sln` は警告0・エラー0で成功。
+
+### バトルログ自動スクロール時の見切れを修正
+
+- ユーザーから「途中で上に行きすぎてログが見切れていた」と報告あり。
+- 原因はログContent高さを `行数 * 22` の概算で決めており、実際のText描画高さとズレていたこと。
+- `SimpleMercenaryHireUI` に `UpdateBattleLogContentHeight()` を追加。
+- `battleLogText.preferredHeight + 32f` を使って、実際のログ文字量に合わせてContent高さを更新するようにした。
+- ログTextに上下8pxの余白を追加。
+- 自動スクロール前にもContent高さを再計算するようにした。
+- `dotnet build DungeonMerchant.sln` は警告0・エラー0で成功。
+
+### 治療システムを実装
+
+- ユーザーから「治療のシステムを作ります」と指定あり。
+- `Assets/Proiject/Scripts/Mercenary/HealingManager.cs` を新規追加。
+- `HealingManager` は治療費、自然回復、治療処理を管理する。
+- 治療費は `healCostPerHP = 2`。失ったHPぶんだけ費用が増える。
+- `TryHealFull` で商人のゴールドを支払い、対象傭兵を全回復する。
+- `DayManager.DayChanged` を購読し、日付進行時に雇用済み傭兵を `naturalHealPerDay = 10` 回復する。
+- `DungeonMerchantBootstrap` が `HealingManager` を自動生成するようにした。
+- `SimpleMercenaryHireUI` に `HEAL` タブを追加。
+- `HEAL` タブで雇用済み傭兵のHP、失ったHP、全回復費用を表示し、`HEAL` ボタンで治療できるようにした。
+- 戦闘後、日付進行後、ゴールド変化後に治療一覧が更新されるようにした。
+- タブ数増加に合わせてナビゲーション配置を調整した。
+- `Assembly-CSharp.csproj` に `HealingManager.cs` を追加。
+- `dotnet build DungeonMerchant.sln` は警告0・エラー0で成功。

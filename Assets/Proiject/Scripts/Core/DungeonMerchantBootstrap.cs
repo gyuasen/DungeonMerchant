@@ -20,9 +20,11 @@ public static class DungeonMerchantBootstrap
         EnsureComponent<MerchantInventory>(root);
         EnsureComponent<MarketStockManager>(root);
         EnsureComponent<MercenaryHireManager>(root);
+        EnsureComponent<HealingManager>(root);
         EnsureComponent<MercenaryPartyManager>(root);
         EnsureComponent<MercenaryGenerator>(root);
         EnsureComponent<BattleManager>(root);
+        EnsureComponent<DungeonRunManager>(root);
         EnsureComponent<SimpleMercenaryHireUI>(root);
 
         Debug.Log("DungeonMerchant runtime objects were ensured automatically.");

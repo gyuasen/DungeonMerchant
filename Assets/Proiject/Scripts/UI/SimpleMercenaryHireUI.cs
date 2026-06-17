@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -18,6 +19,8 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     [SerializeField] private DayManager dayManager;
     [SerializeField] private MarketPriceManager marketPriceManager;
     [SerializeField] private MarketStockManager marketStockManager;
+    [SerializeField] private DungeonRunManager dungeonRunManager;
+    [SerializeField] private HealingManager healingManager;
 
     [Header("Hire Candidates")]
     [SerializeField] private List<MercenaryDataSO> candidates = new List<MercenaryDataSO>();
@@ -37,28 +40,37 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform hireList;
     private RectTransform companyPage;
     private RectTransform partyPage;
+    private RectTransform healPage;
     private RectTransform battlePage;
+    private RectTransform dungeonPage;
     private RectTransform marketPage;
     private RectTransform inventoryPage;
     private RectTransform companyScrollContent;
     private RectTransform companyList;
     private RectTransform partyList;
+    private RectTransform healList;
     private RectTransform inventoryList;
     private RectTransform marketList;
     private Button hireTabButton;
     private Button companyTabButton;
     private Button partyTabButton;
+    private Button healTabButton;
     private Button battleTabButton;
+    private Button dungeonTabButton;
     private Button marketTabButton;
     private Button inventoryTabButton;
     private Button startBattleButton;
+    private Button startDungeonButton;
     private Button nextDayButton;
     private Text goldText;
     private Text statusText;
     private Text battleLogText;
+    private Text dungeonStatusText;
     private Text marketInfoText;
     private Font uiFont;
     private RectTransform battleLogContent;
+    private ScrollRect battleLogScrollRect;
+    private Coroutine battleLogScrollCoroutine;
 
     private static readonly Color BackgroundColor = new Color(0.07f, 0.08f, 0.1f, 1f);
     private static readonly Color PanelColor = new Color(0.13f, 0.15f, 0.18f, 1f);
@@ -87,6 +99,10 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         mercenaryGenerator.CandidatesChanged += HandleCandidatesChanged;
         battleManager.BattleMessageTyped += HandleBattleMessage;
         battleManager.BattleCompleted += HandleBattleCompleted;
+        dungeonRunManager.DungeonMessage += HandleDungeonMessage;
+        dungeonRunManager.DungeonStateChanged += HandleDungeonStateChanged;
+        dungeonRunManager.DungeonCompleted += HandleDungeonCompleted;
+        healingManager.HealingChanged += HandleHealingChanged;
         merchantInventory.InventoryChanged += HandleInventoryChanged;
         dayManager.DayChanged += HandleDayChanged;
         marketPriceManager.PricesChanged += HandlePricesChanged;
@@ -177,6 +193,36 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             marketStockManager = gameObject.AddComponent<MarketStockManager>();
         }
 
+        if (dungeonRunManager == null)
+        {
+            dungeonRunManager = GetComponent<DungeonRunManager>();
+        }
+
+        if (dungeonRunManager == null)
+        {
+            dungeonRunManager = FindObjectOfType<DungeonRunManager>();
+        }
+
+        if (dungeonRunManager == null)
+        {
+            dungeonRunManager = gameObject.AddComponent<DungeonRunManager>();
+        }
+
+        if (healingManager == null)
+        {
+            healingManager = GetComponent<HealingManager>();
+        }
+
+        if (healingManager == null)
+        {
+            healingManager = FindObjectOfType<HealingManager>();
+        }
+
+        if (healingManager == null)
+        {
+            healingManager = gameObject.AddComponent<HealingManager>();
+        }
+
         if (merchantData == null)
         {
             merchantData = GetComponent<MerchantData>();
@@ -243,6 +289,18 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         if (marketStockManager == null)
         {
             Debug.LogError("Simple hire UI is missing MarketStockManager.", this);
+            hasAllReferences = false;
+        }
+
+        if (dungeonRunManager == null)
+        {
+            Debug.LogError("Simple hire UI is missing DungeonRunManager.", this);
+            hasAllReferences = false;
+        }
+
+        if (healingManager == null)
+        {
+            Debug.LogError("Simple hire UI is missing HealingManager.", this);
             hasAllReferences = false;
         }
 
@@ -347,6 +405,18 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             battleManager.BattleCompleted -= HandleBattleCompleted;
         }
 
+        if (dungeonRunManager != null)
+        {
+            dungeonRunManager.DungeonMessage -= HandleDungeonMessage;
+            dungeonRunManager.DungeonStateChanged -= HandleDungeonStateChanged;
+            dungeonRunManager.DungeonCompleted -= HandleDungeonCompleted;
+        }
+
+        if (healingManager != null)
+        {
+            healingManager.HealingChanged -= HandleHealingChanged;
+        }
+
         if (merchantInventory != null)
         {
             merchantInventory.InventoryChanged -= HandleInventoryChanged;
@@ -383,40 +453,54 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         companyTabButton = CreateNavigationButton(
             panel,
             "COMPANY",
-            new Vector2(152f, -78f),
+            new Vector2(124f, -78f),
             ShowCompanyPage);
         partyTabButton = CreateNavigationButton(
             panel,
             "PARTY",
-            new Vector2(276f, -78f),
+            new Vector2(220f, -78f),
             ShowPartyPage);
+        healTabButton = CreateNavigationButton(
+            panel,
+            "HEAL",
+            new Vector2(316f, -78f),
+            ShowHealPage);
         battleTabButton = CreateNavigationButton(
             panel,
             "BATTLE",
-            new Vector2(400f, -78f),
+            new Vector2(412f, -78f),
             ShowBattlePage);
+        dungeonTabButton = CreateNavigationButton(
+            panel,
+            "DUNGEON",
+            new Vector2(508f, -78f),
+            ShowDungeonPage);
         marketTabButton = CreateNavigationButton(
             panel,
             "MARKET",
-            new Vector2(524f, -78f),
+            new Vector2(604f, -78f),
             ShowMarketPage);
         inventoryTabButton = CreateNavigationButton(
             panel,
             "INVENTORY",
-            new Vector2(648f, -78f),
+            new Vector2(700f, -78f),
             ShowInventoryPage);
 
         hirePage = CreatePage("Hire Page", panel);
         companyPage = CreatePage("Company Page", panel);
         partyPage = CreatePage("Party Page", panel);
+        healPage = CreatePage("Heal Page", panel);
         battlePage = CreatePage("Battle Page", panel);
+        dungeonPage = CreatePage("Dungeon Page", panel);
         marketPage = CreatePage("Market Page", panel);
         inventoryPage = CreatePage("Inventory Page", panel);
 
         BuildHirePage();
         BuildCompanyPage();
         BuildPartyPage();
+        BuildHealPage();
         BuildBattlePage();
+        BuildDungeonPage();
         BuildMarketPage();
         BuildInventoryPage();
 
@@ -544,6 +628,49 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         partyList.offsetMax = new Vector2(0f, -44f);
     }
 
+    private void BuildHealPage()
+    {
+        CreateText(healPage, "Treatment ward", 15, FontStyle.Normal,
+            TextAnchor.MiddleLeft, new Vector2(0f, -30f), new Vector2(0f, 0f),
+            MutedTextColor);
+
+        CreateText(
+            healPage,
+            $"Full treatment costs {healingManager.HealCostPerHP} G per missing HP. " +
+            $"Rest restores {healingManager.NaturalHealPerDay} HP each day.",
+            15,
+            FontStyle.Normal,
+            TextAnchor.MiddleLeft,
+            new Vector2(0f, -72f),
+            new Vector2(0f, -42f),
+            MutedTextColor);
+
+        RectTransform viewport = CreateUIObject("Heal Viewport", healPage);
+        viewport.anchorMin = new Vector2(0f, 0f);
+        viewport.anchorMax = new Vector2(1f, 1f);
+        viewport.offsetMin = Vector2.zero;
+        viewport.offsetMax = new Vector2(0f, -86f);
+
+        Image viewportImage = viewport.gameObject.AddComponent<Image>();
+        viewportImage.color = new Color(0f, 0f, 0f, 0.01f);
+        Mask mask = viewport.gameObject.AddComponent<Mask>();
+        mask.showMaskGraphic = false;
+
+        healList = CreateUIObject("Heal List", viewport);
+        healList.anchorMin = new Vector2(0f, 1f);
+        healList.anchorMax = new Vector2(1f, 1f);
+        healList.pivot = new Vector2(0.5f, 1f);
+        healList.anchoredPosition = Vector2.zero;
+
+        ScrollRect scrollRect = viewport.gameObject.AddComponent<ScrollRect>();
+        scrollRect.content = healList;
+        scrollRect.viewport = viewport;
+        scrollRect.horizontal = false;
+        scrollRect.vertical = true;
+        scrollRect.movementType = ScrollRect.MovementType.Clamped;
+        scrollRect.scrollSensitivity = 28f;
+    }
+
     private void BuildBattlePage()
     {
         string enemyDescription = battleManager.GetEncounterDescription();
@@ -591,13 +718,13 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         battleLogContent.anchoredPosition = Vector2.zero;
         battleLogContent.sizeDelta = new Vector2(0f, 430f);
 
-        ScrollRect scrollRect = viewport.gameObject.AddComponent<ScrollRect>();
-        scrollRect.content = battleLogContent;
-        scrollRect.viewport = viewport;
-        scrollRect.horizontal = false;
-        scrollRect.vertical = true;
-        scrollRect.movementType = ScrollRect.MovementType.Clamped;
-        scrollRect.scrollSensitivity = 28f;
+        battleLogScrollRect = viewport.gameObject.AddComponent<ScrollRect>();
+        battleLogScrollRect.content = battleLogContent;
+        battleLogScrollRect.viewport = viewport;
+        battleLogScrollRect.horizontal = false;
+        battleLogScrollRect.vertical = true;
+        battleLogScrollRect.movementType = ScrollRect.MovementType.Clamped;
+        battleLogScrollRect.scrollSensitivity = 28f;
 
         battleLogText = CreateText(battleLogContent, "Ready for battle.", 14, FontStyle.Normal,
             TextAnchor.UpperLeft, new Vector2(16f, 16f), new Vector2(-16f, -16f),
@@ -606,8 +733,45 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         battleLogText.rectTransform.anchorMin = Vector2.zero;
         battleLogText.rectTransform.anchorMax = Vector2.one;
         battleLogText.rectTransform.pivot = new Vector2(0.5f, 0.5f);
-        battleLogText.rectTransform.offsetMin = Vector2.zero;
-        battleLogText.rectTransform.offsetMax = Vector2.zero;
+        battleLogText.rectTransform.offsetMin = new Vector2(0f, 8f);
+        battleLogText.rectTransform.offsetMax = new Vector2(0f, -8f);
+    }
+
+    private void BuildDungeonPage()
+    {
+        CreateText(dungeonPage, "Dungeon run", 15, FontStyle.Normal,
+            TextAnchor.MiddleLeft, new Vector2(0f, -30f), new Vector2(0f, 0f),
+            MutedTextColor);
+
+        dungeonStatusText = CreateText(
+            dungeonPage,
+            "Prepare a party, then enter the dungeon.",
+            18,
+            FontStyle.Bold,
+            TextAnchor.MiddleLeft,
+            new Vector2(0f, -92f),
+            new Vector2(-170f, -42f),
+            Color.white);
+
+        startDungeonButton = CreateActionButton(
+            dungeonPage,
+            "ENTER",
+            StartDungeonRun);
+        RectTransform startRect = startDungeonButton.GetComponent<RectTransform>();
+        startRect.anchorMin = new Vector2(1f, 1f);
+        startRect.anchorMax = new Vector2(1f, 1f);
+        startRect.pivot = new Vector2(1f, 1f);
+        startRect.anchoredPosition = new Vector2(0f, -36f);
+
+        CreateText(
+            dungeonPage,
+            "A dungeon run starts several battles in a row. Mercenary HP carries over between encounters.",
+            15,
+            FontStyle.Normal,
+            TextAnchor.UpperLeft,
+            new Vector2(0f, -170f),
+            new Vector2(0f, -112f),
+            MutedTextColor);
     }
 
     private void BuildInventoryPage()
@@ -687,6 +851,28 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
             rowTop -= 112f;
         }
+    }
+
+    private void RebuildHealList()
+    {
+        ClearChildren(healList);
+
+        if (hireManager.HiredMercenaries.Count == 0)
+        {
+            CreateText(healList, "No mercenaries hired yet.", 18, FontStyle.Normal,
+                TextAnchor.MiddleCenter, new Vector2(0f, -180f), new Vector2(0f, -80f),
+                MutedTextColor);
+            return;
+        }
+
+        float rowTop = 0f;
+        foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
+        {
+            CreateHealRow(healList, mercenary, rowTop);
+            rowTop -= 112f;
+        }
+
+        healList.sizeDelta = new Vector2(0f, Mathf.Max(430f, -rowTop));
     }
 
     private void RebuildInventoryList()
@@ -840,6 +1026,30 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             MutedTextColor);
     }
 
+    private void CreateHealRow(
+        RectTransform parent,
+        MercenaryInstance mercenary,
+        float top)
+    {
+        RectTransform row = CreateRow($"{mercenary.MercenaryName} Treatment", parent, top);
+
+        CreateText(row, mercenary.MercenaryName, 22, FontStyle.Bold,
+            TextAnchor.MiddleLeft, new Vector2(18f, -42f), new Vector2(-160f, -12f),
+            Color.white);
+
+        int missingHP = healingManager.GetMissingHP(mercenary);
+        int healCost = healingManager.GetFullHealCost(mercenary);
+        string details =
+            $"HP {mercenary.CurrentHP}/{mercenary.MaxHP}  |  " +
+            $"Missing {missingHP}  |  Full treatment {healCost} G";
+
+        CreateText(row, details, 14, FontStyle.Normal, TextAnchor.MiddleLeft,
+            new Vector2(18f, -76f), new Vector2(-160f, -48f), MutedTextColor);
+
+        Button healButton = CreateActionButton(row, "HEAL", () => HealMercenary(mercenary));
+        healButton.interactable = healingManager.CanHeal(mercenary);
+    }
+
     private void CreateInventoryRow(
         RectTransform parent,
         InventoryItemStack stack,
@@ -913,7 +1123,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         buttonRect.anchorMin = new Vector2(0f, 1f);
         buttonRect.anchorMax = new Vector2(0f, 1f);
         buttonRect.pivot = new Vector2(0f, 1f);
-        buttonRect.sizeDelta = new Vector2(118f, 38f);
+        buttonRect.sizeDelta = new Vector2(104f, 38f);
         buttonRect.anchoredPosition = position;
 
         Image image = buttonRect.gameObject.AddComponent<Image>();
@@ -1026,6 +1236,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     {
         RebuildMarketList();
         RebuildInventoryList();
+        RebuildHealList();
         RefreshUI();
         statusText.text = $"Day {currentDay} started. Market prices changed.";
     }
@@ -1038,6 +1249,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private void HandleGoldChanged(int currentGold)
     {
+        RebuildHealList();
         RefreshUI();
     }
 
@@ -1054,6 +1266,21 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         }
     }
 
+    private void StartDungeonRun()
+    {
+        ShowBattlePage();
+        battleLogLines.Clear();
+        battleLogText.text = string.Empty;
+        battleLogContent.sizeDelta = new Vector2(0f, 430f);
+
+        if (!dungeonRunManager.StartRun())
+        {
+            ShowDungeonPage();
+        }
+
+        RefreshUI();
+    }
+
     private void HandleBattleMessage(string message, BattleLogType logType)
     {
         string coloredMessage = ColorizeBattleMessage(message, logType);
@@ -1062,9 +1289,46 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
         if (battleLogContent != null)
         {
-            float height = Mathf.Max(430f, battleLogLines.Count * 22f);
-            battleLogContent.sizeDelta = new Vector2(0f, height);
+            UpdateBattleLogContentHeight();
         }
+
+        ScrollBattleLogToLatest();
+    }
+
+    private void UpdateBattleLogContentHeight()
+    {
+        if (battleLogContent == null || battleLogText == null)
+        {
+            return;
+        }
+
+        Canvas.ForceUpdateCanvases();
+        float height = Mathf.Max(430f, battleLogText.preferredHeight + 32f);
+        battleLogContent.sizeDelta = new Vector2(0f, height);
+    }
+
+    private void ScrollBattleLogToLatest()
+    {
+        if (battleLogScrollRect == null)
+        {
+            return;
+        }
+
+        if (battleLogScrollCoroutine != null)
+        {
+            StopCoroutine(battleLogScrollCoroutine);
+        }
+
+        battleLogScrollCoroutine = StartCoroutine(ScrollBattleLogToLatestRoutine());
+    }
+
+    private IEnumerator ScrollBattleLogToLatestRoutine()
+    {
+        yield return null;
+        UpdateBattleLogContentHeight();
+        Canvas.ForceUpdateCanvases();
+        battleLogScrollRect.verticalNormalizedPosition = 0f;
+        battleLogScrollCoroutine = null;
     }
 
     private static string ColorizeBattleMessage(string message, BattleLogType logType)
@@ -1094,8 +1358,39 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private void HandleBattleCompleted(bool victory)
     {
         startBattleButton.interactable = partyManager.Members.Count > 0;
+        RebuildCompanyList();
+        RebuildPartyList();
+        RebuildHealList();
         RefreshUI();
         statusText.text = victory ? "Battle won." : "Battle lost.";
+    }
+
+    private void HandleHealingChanged()
+    {
+        RebuildCompanyList();
+        RebuildPartyList();
+        RebuildHealList();
+        RefreshUI();
+    }
+
+    private void HandleDungeonMessage(string message)
+    {
+        statusText.text = message;
+        if (dungeonStatusText != null)
+        {
+            dungeonStatusText.text = message;
+        }
+    }
+
+    private void HandleDungeonStateChanged()
+    {
+        RefreshUI();
+    }
+
+    private void HandleDungeonCompleted(bool cleared)
+    {
+        statusText.text = cleared ? "Dungeon cleared." : "Dungeon run ended.";
+        RefreshUI();
     }
 
     private void TogglePartyMember(MercenaryInstance mercenary)
@@ -1115,6 +1410,28 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private void RemovePartyMember(MercenaryInstance mercenary)
     {
         partyManager.Remove(mercenary);
+    }
+
+    private void HealMercenary(MercenaryInstance mercenary)
+    {
+        if (mercenary == null)
+        {
+            return;
+        }
+
+        int cost = healingManager.GetFullHealCost(mercenary);
+        if (!healingManager.TryHealFull(mercenary))
+        {
+            statusText.text = $"Could not heal {mercenary.MercenaryName}.";
+            RefreshUI();
+            return;
+        }
+
+        statusText.text = $"Healed {mercenary.MercenaryName} for {cost} G.";
+        RebuildCompanyList();
+        RebuildPartyList();
+        RebuildHealList();
+        RefreshUI();
     }
 
     private void SellItem(ItemDataSO item)
@@ -1174,13 +1491,17 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         hirePage.gameObject.SetActive(true);
         companyPage.gameObject.SetActive(false);
         partyPage.gameObject.SetActive(false);
+        healPage.gameObject.SetActive(false);
         battlePage.gameObject.SetActive(false);
+        dungeonPage.gameObject.SetActive(false);
         marketPage.gameObject.SetActive(false);
         inventoryPage.gameObject.SetActive(false);
         SetTabActive(hireTabButton, true);
         SetTabActive(companyTabButton, false);
         SetTabActive(partyTabButton, false);
+        SetTabActive(healTabButton, false);
         SetTabActive(battleTabButton, false);
+        SetTabActive(dungeonTabButton, false);
         SetTabActive(marketTabButton, false);
         SetTabActive(inventoryTabButton, false);
         statusText.text = "Select a mercenary to hire.";
@@ -1191,13 +1512,17 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         hirePage.gameObject.SetActive(false);
         companyPage.gameObject.SetActive(true);
         partyPage.gameObject.SetActive(false);
+        healPage.gameObject.SetActive(false);
         battlePage.gameObject.SetActive(false);
+        dungeonPage.gameObject.SetActive(false);
         marketPage.gameObject.SetActive(false);
         inventoryPage.gameObject.SetActive(false);
         SetTabActive(hireTabButton, false);
         SetTabActive(companyTabButton, true);
         SetTabActive(partyTabButton, false);
+        SetTabActive(healTabButton, false);
         SetTabActive(battleTabButton, false);
+        SetTabActive(dungeonTabButton, false);
         SetTabActive(marketTabButton, false);
         SetTabActive(inventoryTabButton, false);
         RebuildCompanyList();
@@ -1209,17 +1534,44 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         hirePage.gameObject.SetActive(false);
         companyPage.gameObject.SetActive(false);
         partyPage.gameObject.SetActive(true);
+        healPage.gameObject.SetActive(false);
         battlePage.gameObject.SetActive(false);
+        dungeonPage.gameObject.SetActive(false);
         marketPage.gameObject.SetActive(false);
         inventoryPage.gameObject.SetActive(false);
         SetTabActive(hireTabButton, false);
         SetTabActive(companyTabButton, false);
         SetTabActive(partyTabButton, true);
+        SetTabActive(healTabButton, false);
         SetTabActive(battleTabButton, false);
+        SetTabActive(dungeonTabButton, false);
         SetTabActive(marketTabButton, false);
         SetTabActive(inventoryTabButton, false);
         RebuildPartyList();
         statusText.text = $"Party members: {partyManager.Members.Count}/{partyManager.MaxPartySize}";
+    }
+
+    private void ShowHealPage()
+    {
+        hirePage.gameObject.SetActive(false);
+        companyPage.gameObject.SetActive(false);
+        partyPage.gameObject.SetActive(false);
+        healPage.gameObject.SetActive(true);
+        battlePage.gameObject.SetActive(false);
+        dungeonPage.gameObject.SetActive(false);
+        marketPage.gameObject.SetActive(false);
+        inventoryPage.gameObject.SetActive(false);
+        SetTabActive(hireTabButton, false);
+        SetTabActive(companyTabButton, false);
+        SetTabActive(partyTabButton, false);
+        SetTabActive(healTabButton, true);
+        SetTabActive(battleTabButton, false);
+        SetTabActive(dungeonTabButton, false);
+        SetTabActive(marketTabButton, false);
+        SetTabActive(inventoryTabButton, false);
+        RebuildHealList();
+        statusText.text =
+            $"Treatment: {healingManager.HealCostPerHP} G per missing HP";
     }
 
     private void ShowBattlePage()
@@ -1227,13 +1579,17 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         hirePage.gameObject.SetActive(false);
         companyPage.gameObject.SetActive(false);
         partyPage.gameObject.SetActive(false);
+        healPage.gameObject.SetActive(false);
         battlePage.gameObject.SetActive(true);
+        dungeonPage.gameObject.SetActive(false);
         marketPage.gameObject.SetActive(false);
         inventoryPage.gameObject.SetActive(false);
         SetTabActive(hireTabButton, false);
         SetTabActive(companyTabButton, false);
         SetTabActive(partyTabButton, false);
+        SetTabActive(healTabButton, false);
         SetTabActive(battleTabButton, true);
+        SetTabActive(dungeonTabButton, false);
         SetTabActive(marketTabButton, false);
         SetTabActive(inventoryTabButton, false);
         startBattleButton.interactable =
@@ -1241,18 +1597,48 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         statusText.text = $"Battle party: {partyManager.Members.Count} mercenaries";
     }
 
+    private void ShowDungeonPage()
+    {
+        hirePage.gameObject.SetActive(false);
+        companyPage.gameObject.SetActive(false);
+        partyPage.gameObject.SetActive(false);
+        healPage.gameObject.SetActive(false);
+        battlePage.gameObject.SetActive(false);
+        dungeonPage.gameObject.SetActive(true);
+        marketPage.gameObject.SetActive(false);
+        inventoryPage.gameObject.SetActive(false);
+        SetTabActive(hireTabButton, false);
+        SetTabActive(companyTabButton, false);
+        SetTabActive(partyTabButton, false);
+        SetTabActive(healTabButton, false);
+        SetTabActive(battleTabButton, false);
+        SetTabActive(dungeonTabButton, true);
+        SetTabActive(marketTabButton, false);
+        SetTabActive(inventoryTabButton, false);
+
+        dungeonStatusText.text = dungeonRunManager.IsRunning
+            ? $"Dungeon running: {dungeonRunManager.CurrentEncounter}/{dungeonRunManager.EncounterCount}"
+            : $"Ready for {dungeonRunManager.EncounterCount} encounters.";
+        statusText.text = $"Dungeon party: {partyManager.Members.Count} mercenaries";
+        RefreshUI();
+    }
+
     private void ShowMarketPage()
     {
         hirePage.gameObject.SetActive(false);
         companyPage.gameObject.SetActive(false);
         partyPage.gameObject.SetActive(false);
+        healPage.gameObject.SetActive(false);
         battlePage.gameObject.SetActive(false);
+        dungeonPage.gameObject.SetActive(false);
         marketPage.gameObject.SetActive(true);
         inventoryPage.gameObject.SetActive(false);
         SetTabActive(hireTabButton, false);
         SetTabActive(companyTabButton, false);
         SetTabActive(partyTabButton, false);
+        SetTabActive(healTabButton, false);
         SetTabActive(battleTabButton, false);
+        SetTabActive(dungeonTabButton, false);
         SetTabActive(marketTabButton, true);
         SetTabActive(inventoryTabButton, false);
         RebuildMarketList();
@@ -1265,13 +1651,17 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         hirePage.gameObject.SetActive(false);
         companyPage.gameObject.SetActive(false);
         partyPage.gameObject.SetActive(false);
+        healPage.gameObject.SetActive(false);
         battlePage.gameObject.SetActive(false);
+        dungeonPage.gameObject.SetActive(false);
         marketPage.gameObject.SetActive(false);
         inventoryPage.gameObject.SetActive(true);
         SetTabActive(hireTabButton, false);
         SetTabActive(companyTabButton, false);
         SetTabActive(partyTabButton, false);
+        SetTabActive(healTabButton, false);
         SetTabActive(battleTabButton, false);
+        SetTabActive(dungeonTabButton, false);
         SetTabActive(marketTabButton, false);
         SetTabActive(inventoryTabButton, true);
         RebuildInventoryList();
@@ -1306,6 +1696,14 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         {
             marketInfoText.text =
                 $"{marketPriceManager.GetMarketSummary()}  |  Sell prices refresh every day";
+        }
+
+        if (startDungeonButton != null)
+        {
+            startDungeonButton.interactable =
+                partyManager.Members.Count > 0 &&
+                !battleManager.IsBattling &&
+                !dungeonRunManager.IsRunning;
         }
     }
 
