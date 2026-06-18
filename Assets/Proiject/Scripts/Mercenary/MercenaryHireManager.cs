@@ -112,6 +112,25 @@ public class MercenaryHireManager : MonoBehaviour
                merchantData.CanPay(mercenary.HireCost);
     }
 
+    public void RestoreHiredMercenaries(
+        IEnumerable<MercenaryInstance> restoredMercenaries)
+    {
+        hiredMercenaries.Clear();
+        if (restoredMercenaries == null)
+        {
+            return;
+        }
+
+        foreach (MercenaryInstance mercenary in restoredMercenaries)
+        {
+            if (mercenary != null)
+            {
+                hiredMercenaries.Add(mercenary);
+                MercenaryHired?.Invoke(mercenary);
+            }
+        }
+    }
+
     private void ResolveReferences()
     {
         if (merchantData == null)

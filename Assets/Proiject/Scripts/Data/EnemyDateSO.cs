@@ -7,6 +7,8 @@ public class EnemyDataSO : ScriptableObject
 {
     [Header("Basic Info")]
     public string enemyName;
+    [Range(1, 10)] public int monsterGrade = 10;
+    public bool isBoss;
 
     [Header("Stats")]
     public int maxHP = 80;

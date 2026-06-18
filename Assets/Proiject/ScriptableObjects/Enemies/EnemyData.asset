@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: EnemyData
   m_EditorClassIdentifier: 
   enemyName: Slime
+  monsterGrade: 10
+  isBoss: 0
   maxHP: 20
   attack: 5
   defense: 1

@@ -102,4 +102,44 @@ public class MercenaryInstance
     {
         currentHP = maxHP;
     }
+
+    public static MercenaryInstance CreateRestored(
+        string restoredInstanceId,
+        MercenaryDataSO restoredBaseData,
+        MercenaryArchetypeSO restoredArchetype,
+        string restoredName,
+        MercenaryClass restoredClass,
+        MercenaryContractType restoredContractType,
+        int restoredLevel,
+        int restoredMaxHP,
+        int restoredCurrentHP,
+        int restoredAttack,
+        int restoredDefense,
+        float restoredAttackSpeed,
+        int restoredHireCost)
+    {
+        MercenaryInstance mercenary = new MercenaryInstance
+        {
+            instanceId = string.IsNullOrWhiteSpace(restoredInstanceId)
+                ? Guid.NewGuid().ToString("N")
+                : restoredInstanceId,
+            baseData = restoredBaseData,
+            archetype = restoredArchetype,
+            mercenaryName = restoredName,
+            mercenaryClass = restoredClass,
+            contractType = restoredContractType,
+            level = Mathf.Max(1, restoredLevel),
+            maxHP = Mathf.Max(1, restoredMaxHP),
+            attack = Mathf.Max(0, restoredAttack),
+            defense = Mathf.Max(0, restoredDefense),
+            attackSpeed = Mathf.Max(0.1f, restoredAttackSpeed),
+            hireCost = Mathf.Max(0, restoredHireCost)
+        };
+        mercenary.currentHP = Mathf.Clamp(restoredCurrentHP, 0, mercenary.maxHP);
+        return mercenary;
+    }
+
+    private MercenaryInstance()
+    {
+    }
 }

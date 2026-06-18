@@ -42,6 +42,23 @@ public class MercenaryPartyManager : MonoBehaviour
         return true;
     }
 
+    public void RestoreParty(IEnumerable<MercenaryInstance> restoredMembers)
+    {
+        members.Clear();
+        if (restoredMembers != null)
+        {
+            foreach (MercenaryInstance mercenary in restoredMembers)
+            {
+                if (mercenary != null && members.Count < maxPartySize && IsHired(mercenary))
+                {
+                    members.Add(mercenary);
+                }
+            }
+        }
+
+        PartyChanged?.Invoke();
+    }
+
     private bool IsHired(MercenaryInstance mercenary)
     {
         ResolveReferences();

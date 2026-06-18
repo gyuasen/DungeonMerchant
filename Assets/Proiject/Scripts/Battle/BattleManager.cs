@@ -43,7 +43,7 @@ public class BattleManager : MonoBehaviour
 
         if (partyManager == null)
         {
-            SendBattleMessage("No party manager is assigned.");
+            SendBattleMessage("パーティー管理が設定されていません。");
             return false;
         }
 
@@ -63,13 +63,13 @@ public class BattleManager : MonoBehaviour
 
         if (IsBattling)
         {
-            SendBattleMessage("A battle is already in progress.");
+            SendBattleMessage("すでに戦闘中です。");
             return false;
         }
 
         if (partyMembers == null || partyMembers.Count == 0)
         {
-            SendBattleMessage("Add at least one mercenary to the party.");
+            SendBattleMessage("パーティーに傭兵を1人以上編成してください。");
             return false;
         }
 
@@ -77,7 +77,7 @@ public class BattleManager : MonoBehaviour
 
         if (BuildEnemyEncounterData().Count == 0)
         {
-            SendBattleMessage("No enemy data is assigned.");
+            SendBattleMessage("敵データが設定されていません。");
             return false;
         }
 
@@ -113,14 +113,15 @@ public class BattleManager : MonoBehaviour
         List<EnemyDataSO> enemies = BuildEnemyEncounterData();
         if (enemies.Count == 0)
         {
-            return "No enemy assigned";
+            return "敵が設定されていません";
         }
 
         if (enemies.Count == 1)
         {
             EnemyDataSO enemy = enemies[0];
-            return $"{enemy.enemyName}  |  HP {enemy.maxHP}  ATK {enemy.attack}  " +
-                   $"DEF {enemy.defense}  |  Reward {enemy.goldReward} G";
+            return $"{JapaneseDisplayText.GetEnemyName(enemy.enemyName)}  |  " +
+                   $"{JapaneseDisplayText.GetMonsterGrade(enemy)}  |  HP {enemy.maxHP}  " +
+                   $"攻撃 {enemy.attack}  防御 {enemy.defense}  |  報酬 {enemy.goldReward} G";
         }
 
         int totalGold = 0;
@@ -129,8 +130,8 @@ public class BattleManager : MonoBehaviour
             totalGold += enemy.goldReward;
         }
 
-        return $"{enemies[0].enemyName} x{enemies.Count}  |  " +
-               $"Total reward {totalGold} G";
+        return $"{JapaneseDisplayText.GetEnemyName(enemies[0].enemyName)} x{enemies.Count}  |  " +
+               $"合計報酬 {totalGold} G";
     }
 
     private void ResolveReferences()
@@ -241,9 +242,14 @@ public class BattleManager : MonoBehaviour
         for (int i = 0; i < enemies.Count; i++)
         {
             EnemyDataSO enemy = enemies[i];
+            string enemyName = JapaneseDisplayText.GetEnemyName(enemy.enemyName);
+            if (enemy.isBoss)
+            {
+                enemyName = $"ボス {enemyName}";
+            }
             string unitName = enemies.Count == 1
-                ? enemy.enemyName
-                : $"{enemy.enemyName} {i + 1}";
+                ? enemyName
+                : $"{enemyName} {i + 1}";
 
             enemyUnits.Add(new BattleUnit(
                 unitName,
@@ -321,13 +327,13 @@ public class BattleManager : MonoBehaviour
         IsBattling = true;
         if (playerUnits.Count == 0)
         {
-            SendBattleMessage("All party members are incapacitated.", BattleLogType.System);
+            SendBattleMessage("パーティー全員が戦闘不能です。", BattleLogType.System);
             CompleteBattle(false);
             yield break;
         }
 
         SendBattleMessage(
-            $"Battle started: {playerUnits.Count} mercenaries vs {enemyUnits.Count} enemies",
+            $"戦闘開始: 傭兵{playerUnits.Count}人 vs 敵{enemyUnits.Count}体",
             BattleLogType.System);
 
         while (IsBattling)
@@ -396,8 +402,8 @@ public class BattleManager : MonoBehaviour
         int damageDealt = previousHP - target.CurrentHP;
 
         SendBattleMessage(
-            $"{attacker.UnitName} attacked {target.UnitName}: " +
-            $"{damageDealt} damage, HP {target.CurrentHP}/{target.MaxHP}",
+            $"{attacker.UnitName}が{target.UnitName}を攻撃: " +
+            $"{damageDealt}ダメージ、HP {target.CurrentHP}/{target.MaxHP}",
             attacker.IsPlayerSide ? BattleLogType.Player : BattleLogType.Enemy);
     }
 
@@ -441,12 +447,12 @@ public class BattleManager : MonoBehaviour
                 merchantData.AddGold(totalGoldReward);
             }
 
-            SendBattleMessage($"Victory! Reward: {totalGoldReward} G", BattleLogType.Reward);
+            SendBattleMessage($"勝利！ 報酬: {totalGoldReward} G", BattleLogType.Reward);
             GrantItemRewards();
         }
         else
         {
-            SendBattleMessage("Defeat.", BattleLogType.System);
+            SendBattleMessage("敗北しました。", BattleLogType.System);
         }
 
         BattleCompleted?.Invoke(victory);
@@ -461,7 +467,7 @@ public class BattleManager : MonoBehaviour
             BattleUnit unit = playerUnits[i];
             mercenary.SetCurrentHP(unit.CurrentHP);
             SendBattleMessage(
-                $"{mercenary.MercenaryName} HP carried over: " +
+                $"{mercenary.MercenaryName}の戦闘後HP: " +
                 $"{mercenary.CurrentHP}/{mercenary.MaxHP}",
                 BattleLogType.System);
         }
@@ -487,7 +493,7 @@ public class BattleManager : MonoBehaviour
 
         if (merchantInventory == null)
         {
-            SendBattleMessage("No merchant inventory is assigned.", BattleLogType.System);
+            SendBattleMessage("商人在庫が設定されていません。", BattleLogType.System);
             return;
         }
 
@@ -512,7 +518,9 @@ public class BattleManager : MonoBehaviour
                 }
 
                 merchantInventory.AddItem(drop.item, drop.amount);
-                SendBattleMessage($"Loot: {drop.item.itemName} x{drop.amount}", BattleLogType.Reward);
+                SendBattleMessage(
+                    $"戦利品: {JapaneseDisplayText.GetItemName(drop.item)} x{drop.amount}",
+                    BattleLogType.Reward);
                 droppedAnyItem = true;
             }
         }
@@ -521,7 +529,9 @@ public class BattleManager : MonoBehaviour
         {
             ItemDataSO fallbackItem = GetFallbackDropItem();
             merchantInventory.AddItem(fallbackItem, 1);
-            SendBattleMessage($"Loot: {fallbackItem.itemName} x1", BattleLogType.Reward);
+            SendBattleMessage(
+                $"戦利品: {JapaneseDisplayText.GetItemName(fallbackItem)} x1",
+                BattleLogType.Reward);
         }
     }
 

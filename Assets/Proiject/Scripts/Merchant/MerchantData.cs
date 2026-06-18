@@ -57,4 +57,10 @@ public class MerchantData : MonoBehaviour
         GoldChanged?.Invoke(gold);
         Debug.Log($"Gained {amount} G. Current gold: {gold} G");
     }
+
+    public void SetGold(int value)
+    {
+        gold = Mathf.Max(0, value);
+        GoldChanged?.Invoke(gold);
+    }
 }

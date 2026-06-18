@@ -26,6 +26,8 @@ public static class DungeonMerchantBootstrap
         EnsureComponent<BattleManager>(root);
         EnsureComponent<DungeonRunManager>(root);
         EnsureComponent<SimpleMercenaryHireUI>(root);
+        SaveManager saveManager = EnsureComponent<SaveManager>(root);
+        saveManager.InitializeAndLoad();
 
         Debug.Log("DungeonMerchant runtime objects were ensured automatically.");
     }
