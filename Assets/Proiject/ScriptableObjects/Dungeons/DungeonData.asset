@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e979c614ce1242bd9c993974ec08851e, type: 3}
+  m_Name: DungeonData
+  m_EditorClassIdentifier: 
+  dungeonName: "\u306F\u3058\u307E\u308A\u306E\u6D1E\u7A9F"
+  grade: 0
+  description: "\u5546\u968A\u306E\u8FD1\u304F\u306B\u3042\u308B\u5C0F\u3055\u306A\u6D1E\u7A9F\u3002"
+  encounterCount: 3
+  firstEncounterEnemyCount: 2
+  enemyCountIncreasePerEncounter: 1
+  normalEnemies:
+  - {fileID: 11400000, guid: 239a8f3917ce33c469d7359348e47b0b, type: 2}
+  - {fileID: 11400000, guid: 9017a6d57352445198b657303e35421e, type: 2}
+  bossEnemy: {fileID: 11400000, guid: 5c78c95223f24a0ea9217d76786d9044, type: 2}
+  clearGoldReward: 100
+  clearItemRewards:
+  - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
+    amount: 2

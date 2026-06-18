@@ -53,7 +53,7 @@ public class MarketPriceManager : MonoBehaviour
 
     public string GetMarketSummary()
     {
-        return $"DAY {CurrentDay}";
+        return $"{CurrentDay}日目";
     }
 
     private int CalculateStableHash(ItemDataSO item)

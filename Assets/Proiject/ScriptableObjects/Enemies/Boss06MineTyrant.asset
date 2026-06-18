@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
+  m_Name: Boss06MineTyrant
+  m_EditorClassIdentifier: 
+  enemyName: Mine Tyrant
+  monsterGrade: 6
+  isBoss: 1
+  maxHP: 160
+  attack: 20
+  defense: 8
+  attackSpeed: 0.85
+  goldReward: 260
+  itemDrops:
+  - item: {fileID: 11400000, guid: 4818dd176ba443549573964b386ae00d, type: 2}
+    amount: 1
+    dropChance: 1

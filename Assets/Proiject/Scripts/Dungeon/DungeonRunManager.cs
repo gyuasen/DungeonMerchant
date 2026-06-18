@@ -1,25 +1,69 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class DungeonRunManager : MonoBehaviour
 {
+    private const string UnlockedGradeSaveKey =
+        "DungeonMerchant.Dungeon.HighestUnlockedGrade";
+
     [Header("References")]
     [SerializeField] private BattleManager battleManager;
     [SerializeField] private MercenaryPartyManager partyManager;
+    [SerializeField] private MerchantData merchantData;
+    [SerializeField] private MerchantInventory merchantInventory;
+    [SerializeField] private DungeonDataSO dungeonData;
+    [SerializeField] private List<DungeonDataSO> availableDungeons =
+        new List<DungeonDataSO>();
+    [SerializeField] private DungeonGrade highestUnlockedGrade = DungeonGrade.Low;
 
     [Header("Run Settings")]
     [SerializeField, Min(1)] private int encounterCount = 3;
     [SerializeField, Min(1)] private int firstEncounterEnemyCount = 2;
     [SerializeField, Min(0)] private int enemyCountIncreasePerEncounter = 1;
 
+    [Header("Event Settings")]
+    [SerializeField, Min(0)] private int restHealAmount = 15;
+    [SerializeField, Min(0)] private int treasureGoldReward = 40;
+    [SerializeField, Min(0)] private int hazardDamage = 5;
+
     public bool IsRunning { get; private set; }
+    public bool IsAwaitingEventChoice { get; private set; }
     public int CurrentEncounter { get; private set; }
-    public int EncounterCount => encounterCount;
+    public int EncounterCount => dungeonData != null
+        ? Mathf.Max(1, dungeonData.encounterCount)
+        : encounterCount;
+    public string DungeonName => dungeonData != null
+        ? dungeonData.dungeonName
+        : "ダンジョン";
+    public string DungeonDescription => dungeonData != null
+        ? dungeonData.description
+        : string.Empty;
+    public int ClearGoldReward => dungeonData != null
+        ? Mathf.Max(0, dungeonData.clearGoldReward)
+        : 0;
+    public IReadOnlyList<DungeonDataSO> AvailableDungeons => availableDungeons;
+    public DungeonDataSO SelectedDungeon => dungeonData;
+    public DungeonGrade HighestUnlockedGrade => highestUnlockedGrade;
+    public string EventTitle { get; private set; } = string.Empty;
+    public string EventDescription { get; private set; } = string.Empty;
+    public string FirstOptionLabel { get; private set; } = string.Empty;
+    public string SecondOptionLabel { get; private set; } = string.Empty;
+    public string ThirdOptionLabel { get; private set; } = string.Empty;
 
     public event Action<string> DungeonMessage;
     public event Action DungeonStateChanged;
     public event Action<bool> DungeonCompleted;
+
+    private void OnEnable()
+    {
+        LoadDungeonProgress();
+        ResolveReferences();
+        PopulateDungeonDataIfNeeded();
+    }
 
     private void OnDestroy()
     {
@@ -32,29 +76,32 @@ public class DungeonRunManager : MonoBehaviour
     public bool StartRun()
     {
         ResolveReferences();
+        PopulateDungeonDataIfNeeded();
 
         if (IsRunning)
         {
-            SendDungeonMessage("A dungeon run is already in progress.");
+            SendDungeonMessage("すでにダンジョン探索中です。");
             return false;
         }
 
         if (battleManager == null || partyManager == null)
         {
-            SendDungeonMessage("Dungeon run references are incomplete.");
+            SendDungeonMessage("ダンジョン探索に必要な参照が不足しています。");
             return false;
         }
 
         if (partyManager.Members.Count == 0)
         {
-            SendDungeonMessage("Add mercenaries to the party before entering a dungeon.");
+            SendDungeonMessage("ダンジョンへ入る前に傭兵を編成してください。");
             return false;
         }
 
         IsRunning = true;
+        IsAwaitingEventChoice = false;
         CurrentEncounter = 0;
+        ClearEvent();
         SubscribeToBattle();
-        SendDungeonMessage($"Dungeon run started. Encounters: {encounterCount}");
+        SendDungeonMessage($"{DungeonName}の探索開始。遭遇回数: {EncounterCount}");
         DungeonStateChanged?.Invoke();
         return StartNextEncounter();
     }
@@ -66,7 +113,88 @@ public class DungeonRunManager : MonoBehaviour
             return;
         }
 
-        CompleteRun(false, "Dungeon run abandoned.");
+        CompleteRun(false, "ダンジョン探索を中断しました。");
+    }
+
+    public bool IsDungeonUnlocked(DungeonDataSO data)
+    {
+        return data != null && (int)data.grade <= (int)highestUnlockedGrade;
+    }
+
+    public bool TrySelectDungeon(DungeonDataSO data)
+    {
+        if (IsRunning || data == null || !IsDungeonUnlocked(data))
+        {
+            return false;
+        }
+
+        dungeonData = data;
+        SendDungeonMessage(
+            $"{JapaneseDisplayText.GetDungeonGrade(data.grade)}「{data.dungeonName}」を選択しました。");
+        DungeonStateChanged?.Invoke();
+        return true;
+    }
+
+    public void RestoreProgress(
+        DungeonGrade restoredHighestGrade,
+        string selectedDungeonAssetName)
+    {
+        highestUnlockedGrade = (DungeonGrade)Mathf.Clamp(
+            (int)restoredHighestGrade,
+            (int)DungeonGrade.Low,
+            (int)DungeonGrade.Highest);
+        SaveDungeonProgress();
+        PopulateDungeonDataIfNeeded();
+
+        DungeonDataSO restoredSelection = null;
+        foreach (DungeonDataSO data in availableDungeons)
+        {
+            if (data != null &&
+                data.name == selectedDungeonAssetName &&
+                IsDungeonUnlocked(data))
+            {
+                restoredSelection = data;
+                break;
+            }
+        }
+
+        dungeonData = restoredSelection ?? FindFirstUnlockedDungeon();
+        DungeonStateChanged?.Invoke();
+    }
+
+    [ContextMenu("ダンジョン開放状態を初期化")]
+    public void ResetDungeonProgress()
+    {
+        highestUnlockedGrade = DungeonGrade.Low;
+        PlayerPrefs.DeleteKey(UnlockedGradeSaveKey);
+        PlayerPrefs.Save();
+
+        PopulateDungeonDataIfNeeded();
+        dungeonData = FindFirstUnlockedDungeon();
+        SendDungeonMessage("ダンジョンの開放状態を低級まで初期化しました。");
+        DungeonStateChanged?.Invoke();
+    }
+
+    public bool ChooseEventOption(int optionIndex)
+    {
+        if (!IsRunning || !IsAwaitingEventChoice || optionIndex < 0 || optionIndex > 2)
+        {
+            return false;
+        }
+
+        DungeonEventType eventType = currentEventType;
+        IsAwaitingEventChoice = false;
+
+        if (optionIndex == 2)
+        {
+            CompleteRun(false, "パーティーは安全に撤退しました。");
+            return true;
+        }
+
+        ResolveEventChoice(eventType, optionIndex);
+        ClearEvent();
+        DungeonStateChanged?.Invoke();
+        return StartNextEncounter();
     }
 
     private bool StartNextEncounter()
@@ -77,29 +205,89 @@ public class DungeonRunManager : MonoBehaviour
         }
 
         CurrentEncounter++;
-        if (CurrentEncounter > encounterCount)
+        if (CurrentEncounter > EncounterCount)
         {
-            CompleteRun(true, "Dungeon cleared.");
+            CompleteRun(true, "ダンジョンを踏破しました。");
             return true;
         }
 
-        int enemyCount = firstEncounterEnemyCount +
-            ((CurrentEncounter - 1) * enemyCountIncreasePerEncounter);
-        List<EnemyDataSO> enemies =
-            battleManager.CreateDefaultEnemyEncounter(enemyCount);
+        int firstEnemyCount = dungeonData != null
+            ? Mathf.Max(1, dungeonData.firstEncounterEnemyCount)
+            : firstEncounterEnemyCount;
+        int enemyIncrease = dungeonData != null
+            ? Mathf.Max(0, dungeonData.enemyCountIncreasePerEncounter)
+            : enemyCountIncreasePerEncounter;
+        int enemyCount = firstEnemyCount + ((CurrentEncounter - 1) * enemyIncrease);
+        List<EnemyDataSO> enemies = CreateDungeonEncounter(enemyCount);
 
         SendDungeonMessage(
-            $"Encounter {CurrentEncounter}/{encounterCount}: " +
-            $"{enemyCount} enemies appeared.");
+            $"遭遇 {CurrentEncounter}/{EncounterCount}: " +
+            $"敵が{enemyCount}体出現しました。");
         DungeonStateChanged?.Invoke();
 
         bool started = battleManager.StartBattle(partyManager.Members, enemies);
         if (!started)
         {
-            CompleteRun(false, "Dungeon run stopped: battle could not start.");
+            CompleteRun(false, "戦闘を開始できないため探索を終了しました。");
         }
 
         return started;
+    }
+
+    private List<EnemyDataSO> CreateDungeonEncounter(int enemyCount)
+    {
+        List<EnemyDataSO> enemies = new List<EnemyDataSO>();
+        bool isBossEncounter = CurrentEncounter >= EncounterCount;
+
+        if (dungeonData == null ||
+            dungeonData.normalEnemies == null ||
+            dungeonData.normalEnemies.Length == 0)
+        {
+            return battleManager.CreateDefaultEnemyEncounter(enemyCount);
+        }
+
+        int normalEnemyCount = isBossEncounter && dungeonData.bossEnemy != null
+            ? Mathf.Max(0, enemyCount - 1)
+            : enemyCount;
+
+        for (int i = 0; i < normalEnemyCount; i++)
+        {
+            EnemyDataSO enemy = GetRandomNormalEnemy();
+            if (enemy != null)
+            {
+                enemies.Add(enemy);
+            }
+        }
+
+        if (isBossEncounter && dungeonData.bossEnemy != null)
+        {
+            enemies.Add(dungeonData.bossEnemy);
+        }
+
+        return enemies.Count > 0
+            ? enemies
+            : battleManager.CreateDefaultEnemyEncounter(enemyCount);
+    }
+
+    private EnemyDataSO GetRandomNormalEnemy()
+    {
+        if (dungeonData?.normalEnemies == null)
+        {
+            return null;
+        }
+
+        List<EnemyDataSO> validEnemies = new List<EnemyDataSO>();
+        foreach (EnemyDataSO enemy in dungeonData.normalEnemies)
+        {
+            if (enemy != null && !enemy.isBoss)
+            {
+                validEnemies.Add(enemy);
+            }
+        }
+
+        return validEnemies.Count > 0
+            ? validEnemies[UnityEngine.Random.Range(0, validEnemies.Count)]
+            : null;
     }
 
     private void HandleBattleCompleted(bool victory)
@@ -111,21 +299,276 @@ public class DungeonRunManager : MonoBehaviour
 
         if (!victory)
         {
-            CompleteRun(false, "Dungeon run failed.");
+            CompleteRun(false, "ダンジョン探索に失敗しました。");
             return;
         }
 
         SendDungeonMessage(
-            $"Encounter {CurrentEncounter}/{encounterCount} cleared.");
-        StartNextEncounter();
+            $"遭遇 {CurrentEncounter}/{EncounterCount} を突破しました。");
+
+        if (CurrentEncounter >= EncounterCount)
+        {
+            GrantClearRewards();
+            UnlockNextGrade();
+            CompleteRun(true, "ダンジョンを踏破しました。");
+            return;
+        }
+
+        PresentRandomEvent();
     }
 
     private void CompleteRun(bool cleared, string message)
     {
         IsRunning = false;
+        IsAwaitingEventChoice = false;
+        ClearEvent();
         SendDungeonMessage(message);
         DungeonStateChanged?.Invoke();
         DungeonCompleted?.Invoke(cleared);
+    }
+
+    private DungeonEventType currentEventType = DungeonEventType.None;
+
+    private void PresentRandomEvent()
+    {
+        currentEventType = (DungeonEventType)UnityEngine.Random.Range(
+            (int)DungeonEventType.AbandonedCamp,
+            (int)DungeonEventType.CollapsedPassage + 1);
+        IsAwaitingEventChoice = true;
+
+        switch (currentEventType)
+        {
+            case DungeonEventType.AbandonedCamp:
+                EventTitle = "放棄された野営地";
+                EventDescription =
+                    "静かな野営地を発見しました。休息、物資探索、撤退を選べます。";
+                FirstOptionLabel = $"休息 HP+{restHealAmount}";
+                SecondOptionLabel = $"物資探索 +{treasureGoldReward / 2} G";
+                break;
+            case DungeonEventType.TreasureCache:
+                EventTitle = "隠された宝箱";
+                EventDescription =
+                    "商人が隠したと思われる施錠された箱を発見しました。";
+                FirstOptionLabel = $"回収 +{treasureGoldReward} G";
+                SecondOptionLabel = $"休息 HP+{Mathf.Max(1, restHealAmount / 2)}";
+                break;
+            case DungeonEventType.CollapsedPassage:
+                EventTitle = "崩れた通路";
+                EventDescription =
+                    "近道は崩れかけています。強行突破するか、休息を取れます。";
+                FirstOptionLabel = $"強行突破 HP-{hazardDamage}";
+                SecondOptionLabel = $"休息 HP+{Mathf.Max(1, restHealAmount / 2)}";
+                break;
+        }
+
+        ThirdOptionLabel = "撤退";
+        SendDungeonMessage($"ダンジョンイベント: {EventTitle}");
+        DungeonStateChanged?.Invoke();
+    }
+
+    private void ResolveEventChoice(DungeonEventType eventType, int optionIndex)
+    {
+        switch (eventType)
+        {
+            case DungeonEventType.AbandonedCamp:
+                if (optionIndex == 0)
+                {
+                    HealParty(restHealAmount);
+                }
+                else
+                {
+                    GrantGold(treasureGoldReward / 2);
+                }
+                break;
+            case DungeonEventType.TreasureCache:
+                if (optionIndex == 0)
+                {
+                    GrantGold(treasureGoldReward);
+                }
+                else
+                {
+                    HealParty(Mathf.Max(1, restHealAmount / 2));
+                }
+                break;
+            case DungeonEventType.CollapsedPassage:
+                if (optionIndex == 0)
+                {
+                    DamageParty(hazardDamage);
+                }
+                else
+                {
+                    HealParty(Mathf.Max(1, restHealAmount / 2));
+                }
+                break;
+        }
+    }
+
+    private void HealParty(int amount)
+    {
+        foreach (MercenaryInstance mercenary in partyManager.Members)
+        {
+            mercenary?.Heal(amount);
+        }
+
+        SendDungeonMessage($"パーティー全員が{amount} HP回復しました。");
+    }
+
+    private void DamageParty(int amount)
+    {
+        foreach (MercenaryInstance mercenary in partyManager.Members)
+        {
+            mercenary?.TakeDamage(amount);
+        }
+
+        SendDungeonMessage($"強行中にパーティー全員が{amount}ダメージを受けました。");
+    }
+
+    private void GrantGold(int amount)
+    {
+        ResolveReferences();
+        merchantData?.AddGold(amount);
+        SendDungeonMessage($"{amount} Gを獲得しました。");
+    }
+
+    private void GrantClearRewards()
+    {
+        ResolveReferences();
+
+        if (dungeonData == null)
+        {
+            return;
+        }
+
+        int goldReward = Mathf.Max(0, dungeonData.clearGoldReward);
+        if (goldReward > 0)
+        {
+            merchantData?.AddGold(goldReward);
+            SendDungeonMessage($"踏破報酬: {goldReward} G");
+        }
+
+        if (merchantInventory == null || dungeonData.clearItemRewards == null)
+        {
+            return;
+        }
+
+        foreach (DungeonItemReward reward in dungeonData.clearItemRewards)
+        {
+            if (reward == null || reward.item == null || reward.amount <= 0)
+            {
+                continue;
+            }
+
+            merchantInventory.AddItem(reward.item, reward.amount);
+            SendDungeonMessage(
+                $"踏破報酬: {JapaneseDisplayText.GetItemName(reward.item)} x{reward.amount}");
+        }
+    }
+
+    private void PopulateDungeonDataIfNeeded()
+    {
+        RemoveMissingDungeons();
+
+        foreach (DungeonDataSO data in Resources.LoadAll<DungeonDataSO>(string.Empty))
+        {
+            AddDungeon(data);
+        }
+
+#if UNITY_EDITOR
+        string[] guids = AssetDatabase.FindAssets(
+            "t:DungeonDataSO",
+            new[] { "Assets/Proiject/ScriptableObjects/Dungeons" });
+
+        foreach (string guid in guids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            AddDungeon(AssetDatabase.LoadAssetAtPath<DungeonDataSO>(path));
+        }
+#endif
+
+        availableDungeons.Sort((left, right) => left.grade.CompareTo(right.grade));
+
+        if (dungeonData == null || !IsDungeonUnlocked(dungeonData))
+        {
+            dungeonData = FindFirstUnlockedDungeon();
+        }
+    }
+
+    private void AddDungeon(DungeonDataSO data)
+    {
+        if (data != null && !availableDungeons.Contains(data))
+        {
+            availableDungeons.Add(data);
+        }
+    }
+
+    private void RemoveMissingDungeons()
+    {
+        for (int i = availableDungeons.Count - 1; i >= 0; i--)
+        {
+            if (availableDungeons[i] == null)
+            {
+                availableDungeons.RemoveAt(i);
+            }
+        }
+    }
+
+    private void UnlockNextGrade()
+    {
+        if (dungeonData == null || dungeonData.grade != highestUnlockedGrade)
+        {
+            return;
+        }
+
+        int nextGrade = (int)highestUnlockedGrade + 1;
+        if (nextGrade > (int)DungeonGrade.Highest)
+        {
+            return;
+        }
+
+        highestUnlockedGrade = (DungeonGrade)nextGrade;
+        SaveDungeonProgress();
+        SendDungeonMessage(
+            $"{JapaneseDisplayText.GetDungeonGrade(highestUnlockedGrade)}ダンジョンが開放されました。");
+    }
+
+    private void LoadDungeonProgress()
+    {
+        int savedGrade = PlayerPrefs.GetInt(
+            UnlockedGradeSaveKey,
+            (int)DungeonGrade.Low);
+        highestUnlockedGrade = (DungeonGrade)Mathf.Clamp(
+            savedGrade,
+            (int)DungeonGrade.Low,
+            (int)DungeonGrade.Highest);
+    }
+
+    private void SaveDungeonProgress()
+    {
+        PlayerPrefs.SetInt(UnlockedGradeSaveKey, (int)highestUnlockedGrade);
+        PlayerPrefs.Save();
+    }
+
+    private DungeonDataSO FindFirstUnlockedDungeon()
+    {
+        foreach (DungeonDataSO data in availableDungeons)
+        {
+            if (IsDungeonUnlocked(data))
+            {
+                return data;
+            }
+        }
+
+        return null;
+    }
+
+    private void ClearEvent()
+    {
+        currentEventType = DungeonEventType.None;
+        EventTitle = string.Empty;
+        EventDescription = string.Empty;
+        FirstOptionLabel = string.Empty;
+        SecondOptionLabel = string.Empty;
+        ThirdOptionLabel = string.Empty;
     }
 
     private void SubscribeToBattle()
@@ -155,6 +598,28 @@ public class DungeonRunManager : MonoBehaviour
         {
             partyManager = FindObjectOfType<MercenaryPartyManager>();
         }
+
+        if (merchantData == null)
+        {
+            merchantData = GetComponent<MerchantData>();
+        }
+
+        if (merchantData == null)
+        {
+            merchantData = FindObjectOfType<MerchantData>();
+        }
+
+        if (merchantInventory == null)
+        {
+            merchantInventory = GetComponent<MerchantInventory>();
+        }
+
+        if (merchantInventory == null)
+        {
+            merchantInventory = FindObjectOfType<MerchantInventory>();
+        }
+
+        PopulateDungeonDataIfNeeded();
     }
 
     private void SendDungeonMessage(string message)
@@ -162,4 +627,12 @@ public class DungeonRunManager : MonoBehaviour
         Debug.Log(message);
         DungeonMessage?.Invoke(message);
     }
+}
+
+public enum DungeonEventType
+{
+    None,
+    AbandonedCamp,
+    TreasureCache,
+    CollapsedPassage
 }

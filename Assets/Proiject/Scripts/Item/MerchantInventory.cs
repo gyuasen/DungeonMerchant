@@ -75,6 +75,23 @@ public class MerchantInventory : MonoBehaviour
             : item.basePrice;
     }
 
+    public void RestoreItems(IEnumerable<InventoryItemStack> restoredItems)
+    {
+        items.Clear();
+        if (restoredItems != null)
+        {
+            foreach (InventoryItemStack stack in restoredItems)
+            {
+                if (stack?.Item != null && stack.Amount > 0)
+                {
+                    items.Add(stack);
+                }
+            }
+        }
+
+        InventoryChanged?.Invoke();
+    }
+
     private InventoryItemStack FindStack(ItemDataSO item)
     {
         foreach (InventoryItemStack stack in items)

@@ -15,4 +15,10 @@ public class DayManager : MonoBehaviour
         Debug.Log($"Day advanced: {currentDay}");
         DayChanged?.Invoke(currentDay);
     }
+
+    public void SetCurrentDay(int value)
+    {
+        currentDay = Mathf.Max(1, value);
+        DayChanged?.Invoke(currentDay);
+    }
 }
