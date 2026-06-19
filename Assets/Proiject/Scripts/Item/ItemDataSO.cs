@@ -15,4 +15,21 @@ public class ItemDataSO : ScriptableObject
 
     [Header("Economy")]
     [Min(0)] public int basePrice = 20;
+    public ItemAcquisitionType acquisitionType = ItemAcquisitionType.Market;
+
+    [Header("Equipment")]
+    public EquipmentSlot equipmentSlot = EquipmentSlot.Weapon;
+    public MercenaryClass requiredClass = MercenaryClass.Warrior;
+    [Min(1)] public int equipmentRank = 1;
+    public int bonusMaxHP;
+    public int bonusAttack;
+    public int bonusDefense;
+    public float bonusAttackSpeed;
+
+    public bool IsEquipment => itemType == ItemType.Equipment;
+
+    public bool CanEquip(MercenaryClass mercenaryClass)
+    {
+        return IsEquipment && requiredClass == mercenaryClass;
+    }
 }

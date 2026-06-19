@@ -230,3 +230,159 @@
 - タブ数増加に合わせてナビゲーション配置を調整した。
 - `Assembly-CSharp.csproj` に `HealingManager.cs` を追加。
 - `dotnet build DungeonMerchant.sln` は警告0・エラー0で成功。
+
+## 2026-06-19
+
+### 家側の最新作業内容を確認
+
+- ユーザーから「家での作業内容を確認してください」と指定あり。
+- `handoff/FROM_HOME_CHAT.md`、`handoff/SHARED_PROJECT_STATUS.md`、`.instructions.md` を確認。
+- 家側優先ルールに従い、2026-06-19の家側変更を最新状態として扱う。
+- ダンジョン戦闘間のランダムイベントと3択行動が追加されている。
+- `SaveManager` と `GameSaveData` によるJSONセーブ・ロード、自動保存が追加されている。
+- ダンジョン5等級、段階開放、最高開放等級の保存が追加されている。
+- モンスター1〜10等級、通常敵10種、ボス5種、最終戦ボス編成が追加されている。
+- アイテムが合計15種へ拡張され、全敵に正式なドロップテーブルが設定されている。
+- 傭兵名を除くプレイヤー向け表示が日本語化され、`JapaneseDisplayText` が追加されている。
+- 学校側環境に敵SO 15個、アイテムSO 15個、ダンジョンSO 5個が存在することを確認。
+- `Assets/Proiject/Scripts/Core/SaveManager.cs`、`GameSaveData.cs`、`DungeonDataSO.cs`、`JapaneseDisplayText.cs` などの追加ファイルが存在することを確認。
+- `dotnet build DungeonMerchant.sln` は警告0・エラー0で成功。
+
+### 次の作業候補を整理
+
+- ユーザーから次に行う作業候補の提示依頼あり。
+- 優先候補として、装備システム、傭兵成長、契約・維持費、戦闘スキル、経営バランス調整、セーブ/UI検証を提示。
+- 現在のアイテム収集、傭兵育成、ダンジョン攻略を接続できるため、次は装備システムを推奨。
+
+### 傭兵経験値・レベルアップシステムを実装
+
+- ユーザーから「全体のキャラクターに経験値システムを制作したい」と指定あり。
+- 全 `MercenaryInstance` に `currentExperience`、`CurrentExperience`、`ExperienceToNextLevel` を追加。
+- レベル1の必要経験値は100で、レベルごとに50ずつ増加。レベル上限は99。
+- `AddExperience` とレベルアップ処理を追加。
+- 戦士はHP・防御、弓兵は攻撃・攻撃速度、魔法使いは攻撃が伸びやすい職業別成長を追加。
+- レベルアップ時、生存中の傭兵は最大HP増加分だけ現在HPも増える。戦闘不能者はHP0を維持する。
+- `BattleManager` が勝利時に敵等級から経験値を計算し、戦闘参加傭兵へ均等配分するようにした。
+- 敵等級10は10経験値、敵等級1は100経験値を基準とし、ボスは2倍。
+- 経験値獲得とレベルアップを報酬色の戦闘ログへ表示。
+- `COMPANY` と `PARTY` に現在経験値/次レベル必要経験値を表示。
+- `GameSaveData` のバージョンを2へ更新し、`SavedMercenary.currentExperience` を追加。
+- `SaveManager` が経験値を保存・復元するようにした。旧セーブは経験値0として読込可能。
+- `dotnet build DungeonMerchant.sln` は警告0・エラー0で成功。
+
+### 弓兵・魔法使い生成と累進経験値テーブルへ変更
+
+- ユーザーから「戦士しか生成されないため魔法使いや弓兵も生成し、敵経験値と必要経験値を累進式にしたい」と指定あり。
+- 文脈上「給付塀」は弓兵として対応。
+- `ArcherArchetype.asset` と `MageArchetype.asset` を追加。
+- 弓兵は速度・攻撃寄り、魔法使いは攻撃寄りの基礎能力に設定。
+- `SampleScene.unity` の `MercenaryGenerator.archetypes` に戦士・弓兵・魔法使いの3SOを登録。
+- `MercenaryGenerator` が不足職をランタイムアーキタイプで補完するようにし、シーン参照消失時も3職を生成可能にした。
+- 候補数が3人以上の場合、戦士・弓兵・魔法使いを最低1人ずつ含め、残り枠をランダム生成して表示順をシャッフルするようにした。
+- 必要経験値を線形式から `100 + 40n + 10n²`（n = 現在レベル - 1）の累進式へ変更。
+- 敵経験値を `(11 - 敵等級) * 10` から `10 * (11 - 敵等級)²` へ変更。
+- ボス経験値2倍は維持。
+- `dotnet build DungeonMerchant.sln` は警告0・エラー0で成功。
+
+### 戦闘不能治療費・ログ初期表示・傭兵詳細UIを改善
+
+- ユーザーから、戦闘不能治療費の高額化、戦闘開始時ログ見切れの修正、詳細ステータスUIの追加依頼あり。
+- `HealingManager` に `incapacitatedCostMultiplier = 5` と `revivalBaseCost = 500` を追加。
+- 戦闘不能者の治療費を `通常治療費 × 5 + 500G` に変更。
+- HP0の傭兵は日付進行による自然回復の対象外とし、有料治療でのみ復帰するようにした。
+- HEAL画面に戦闘不能表示と高額治療ルールを表示。
+- バトルログの固定最小高さ430pxを廃止し、実際のViewport高さを最小Content高さに使用。
+- 戦闘・ダンジョン開始時にログContent位置とスクロール位置を先頭へ明示的にリセットするようにした。
+- `COMPANY` の各傭兵に `詳細` ボタンを追加。
+- 詳細モーダルで種別、ID、職業、契約、状態、レベル、経験値、HP、攻撃、防御、攻撃速度、雇用費を表示。
+- パーティー追加/解除ボタンは維持し、詳細ボタンと横並びに配置。
+- `dotnet build DungeonMerchant.sln` は警告0・エラー0で成功。
+
+### 各職の初期装備と上位装備を追加
+
+- ユーザーから装備システム制作開始として、各職の初期装備と一段上の装備作成依頼あり。
+- 装備変更UIは、上部タブを増やさず傭兵確認から直接操作できるため、既存の詳細画面へ組み込む方針を採用。
+- `EquipmentSlot` enumを追加。武器、防具、装飾品を定義。
+- `ItemDataSO` に装備スロット、必要職業、装備ランク、HP・攻撃・防御・攻撃速度補正を追加。
+- `ItemDataSO.IsEquipment` と `CanEquip` を追加。
+- 戦士用に `鉄の剣`（ランク1）と `鋼の剣`（ランク2）を追加。
+- 弓兵用に `ショートボウ`（ランク1）と `複合弓`（ランク2）を追加。
+- 魔術師用に `見習いの杖`（ランク1）と `秘術の杖`（ランク2）を追加。
+- `JapaneseDisplayText` に装備名と装備スロットの日本語表示を追加。
+- 現時点は装備SOとデータ定義まで。着脱、能力反映、セーブ、詳細画面操作は次工程。
+- `Assembly-CSharp.csproj` に `EquipmentSlot.cs` を追加。
+- `dotnet build DungeonMerchant.sln` は警告0・エラー0で成功。
+
+### 市場の購入商品をモンスター素材から武器へ変更
+
+- ユーザーから、現在購入可能なモンスター素材を武器に変更するよう指定あり。
+- `MarketStockManager` の仕入れ候補を `ItemType.Equipment` かつ `EquipmentSlot.Weapon` のアイテムだけに限定。
+- シーンに以前保存されていた素材候補も `RemoveInvalidItems` で自動除外するようにした。
+- 市場の武器在庫数を1〜2個に変更。
+- 装備アセットが見つからない場合のフォールバック商品を交易素材から鉄の剣へ変更。
+- フォールバック武器の数量を1個、価格を基準価格から計算するよう修正。
+- MARKET一覧に対応職、武器ランク、HP・攻撃・防御補正を表示するようにした。
+- モンスター素材はダンジョン戦利品・売却品として維持し、市場購入候補からのみ除外。
+
+### 鍛冶屋・ハクスラ要素の設計方針
+
+- ユーザーから、モンスター素材とゴールドで市場では購入できない武器を制作する鍛冶屋と、ハクスラ要素を追加したい意向あり。
+- 市場は固定能力の既製武器、鍛冶屋は素材を使う限定武器とランダム性能武器を扱う役割分担を推奨。
+- `EquipmentRecipeSO` で必要素材、必要ゴールド、対応職、完成装備、必要ダンジョン等級を設定する方針。
+- 初期段階は固定レシピで確実に制作し、その後に接頭辞・接尾辞、品質、ランダム補正を追加する段階実装を推奨。
+- 制作装備は市場購入不可とし、鍛冶屋レシピまたはダンジョンドロップ限定にする。
+
+### 固定レシピ式の鍛冶屋を実装
+
+- ユーザーから鍛冶屋を提案どおり実装するよう指定あり。
+- `ItemAcquisitionType` を追加し、市場品・鍛冶品・ダンジョン品を区別できるようにした。
+- `CraftingMaterialRequirement` と `EquipmentRecipeSO` を追加。
+- `BlacksmithManager` を追加し、レシピ自動検出、制作可否判定、ゴールド支払い、素材消費、完成武器追加を実装。
+- `MerchantInventory` に所持数取得、素材所持判定、複数素材の一括消費を追加。
+- `DungeonMerchantBootstrap` が `BlacksmithManager` を自動生成するようにした。
+- `鍛冶` タブを追加し、完成武器の職業・ランク・能力補正、必要素材の所持数、必要ゴールドを表示。
+- 制作可能な場合のみ制作ボタンを有効化。
+- 戦士用ランク3 `ゴブリン狩りの剣` を追加。ゴブリンの耳5、魔物の牙3、300Gで制作。
+- 弓兵用ランク3 `獣骨の弓` を追加。コウモリの翼5、オークの牙2、340Gで制作。
+- 魔術師用ランク3 `呪木の杖` を追加。呪われた骨4、闇の結晶3、380Gで制作。
+- 3武器は `ItemAcquisitionType.Blacksmith` のため市場購入候補から除外。
+- 上部タブ9個が1列に収まるようナビゲーション幅と位置を調整。
+- `Assembly-CSharp.csproj` に鍛冶関連スクリプトを追加。
+- 現段階は固定性能の鍛冶限定武器。ランダム品質・接辞・個体装備化は装備着脱実装後の次段階。
+- `dotnet build DungeonMerchant.sln` は警告0・エラー0で成功。
+## 2026-06-19
+
+### Character detail equipment controls implemented
+- Investigated the report that equipment changes from the character detail screen were not working.
+- Confirmed that the existing detail modal only displayed statistics and had no equip/unequip implementation.
+- Added equipped weapon state to `MercenaryInstance`.
+- Equipment bonuses now affect max HP, attack, defense, attack speed, and battle unit creation through the existing stat properties.
+- Added inventory item removal and weapon swap behavior. The previous weapon returns to inventory.
+- Added compatible owned weapon rows, equip buttons, and an unequip button to the character detail modal.
+- Added equipped weapon persistence to `GameSaveData` and `SaveManager`.
+- Save data now stores base stats separately, preventing equipment bonuses from being applied twice after loading.
+- Preserved HP correctly when loading an HP-boosting weapon.
+- `dotnet build DungeonMerchant.sln` completed with 0 warnings and 0 errors.
+- Rollback: revert the 2026-06-19 equipment changes in `MercenaryInstance`, `MerchantInventory`, `GameSaveData`, `SaveManager`, and `SimpleMercenaryHireUI`.
+## 2026-06-19
+
+### Equipment comparison and detail UI readability improved
+- Added stat comparison between each owned weapon and the currently equipped weapon.
+- Comparison values use green for increases, red for decreases, and gray for no change.
+- Comparison covers max HP, attack, defense, and attack speed.
+- Enlarged the character detail modal and separated character stats from equipment controls more clearly.
+- Increased equipment row height and font size so weapon information is no longer compressed.
+- Added a masked scrollable equipment viewport for characters with many compatible weapons.
+- Added the currently equipped weapon name to the character stat area.
+- `dotnet build DungeonMerchant.sln` completed with 0 warnings and 0 errors.
+- Rollback: revert the equipment comparison and layout changes in `SimpleMercenaryHireUI.cs`.
+## 2026-06-19
+
+### Equipped weapon save timing reinforced
+- Confirmed that `GameSaveData` stores `equippedWeaponAssetName` for each mercenary.
+- Confirmed that `SaveManager` restores the weapon SO and reapplies saved HP after equipment restoration.
+- Added a `SaveManager` reference to `SimpleMercenaryHireUI`.
+- Weapon equip, swap, and unequip now explicitly call `SaveGame()` after inventory and character state changes are complete.
+- This removes reliance on the intermediate inventory event timing and saves the final equipment state immediately.
+- `dotnet build DungeonMerchant.sln` completed with 0 warnings and 0 errors.
+- Rollback: remove the `SaveManager` reference and `SaveEquipmentChanges()` calls from `SimpleMercenaryHireUI.cs`.

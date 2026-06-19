@@ -10,9 +10,13 @@ public class HealingManager : MonoBehaviour
 
     [Header("Healing Settings")]
     [SerializeField, Min(0)] private int healCostPerHP = 2;
+    [SerializeField, Min(1)] private int incapacitatedCostMultiplier = 5;
+    [SerializeField, Min(0)] private int revivalBaseCost = 500;
     [SerializeField, Min(0)] private int naturalHealPerDay = 10;
 
     public int HealCostPerHP => healCostPerHP;
+    public int IncapacitatedCostMultiplier => incapacitatedCostMultiplier;
+    public int RevivalBaseCost => revivalBaseCost;
     public int NaturalHealPerDay => naturalHealPerDay;
 
     public event Action HealingChanged;
@@ -46,7 +50,18 @@ public class HealingManager : MonoBehaviour
 
     public int GetFullHealCost(MercenaryInstance mercenary)
     {
-        return GetMissingHP(mercenary) * healCostPerHP;
+        if (mercenary == null)
+        {
+            return 0;
+        }
+
+        int normalCost = GetMissingHP(mercenary) * healCostPerHP;
+        if (!mercenary.IsIncapacitated)
+        {
+            return normalCost;
+        }
+
+        return (normalCost * incapacitatedCostMultiplier) + revivalBaseCost;
     }
 
     public bool CanHeal(MercenaryInstance mercenary)
@@ -98,7 +113,9 @@ public class HealingManager : MonoBehaviour
         bool healedAny = false;
         foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
         {
-            if (mercenary == null || mercenary.CurrentHP >= mercenary.MaxHP)
+            if (mercenary == null ||
+                mercenary.IsIncapacitated ||
+                mercenary.CurrentHP >= mercenary.MaxHP)
             {
                 continue;
             }

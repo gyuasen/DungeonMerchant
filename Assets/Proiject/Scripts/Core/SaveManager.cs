@@ -176,12 +176,16 @@ public class SaveManager : MonoBehaviour
                     mercenaryClass = mercenary.MercenaryClass,
                     contractType = mercenary.ContractType,
                     level = mercenary.Level,
-                    maxHP = mercenary.MaxHP,
+                    currentExperience = mercenary.CurrentExperience,
+                    maxHP = mercenary.BaseMaxHP,
                     currentHP = mercenary.CurrentHP,
-                    attack = mercenary.Attack,
-                    defense = mercenary.Defense,
-                    attackSpeed = mercenary.AttackSpeed,
-                    hireCost = mercenary.HireCost
+                    attack = mercenary.BaseAttack,
+                    defense = mercenary.BaseDefense,
+                    attackSpeed = mercenary.BaseAttackSpeed,
+                    hireCost = mercenary.HireCost,
+                    equippedWeaponAssetName = mercenary.EquippedWeapon != null
+                        ? mercenary.EquippedWeapon.name
+                        : string.Empty
                 });
             }
         }
@@ -268,7 +272,7 @@ public class SaveManager : MonoBehaviour
 
     private MercenaryInstance RestoreMercenary(SavedMercenary saved)
     {
-        return MercenaryInstance.CreateRestored(
+        MercenaryInstance mercenary = MercenaryInstance.CreateRestored(
             saved.instanceId,
             FindMercenaryData(saved.baseDataAssetName),
             FindArchetype(saved.archetypeAssetName),
@@ -276,12 +280,17 @@ public class SaveManager : MonoBehaviour
             saved.mercenaryClass,
             saved.contractType,
             saved.level,
+            saved.currentExperience,
             saved.maxHP,
             saved.currentHP,
             saved.attack,
             saved.defense,
             saved.attackSpeed,
             saved.hireCost);
+        mercenary.RestoreEquippedWeapon(
+            FindItem(saved.equippedWeaponAssetName, string.Empty));
+        mercenary.SetCurrentHP(saved.currentHP);
+        return mercenary;
     }
 
     private void Subscribe()

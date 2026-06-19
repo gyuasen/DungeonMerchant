@@ -448,6 +448,7 @@ public class BattleManager : MonoBehaviour
             }
 
             SendBattleMessage($"勝利！ 報酬: {totalGoldReward} G", BattleLogType.Reward);
+            GrantExperienceRewards();
             GrantItemRewards();
         }
         else
@@ -457,6 +458,62 @@ public class BattleManager : MonoBehaviour
 
         BattleCompleted?.Invoke(victory);
         overrideEnemyEncounter.Clear();
+    }
+
+    private void GrantExperienceRewards()
+    {
+        if (battleMercenaries.Count == 0)
+        {
+            return;
+        }
+
+        int totalExperience = CalculateExperienceReward();
+        int experiencePerMercenary =
+            Mathf.Max(1, totalExperience / battleMercenaries.Count);
+
+        foreach (MercenaryInstance mercenary in battleMercenaries)
+        {
+            int previousLevel = mercenary.Level;
+            int levelsGained = mercenary.AddExperience(experiencePerMercenary);
+
+            SendBattleMessage(
+                $"{mercenary.MercenaryName}が経験値{experiencePerMercenary}を獲得 " +
+                $"({mercenary.CurrentExperience}/{mercenary.ExperienceToNextLevel})",
+                BattleLogType.Reward);
+
+            if (levelsGained > 0)
+            {
+                SendBattleMessage(
+                    $"{mercenary.MercenaryName}がレベル{previousLevel}から" +
+                    $"レベル{mercenary.Level}に上昇！",
+                    BattleLogType.Reward);
+            }
+        }
+    }
+
+    private int CalculateExperienceReward()
+    {
+        int totalExperience = 0;
+
+        foreach (EnemyDataSO enemy in battleEnemyData)
+        {
+            if (enemy == null)
+            {
+                continue;
+            }
+
+            int grade = Mathf.Clamp(enemy.monsterGrade, 1, 10);
+            int strengthRank = 11 - grade;
+            int enemyExperience = 10 * strengthRank * strengthRank;
+            if (enemy.isBoss)
+            {
+                enemyExperience *= 2;
+            }
+
+            totalExperience += enemyExperience;
+        }
+
+        return Mathf.Max(1, totalExperience);
     }
 
     private void ApplyBattleResultsToMercenaries()
