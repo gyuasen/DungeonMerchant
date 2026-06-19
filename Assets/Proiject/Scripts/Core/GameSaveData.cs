@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public class GameSaveData
 {
-    public int version = 1;
+    public int version = 3;
     public int gold = 500;
     public int currentDay = 1;
     public int highestUnlockedDungeonGrade;
@@ -32,10 +32,12 @@ public class SavedMercenary
     public MercenaryClass mercenaryClass;
     public MercenaryContractType contractType;
     public int level;
+    public int currentExperience;
     public int maxHP;
     public int currentHP;
     public int attack;
     public int defense;
     public float attackSpeed;
     public int hireCost;
+    public string equippedWeaponAssetName;
 }

@@ -27,7 +27,8 @@ public class MercenaryGenerator : MonoBehaviour
     [SerializeField] private List<MercenaryInstance> candidates =
         new List<MercenaryInstance>();
 
-    private MercenaryArchetypeSO fallbackArchetype;
+    private readonly List<MercenaryArchetypeSO> runtimeFallbackArchetypes =
+        new List<MercenaryArchetypeSO>();
 
     public IReadOnlyList<MercenaryInstance> Candidates => candidates;
 
@@ -56,10 +57,12 @@ public class MercenaryGenerator : MonoBehaviour
         int amount = avoidDuplicateNames
             ? Mathf.Min(candidateCount, availableNames.Count)
             : candidateCount;
+        List<MercenaryArchetypeSO> generationArchetypes =
+            BuildGenerationArchetypeList(availableArchetypes, amount);
 
         for (int i = 0; i < amount; i++)
         {
-            MercenaryArchetypeSO archetype = GetRandomArchetype(availableArchetypes);
+            MercenaryArchetypeSO archetype = generationArchetypes[i];
             if (archetype == null)
             {
                 continue;
@@ -70,6 +73,43 @@ public class MercenaryGenerator : MonoBehaviour
         }
 
         CandidatesChanged?.Invoke();
+    }
+
+    private List<MercenaryArchetypeSO> BuildGenerationArchetypeList(
+        List<MercenaryArchetypeSO> availableArchetypes,
+        int amount)
+    {
+        List<MercenaryArchetypeSO> result = new List<MercenaryArchetypeSO>();
+
+        foreach (MercenaryClass mercenaryClass in Enum.GetValues(typeof(MercenaryClass)))
+        {
+            if (result.Count >= amount)
+            {
+                break;
+            }
+
+            MercenaryArchetypeSO classArchetype = availableArchetypes.Find(
+                archetype => archetype.mercenaryClass == mercenaryClass);
+            if (classArchetype != null)
+            {
+                result.Add(classArchetype);
+            }
+        }
+
+        while (result.Count < amount)
+        {
+            result.Add(GetRandomArchetype(availableArchetypes));
+        }
+
+        for (int i = result.Count - 1; i > 0; i--)
+        {
+            int swapIndex = UnityEngine.Random.Range(0, i + 1);
+            MercenaryArchetypeSO temporary = result[i];
+            result[i] = result[swapIndex];
+            result[swapIndex] = temporary;
+        }
+
+        return result;
     }
 
     public bool RemoveCandidate(MercenaryInstance candidate)
@@ -132,12 +172,26 @@ public class MercenaryGenerator : MonoBehaviour
         List<MercenaryArchetypeSO> validArchetypes =
             archetypes.FindAll(archetype => archetype != null);
 
-        if (validArchetypes.Count == 0)
-        {
-            validArchetypes.Add(GetFallbackArchetype());
-        }
+        EnsureClassArchetype(validArchetypes, MercenaryClass.Warrior);
+        EnsureClassArchetype(validArchetypes, MercenaryClass.Archer);
+        EnsureClassArchetype(validArchetypes, MercenaryClass.Mage);
 
         return validArchetypes;
+    }
+
+    private void EnsureClassArchetype(
+        List<MercenaryArchetypeSO> availableArchetypes,
+        MercenaryClass mercenaryClass)
+    {
+        foreach (MercenaryArchetypeSO archetype in availableArchetypes)
+        {
+            if (archetype.mercenaryClass == mercenaryClass)
+            {
+                return;
+            }
+        }
+
+        availableArchetypes.Add(GetFallbackArchetype(mercenaryClass));
     }
 
     private MercenaryArchetypeSO GetRandomArchetype(
@@ -152,23 +206,51 @@ public class MercenaryGenerator : MonoBehaviour
         return availableArchetypes[index];
     }
 
-    private MercenaryArchetypeSO GetFallbackArchetype()
+    private MercenaryArchetypeSO GetFallbackArchetype(MercenaryClass mercenaryClass)
     {
-        if (fallbackArchetype != null)
+        foreach (MercenaryArchetypeSO archetype in runtimeFallbackArchetypes)
         {
-            return fallbackArchetype;
+            if (archetype.mercenaryClass == mercenaryClass)
+            {
+                return archetype;
+            }
         }
 
-        fallbackArchetype = ScriptableObject.CreateInstance<MercenaryArchetypeSO>();
-        fallbackArchetype.name = "Runtime Warrior Archetype";
-        fallbackArchetype.mercenaryClass = MercenaryClass.Warrior;
-        fallbackArchetype.contractType = MercenaryContractType.Temporary;
-        fallbackArchetype.baseMaxHP = 100;
-        fallbackArchetype.baseAttack = 10;
-        fallbackArchetype.baseDefense = 3;
-        fallbackArchetype.baseAttackSpeed = 1f;
-        fallbackArchetype.baseHireCost = 100;
-        return fallbackArchetype;
+        MercenaryArchetypeSO fallback =
+            ScriptableObject.CreateInstance<MercenaryArchetypeSO>();
+        fallback.name = $"Runtime {mercenaryClass} Archetype";
+        fallback.mercenaryClass = mercenaryClass;
+        fallback.contractType = MercenaryContractType.Temporary;
+        fallback.statVariation = 0.15f;
+        fallback.hireCostVariation = 0.2f;
+
+        switch (mercenaryClass)
+        {
+            case MercenaryClass.Archer:
+                fallback.baseMaxHP = 82;
+                fallback.baseAttack = 13;
+                fallback.baseDefense = 2;
+                fallback.baseAttackSpeed = 1.25f;
+                fallback.baseHireCost = 110;
+                break;
+            case MercenaryClass.Mage:
+                fallback.baseMaxHP = 72;
+                fallback.baseAttack = 16;
+                fallback.baseDefense = 1;
+                fallback.baseAttackSpeed = 0.9f;
+                fallback.baseHireCost = 120;
+                break;
+            default:
+                fallback.baseMaxHP = 100;
+                fallback.baseAttack = 10;
+                fallback.baseDefense = 3;
+                fallback.baseAttackSpeed = 1f;
+                fallback.baseHireCost = 100;
+                break;
+        }
+
+        runtimeFallbackArchetypes.Add(fallback);
+        return fallback;
     }
 
     private string TakeRandomName(List<string> availableNames)

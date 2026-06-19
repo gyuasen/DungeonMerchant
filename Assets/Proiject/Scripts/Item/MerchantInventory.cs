@@ -75,6 +75,71 @@ public class MerchantInventory : MonoBehaviour
             : item.basePrice;
     }
 
+    public int GetItemAmount(ItemDataSO item)
+    {
+        InventoryItemStack stack = FindStack(item);
+        return stack != null ? stack.Amount : 0;
+    }
+
+    public bool HasItem(ItemDataSO item, int amount = 1)
+    {
+        return item != null && amount > 0 && GetItemAmount(item) >= amount;
+    }
+
+    public bool TryRemoveItem(ItemDataSO item, int amount = 1)
+    {
+        if (item == null || amount <= 0)
+        {
+            return false;
+        }
+
+        InventoryItemStack stack = FindStack(item);
+        if (stack == null || !stack.Remove(amount))
+        {
+            return false;
+        }
+
+        if (stack.Amount <= 0)
+        {
+            items.Remove(stack);
+        }
+
+        InventoryChanged?.Invoke();
+        return true;
+    }
+
+    public bool TryConsumeMaterials(CraftingMaterialRequirement[] requirements)
+    {
+        if (requirements == null)
+        {
+            return true;
+        }
+
+        foreach (CraftingMaterialRequirement requirement in requirements)
+        {
+            if (requirement == null ||
+                requirement.item == null ||
+                requirement.amount <= 0 ||
+                !HasItem(requirement.item, requirement.amount))
+            {
+                return false;
+            }
+        }
+
+        foreach (CraftingMaterialRequirement requirement in requirements)
+        {
+            InventoryItemStack stack = FindStack(requirement.item);
+            stack.Remove(requirement.amount);
+            if (stack.Amount <= 0)
+            {
+                items.Remove(stack);
+            }
+        }
+
+        InventoryChanged?.Invoke();
+        return true;
+    }
+
     public void RestoreItems(IEnumerable<InventoryItemStack> restoredItems)
     {
         items.Clear();

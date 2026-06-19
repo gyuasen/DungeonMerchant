@@ -11,12 +11,14 @@ public class MercenaryInstance
     [SerializeField] private MercenaryClass mercenaryClass;
     [SerializeField] private MercenaryContractType contractType;
     [SerializeField] private int level;
+    [SerializeField] private int currentExperience;
     [SerializeField] private int maxHP;
     [SerializeField] private int currentHP;
     [SerializeField] private int attack;
     [SerializeField] private int defense;
     [SerializeField] private float attackSpeed;
     [SerializeField] private int hireCost;
+    [SerializeField] private ItemDataSO equippedWeapon;
 
     public string InstanceId => instanceId;
     public MercenaryDataSO BaseData => baseData;
@@ -25,12 +27,20 @@ public class MercenaryInstance
     public MercenaryClass MercenaryClass => mercenaryClass;
     public MercenaryContractType ContractType => contractType;
     public int Level => level;
+    public int CurrentExperience => currentExperience;
+    public int ExperienceToNextLevel => CalculateExperienceToNextLevel(level);
     public int CurrentHP => currentHP;
-    public int MaxHP => maxHP;
-    public int Attack => attack;
-    public int Defense => defense;
-    public float AttackSpeed => attackSpeed;
+    public int MaxHP => maxHP + GetEquipmentBonus(item => item.bonusMaxHP);
+    public int Attack => attack + GetEquipmentBonus(item => item.bonusAttack);
+    public int Defense => defense + GetEquipmentBonus(item => item.bonusDefense);
+    public float AttackSpeed =>
+        attackSpeed + (equippedWeapon != null ? equippedWeapon.bonusAttackSpeed : 0f);
     public int HireCost => hireCost;
+    public int BaseMaxHP => maxHP;
+    public int BaseAttack => attack;
+    public int BaseDefense => defense;
+    public float BaseAttackSpeed => attackSpeed;
+    public ItemDataSO EquippedWeapon => equippedWeapon;
     public bool IsUnique => baseData != null;
     public bool IsIncapacitated => currentHP <= 0;
 
@@ -47,6 +57,7 @@ public class MercenaryInstance
         mercenaryClass = mercenaryData.mercenaryClass;
         contractType = mercenaryData.contractType;
         level = 1;
+        currentExperience = 0;
         maxHP = mercenaryData.maxHP;
         currentHP = maxHP;
         attack = mercenaryData.attack;
@@ -75,6 +86,7 @@ public class MercenaryInstance
         mercenaryClass = sourceArchetype.mercenaryClass;
         contractType = sourceArchetype.contractType;
         level = 1;
+        currentExperience = 0;
         maxHP = generatedMaxHP;
         currentHP = maxHP;
         attack = generatedAttack;
@@ -85,7 +97,7 @@ public class MercenaryInstance
 
     public void SetCurrentHP(int value)
     {
-        currentHP = Mathf.Clamp(value, 0, maxHP);
+        currentHP = Mathf.Clamp(value, 0, MaxHP);
     }
 
     public void TakeDamage(int damage)
@@ -100,7 +112,114 @@ public class MercenaryInstance
 
     public void RestoreFullHP()
     {
-        currentHP = maxHP;
+        currentHP = MaxHP;
+    }
+
+    public bool EquipWeapon(ItemDataSO weapon)
+    {
+        if (weapon == null ||
+            weapon.equipmentSlot != EquipmentSlot.Weapon ||
+            !weapon.CanEquip(mercenaryClass))
+        {
+            return false;
+        }
+
+        equippedWeapon = weapon;
+        currentHP = Mathf.Clamp(currentHP, 0, MaxHP);
+        return true;
+    }
+
+    public ItemDataSO UnequipWeapon()
+    {
+        ItemDataSO previousWeapon = equippedWeapon;
+        equippedWeapon = null;
+        currentHP = Mathf.Clamp(currentHP, 0, MaxHP);
+        return previousWeapon;
+    }
+
+    public void RestoreEquippedWeapon(ItemDataSO weapon)
+    {
+        equippedWeapon =
+            weapon != null &&
+            weapon.equipmentSlot == EquipmentSlot.Weapon &&
+            weapon.CanEquip(mercenaryClass)
+                ? weapon
+                : null;
+        currentHP = Mathf.Clamp(currentHP, 0, MaxHP);
+    }
+
+    public int AddExperience(int amount)
+    {
+        if (amount <= 0 || level >= 99)
+        {
+            return 0;
+        }
+
+        currentExperience += amount;
+        int levelsGained = 0;
+
+        while (level < 99 && currentExperience >= ExperienceToNextLevel)
+        {
+            currentExperience -= ExperienceToNextLevel;
+            LevelUp();
+            levelsGained++;
+        }
+
+        if (level >= 99)
+        {
+            currentExperience = 0;
+        }
+
+        return levelsGained;
+    }
+
+    public static int CalculateExperienceToNextLevel(int targetLevel)
+    {
+        int safeLevel = Mathf.Max(1, targetLevel);
+        int levelOffset = safeLevel - 1;
+        return 100 + (40 * levelOffset) + (10 * levelOffset * levelOffset);
+    }
+
+    private void LevelUp()
+    {
+        level++;
+
+        int hpGrowth;
+        int attackGrowth;
+        int defenseGrowth;
+        float speedGrowth;
+
+        switch (mercenaryClass)
+        {
+            case MercenaryClass.Archer:
+                hpGrowth = 8;
+                attackGrowth = 3;
+                defenseGrowth = 1;
+                speedGrowth = 0.03f;
+                break;
+            case MercenaryClass.Mage:
+                hpGrowth = 7;
+                attackGrowth = 4;
+                defenseGrowth = 1;
+                speedGrowth = 0.01f;
+                break;
+            default:
+                hpGrowth = 12;
+                attackGrowth = 2;
+                defenseGrowth = 2;
+                speedGrowth = 0.01f;
+                break;
+        }
+
+        maxHP += hpGrowth;
+        if (currentHP > 0)
+        {
+            currentHP = Mathf.Min(MaxHP, currentHP + hpGrowth);
+        }
+
+        attack += attackGrowth;
+        defense += defenseGrowth;
+        attackSpeed += speedGrowth;
     }
 
     public static MercenaryInstance CreateRestored(
@@ -111,6 +230,7 @@ public class MercenaryInstance
         MercenaryClass restoredClass,
         MercenaryContractType restoredContractType,
         int restoredLevel,
+        int restoredCurrentExperience,
         int restoredMaxHP,
         int restoredCurrentHP,
         int restoredAttack,
@@ -129,6 +249,7 @@ public class MercenaryInstance
             mercenaryClass = restoredClass,
             contractType = restoredContractType,
             level = Mathf.Max(1, restoredLevel),
+            currentExperience = Mathf.Max(0, restoredCurrentExperience),
             maxHP = Mathf.Max(1, restoredMaxHP),
             attack = Mathf.Max(0, restoredAttack),
             defense = Mathf.Max(0, restoredDefense),
@@ -136,7 +257,22 @@ public class MercenaryInstance
             hireCost = Mathf.Max(0, restoredHireCost)
         };
         mercenary.currentHP = Mathf.Clamp(restoredCurrentHP, 0, mercenary.maxHP);
+        if (mercenary.level >= 99)
+        {
+            mercenary.currentExperience = 0;
+        }
+        else
+        {
+            mercenary.currentExperience = Mathf.Min(
+                mercenary.currentExperience,
+                mercenary.ExperienceToNextLevel - 1);
+        }
         return mercenary;
+    }
+
+    private int GetEquipmentBonus(Func<ItemDataSO, int> selector)
+    {
+        return equippedWeapon != null ? selector(equippedWeapon) : 0;
     }
 
     private MercenaryInstance()

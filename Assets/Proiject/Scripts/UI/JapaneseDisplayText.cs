@@ -71,7 +71,27 @@ public static class JapaneseDisplayText
             case "Black Iron Emblem": return "黒鉄の紋章";
             case "Abyss Crown": return "深淵の王冠";
             case "Trade Goods": return "交易品";
+            case "Iron Sword": return "鉄の剣";
+            case "Steel Sword": return "鋼の剣";
+            case "Short Bow": return "ショートボウ";
+            case "Composite Bow": return "複合弓";
+            case "Apprentice Staff": return "見習いの杖";
+            case "Arcane Staff": return "秘術の杖";
+            case "Goblin Hunter Sword": return "ゴブリン狩りの剣";
+            case "Beastbone Bow": return "獣骨の弓";
+            case "Hexwood Staff": return "呪木の杖";
             default: return item.itemName;
+        }
+    }
+
+    public static string GetEquipmentSlot(EquipmentSlot value)
+    {
+        switch (value)
+        {
+            case EquipmentSlot.Weapon: return "武器";
+            case EquipmentSlot.Armor: return "防具";
+            case EquipmentSlot.Accessory: return "装飾品";
+            default: return value.ToString();
         }
     }
 

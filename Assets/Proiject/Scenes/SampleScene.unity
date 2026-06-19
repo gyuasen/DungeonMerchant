@@ -313,6 +313,8 @@ MonoBehaviour:
   nameList: {fileID: 4900000, guid: a2850aa3c77143128f47728660c54ab9, type: 3}
   archetypes:
   - {fileID: 11400000, guid: df7e41a10e954723ae50c577bd0de8a6, type: 2}
+  - {fileID: 11400000, guid: 7da357b113e94351a0fa78273aa21d47, type: 2}
+  - {fileID: 11400000, guid: 8ab904e69ad840a9ac0842bf36119d3f, type: 2}
   candidateCount: 5
   avoidDuplicateNames: 1
   generateOnAwake: 1

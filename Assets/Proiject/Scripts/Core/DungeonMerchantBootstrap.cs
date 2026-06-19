@@ -19,6 +19,7 @@ public static class DungeonMerchantBootstrap
         EnsureComponent<MarketPriceManager>(root);
         EnsureComponent<MerchantInventory>(root);
         EnsureComponent<MarketStockManager>(root);
+        EnsureComponent<BlacksmithManager>(root);
         EnsureComponent<MercenaryHireManager>(root);
         EnsureComponent<HealingManager>(root);
         EnsureComponent<MercenaryPartyManager>(root);

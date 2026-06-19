@@ -85,7 +85,11 @@ public class MarketStockManager : MonoBehaviour
 
         if (purchasableItems.Count == 0)
         {
-            stock.Add(new MarketStockEntry(CreateRuntimeFallbackItem(), 3, 12));
+            ItemDataSO fallbackWeapon = CreateRuntimeFallbackItem();
+            int fallbackPrice = Mathf.Max(
+                1,
+                Mathf.RoundToInt(fallbackWeapon.basePrice * minimumBuyMultiplier));
+            stock.Add(new MarketStockEntry(fallbackWeapon, 1, fallbackPrice));
             StockChanged?.Invoke();
             return;
         }
@@ -94,7 +98,7 @@ public class MarketStockManager : MonoBehaviour
         for (int i = 0; i < slotCount; i++)
         {
             ItemDataSO item = purchasableItems[GetStableIndex(i)];
-            int quantity = 1 + Mathf.Abs(GetStableHash(item, i, 23)) % 5;
+            int quantity = 1 + Mathf.Abs(GetStableHash(item, i, 23)) % 2;
             int buyPrice = Mathf.Max(1, Mathf.RoundToInt(item.basePrice * GetBuyMultiplier(item, i)));
             stock.Add(new MarketStockEntry(item, quantity, buyPrice));
         }
@@ -151,7 +155,7 @@ public class MarketStockManager : MonoBehaviour
 
     private void PopulatePurchasableItemsIfNeeded()
     {
-        RemoveMissingItems();
+        RemoveInvalidItems();
         if (purchasableItems.Count > 0)
         {
             return;
@@ -177,31 +181,45 @@ public class MarketStockManager : MonoBehaviour
 
     private void AddPurchasableItem(ItemDataSO item)
     {
-        if (item != null && !purchasableItems.Contains(item))
+        if (IsPurchasableWeapon(item) && !purchasableItems.Contains(item))
         {
             purchasableItems.Add(item);
         }
     }
 
-    private void RemoveMissingItems()
+    private void RemoveInvalidItems()
     {
         for (int i = purchasableItems.Count - 1; i >= 0; i--)
         {
-            if (purchasableItems[i] == null)
+            if (!IsPurchasableWeapon(purchasableItems[i]))
             {
                 purchasableItems.RemoveAt(i);
             }
         }
     }
 
+    private static bool IsPurchasableWeapon(ItemDataSO item)
+    {
+        return item != null &&
+               item.IsEquipment &&
+               item.acquisitionType == ItemAcquisitionType.Market &&
+               item.equipmentSlot == EquipmentSlot.Weapon;
+    }
+
     private ItemDataSO CreateRuntimeFallbackItem()
     {
         ItemDataSO item = ScriptableObject.CreateInstance<ItemDataSO>();
-        item.itemName = "Trade Goods";
-        item.itemType = ItemType.Material;
+        item.itemName = "Iron Sword";
+        item.itemType = ItemType.Equipment;
         item.rarity = ItemRarity.Common;
-        item.description = "Runtime fallback market goods.";
-        item.basePrice = 20;
+        item.description = "Runtime fallback weapon.";
+        item.basePrice = 120;
+        item.equipmentSlot = EquipmentSlot.Weapon;
+        item.requiredClass = MercenaryClass.Warrior;
+        item.equipmentRank = 1;
+        item.bonusMaxHP = 5;
+        item.bonusAttack = 4;
+        item.bonusDefense = 1;
         return item;
     }
 
