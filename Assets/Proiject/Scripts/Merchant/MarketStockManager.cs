@@ -31,6 +31,10 @@ public class MarketStockManager : MonoBehaviour
         {
             dayManager.DayChanged += HandleDayChanged;
         }
+        if (merchantData != null)
+        {
+            merchantData.ProgressionChanged += HandleMerchantProgressionChanged;
+        }
     }
 
     private void OnDisable()
@@ -38,6 +42,10 @@ public class MarketStockManager : MonoBehaviour
         if (dayManager != null)
         {
             dayManager.DayChanged -= HandleDayChanged;
+        }
+        if (merchantData != null)
+        {
+            merchantData.ProgressionChanged -= HandleMerchantProgressionChanged;
         }
     }
 
@@ -73,7 +81,18 @@ public class MarketStockManager : MonoBehaviour
             return false;
         }
 
-        merchantInventory.AddItem(entry.Item, amount);
+        for (int i = 0; i < amount; i++)
+        {
+            if (entry.Item.IsEquipment)
+            {
+                merchantInventory.AddEquipmentInstance(
+                    EquipmentInstance.CreateFixed(entry.Item));
+            }
+            else
+            {
+                merchantInventory.AddItem(entry.Item);
+            }
+        }
         StockChanged?.Invoke();
         return true;
     }
@@ -99,7 +118,15 @@ public class MarketStockManager : MonoBehaviour
         {
             ItemDataSO item = purchasableItems[GetStableIndex(i)];
             int quantity = 1 + Mathf.Abs(GetStableHash(item, i, 23)) % 2;
-            int buyPrice = Mathf.Max(1, Mathf.RoundToInt(item.basePrice * GetBuyMultiplier(item, i)));
+            float merchantMultiplier = merchantData != null
+                ? merchantData.GetMarketBuyMultiplier()
+                : 1f;
+            int buyPrice = Mathf.Max(
+                1,
+                Mathf.RoundToInt(
+                    item.basePrice *
+                    GetBuyMultiplier(item, i) *
+                    merchantMultiplier));
             stock.Add(new MarketStockEntry(item, quantity, buyPrice));
         }
 
@@ -153,13 +180,14 @@ public class MarketStockManager : MonoBehaviour
         GenerateDailyStock();
     }
 
+    private void HandleMerchantProgressionChanged()
+    {
+        GenerateDailyStock();
+    }
+
     private void PopulatePurchasableItemsIfNeeded()
     {
         RemoveInvalidItems();
-        if (purchasableItems.Count > 0)
-        {
-            return;
-        }
 
         foreach (ItemDataSO item in Resources.LoadAll<ItemDataSO>(string.Empty))
         {
@@ -181,7 +209,7 @@ public class MarketStockManager : MonoBehaviour
 
     private void AddPurchasableItem(ItemDataSO item)
     {
-        if (IsPurchasableWeapon(item) && !purchasableItems.Contains(item))
+        if (IsPurchasableEquipment(item) && !purchasableItems.Contains(item))
         {
             purchasableItems.Add(item);
         }
@@ -191,19 +219,18 @@ public class MarketStockManager : MonoBehaviour
     {
         for (int i = purchasableItems.Count - 1; i >= 0; i--)
         {
-            if (!IsPurchasableWeapon(purchasableItems[i]))
+            if (!IsPurchasableEquipment(purchasableItems[i]))
             {
                 purchasableItems.RemoveAt(i);
             }
         }
     }
 
-    private static bool IsPurchasableWeapon(ItemDataSO item)
+    private static bool IsPurchasableEquipment(ItemDataSO item)
     {
         return item != null &&
                item.IsEquipment &&
-               item.acquisitionType == ItemAcquisitionType.Market &&
-               item.equipmentSlot == EquipmentSlot.Weapon;
+               item.acquisitionType == ItemAcquisitionType.Market;
     }
 
     private ItemDataSO CreateRuntimeFallbackItem()

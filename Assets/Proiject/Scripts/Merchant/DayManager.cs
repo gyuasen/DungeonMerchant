@@ -11,7 +11,12 @@ public class DayManager : MonoBehaviour
 
     public void AdvanceDay()
     {
-        currentDay++;
+        AdvanceDays(1);
+    }
+
+    public void AdvanceDays(int amount)
+    {
+        currentDay += Mathf.Max(0, amount);
         Debug.Log($"Day advanced: {currentDay}");
         DayChanged?.Invoke(currentDay);
     }

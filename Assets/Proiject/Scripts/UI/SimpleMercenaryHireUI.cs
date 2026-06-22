@@ -23,6 +23,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     [SerializeField] private DungeonRunManager dungeonRunManager;
     [SerializeField] private HealingManager healingManager;
     [SerializeField] private SaveManager saveManager;
+    [SerializeField] private ProgressionManager progressionManager;
 
     [Header("Hire Candidates")]
     [SerializeField] private List<MercenaryDataSO> candidates = new List<MercenaryDataSO>();
@@ -50,7 +51,25 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform characterEquipmentList;
     private ScrollRect characterEquipmentScrollRect;
     private MercenaryInstance selectedDetailMercenary;
+    private RectTransform equipmentDetailOverlay;
+    private Text equipmentDetailTitle;
+    private Text equipmentDetailText;
+    private Button equipmentEnhanceButton;
+    private Button equipmentSellButton;
+    private Button equipmentLockButton;
+    private EquipmentInstance selectedEquipmentDetail;
+    private RectTransform questOverlay;
+    private RectTransform questList;
+    private RectTransform merchantStatusOverlay;
+    private RectTransform merchantSkillList;
+    private RectTransform equipmentCollectionOverlay;
+    private RectTransform equipmentCollectionContent;
+    private Text equipmentCollectionText;
+    private InventoryFilter inventoryFilter = InventoryFilter.All;
+    private EquipmentSort equipmentSort = EquipmentSort.Name;
     private RectTransform hirePage;
+    private RectTransform worldMapPage;
+    private RectTransform townMapPage;
     private RectTransform hireList;
     private RectTransform companyPage;
     private RectTransform partyPage;
@@ -69,6 +88,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform blacksmithList;
     private RectTransform dungeonSelectionList;
     private Button hireTabButton;
+    private Button mapButton;
     private Button companyTabButton;
     private Button partyTabButton;
     private Button healTabButton;
@@ -83,6 +103,9 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private Button secondDungeonEventButton;
     private Button thirdDungeonEventButton;
     private Button nextDayButton;
+    private Button contractSelectButton;
+    private Button inventoryFilterButton;
+    private Button equipmentSortButton;
     private Text goldText;
     private Text statusText;
     private Text battleLogText;
@@ -95,6 +118,21 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform battleLogViewport;
     private ScrollRect battleLogScrollRect;
     private Coroutine battleLogScrollCoroutine;
+    private int currentTownIndex;
+
+    private static readonly string[] TownNames =
+    {
+        "エルド交易都市",
+        "リーフ森林都市",
+        "セイル港湾都市"
+    };
+
+    public int CurrentTownIndex => currentTownIndex;
+
+    public void RestoreCurrentTown(int townIndex)
+    {
+        currentTownIndex = Mathf.Clamp(townIndex, 0, TownNames.Length - 1);
+    }
 
     private static readonly Color BackgroundColor = new Color(0.07f, 0.08f, 0.1f, 1f);
     private static readonly Color PanelColor = new Color(0.13f, 0.15f, 0.18f, 1f);
@@ -118,6 +156,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         EnsureEventSystem();
         BuildUI();
         merchantData.GoldChanged += HandleGoldChanged;
+        merchantData.ProgressionChanged += HandleProgressionChanged;
         hireManager.MercenaryHired += HandleMercenaryHired;
         partyManager.PartyChanged += HandlePartyChanged;
         mercenaryGenerator.CandidatesChanged += HandleCandidatesChanged;
@@ -132,7 +171,11 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         marketPriceManager.PricesChanged += HandlePricesChanged;
         marketStockManager.StockChanged += HandleMarketStockChanged;
         blacksmithManager.CraftingChanged += HandleCraftingChanged;
-        ShowHirePage();
+        if (progressionManager != null)
+        {
+            progressionManager.ProgressionChanged += HandleProgressionChanged;
+        }
+        ShowWorldMap();
         RefreshUI();
     }
 
@@ -281,6 +324,12 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         if (saveManager == null)
         {
             saveManager = FindObjectOfType<SaveManager>();
+        }
+
+        if (progressionManager == null)
+        {
+            progressionManager = GetComponent<ProgressionManager>() ??
+                                 FindObjectOfType<ProgressionManager>();
         }
     }
 
@@ -441,6 +490,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         if (merchantData != null)
         {
             merchantData.GoldChanged -= HandleGoldChanged;
+            merchantData.ProgressionChanged -= HandleProgressionChanged;
         }
 
         if (hireManager != null)
@@ -500,6 +550,10 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         {
             blacksmithManager.CraftingChanged -= HandleCraftingChanged;
         }
+        if (progressionManager != null)
+        {
+            progressionManager.ProgressionChanged -= HandleProgressionChanged;
+        }
     }
 
     private void BuildUI()
@@ -511,8 +565,40 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         CreateText(panel, "傭兵商会", 28, FontStyle.Bold, TextAnchor.MiddleLeft,
             new Vector2(28f, -62f), new Vector2(-28f, -18f), Color.white);
 
-        goldText = CreateText(panel, string.Empty, 20, FontStyle.Bold, TextAnchor.MiddleRight,
-            new Vector2(28f, -62f), new Vector2(-28f, -18f), AccentColor);
+        mapButton = CreateActionButton(panel, "大陸地図", ShowWorldMap);
+        RectTransform mapRect = mapButton.GetComponent<RectTransform>();
+        mapRect.anchorMin = mapRect.anchorMax = new Vector2(0f, 1f);
+        mapRect.pivot = new Vector2(0f, 1f);
+        mapRect.sizeDelta = new Vector2(120f, 40f);
+        mapRect.anchoredPosition = new Vector2(172f, -18f);
+
+        RectTransform merchantStatusButtonRect =
+            CreateUIObject("Merchant Status Button", panel);
+        merchantStatusButtonRect.anchorMin =
+            merchantStatusButtonRect.anchorMax = new Vector2(1f, 1f);
+        merchantStatusButtonRect.pivot = new Vector2(1f, 1f);
+        merchantStatusButtonRect.sizeDelta = new Vector2(310f, 44f);
+        merchantStatusButtonRect.anchoredPosition = new Vector2(-20f, -16f);
+        Image merchantStatusButtonImage =
+            merchantStatusButtonRect.gameObject.AddComponent<Image>();
+        merchantStatusButtonImage.color = new Color(0.11f, 0.13f, 0.16f, 1f);
+        Button merchantStatusButton =
+            merchantStatusButtonRect.gameObject.AddComponent<Button>();
+        merchantStatusButton.targetGraphic = merchantStatusButtonImage;
+        merchantStatusButton.onClick.AddListener(ShowMerchantStatusOverlay);
+        goldText = CreateText(
+            merchantStatusButtonRect,
+            string.Empty,
+            18,
+            FontStyle.Bold,
+            TextAnchor.MiddleCenter,
+            Vector2.zero,
+            Vector2.zero,
+            AccentColor);
+        goldText.rectTransform.anchorMin = Vector2.zero;
+        goldText.rectTransform.anchorMax = Vector2.one;
+        goldText.rectTransform.offsetMin = new Vector2(12f, 0f);
+        goldText.rectTransform.offsetMax = new Vector2(-12f, 0f);
 
         hireTabButton = CreateNavigationButton(panel, "雇用", new Vector2(16f, -78f), ShowHirePage);
         companyTabButton = CreateNavigationButton(
@@ -557,6 +643,8 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             ShowInventoryPage);
 
         hirePage = CreatePage("Hire Page", panel);
+        worldMapPage = CreatePage("World Map Page", panel);
+        townMapPage = CreatePage("Town Map Page", panel);
         companyPage = CreatePage("Company Page", panel);
         partyPage = CreatePage("Party Page", panel);
         healPage = CreatePage("Heal Page", panel);
@@ -567,6 +655,8 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         inventoryPage = CreatePage("Inventory Page", panel);
 
         BuildHirePage();
+        BuildWorldMapPage();
+        BuildTownMapPage();
         BuildCompanyPage();
         BuildPartyPage();
         BuildHealPage();
@@ -583,6 +673,393 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         statusText.rectTransform.pivot = new Vector2(0.5f, 0f);
 
         BuildCharacterDetailOverlay();
+        BuildEquipmentDetailOverlay();
+        BuildEquipmentCollectionOverlay();
+        BuildQuestOverlay();
+        BuildMerchantStatusOverlay();
+    }
+
+    private void BuildWorldMapPage()
+    {
+        AddMapBackground(worldMapPage, "Maps/ContinentMap");
+
+        CreateTownMapButton(
+            worldMapPage,
+            TownNames[0],
+            new Vector2(-230f, -70f),
+            () => TravelToTown(0));
+        CreateTownMapButton(
+            worldMapPage,
+            TownNames[1],
+            new Vector2(50f, 110f),
+            () => TravelToTown(1));
+        CreateTownMapButton(
+            worldMapPage,
+            TownNames[2],
+            new Vector2(190f, -110f),
+            () => TravelToTown(2));
+        CreateMapButton(
+            worldMapPage,
+            "低級洞窟",
+            new Vector2(-85f, 10f),
+            new Vector2(96f, 42f),
+            () => TravelToDungeon(0));
+        CreateMapButton(
+            worldMapPage,
+            "森林遺跡",
+            new Vector2(190f, 120f),
+            new Vector2(96f, 42f),
+            () => TravelToDungeon(1));
+        CreateMapButton(
+            worldMapPage,
+            "海蝕迷宮",
+            new Vector2(310f, -35f),
+            new Vector2(96f, 42f),
+            () => TravelToDungeon(2));
+
+        CreateText(
+            worldMapPage,
+            "町を選択すると移動します。町の移動で1日経過します。",
+            14,
+            FontStyle.Bold,
+            TextAnchor.MiddleLeft,
+            new Vector2(14f, -34f),
+            new Vector2(-14f, -4f),
+            Color.white);
+    }
+
+    private void BuildTownMapPage()
+    {
+        AddMapBackground(townMapPage, "Maps/TownMap");
+
+        CreateMapButton(
+            townMapPage, "酒場\n雇用", new Vector2(-255f, 105f),
+            new Vector2(110f, 54f), ShowHirePage);
+        CreateMapButton(
+            townMapPage, "商会本部", new Vector2(0f, 135f),
+            new Vector2(110f, 48f), ShowCompanyPage);
+        CreateMapButton(
+            townMapPage, "市場", new Vector2(175f, 105f),
+            new Vector2(100f, 48f), ShowMarketPage);
+        CreateMapButton(
+            townMapPage, "鍛冶屋", new Vector2(290f, 75f),
+            new Vector2(100f, 48f), ShowBlacksmithPage);
+        CreateMapButton(
+            townMapPage, "倉庫", new Vector2(-260f, -45f),
+            new Vector2(100f, 48f), ShowInventoryPage);
+        CreateMapButton(
+            townMapPage, "編成所", new Vector2(-105f, -20f),
+            new Vector2(100f, 48f), ShowPartyPage);
+        CreateMapButton(
+            townMapPage, "治療院", new Vector2(235f, -42f),
+            new Vector2(100f, 48f), ShowHealPage);
+        CreateMapButton(
+            townMapPage, "訓練場", new Vector2(105f, -105f),
+            new Vector2(100f, 48f), ShowBattlePage);
+        CreateMapButton(
+            townMapPage, "近隣ダンジョン", new Vector2(0f, -172f),
+            new Vector2(150f, 52f), OpenNearbyDungeon);
+        CreateMapButton(
+            townMapPage, "大陸へ", new Vector2(-315f, -178f),
+            new Vector2(100f, 44f), ShowWorldMap);
+    }
+
+    private void AddMapBackground(RectTransform parent, string resourcePath)
+    {
+        Texture2D texture = Resources.Load<Texture2D>(resourcePath);
+        RectTransform backgroundRect = CreateUIObject("Map Background", parent);
+        backgroundRect.anchorMin = Vector2.zero;
+        backgroundRect.anchorMax = Vector2.one;
+        backgroundRect.offsetMin = Vector2.zero;
+        backgroundRect.offsetMax = Vector2.zero;
+        RawImage image = backgroundRect.gameObject.AddComponent<RawImage>();
+        image.texture = texture;
+        image.color = texture != null ? Color.white : RowColor;
+        image.raycastTarget = false;
+    }
+
+    private Button CreateMapButton(
+        RectTransform parent,
+        string label,
+        Vector2 position,
+        Vector2 size,
+        UnityEngine.Events.UnityAction action)
+    {
+        Button button = CreateActionButton(parent, label, action);
+        RectTransform rect = button.GetComponent<RectTransform>();
+        rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.sizeDelta = size;
+        rect.anchoredPosition = position;
+        button.targetGraphic.color = new Color(0.08f, 0.1f, 0.12f, 0.9f);
+        return button;
+    }
+
+    private Button CreateTownMapButton(
+        RectTransform parent,
+        string label,
+        Vector2 position,
+        UnityEngine.Events.UnityAction action)
+    {
+        Button button = CreateMapButton(
+            parent,
+            label,
+            position,
+            new Vector2(142f, 106f),
+            action);
+        button.targetGraphic.color = new Color(0.04f, 0.05f, 0.06f, 0.76f);
+
+        Texture2D markerTexture = Resources.Load<Texture2D>("Maps/TownMarker");
+        RectTransform markerRect =
+            CreateUIObject("Town Marker Art", button.transform);
+        markerRect.anchorMin = new Vector2(0.5f, 1f);
+        markerRect.anchorMax = new Vector2(0.5f, 1f);
+        markerRect.pivot = new Vector2(0.5f, 1f);
+        markerRect.sizeDelta = new Vector2(78f, 70f);
+        markerRect.anchoredPosition = new Vector2(0f, -3f);
+        RawImage marker = markerRect.gameObject.AddComponent<RawImage>();
+        marker.texture = markerTexture;
+        marker.color = Color.white;
+        marker.raycastTarget = false;
+        markerRect.SetAsFirstSibling();
+
+        Text labelText = button.GetComponentInChildren<Text>();
+        if (labelText != null)
+        {
+            labelText.alignment = TextAnchor.LowerCenter;
+            labelText.fontSize = 14;
+            labelText.rectTransform.offsetMin = new Vector2(4f, 4f);
+            labelText.rectTransform.offsetMax = new Vector2(-4f, -70f);
+        }
+        return button;
+    }
+
+    private void BuildMerchantStatusOverlay()
+    {
+        merchantStatusOverlay =
+            CreateUIObject("Merchant Status Overlay", guildPanel);
+        merchantStatusOverlay.anchorMin = Vector2.zero;
+        merchantStatusOverlay.anchorMax = Vector2.one;
+        merchantStatusOverlay.offsetMin = Vector2.zero;
+        merchantStatusOverlay.offsetMax = Vector2.zero;
+        merchantStatusOverlay.gameObject.AddComponent<Image>().color =
+            new Color(0f, 0f, 0f, 0.82f);
+
+        RectTransform window =
+            CreateUIObject("Merchant Status Window", merchantStatusOverlay);
+        window.anchorMin = window.anchorMax = window.pivot =
+            new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(760f, 580f);
+        window.gameObject.AddComponent<Image>().color = PanelColor;
+
+        CreateText(
+            window,
+            "商人ステータス",
+            26,
+            FontStyle.Bold,
+            TextAnchor.MiddleLeft,
+            new Vector2(28f, -64f),
+            new Vector2(-120f, -20f),
+            Color.white);
+
+        RectTransform viewport =
+            CreateUIObject("Merchant Status Viewport", window);
+        viewport.anchorMin = Vector2.zero;
+        viewport.anchorMax = Vector2.one;
+        viewport.offsetMin = new Vector2(28f, 28f);
+        viewport.offsetMax = new Vector2(-28f, -82f);
+        viewport.gameObject.AddComponent<Image>().color =
+            new Color(0f, 0f, 0f, 0.12f);
+        Mask mask = viewport.gameObject.AddComponent<Mask>();
+        mask.showMaskGraphic = false;
+
+        merchantSkillList = CreateUIObject("Merchant Skill List", viewport);
+        merchantSkillList.anchorMin = new Vector2(0f, 1f);
+        merchantSkillList.anchorMax = new Vector2(1f, 1f);
+        merchantSkillList.pivot = new Vector2(0.5f, 1f);
+
+        ScrollRect scroll = viewport.gameObject.AddComponent<ScrollRect>();
+        scroll.content = merchantSkillList;
+        scroll.viewport = viewport;
+        scroll.horizontal = false;
+        scroll.vertical = true;
+        scroll.movementType = ScrollRect.MovementType.Clamped;
+        scroll.scrollSensitivity = 28f;
+
+        Button closeButton =
+            CreateActionButton(window, "閉じる", HideMerchantStatusOverlay);
+        RectTransform closeRect = closeButton.GetComponent<RectTransform>();
+        closeRect.anchorMin = closeRect.anchorMax = new Vector2(1f, 1f);
+        closeRect.pivot = new Vector2(1f, 1f);
+        closeRect.sizeDelta = new Vector2(100f, 42f);
+        closeRect.anchoredPosition = new Vector2(-18f, -18f);
+
+        merchantStatusOverlay.gameObject.SetActive(false);
+    }
+
+    private void BuildEquipmentDetailOverlay()
+    {
+        equipmentDetailOverlay = CreateUIObject("Equipment Detail Overlay", guildPanel);
+        equipmentDetailOverlay.anchorMin = Vector2.zero;
+        equipmentDetailOverlay.anchorMax = Vector2.one;
+        equipmentDetailOverlay.offsetMin = Vector2.zero;
+        equipmentDetailOverlay.offsetMax = Vector2.zero;
+        equipmentDetailOverlay.gameObject.AddComponent<Image>().color =
+            new Color(0f, 0f, 0f, 0.78f);
+
+        RectTransform window = CreateUIObject("Equipment Detail Window", equipmentDetailOverlay);
+        window.anchorMin = window.anchorMax = window.pivot = new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(600f, 470f);
+        window.gameObject.AddComponent<Image>().color = PanelColor;
+
+        equipmentDetailTitle = CreateText(
+            window, string.Empty, 26, FontStyle.Bold, TextAnchor.MiddleLeft,
+            new Vector2(28f, -66f), new Vector2(-28f, -20f), Color.white);
+        equipmentDetailText = CreateText(
+            window, string.Empty, 17, FontStyle.Normal, TextAnchor.UpperLeft,
+            new Vector2(28f, 92f), new Vector2(-28f, -82f), Color.white);
+        equipmentDetailText.rectTransform.anchorMin = Vector2.zero;
+        equipmentDetailText.rectTransform.anchorMax = Vector2.one;
+        equipmentDetailText.rectTransform.offsetMin = new Vector2(28f, 92f);
+        equipmentDetailText.rectTransform.offsetMax = new Vector2(-28f, -82f);
+
+        equipmentEnhanceButton =
+            CreateActionButton(window, "強化", EnhanceSelectedEquipment);
+        RectTransform enhanceRect = equipmentEnhanceButton.GetComponent<RectTransform>();
+        enhanceRect.anchorMin = enhanceRect.anchorMax = new Vector2(1f, 0f);
+        enhanceRect.pivot = new Vector2(1f, 0f);
+        enhanceRect.anchoredPosition = new Vector2(-174f, 24f);
+
+        equipmentSellButton =
+            CreateActionButton(window, "売却", SellSelectedEquipment);
+        RectTransform sellRect = equipmentSellButton.GetComponent<RectTransform>();
+        sellRect.anchorMin = sellRect.anchorMax = new Vector2(1f, 0f);
+        sellRect.pivot = new Vector2(1f, 0f);
+        sellRect.anchoredPosition = new Vector2(-28f, 24f);
+
+        equipmentLockButton =
+            CreateActionButton(window, "ロック", ToggleSelectedEquipmentLock);
+        RectTransform lockRect = equipmentLockButton.GetComponent<RectTransform>();
+        lockRect.anchorMin = lockRect.anchorMax = new Vector2(0f, 0f);
+        lockRect.pivot = new Vector2(0f, 0f);
+        lockRect.anchoredPosition = new Vector2(28f, 24f);
+
+        Button closeButton = CreateActionButton(window, "閉じる", HideEquipmentDetails);
+        RectTransform closeRect = closeButton.GetComponent<RectTransform>();
+        closeRect.anchorMin = closeRect.anchorMax = new Vector2(1f, 1f);
+        closeRect.pivot = new Vector2(1f, 1f);
+        closeRect.sizeDelta = new Vector2(100f, 42f);
+        closeRect.anchoredPosition = new Vector2(-18f, -18f);
+
+        equipmentDetailOverlay.gameObject.SetActive(false);
+    }
+
+    private void BuildEquipmentCollectionOverlay()
+    {
+        equipmentCollectionOverlay =
+            CreateUIObject("Equipment Collection Overlay", guildPanel);
+        equipmentCollectionOverlay.anchorMin = Vector2.zero;
+        equipmentCollectionOverlay.anchorMax = Vector2.one;
+        equipmentCollectionOverlay.offsetMin = Vector2.zero;
+        equipmentCollectionOverlay.offsetMax = Vector2.zero;
+        equipmentCollectionOverlay.gameObject.AddComponent<Image>().color =
+            new Color(0f, 0f, 0f, 0.82f);
+
+        RectTransform window =
+            CreateUIObject("Equipment Collection Window", equipmentCollectionOverlay);
+        window.anchorMin = window.anchorMax = window.pivot =
+            new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(720f, 560f);
+        window.gameObject.AddComponent<Image>().color = PanelColor;
+
+        CreateText(
+            window, "装備図鑑", 26, FontStyle.Bold, TextAnchor.MiddleLeft,
+            new Vector2(28f, -64f), new Vector2(-120f, -20f), Color.white);
+
+        RectTransform viewport = CreateUIObject("Collection Viewport", window);
+        viewport.anchorMin = Vector2.zero;
+        viewport.anchorMax = Vector2.one;
+        viewport.offsetMin = new Vector2(28f, 28f);
+        viewport.offsetMax = new Vector2(-28f, -82f);
+        viewport.gameObject.AddComponent<Image>().color =
+            new Color(0f, 0f, 0f, 0.12f);
+        Mask mask = viewport.gameObject.AddComponent<Mask>();
+        mask.showMaskGraphic = false;
+
+        equipmentCollectionContent =
+            CreateUIObject("Collection Content", viewport);
+        equipmentCollectionContent.anchorMin = new Vector2(0f, 1f);
+        equipmentCollectionContent.anchorMax = new Vector2(1f, 1f);
+        equipmentCollectionContent.pivot = new Vector2(0.5f, 1f);
+        equipmentCollectionText = CreateText(
+            equipmentCollectionContent, string.Empty, 16, FontStyle.Normal,
+            TextAnchor.UpperLeft, new Vector2(12f, 12f),
+            new Vector2(-12f, -12f), Color.white);
+        equipmentCollectionText.supportRichText = true;
+
+        ScrollRect scroll = viewport.gameObject.AddComponent<ScrollRect>();
+        scroll.content = equipmentCollectionContent;
+        scroll.viewport = viewport;
+        scroll.horizontal = false;
+        scroll.vertical = true;
+        scroll.movementType = ScrollRect.MovementType.Clamped;
+
+        Button closeButton =
+            CreateActionButton(window, "閉じる", HideEquipmentCollection);
+        RectTransform closeRect = closeButton.GetComponent<RectTransform>();
+        closeRect.anchorMin = closeRect.anchorMax = new Vector2(1f, 1f);
+        closeRect.pivot = new Vector2(1f, 1f);
+        closeRect.sizeDelta = new Vector2(100f, 42f);
+        closeRect.anchoredPosition = new Vector2(-18f, -18f);
+        equipmentCollectionOverlay.gameObject.SetActive(false);
+    }
+
+    private void BuildQuestOverlay()
+    {
+        questOverlay = CreateUIObject("Quest Overlay", guildPanel);
+        questOverlay.anchorMin = Vector2.zero;
+        questOverlay.anchorMax = Vector2.one;
+        questOverlay.offsetMin = Vector2.zero;
+        questOverlay.offsetMax = Vector2.zero;
+        questOverlay.gameObject.AddComponent<Image>().color =
+            new Color(0f, 0f, 0f, 0.82f);
+
+        RectTransform window = CreateUIObject("Quest Window", questOverlay);
+        window.anchorMin = window.anchorMax = window.pivot =
+            new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(720f, 560f);
+        window.gameObject.AddComponent<Image>().color = PanelColor;
+        CreateText(
+            window, "依頼", 26, FontStyle.Bold, TextAnchor.MiddleLeft,
+            new Vector2(28f, -64f), new Vector2(-120f, -20f), Color.white);
+
+        RectTransform viewport = CreateUIObject("Quest Viewport", window);
+        viewport.anchorMin = Vector2.zero;
+        viewport.anchorMax = Vector2.one;
+        viewport.offsetMin = new Vector2(28f, 28f);
+        viewport.offsetMax = new Vector2(-28f, -82f);
+        viewport.gameObject.AddComponent<Image>().color =
+            new Color(0f, 0f, 0f, 0.12f);
+        Mask mask = viewport.gameObject.AddComponent<Mask>();
+        mask.showMaskGraphic = false;
+
+        questList = CreateUIObject("Quest List", viewport);
+        questList.anchorMin = new Vector2(0f, 1f);
+        questList.anchorMax = new Vector2(1f, 1f);
+        questList.pivot = new Vector2(0.5f, 1f);
+        ScrollRect scroll = viewport.gameObject.AddComponent<ScrollRect>();
+        scroll.content = questList;
+        scroll.viewport = viewport;
+        scroll.horizontal = false;
+        scroll.vertical = true;
+        scroll.movementType = ScrollRect.MovementType.Clamped;
+
+        Button closeButton = CreateActionButton(window, "閉じる", HideQuestOverlay);
+        RectTransform closeRect = closeButton.GetComponent<RectTransform>();
+        closeRect.anchorMin = closeRect.anchorMax = new Vector2(1f, 1f);
+        closeRect.pivot = new Vector2(1f, 1f);
+        closeRect.sizeDelta = new Vector2(100f, 42f);
+        closeRect.anchoredPosition = new Vector2(-18f, -18f);
+        questOverlay.gameObject.SetActive(false);
     }
 
     private void BuildCharacterDetailOverlay()
@@ -632,7 +1109,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
         CreateText(
             window,
-            "武器装備",
+            "装備変更",
             20,
             FontStyle.Bold,
             TextAnchor.MiddleLeft,
@@ -686,11 +1163,22 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         CreateText(hirePage, "契約可能な傭兵", 15, FontStyle.Normal, TextAnchor.MiddleLeft,
             new Vector2(0f, -30f), new Vector2(0f, 0f), MutedTextColor);
 
+        contractSelectButton = CreateActionButton(
+            hirePage,
+            "契約: 日雇い",
+            CycleHireContract);
+        RectTransform contractRect =
+            contractSelectButton.GetComponent<RectTransform>();
+        contractRect.anchorMin = contractRect.anchorMax = new Vector2(1f, 1f);
+        contractRect.pivot = new Vector2(1f, 1f);
+        contractRect.sizeDelta = new Vector2(160f, 38f);
+        contractRect.anchoredPosition = new Vector2(0f, -4f);
+
         RectTransform viewport = CreateUIObject("Hire Viewport", hirePage);
         viewport.anchorMin = new Vector2(0f, 0f);
         viewport.anchorMax = new Vector2(1f, 1f);
         viewport.offsetMin = Vector2.zero;
-        viewport.offsetMax = new Vector2(0f, -44f);
+        viewport.offsetMax = new Vector2(0f, -52f);
 
         Image viewportImage = viewport.gameObject.AddComponent<Image>();
         viewportImage.color = new Color(0f, 0f, 0f, 0.01f);
@@ -757,6 +1245,14 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     {
         CreateText(companyPage, "雇用済み傭兵", 15, FontStyle.Normal, TextAnchor.MiddleLeft,
             new Vector2(0f, -30f), new Vector2(0f, 0f), MutedTextColor);
+
+        Button questButton =
+            CreateActionButton(companyPage, "依頼", ShowQuestOverlay);
+        RectTransform questRect = questButton.GetComponent<RectTransform>();
+        questRect.anchorMin = questRect.anchorMax = new Vector2(1f, 1f);
+        questRect.pivot = new Vector2(1f, 1f);
+        questRect.sizeDelta = new Vector2(110f, 38f);
+        questRect.anchoredPosition = new Vector2(0f, -4f);
 
         RectTransform viewport = CreateUIObject("Company Viewport", companyPage);
         viewport.anchorMin = new Vector2(0f, 0f);
@@ -918,10 +1414,10 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         dungeonStatusText = CreateText(
             dungeonPage,
             "パーティーを編成してダンジョンへ向かいましょう。",
-            18,
+            14,
             FontStyle.Bold,
             TextAnchor.MiddleLeft,
-            new Vector2(0f, -92f),
+            new Vector2(0f, -154f),
             new Vector2(-170f, -42f),
             Color.white);
 
@@ -934,16 +1430,6 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         startRect.anchorMax = new Vector2(1f, 1f);
         startRect.pivot = new Vector2(1f, 1f);
         startRect.anchoredPosition = new Vector2(0f, -36f);
-
-        CreateText(
-            dungeonPage,
-            "戦闘の間にイベントが発生します。報酬、回復、危険行動、撤退を選択できます。",
-            15,
-            FontStyle.Normal,
-            TextAnchor.UpperLeft,
-            new Vector2(0f, -170f),
-            new Vector2(0f, -112f),
-            MutedTextColor);
 
         dungeonSelectionList = CreateUIObject("Dungeon Selection List", dungeonPage);
         dungeonSelectionList.anchorMin = new Vector2(0f, 0f);
@@ -1020,11 +1506,64 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         nextDayRect.pivot = new Vector2(1f, 1f);
         nextDayRect.anchoredPosition = new Vector2(0f, -34f);
 
-        inventoryList = CreateUIObject("Inventory List", inventoryPage);
-        inventoryList.anchorMin = new Vector2(0f, 0f);
+        inventoryFilterButton =
+            CreateActionButton(inventoryPage, "絞込: 全て", CycleInventoryFilter);
+        inventoryFilterButton.name = "Inventory Filter Button";
+        RectTransform filterRect = inventoryFilterButton.GetComponent<RectTransform>();
+        filterRect.anchorMin = filterRect.anchorMax = new Vector2(0f, 1f);
+        filterRect.pivot = new Vector2(0f, 1f);
+        filterRect.sizeDelta = new Vector2(150f, 38f);
+        filterRect.anchoredPosition = new Vector2(0f, -78f);
+
+        equipmentSortButton =
+            CreateActionButton(inventoryPage, "並替: 名前", CycleEquipmentSort);
+        equipmentSortButton.name = "Equipment Sort Button";
+        RectTransform sortRect = equipmentSortButton.GetComponent<RectTransform>();
+        sortRect.anchorMin = sortRect.anchorMax = new Vector2(0f, 1f);
+        sortRect.pivot = new Vector2(0f, 1f);
+        sortRect.sizeDelta = new Vector2(150f, 38f);
+        sortRect.anchoredPosition = new Vector2(166f, -78f);
+
+        Button collectionButton =
+            CreateActionButton(inventoryPage, "装備図鑑", ShowEquipmentCollection);
+        RectTransform collectionRect = collectionButton.GetComponent<RectTransform>();
+        collectionRect.anchorMin = collectionRect.anchorMax = new Vector2(0f, 1f);
+        collectionRect.pivot = new Vector2(0f, 1f);
+        collectionRect.sizeDelta = new Vector2(130f, 38f);
+        collectionRect.anchoredPosition = new Vector2(332f, -78f);
+
+        Button storageButton =
+            CreateActionButton(inventoryPage, "倉庫拡張", UpgradeStorage);
+        RectTransform storageRect = storageButton.GetComponent<RectTransform>();
+        storageRect.anchorMin = storageRect.anchorMax = new Vector2(0f, 1f);
+        storageRect.pivot = new Vector2(0f, 1f);
+        storageRect.sizeDelta = new Vector2(130f, 38f);
+        storageRect.anchoredPosition = new Vector2(478f, -78f);
+
+        RectTransform viewport = CreateUIObject("Inventory Viewport", inventoryPage);
+        viewport.anchorMin = new Vector2(0f, 0f);
+        viewport.anchorMax = new Vector2(1f, 1f);
+        viewport.offsetMin = Vector2.zero;
+        viewport.offsetMax = new Vector2(0f, -126f);
+
+        Image viewportImage = viewport.gameObject.AddComponent<Image>();
+        viewportImage.color = new Color(0f, 0f, 0f, 0.01f);
+        Mask mask = viewport.gameObject.AddComponent<Mask>();
+        mask.showMaskGraphic = false;
+
+        inventoryList = CreateUIObject("Inventory List", viewport);
+        inventoryList.anchorMin = new Vector2(0f, 1f);
         inventoryList.anchorMax = new Vector2(1f, 1f);
-        inventoryList.offsetMin = Vector2.zero;
-        inventoryList.offsetMax = new Vector2(0f, -86f);
+        inventoryList.pivot = new Vector2(0.5f, 1f);
+        inventoryList.anchoredPosition = Vector2.zero;
+
+        ScrollRect scrollRect = viewport.gameObject.AddComponent<ScrollRect>();
+        scrollRect.content = inventoryList;
+        scrollRect.viewport = viewport;
+        scrollRect.horizontal = false;
+        scrollRect.vertical = true;
+        scrollRect.movementType = ScrollRect.MovementType.Clamped;
+        scrollRect.scrollSensitivity = 28f;
     }
 
     private void BuildMarketPage()
@@ -1033,11 +1572,30 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             TextAnchor.MiddleLeft, new Vector2(0f, -30f), new Vector2(0f, 0f),
             MutedTextColor);
 
-        marketList = CreateUIObject("Market List", marketPage);
-        marketList.anchorMin = new Vector2(0f, 0f);
+        RectTransform viewport = CreateUIObject("Market Viewport", marketPage);
+        viewport.anchorMin = new Vector2(0f, 0f);
+        viewport.anchorMax = new Vector2(1f, 1f);
+        viewport.offsetMin = Vector2.zero;
+        viewport.offsetMax = new Vector2(0f, -52f);
+
+        Image viewportImage = viewport.gameObject.AddComponent<Image>();
+        viewportImage.color = new Color(0f, 0f, 0f, 0.01f);
+        Mask mask = viewport.gameObject.AddComponent<Mask>();
+        mask.showMaskGraphic = false;
+
+        marketList = CreateUIObject("Market List", viewport);
+        marketList.anchorMin = new Vector2(0f, 1f);
         marketList.anchorMax = new Vector2(1f, 1f);
-        marketList.offsetMin = Vector2.zero;
-        marketList.offsetMax = new Vector2(0f, -44f);
+        marketList.pivot = new Vector2(0.5f, 1f);
+        marketList.anchoredPosition = Vector2.zero;
+
+        ScrollRect scrollRect = viewport.gameObject.AddComponent<ScrollRect>();
+        scrollRect.content = marketList;
+        scrollRect.viewport = viewport;
+        scrollRect.horizontal = false;
+        scrollRect.vertical = true;
+        scrollRect.movementType = ScrollRect.MovementType.Clamped;
+        scrollRect.scrollSensitivity = 28f;
     }
 
     private void BuildBlacksmithPage()
@@ -1086,15 +1644,16 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     {
         ClearChildren(companyList);
 
+        float rowTop = 0f;
         if (hireManager.HiredMercenaries.Count == 0)
         {
             CreateText(companyList, "雇用済みの傭兵はいません。", 18, FontStyle.Normal,
-                TextAnchor.MiddleCenter, new Vector2(0f, -180f), new Vector2(0f, -80f),
+                TextAnchor.MiddleCenter, new Vector2(0f, -180f),
+                new Vector2(0f, -80f),
                 MutedTextColor);
             return;
         }
 
-        float rowTop = 0f;
         foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
         {
             CreateCompanyRow(companyList, mercenary, rowTop);
@@ -1102,6 +1661,42 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         }
 
         companyList.sizeDelta = new Vector2(0f, Mathf.Max(430f, -rowTop));
+    }
+
+    private void CreateMerchantSkillRow(
+        RectTransform parent,
+        MerchantSkillType skill,
+        string label,
+        string description,
+        float top)
+    {
+        int rank = merchantData.GetSkillRank(skill);
+        RectTransform row = CreateRow($"Merchant Skill {skill}", parent, top);
+        CreateText(
+            row,
+            $"{label}  Lv{rank}/10",
+            18,
+            FontStyle.Bold,
+            TextAnchor.MiddleLeft,
+            new Vector2(16f, -45f),
+            new Vector2(-160f, -10f),
+            Color.white);
+        CreateText(
+            row,
+            description,
+            13,
+            FontStyle.Normal,
+            TextAnchor.MiddleLeft,
+            new Vector2(16f, -78f),
+            new Vector2(-160f, -48f),
+            MutedTextColor);
+
+        Button increaseButton = CreateActionButton(
+            row,
+            rank >= 10 ? "最大" : "+1",
+            () => IncreaseMerchantSkill(skill));
+        increaseButton.interactable =
+            merchantData.MerchantSkillPoints > 0 && rank < 10;
     }
 
     private void RebuildPartyList()
@@ -1149,8 +1744,10 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private void RebuildInventoryList()
     {
         ClearChildren(inventoryList);
+        inventoryList.sizeDelta = new Vector2(0f, 430f);
 
-        if (merchantInventory.Items.Count == 0)
+        if (merchantInventory.Items.Count == 0 &&
+            merchantInventory.EquipmentInstances.Count == 0)
         {
             CreateText(inventoryList, "在庫はありません。", 18, FontStyle.Normal,
                 TextAnchor.MiddleCenter, new Vector2(0f, -180f), new Vector2(0f, -80f),
@@ -1166,14 +1763,50 @@ public class SimpleMercenaryHireUI : MonoBehaviour
                 continue;
             }
 
+            if (!MatchesInventoryFilter(stack.Item))
+            {
+                continue;
+            }
+            if (inventoryFilter == InventoryFilter.Locked)
+            {
+                continue;
+            }
+
             CreateInventoryRow(inventoryList, stack, rowTop);
             rowTop -= 112f;
         }
+
+        List<EquipmentInstance> sortedEquipment =
+            new List<EquipmentInstance>(merchantInventory.EquipmentInstances);
+        sortedEquipment.Sort(CompareEquipment);
+        foreach (EquipmentInstance equipment in sortedEquipment)
+        {
+            if (equipment?.BaseItem == null)
+            {
+                continue;
+            }
+
+            if (!MatchesInventoryFilter(equipment.BaseItem))
+            {
+                continue;
+            }
+            if (inventoryFilter == InventoryFilter.Locked &&
+                !equipment.IsLocked)
+            {
+                continue;
+            }
+
+            CreateEquipmentInventoryRow(inventoryList, equipment, rowTop);
+            rowTop -= 112f;
+        }
+
+        inventoryList.sizeDelta = new Vector2(0f, Mathf.Max(430f, -rowTop));
     }
 
     private void RebuildMarketList()
     {
         ClearChildren(marketList);
+        marketList.sizeDelta = new Vector2(0f, 430f);
         marketBuyButtons.Clear();
         displayedMarketEntries.Clear();
 
@@ -1196,6 +1829,8 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             CreateMarketRow(marketList, entry, rowTop);
             rowTop -= 112f;
         }
+
+        marketList.sizeDelta = new Vector2(0f, Mathf.Max(430f, -rowTop));
     }
 
     private void RebuildBlacksmithList()
@@ -1236,7 +1871,8 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
         string details =
             $"{JapaneseDisplayText.GetMercenaryClass(candidate.mercenaryClass)}  |  " +
-            $"{JapaneseDisplayText.GetContractType(candidate.contractType)}  |  " +
+            $"{JapaneseDisplayText.GetContractType(GetUnlockedContractType())}  |  " +
+            $"成功率 {merchantData.GetHireSuccessRate() * 100f:0}%  |  " +
             $"HP {candidate.maxHP}  攻撃 {candidate.attack}  防御 {candidate.defense}";
 
         CreateText(row, details, 14, FontStyle.Normal, TextAnchor.MiddleLeft,
@@ -1257,11 +1893,18 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         CreateText(row, mercenary.MercenaryName, 22, FontStyle.Bold, TextAnchor.MiddleLeft,
             new Vector2(18f, -42f), new Vector2(-300f, -12f), Color.white);
 
+        string contractStatus = mercenary.ContractNeedsRenewal
+            ? "更新待ち"
+            : mercenary.ContractEndDay > 0
+                ? $"期限 {mercenary.ContractEndDay}日"
+                : "期限なし";
         string details =
             $"レベル {mercenary.Level}  経験値 " +
             $"{mercenary.CurrentExperience}/{mercenary.ExperienceToNextLevel}  |  " +
             $"{JapaneseDisplayText.GetMercenaryClass(mercenary.MercenaryClass)}  |  " +
-            $"HP {mercenary.CurrentHP}/{mercenary.MaxHP}";
+            $"HP {mercenary.CurrentHP}/{mercenary.MaxHP}  |  " +
+            $"{JapaneseDisplayText.GetContractType(mercenary.ContractType)} " +
+            contractStatus;
 
         CreateText(row, details, 13, FontStyle.Normal, TextAnchor.MiddleLeft,
             new Vector2(18f, -76f), new Vector2(-300f, -48f), MutedTextColor);
@@ -1280,6 +1923,17 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         RectTransform detailsRect = detailsButton.GetComponent<RectTransform>();
         detailsRect.sizeDelta = new Vector2(112f, 52f);
         detailsRect.anchoredPosition = new Vector2(-142f, 0f);
+
+        if (mercenary.ContractNeedsRenewal)
+        {
+            Button renewButton = CreateActionButton(
+                row,
+                $"更新 {hireManager.GetRenewalCost(mercenary)}G",
+                () => RenewContract(mercenary));
+            RectTransform renewRect = renewButton.GetComponent<RectTransform>();
+            renewRect.sizeDelta = new Vector2(112f, 52f);
+            renewRect.anchoredPosition = new Vector2(-266f, 0f);
+        }
     }
 
     private void CreateGeneratedCandidateRow(
@@ -1294,7 +1948,8 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
         string details =
             $"{JapaneseDisplayText.GetMercenaryClass(candidate.MercenaryClass)}  |  " +
-            $"{JapaneseDisplayText.GetContractType(candidate.ContractType)}  |  " +
+            $"{JapaneseDisplayText.GetContractType(GetUnlockedContractType())}  |  " +
+            $"成功率 {merchantData.GetHireSuccessRate() * 100f:0}%  |  " +
             $"HP {candidate.MaxHP}  攻撃 {candidate.Attack}  防御 {candidate.Defense}";
 
         CreateText(row, details, 14, FontStyle.Normal, TextAnchor.MiddleLeft,
@@ -1378,7 +2033,8 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             Color.white);
 
         int sellPrice = merchantInventory.GetSellPrice(item);
-        int percent = Mathf.RoundToInt(marketPriceManager.GetSellMultiplier(item) * 100f);
+        int percent = Mathf.RoundToInt(
+            marketPriceManager.GetEffectiveSellMultiplier(item) * 100f);
         string details =
             $"{JapaneseDisplayText.GetItemRarity(item.rarity)}  |  " +
             $"{JapaneseDisplayText.GetItemType(item.itemType)}  |  基準 {item.basePrice} G  |  " +
@@ -1415,6 +2071,48 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         Button buyButton = CreateActionButton(row, "購入", () => BuyMarketItem(entry));
         marketBuyButtons.Add(buyButton);
         displayedMarketEntries.Add(entry);
+    }
+
+    private void CreateEquipmentInventoryRow(
+        RectTransform parent,
+        EquipmentInstance equipment,
+        float top)
+    {
+        ItemDataSO item = equipment.BaseItem;
+        RectTransform row = CreateRow(equipment.InstanceId, parent, top);
+        string quality = JapaneseDisplayText.GetEquipmentQuality(equipment.Quality);
+        Color qualityColor = GetEquipmentQualityColor(equipment.Quality);
+
+        CreateText(
+            row,
+            $"{(equipment.IsLocked ? "[LOCK] " : string.Empty)}" +
+            $"[{quality}] {GetEquipmentDisplayName(equipment)}",
+            20,
+            FontStyle.Bold,
+            TextAnchor.MiddleLeft,
+            new Vector2(18f, -42f),
+            new Vector2(-160f, -12f),
+            qualityColor);
+
+        string details =
+            $"HP {FormatSigned(equipment.BonusMaxHP)}  " +
+            $"攻撃 {FormatSigned(equipment.BonusAttack)}  " +
+            $"防御 {FormatSigned(equipment.BonusDefense)}  " +
+            $"速度 {FormatSigned(equipment.BonusAttackSpeed)}";
+        CreateText(
+            row,
+            details,
+            13,
+            FontStyle.Normal,
+            TextAnchor.MiddleLeft,
+            new Vector2(18f, -76f),
+            new Vector2(-160f, -48f),
+            MutedTextColor);
+
+        CreateActionButton(
+            row,
+            "詳細",
+            () => ShowEquipmentDetails(equipment));
     }
 
     private void CreateBlacksmithRow(EquipmentRecipeSO recipe, float top)
@@ -1644,6 +2342,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         RebuildMarketList();
         RebuildInventoryList();
         RebuildHealList();
+        RebuildCompanyList();
         RefreshUI();
         statusText.text = $"{currentDay}日目になりました。市場価格が更新されました。";
     }
@@ -1800,6 +2499,64 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         return $"通常{normalGrades}等級 / ボス{bossGrade}等級";
     }
 
+    private static string BuildDungeonRewardPreview(DungeonDataSO data)
+    {
+        if (data == null)
+        {
+            return "報酬情報なし";
+        }
+
+        List<string> guaranteed = new List<string>();
+        if (data.clearItemRewards != null)
+        {
+            foreach (DungeonItemReward reward in data.clearItemRewards)
+            {
+                if (reward?.item != null && reward.amount > 0)
+                {
+                    guaranteed.Add(
+                        $"{JapaneseDisplayText.GetItemName(reward.item)}×{reward.amount}");
+                }
+            }
+        }
+
+        List<string> limited = new List<string>();
+        Dictionary<EquipmentSetId, int> setCounts =
+            new Dictionary<EquipmentSetId, int>();
+        if (data.limitedEquipmentDrops != null)
+        {
+            foreach (ItemDataSO item in data.limitedEquipmentDrops)
+            {
+                if (item != null)
+                {
+                    if (item.equipmentSet != EquipmentSetId.None)
+                    {
+                        if (!setCounts.ContainsKey(item.equipmentSet))
+                        {
+                            setCounts[item.equipmentSet] = 0;
+                        }
+                        setCounts[item.equipmentSet]++;
+                    }
+                    else
+                    {
+                        limited.Add(JapaneseDisplayText.GetItemName(item));
+                    }
+                }
+            }
+        }
+
+        foreach (KeyValuePair<EquipmentSetId, int> entry in setCounts)
+        {
+            limited.Add(
+                $"{JapaneseDisplayText.GetEquipmentSet(entry.Key)}セット" +
+                $"（{entry.Value}種）");
+        }
+
+        return $"確定: {(guaranteed.Count > 0 ? string.Join("、", guaranteed) : "なし")}\n" +
+               $"限定: {(limited.Count > 0 ? string.Join("、", limited) : "なし")} / " +
+               $"イベント{data.eventLimitedDropChance * 100f:0.#}%・" +
+               $"ボス{data.bossLimitedDropChance * 100f:0.#}%";
+    }
+
     private void ChooseDungeonEventOption(int optionIndex)
     {
         if (!dungeonRunManager.ChooseEventOption(optionIndex))
@@ -1944,7 +2701,12 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private void HandleDungeonCompleted(bool cleared)
     {
-        statusText.text = cleared ? "ダンジョンを踏破しました。" : "ダンジョン探索を終了しました。";
+        string result = progressionManager != null
+            ? progressionManager.LastExplorationResult
+            : string.Empty;
+        statusText.text =
+            (cleared ? "ダンジョンを踏破しました。" : "ダンジョン探索を終了しました。") +
+            (string.IsNullOrEmpty(result) ? string.Empty : $" {result}");
         UpdateDungeonEventUI();
         RebuildDungeonSelectionList();
         RefreshUI();
@@ -2053,6 +2815,8 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             $"ID: {shortId}\n" +
             $"職業: {JapaneseDisplayText.GetMercenaryClass(mercenary.MercenaryClass)}\n" +
             $"契約: {JapaneseDisplayText.GetContractType(mercenary.ContractType)}\n" +
+            $"契約期限: {(mercenary.ContractEndDay > 0 ? mercenary.ContractEndDay + "日" : "無期限")}" +
+            $"{(mercenary.ContractNeedsRenewal ? "（更新待ち）" : string.Empty)}\n" +
             $"状態: {condition}\n\n" +
             $"レベル: {mercenary.Level}\n" +
             $"経験値: {mercenary.CurrentExperience} / " +
@@ -2061,7 +2825,12 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             $"攻撃: {mercenary.Attack}\n" +
             $"防御: {mercenary.Defense}\n" +
             $"攻撃速度: {mercenary.AttackSpeed:0.00}\n" +
-            $"武器: {GetEquippedWeaponName(mercenary)}\n" +
+            $"武器: {GetEquippedEquipmentName(mercenary, EquipmentSlot.Weapon)}\n" +
+            $"防具: {GetEquippedEquipmentName(mercenary, EquipmentSlot.Armor)}\n" +
+            $"装飾品: {GetEquippedEquipmentName(mercenary, EquipmentSlot.Accessory)}\n" +
+            $"セット: {BuildActiveSetSummary(mercenary)}\n" +
+            $"スキル: {mercenary.SkillBoardName}\n" +
+            $"{BuildMercenarySkillSummary(mercenary)}\n" +
             $"雇用費: {mercenary.HireCost} G";
 
         RebuildCharacterEquipmentList();
@@ -2088,10 +2857,37 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
         ClearChildren(characterEquipmentList);
         float top = 0f;
-        ItemDataSO equipped = selectedDetailMercenary.EquippedWeapon;
-        if (equipped != null)
+        foreach (EquipmentSlot slot in
+                 System.Enum.GetValues(typeof(EquipmentSlot)))
         {
-            CreateEquipmentOptionRow(equipped, true, top);
+            ItemDataSO equipped =
+                selectedDetailMercenary.GetEquippedItem(slot);
+            EquipmentInstance equippedInstance =
+                selectedDetailMercenary.GetEquippedInstance(slot);
+            if (equippedInstance != null)
+            {
+                CreateEquipmentInstanceOptionRow(
+                    equippedInstance,
+                    true,
+                    top);
+                top -= 116f;
+            }
+            else if (equipped != null)
+            {
+                CreateEquipmentOptionRow(equipped, true, top);
+                top -= 116f;
+            }
+        }
+
+        foreach (EquipmentInstance equipment in merchantInventory.EquipmentInstances)
+        {
+            if (equipment?.BaseItem == null ||
+                !equipment.BaseItem.CanEquip(selectedDetailMercenary.MercenaryClass))
+            {
+                continue;
+            }
+
+            CreateEquipmentInstanceOptionRow(equipment, false, top);
             top -= 116f;
         }
 
@@ -2100,7 +2896,6 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             ItemDataSO item = stack?.Item;
             if (item == null ||
                 stack.Amount <= 0 ||
-                item.equipmentSlot != EquipmentSlot.Weapon ||
                 !item.CanEquip(selectedDetailMercenary.MercenaryClass))
             {
                 continue;
@@ -2136,7 +2931,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private void CreateEquipmentOptionRow(ItemDataSO item, bool isEquipped, float top)
     {
         RectTransform row = CreateUIObject(
-            isEquipped ? "Equipped Weapon" : item.itemName,
+            isEquipped ? $"Equipped {item.equipmentSlot}" : item.itemName,
             characterEquipmentList);
         row.anchorMin = new Vector2(0f, 1f);
         row.anchorMax = new Vector2(1f, 1f);
@@ -2152,10 +2947,13 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             ? BuildEquipmentBonusText(item)
             : BuildEquipmentComparisonText(
                 item,
-                selectedDetailMercenary.EquippedWeapon);
+                selectedDetailMercenary.GetEquippedItem(item.equipmentSlot),
+                selectedDetailMercenary.GetEquippedInstance(
+                    item.equipmentSlot));
         CreateText(
             row,
-            $"<b>{JapaneseDisplayText.GetItemName(item)}</b>  " +
+            $"<b>[{JapaneseDisplayText.GetEquipmentSlot(item.equipmentSlot)}] " +
+            $"{JapaneseDisplayText.GetItemName(item)}</b>  " +
             $"R{item.equipmentRank}  {owned}\n{stats}",
             15,
             isEquipped ? FontStyle.Bold : FontStyle.Normal,
@@ -2168,18 +2966,168 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             row,
             isEquipped ? "解除" : "装備",
             isEquipped
-                ? (UnityEngine.Events.UnityAction)UnequipSelectedWeapon
-                : () => EquipSelectedWeapon(item));
+                ? () => UnequipSelectedEquipment(item.equipmentSlot)
+                : () => EquipSelectedEquipment(item));
         RectTransform buttonRect = button.GetComponent<RectTransform>();
         buttonRect.sizeDelta = new Vector2(76f, 40f);
         buttonRect.anchoredPosition = new Vector2(-8f, 0f);
     }
 
-    private static string GetEquippedWeaponName(MercenaryInstance mercenary)
+    private void CreateEquipmentInstanceOptionRow(
+        EquipmentInstance equipment,
+        bool isEquipped,
+        float top)
     {
-        return mercenary != null && mercenary.EquippedWeapon != null
-            ? JapaneseDisplayText.GetItemName(mercenary.EquippedWeapon)
-            : "なし";
+        ItemDataSO item = equipment.BaseItem;
+        RectTransform row = CreateUIObject(
+            isEquipped
+                ? $"Equipped Quality {item.equipmentSlot}"
+                : equipment.InstanceId,
+            characterEquipmentList);
+        row.anchorMin = new Vector2(0f, 1f);
+        row.anchorMax = new Vector2(1f, 1f);
+        row.pivot = new Vector2(0.5f, 1f);
+        row.offsetMin = new Vector2(0f, top - 106f);
+        row.offsetMax = new Vector2(0f, top);
+        row.gameObject.AddComponent<Image>().color = RowColor;
+
+        string quality = JapaneseDisplayText.GetEquipmentQuality(equipment.Quality);
+        Color qualityColor = GetEquipmentQualityColor(equipment.Quality);
+        string stats = BuildEquipmentInstanceComparisonText(
+            equipment,
+            selectedDetailMercenary.GetEquippedInstance(item.equipmentSlot),
+            selectedDetailMercenary.GetEquippedItem(item.equipmentSlot));
+        CreateText(
+            row,
+            $"<b>[{JapaneseDisplayText.GetEquipmentSlot(item.equipmentSlot)}・" +
+            $"{quality}] {GetEquipmentDisplayName(equipment)}</b>  " +
+            $"R{item.equipmentRank}  {(isEquipped ? "装備中" : "個体装備")}\n{stats}",
+            15,
+            isEquipped ? FontStyle.Bold : FontStyle.Normal,
+            TextAnchor.UpperLeft,
+            new Vector2(12f, -96f),
+            new Vector2(-170f, -10f),
+            qualityColor);
+
+        Button button = CreateActionButton(
+            row,
+            isEquipped ? "解除" : "装備",
+            isEquipped
+                ? () => UnequipSelectedEquipment(item.equipmentSlot)
+                : () => EquipSelectedEquipment(equipment));
+        RectTransform buttonRect = button.GetComponent<RectTransform>();
+        buttonRect.sizeDelta = new Vector2(76f, 40f);
+        buttonRect.anchoredPosition = new Vector2(-8f, 0f);
+
+        Button detailButton = CreateActionButton(
+            row,
+            "詳細",
+            () => ShowEquipmentDetails(equipment));
+        RectTransform detailRect = detailButton.GetComponent<RectTransform>();
+        detailRect.sizeDelta = new Vector2(64f, 40f);
+        detailRect.anchoredPosition = new Vector2(-92f, 0f);
+    }
+
+    private static string GetEquippedEquipmentName(
+        MercenaryInstance mercenary,
+        EquipmentSlot slot)
+    {
+        ItemDataSO item = mercenary?.GetEquippedItem(slot);
+        if (item == null)
+        {
+            return "なし";
+        }
+
+        EquipmentInstance instance = mercenary.GetEquippedInstance(slot);
+        string name = JapaneseDisplayText.GetItemName(item);
+        return instance != null
+            ? $"[{JapaneseDisplayText.GetEquipmentQuality(instance.Quality)}] " +
+              $"{GetEquipmentDisplayName(instance)}"
+            : name;
+    }
+
+    private static string GetEquipmentDisplayName(EquipmentInstance equipment)
+    {
+        if (equipment?.BaseItem == null)
+        {
+            return "不明な装備";
+        }
+
+        string enhancement = equipment.EnhancementLevel > 0
+            ? $" +{equipment.EnhancementLevel}"
+            : string.Empty;
+        return JapaneseDisplayText.GetItemName(equipment.BaseItem) + enhancement;
+    }
+
+    private static string BuildActiveSetSummary(MercenaryInstance mercenary)
+    {
+        if (mercenary == null)
+        {
+            return "なし";
+        }
+
+        List<string> summaries = new List<string>();
+        foreach (EquipmentSetId setId in
+                 (EquipmentSetId[])System.Enum.GetValues(typeof(EquipmentSetId)))
+        {
+            if (setId == EquipmentSetId.None)
+            {
+                continue;
+            }
+
+            int count = mercenary.GetEquippedSetCount(setId);
+            if (count <= 0)
+            {
+                continue;
+            }
+
+            string active = count >= 3
+                ? "全効果"
+                : count >= 2 ? "2部位効果" : "未発動";
+            summaries.Add(
+                $"{JapaneseDisplayText.GetEquipmentSet(setId)} {count}/3 {active}");
+        }
+        return summaries.Count > 0 ? string.Join(", ", summaries) : "なし";
+    }
+
+    private static Color GetEquipmentQualityColor(EquipmentQuality quality)
+    {
+        switch (quality)
+        {
+            case EquipmentQuality.Poor: return new Color(0.62f, 0.62f, 0.62f);
+            case EquipmentQuality.Fine: return new Color(0.38f, 0.82f, 0.48f);
+            case EquipmentQuality.Rare: return new Color(0.35f, 0.62f, 1f);
+            case EquipmentQuality.Legendary: return new Color(1f, 0.68f, 0.18f);
+            default: return Color.white;
+        }
+    }
+
+    private static string BuildEquipmentInstanceComparisonText(
+        EquipmentInstance candidate,
+        EquipmentInstance equippedInstance,
+        ItemDataSO equippedItem)
+    {
+        int currentHP = equippedInstance != null
+            ? equippedInstance.BonusMaxHP
+            : equippedItem != null ? equippedItem.bonusMaxHP : 0;
+        int currentAttack = equippedInstance != null
+            ? equippedInstance.BonusAttack
+            : equippedItem != null ? equippedItem.bonusAttack : 0;
+        int currentDefense = equippedInstance != null
+            ? equippedInstance.BonusDefense
+            : equippedItem != null ? equippedItem.bonusDefense : 0;
+        float currentSpeed = equippedInstance != null
+            ? equippedInstance.BonusAttackSpeed
+            : equippedItem != null ? equippedItem.bonusAttackSpeed : 0f;
+
+        return $"HP {FormatSigned(candidate.BonusMaxHP)} " +
+               $"{FormatComparison(candidate.BonusMaxHP - currentHP)}  " +
+               $"攻撃 {FormatSigned(candidate.BonusAttack)} " +
+               $"{FormatComparison(candidate.BonusAttack - currentAttack)}\n" +
+               $"防御 {FormatSigned(candidate.BonusDefense)} " +
+               $"{FormatComparison(candidate.BonusDefense - currentDefense)}  " +
+               $"速度 {FormatSigned(candidate.BonusAttackSpeed)} " +
+               $"{FormatComparison(candidate.BonusAttackSpeed - currentSpeed)}";
     }
 
     private static string BuildEquipmentBonusText(ItemDataSO item)
@@ -2192,12 +3140,21 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private static string BuildEquipmentComparisonText(
         ItemDataSO candidate,
-        ItemDataSO equipped)
+        ItemDataSO equipped,
+        EquipmentInstance equippedInstance)
     {
-        int currentHP = equipped != null ? equipped.bonusMaxHP : 0;
-        int currentAttack = equipped != null ? equipped.bonusAttack : 0;
-        int currentDefense = equipped != null ? equipped.bonusDefense : 0;
-        float currentSpeed = equipped != null ? equipped.bonusAttackSpeed : 0f;
+        int currentHP = equippedInstance != null
+            ? equippedInstance.BonusMaxHP
+            : equipped != null ? equipped.bonusMaxHP : 0;
+        int currentAttack = equippedInstance != null
+            ? equippedInstance.BonusAttack
+            : equipped != null ? equipped.bonusAttack : 0;
+        int currentDefense = equippedInstance != null
+            ? equippedInstance.BonusDefense
+            : equipped != null ? equipped.bonusDefense : 0;
+        float currentSpeed = equippedInstance != null
+            ? equippedInstance.BonusAttackSpeed
+            : equipped != null ? equipped.bonusAttackSpeed : 0f;
 
         return $"HP {FormatSigned(candidate.bonusMaxHP)} " +
                $"{FormatComparison(candidate.bonusMaxHP - currentHP)}  " +
@@ -2243,49 +3200,130 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         return $"<color={color}>({sign}{difference.ToString(format)})</color>";
     }
 
-    private void EquipSelectedWeapon(ItemDataSO weapon)
+    private void EquipSelectedEquipment(ItemDataSO equipment)
     {
         if (selectedDetailMercenary == null ||
-            weapon == null ||
-            !merchantInventory.HasItem(weapon))
+            equipment == null ||
+            !merchantInventory.HasItem(equipment))
         {
             return;
         }
 
-        ItemDataSO previousWeapon = selectedDetailMercenary.EquippedWeapon;
-        if (!selectedDetailMercenary.EquipWeapon(weapon) ||
-            !merchantInventory.TryRemoveItem(weapon))
+        EquipmentSlot slot = equipment.equipmentSlot;
+        ItemDataSO previousItem =
+            selectedDetailMercenary.GetEquippedItem(slot);
+        EquipmentInstance previousInstance =
+            selectedDetailMercenary.GetEquippedInstance(slot);
+        if (!selectedDetailMercenary.EquipEquipment(equipment) ||
+            !merchantInventory.TryRemoveItem(equipment))
         {
-            selectedDetailMercenary.RestoreEquippedWeapon(previousWeapon);
+            if (previousInstance != null)
+            {
+                selectedDetailMercenary.RestoreEquippedEquipment(
+                    slot,
+                    previousInstance);
+            }
+            else
+            {
+                selectedDetailMercenary.RestoreEquippedEquipment(
+                    slot,
+                    previousItem);
+            }
             return;
         }
 
-        if (previousWeapon != null)
+        if (previousInstance != null)
         {
-            merchantInventory.AddItem(previousWeapon);
+            merchantInventory.AddEquipmentInstance(previousInstance);
+        }
+        else if (previousItem != null)
+        {
+            merchantInventory.AddItem(previousItem);
         }
 
         statusText.text =
             $"{selectedDetailMercenary.MercenaryName}に" +
-            $"{JapaneseDisplayText.GetItemName(weapon)}を装備しました。";
+            $"{JapaneseDisplayText.GetItemName(equipment)}を装備しました。";
         ShowCharacterDetails(selectedDetailMercenary);
         RebuildCompanyList();
         RebuildPartyList();
         SaveEquipmentChanges();
     }
 
-    private void UnequipSelectedWeapon()
+    private void EquipSelectedEquipment(EquipmentInstance equipment)
     {
         if (selectedDetailMercenary == null ||
-            selectedDetailMercenary.EquippedWeapon == null)
+            equipment?.BaseItem == null)
         {
             return;
         }
 
-        ItemDataSO previousWeapon = selectedDetailMercenary.UnequipWeapon();
-        merchantInventory.AddItem(previousWeapon);
+        EquipmentSlot slot = equipment.BaseItem.equipmentSlot;
+        ItemDataSO previousItem =
+            selectedDetailMercenary.GetEquippedItem(slot);
+        EquipmentInstance previousInstance =
+            selectedDetailMercenary.GetEquippedInstance(slot);
+        if (!selectedDetailMercenary.EquipEquipment(equipment) ||
+            !merchantInventory.TryRemoveEquipmentInstance(equipment))
+        {
+            if (previousInstance != null)
+            {
+                selectedDetailMercenary.RestoreEquippedEquipment(
+                    slot,
+                    previousInstance);
+            }
+            else
+            {
+                selectedDetailMercenary.RestoreEquippedEquipment(
+                    slot,
+                    previousItem);
+            }
+            return;
+        }
+
+        if (previousInstance != null)
+        {
+            merchantInventory.AddEquipmentInstance(previousInstance);
+        }
+        else if (previousItem != null)
+        {
+            merchantInventory.AddItem(previousItem);
+        }
+
         statusText.text =
-            $"{selectedDetailMercenary.MercenaryName}の武器を解除しました。";
+            $"{selectedDetailMercenary.MercenaryName}に" +
+            $"[{JapaneseDisplayText.GetEquipmentQuality(equipment.Quality)}] " +
+            $"{JapaneseDisplayText.GetItemName(equipment.BaseItem)}を装備しました。";
+        ShowCharacterDetails(selectedDetailMercenary);
+        RebuildCompanyList();
+        RebuildPartyList();
+        SaveEquipmentChanges();
+    }
+
+    private void UnequipSelectedEquipment(EquipmentSlot slot)
+    {
+        if (selectedDetailMercenary == null ||
+            selectedDetailMercenary.GetEquippedItem(slot) == null)
+        {
+            return;
+        }
+
+        EquipmentInstance previousInstance =
+            selectedDetailMercenary.GetEquippedInstance(slot);
+        if (previousInstance != null)
+        {
+            selectedDetailMercenary.UnequipEquipmentInstance(slot);
+            merchantInventory.AddEquipmentInstance(previousInstance);
+        }
+        else
+        {
+            ItemDataSO previousItem =
+                selectedDetailMercenary.UnequipEquipment(slot);
+            merchantInventory.AddItem(previousItem);
+        }
+        statusText.text =
+            $"{selectedDetailMercenary.MercenaryName}の" +
+            $"{JapaneseDisplayText.GetEquipmentSlot(slot)}を解除しました。";
         ShowCharacterDetails(selectedDetailMercenary);
         RebuildCompanyList();
         RebuildPartyList();
@@ -2321,6 +3359,244 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
         statusText.text = $"{JapaneseDisplayText.GetItemName(item)}を{sellPrice} Gで売却しました。";
         RefreshUI();
+    }
+
+    private void HandleProgressionChanged()
+    {
+        RebuildCompanyList();
+        RebuildInventoryList();
+        if (merchantStatusOverlay != null &&
+            merchantStatusOverlay.gameObject.activeSelf)
+        {
+            RebuildMerchantStatus();
+        }
+        if (questOverlay != null && questOverlay.gameObject.activeSelf)
+        {
+            RebuildQuestList();
+        }
+        RefreshUI();
+    }
+
+    private void IncreaseMerchantSkill(MerchantSkillType skill)
+    {
+        if (merchantData.TryIncreaseSkill(skill))
+        {
+            statusText.text =
+                $"商人技能を強化しました。残りポイント " +
+                $"{merchantData.MerchantSkillPoints}";
+        }
+        RebuildMerchantStatus();
+        RefreshUI();
+    }
+
+    private void SellEquipment(EquipmentInstance equipment)
+    {
+        if (equipment?.BaseItem == null)
+        {
+            return;
+        }
+
+        int sellPrice = merchantInventory.GetSellPrice(equipment);
+        string itemName = JapaneseDisplayText.GetItemName(equipment.BaseItem);
+        if (!merchantInventory.SellEquipmentInstance(equipment))
+        {
+            statusText.text = $"{itemName}を売却できませんでした。";
+            return;
+        }
+
+        statusText.text = $"{itemName}を{sellPrice} Gで売却しました。";
+        RebuildInventoryList();
+        RefreshUI();
+    }
+
+    private void ShowEquipmentDetails(EquipmentInstance equipment)
+    {
+        if (equipment?.BaseItem == null || equipmentDetailOverlay == null)
+        {
+            return;
+        }
+
+        selectedEquipmentDetail = equipment;
+        ItemDataSO item = equipment.BaseItem;
+        string quality = JapaneseDisplayText.GetEquipmentQuality(equipment.Quality);
+        equipmentDetailTitle.text =
+            $"[{quality}] {GetEquipmentDisplayName(equipment)}";
+        equipmentDetailTitle.color = GetEquipmentQualityColor(equipment.Quality);
+
+        List<string> modifierLines = new List<string>();
+        foreach (EquipmentModifier modifier in equipment.Modifiers)
+        {
+            if (modifier != null)
+            {
+                modifierLines.Add(
+                    $"{JapaneseDisplayText.GetEquipmentModifier(modifier.type)} " +
+                    $"{FormatSigned(modifier.value)}");
+            }
+        }
+
+        string modifiers = modifierLines.Count > 0
+            ? string.Join("\n", modifierLines)
+            : "追加効果なし";
+        string setText = BuildEquipmentSetDetail(item.equipmentSet);
+        string target = item.allClassesCanEquip
+            ? "全職業"
+            : JapaneseDisplayText.GetMercenaryClass(item.requiredClass);
+        ItemDataSO enhancementMaterial =
+            merchantInventory.GetEnhancementMaterial(equipment);
+        string enhancementMaterialName = enhancementMaterial != null
+            ? JapaneseDisplayText.GetItemName(enhancementMaterial)
+            : "対応する強化鉱石";
+
+        equipmentDetailText.text =
+            $"種類: {JapaneseDisplayText.GetEquipmentSlot(item.equipmentSlot)}\n" +
+            $"装備対象: {target}  ランク: {item.equipmentRank}\n" +
+            $"品質: {quality}  強化: +{equipment.EnhancementLevel} / +10\n\n" +
+            $"最終性能\n" +
+            $"HP {FormatSigned(equipment.BonusMaxHP)}  " +
+            $"攻撃 {FormatSigned(equipment.BonusAttack)}\n" +
+            $"防御 {FormatSigned(equipment.BonusDefense)}  " +
+            $"攻撃速度 {FormatSigned(equipment.BonusAttackSpeed)}\n\n" +
+            $"追加効果\n{modifiers}\n\n{setText}\n\n" +
+            $"次回強化: 成功率 " +
+            $"{equipment.GetEnhancementSuccessRate() * 100f:0}%  " +
+            $"{enhancementMaterialName} " +
+            $"{equipment.GetEnhancementMaterialAmount()}個";
+
+        bool canEnhance = equipment.EnhancementLevel < 10;
+        equipmentEnhanceButton.interactable =
+            canEnhance &&
+            merchantData.CanPay(equipment.GetEnhancementCost()) &&
+            enhancementMaterial != null &&
+            merchantInventory.HasItem(
+                enhancementMaterial,
+                equipment.GetEnhancementMaterialAmount());
+        equipmentEnhanceButton.GetComponentInChildren<Text>().text =
+            canEnhance
+                ? $"強化 {equipment.GetEnhancementCost()}G"
+                : "強化完了";
+        equipmentSellButton.interactable =
+            IsEquipmentInInventory(equipment) && !equipment.IsLocked;
+        equipmentSellButton.GetComponentInChildren<Text>().text =
+            $"売却 {merchantInventory.GetSellPrice(equipment)}G";
+        equipmentLockButton.GetComponentInChildren<Text>().text =
+            equipment.IsLocked ? "ロック解除" : "ロック";
+
+        equipmentDetailOverlay.SetAsLastSibling();
+        equipmentDetailOverlay.gameObject.SetActive(true);
+    }
+
+    private static string BuildEquipmentSetDetail(EquipmentSetId setId)
+    {
+        if (setId == EquipmentSetId.None)
+        {
+            return "セット効果: なし";
+        }
+
+        switch (setId)
+        {
+            case EquipmentSetId.Vanguard:
+                return "セット: 不屈の前衛\n" +
+                       "2部位: 最大HP+20、防御+10\n" +
+                       "3部位: 攻撃+8";
+            case EquipmentSetId.Windstalker:
+                return "セット: 風狩り\n" +
+                       "2部位: 攻撃+5、攻撃速度+0.08\n" +
+                       "3部位: 攻撃+10、攻撃速度+0.06";
+            case EquipmentSetId.ArcaneSage:
+                return "セット: 秘術賢者\n" +
+                       "2部位: 攻撃+10\n" +
+                       "3部位: 攻撃+15、攻撃速度+0.04";
+            default:
+                return "セット: 古代守護者\n" +
+                       "2部位: 最大HP+30、防御+8\n" +
+                       "3部位: 攻撃+12、攻撃速度+0.08";
+        }
+    }
+
+    private bool IsEquipmentInInventory(EquipmentInstance equipment)
+    {
+        foreach (EquipmentInstance owned in merchantInventory.EquipmentInstances)
+        {
+            if (ReferenceEquals(owned, equipment))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void HideEquipmentDetails()
+    {
+        equipmentDetailOverlay?.gameObject.SetActive(false);
+        selectedEquipmentDetail = null;
+    }
+
+    private void EnhanceSelectedEquipment()
+    {
+        EquipmentInstance equipment = selectedEquipmentDetail;
+        if (equipment == null)
+        {
+            return;
+        }
+
+        EquipmentEnhancementResult result =
+            merchantInventory.TryEnhanceEquipment(equipment);
+        switch (result)
+        {
+            case EquipmentEnhancementResult.Succeeded:
+                statusText.text =
+                    $"{GetEquipmentDisplayName(equipment)}の強化に成功しました。";
+                break;
+            case EquipmentEnhancementResult.Failed:
+                statusText.text =
+                    "強化に失敗しました。装備と強化値は維持されます。";
+                break;
+            case EquipmentEnhancementResult.NotEnoughMaterial:
+                statusText.text = "強化鉱石が不足しています。";
+                break;
+            case EquipmentEnhancementResult.NotEnoughGold:
+                statusText.text = "ゴールドが不足しています。";
+                break;
+            default:
+                statusText.text = "装備を強化できませんでした。";
+                break;
+        }
+        RebuildInventoryList();
+        if (selectedDetailMercenary != null)
+        {
+            ShowCharacterDetails(selectedDetailMercenary);
+        }
+        ShowEquipmentDetails(equipment);
+        RefreshUI();
+        SaveEquipmentChanges();
+    }
+
+    private void ToggleSelectedEquipmentLock()
+    {
+        if (selectedEquipmentDetail == null)
+        {
+            return;
+        }
+
+        merchantInventory.ToggleEquipmentLock(selectedEquipmentDetail);
+        statusText.text = selectedEquipmentDetail.IsLocked
+            ? "装備をロックしました。"
+            : "装備のロックを解除しました。";
+        RebuildInventoryList();
+        ShowEquipmentDetails(selectedEquipmentDetail);
+        SaveEquipmentChanges();
+    }
+
+    private void SellSelectedEquipment()
+    {
+        EquipmentInstance equipment = selectedEquipmentDetail;
+        if (equipment == null || !IsEquipmentInInventory(equipment))
+        {
+            return;
+        }
+
+        HideEquipmentDetails();
+        SellEquipment(equipment);
     }
 
     private void BuyMarketItem(MarketStockEntry entry)
@@ -2360,7 +3636,11 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             return;
         }
 
-        statusText.text = $"{itemName}を制作しました。";
+        EquipmentInstance crafted = blacksmithManager.LastCraftedEquipment;
+        statusText.text = crafted != null
+            ? $"[{JapaneseDisplayText.GetEquipmentQuality(crafted.Quality)}] " +
+              $"{itemName}を制作しました。"
+            : $"{itemName}を制作しました。";
         RebuildBlacksmithList();
         RebuildInventoryList();
         RefreshUI();
@@ -2384,6 +3664,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private void ShowHirePage()
     {
+        HideMapPages();
         hirePage.gameObject.SetActive(true);
         companyPage.gameObject.SetActive(false);
         partyPage.gameObject.SetActive(false);
@@ -2407,6 +3688,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private void ShowCompanyPage()
     {
+        HideMapPages();
         hirePage.gameObject.SetActive(false);
         companyPage.gameObject.SetActive(true);
         partyPage.gameObject.SetActive(false);
@@ -2426,11 +3708,17 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         SetTabActive(blacksmithTabButton, false);
         SetTabActive(inventoryTabButton, false);
         RebuildCompanyList();
-        statusText.text = $"商会所属の傭兵: {hireManager.HiredMercenaries.Count}人";
+        statusText.text =
+            $"商人Lv{merchantData.MerchantLevel} " +
+            $"EXP {merchantData.MerchantExperience}/{merchantData.ExperienceToNextLevel}  |  " +
+            $"技能ポイント {merchantData.MerchantSkillPoints}  |  " +
+            $"傭兵 {hireManager.HiredMercenaries.Count}人  |  " +
+            $"雇用成功率 {merchantData.GetHireSuccessRate() * 100f:0}%";
     }
 
     private void ShowPartyPage()
     {
+        HideMapPages();
         hirePage.gameObject.SetActive(false);
         companyPage.gameObject.SetActive(false);
         partyPage.gameObject.SetActive(true);
@@ -2455,6 +3743,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private void ShowHealPage()
     {
+        HideMapPages();
         hirePage.gameObject.SetActive(false);
         companyPage.gameObject.SetActive(false);
         partyPage.gameObject.SetActive(false);
@@ -2480,6 +3769,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private void ShowBattlePage()
     {
+        HideMapPages();
         hirePage.gameObject.SetActive(false);
         companyPage.gameObject.SetActive(false);
         partyPage.gameObject.SetActive(false);
@@ -2505,6 +3795,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private void ShowDungeonPage()
     {
+        HideMapPages();
         hirePage.gameObject.SetActive(false);
         companyPage.gameObject.SetActive(false);
         partyPage.gameObject.SetActive(false);
@@ -2536,7 +3827,9 @@ public class SimpleMercenaryHireUI : MonoBehaviour
                 ? $"探索中: {dungeonRunManager.CurrentEncounter}/{dungeonRunManager.EncounterCount}"
                 : $"{dungeonRunManager.DungeonName}  |  " +
                   $"遭遇{dungeonRunManager.EncounterCount}回  |  " +
-                  $"踏破報酬 {dungeonRunManager.ClearGoldReward} G";
+                  $"踏破報酬 {dungeonRunManager.ClearGoldReward} G\n" +
+                  BuildDungeonRewardPreview(
+                      dungeonRunManager.SelectedDungeon);
         }
 
         UpdateDungeonEventUI();
@@ -2547,6 +3840,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private void ShowMarketPage()
     {
+        HideMapPages();
         hirePage.gameObject.SetActive(false);
         companyPage.gameObject.SetActive(false);
         partyPage.gameObject.SetActive(false);
@@ -2572,6 +3866,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private void ShowBlacksmithPage()
     {
+        HideMapPages();
         hirePage.gameObject.SetActive(false);
         companyPage.gameObject.SetActive(false);
         partyPage.gameObject.SetActive(false);
@@ -2597,6 +3892,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private void ShowInventoryPage()
     {
+        HideMapPages();
         hirePage.gameObject.SetActive(false);
         companyPage.gameObject.SetActive(false);
         partyPage.gameObject.SetActive(false);
@@ -2617,12 +3913,109 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         SetTabActive(inventoryTabButton, true);
         RebuildInventoryList();
         statusText.text =
-            $"在庫品目: {merchantInventory.Items.Count}種類 / {marketPriceManager.GetMarketSummary()}";
+            $"倉庫 {merchantInventory.GetUsedStorageSlots()}/" +
+            $"{(progressionManager != null ? progressionManager.StorageCapacity : 0)}  |  " +
+            $"{marketPriceManager.GetMarketSummary()}  |  " +
+            $"維持費 {(progressionManager != null ? progressionManager.StorageMaintenanceCost : 0)}G/日";
+    }
+
+    private void ShowWorldMap()
+    {
+        HideStandardPages();
+        worldMapPage.gameObject.SetActive(true);
+        townMapPage.gameObject.SetActive(false);
+        SetAllTabsInactive();
+        statusText.text =
+            $"現在地: {TownNames[currentTownIndex]}  |  移動先の町を選択";
+    }
+
+    private void ShowTownMap()
+    {
+        HideStandardPages();
+        worldMapPage.gameObject.SetActive(false);
+        townMapPage.gameObject.SetActive(true);
+        SetAllTabsInactive();
+        statusText.text =
+            $"{TownNames[currentTownIndex]}  |  利用する施設を選択";
+    }
+
+    private void TravelToTown(int townIndex)
+    {
+        townIndex = Mathf.Clamp(townIndex, 0, TownNames.Length - 1);
+        if (townIndex != currentTownIndex)
+        {
+            currentTownIndex = townIndex;
+            dayManager.AdvanceDay();
+        }
+        ShowTownMap();
+    }
+
+    private void OpenNearbyDungeon()
+    {
+        if (dungeonRunManager.AvailableDungeons.Count > 0)
+        {
+            int preferredIndex = Mathf.Clamp(
+                currentTownIndex,
+                0,
+                dungeonRunManager.AvailableDungeons.Count - 1);
+            DungeonDataSO preferred =
+                dungeonRunManager.AvailableDungeons[preferredIndex];
+            if (!dungeonRunManager.TrySelectDungeon(preferred))
+            {
+                statusText.text =
+                    $"{TownNames[currentTownIndex]}近隣のダンジョンは未開放です。";
+            }
+        }
+        ShowDungeonPage();
+    }
+
+    private void TravelToDungeon(int townIndex)
+    {
+        townIndex = Mathf.Clamp(townIndex, 0, TownNames.Length - 1);
+        if (townIndex != currentTownIndex)
+        {
+            currentTownIndex = townIndex;
+            dayManager.AdvanceDay();
+        }
+        OpenNearbyDungeon();
+    }
+
+    private void HideMapPages()
+    {
+        worldMapPage?.gameObject.SetActive(false);
+        townMapPage?.gameObject.SetActive(false);
+    }
+
+    private void HideStandardPages()
+    {
+        hirePage.gameObject.SetActive(false);
+        companyPage.gameObject.SetActive(false);
+        partyPage.gameObject.SetActive(false);
+        healPage.gameObject.SetActive(false);
+        battlePage.gameObject.SetActive(false);
+        dungeonPage.gameObject.SetActive(false);
+        marketPage.gameObject.SetActive(false);
+        blacksmithPage.gameObject.SetActive(false);
+        inventoryPage.gameObject.SetActive(false);
+    }
+
+    private void SetAllTabsInactive()
+    {
+        SetTabActive(hireTabButton, false);
+        SetTabActive(companyTabButton, false);
+        SetTabActive(partyTabButton, false);
+        SetTabActive(healTabButton, false);
+        SetTabActive(battleTabButton, false);
+        SetTabActive(dungeonTabButton, false);
+        SetTabActive(marketTabButton, false);
+        SetTabActive(blacksmithTabButton, false);
+        SetTabActive(inventoryTabButton, false);
     }
 
     private void RefreshUI()
     {
-        goldText.text = $"所持金  {merchantData.Gold} G";
+        goldText.text =
+            $"商人Lv{merchantData.MerchantLevel}  所持金 {merchantData.Gold} G";
 
         for (int i = 0; i < hireButtons.Count; i++)
         {
@@ -2772,4 +4165,438 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
         new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
     }
+
+    private void CycleInventoryFilter()
+    {
+        inventoryFilter = (InventoryFilter)(
+            ((int)inventoryFilter + 1) %
+            System.Enum.GetValues(typeof(InventoryFilter)).Length);
+        inventoryFilterButton.GetComponentInChildren<Text>().text =
+            $"絞込: {GetInventoryFilterLabel(inventoryFilter)}";
+        RebuildInventoryList();
+    }
+
+    private void CycleEquipmentSort()
+    {
+        equipmentSort = (EquipmentSort)(
+            ((int)equipmentSort + 1) %
+            System.Enum.GetValues(typeof(EquipmentSort)).Length);
+        equipmentSortButton.GetComponentInChildren<Text>().text =
+            $"並替: {GetEquipmentSortLabel(equipmentSort)}";
+        RebuildInventoryList();
+    }
+
+    private bool MatchesInventoryFilter(ItemDataSO item)
+    {
+        if (item == null)
+        {
+            return false;
+        }
+
+        switch (inventoryFilter)
+        {
+            case InventoryFilter.Material:
+                return !item.IsEquipment;
+            case InventoryFilter.Weapon:
+                return item.IsEquipment &&
+                       item.equipmentSlot == EquipmentSlot.Weapon;
+            case InventoryFilter.Armor:
+                return item.IsEquipment &&
+                       item.equipmentSlot == EquipmentSlot.Armor;
+            case InventoryFilter.Accessory:
+                return item.IsEquipment &&
+                       item.equipmentSlot == EquipmentSlot.Accessory;
+            case InventoryFilter.SetEquipment:
+                return item.IsEquipment &&
+                       item.equipmentSet != EquipmentSetId.None;
+            default:
+                return true;
+        }
+    }
+
+    private int CompareEquipment(
+        EquipmentInstance left,
+        EquipmentInstance right)
+    {
+        if (left?.BaseItem == null) return 1;
+        if (right?.BaseItem == null) return -1;
+
+        switch (equipmentSort)
+        {
+            case EquipmentSort.Quality:
+                return right.Quality.CompareTo(left.Quality);
+            case EquipmentSort.Enhancement:
+                return right.EnhancementLevel.CompareTo(left.EnhancementLevel);
+            case EquipmentSort.Set:
+                return left.BaseItem.equipmentSet.CompareTo(
+                    right.BaseItem.equipmentSet);
+            default:
+                return string.Compare(
+                    JapaneseDisplayText.GetItemName(left.BaseItem),
+                    JapaneseDisplayText.GetItemName(right.BaseItem),
+                    System.StringComparison.Ordinal);
+        }
+    }
+
+    private static string GetInventoryFilterLabel(InventoryFilter filter)
+    {
+        switch (filter)
+        {
+            case InventoryFilter.Material: return "素材";
+            case InventoryFilter.Weapon: return "武器";
+            case InventoryFilter.Armor: return "防具";
+            case InventoryFilter.Accessory: return "装飾品";
+            case InventoryFilter.SetEquipment: return "セット";
+            case InventoryFilter.Locked: return "ロック";
+            default: return "全て";
+        }
+    }
+
+    private static string GetEquipmentSortLabel(EquipmentSort sort)
+    {
+        switch (sort)
+        {
+            case EquipmentSort.Quality: return "品質";
+            case EquipmentSort.Enhancement: return "強化";
+            case EquipmentSort.Set: return "セット";
+            default: return "名前";
+        }
+    }
+
+    private void ShowEquipmentCollection()
+    {
+        List<ItemDataSO> equipmentItems = FindAllEquipmentAssets();
+        equipmentItems.Sort((left, right) =>
+            string.Compare(
+                JapaneseDisplayText.GetItemName(left),
+                JapaneseDisplayText.GetItemName(right),
+                System.StringComparison.Ordinal));
+
+        List<string> lines = new List<string>();
+        int discoveredCount = 0;
+        foreach (ItemDataSO item in equipmentItems)
+        {
+            bool discovered = merchantInventory.HasDiscoveredEquipment(item);
+            if (discovered)
+            {
+                discoveredCount++;
+            }
+
+            string name = discovered
+                ? JapaneseDisplayText.GetItemName(item)
+                : "？？？？？？";
+            string set = item.equipmentSet != EquipmentSetId.None
+                ? $" / {JapaneseDisplayText.GetEquipmentSet(item.equipmentSet)}"
+                : string.Empty;
+            string source = item.acquisitionType == ItemAcquisitionType.Dungeon
+                ? "ダンジョン限定"
+                : item.acquisitionType == ItemAcquisitionType.Blacksmith
+                    ? "鍛冶屋"
+                    : "市場";
+            lines.Add(
+                $"{(discovered ? "●" : "○")} [{JapaneseDisplayText.GetEquipmentSlot(item.equipmentSlot)}] " +
+                $"{name}{set} / {source}");
+        }
+
+        equipmentCollectionText.text =
+            $"収集率 {discoveredCount}/{equipmentItems.Count}\n\n" +
+            string.Join("\n", lines);
+        float height = Mathf.Max(430f, 76f + lines.Count * 28f);
+        equipmentCollectionContent.sizeDelta = new Vector2(0f, height);
+        equipmentCollectionText.rectTransform.anchorMin = Vector2.zero;
+        equipmentCollectionText.rectTransform.anchorMax = Vector2.one;
+        equipmentCollectionText.rectTransform.offsetMin = new Vector2(12f, 12f);
+        equipmentCollectionText.rectTransform.offsetMax = new Vector2(-12f, -12f);
+        equipmentCollectionOverlay.SetAsLastSibling();
+        equipmentCollectionOverlay.gameObject.SetActive(true);
+    }
+
+    private void HideEquipmentCollection()
+    {
+        equipmentCollectionOverlay?.gameObject.SetActive(false);
+    }
+
+    private void ShowQuestOverlay()
+    {
+        RebuildQuestList();
+        questOverlay.SetAsLastSibling();
+        questOverlay.gameObject.SetActive(true);
+    }
+
+    private void HideQuestOverlay()
+    {
+        questOverlay?.gameObject.SetActive(false);
+    }
+
+    private void ShowMerchantStatusOverlay()
+    {
+        RebuildMerchantStatus();
+        merchantStatusOverlay.SetAsLastSibling();
+        merchantStatusOverlay.gameObject.SetActive(true);
+    }
+
+    private void HideMerchantStatusOverlay()
+    {
+        merchantStatusOverlay?.gameObject.SetActive(false);
+    }
+
+    private void RebuildMerchantStatus()
+    {
+        if (merchantSkillList == null || merchantData == null)
+        {
+            return;
+        }
+
+        ClearChildren(merchantSkillList);
+        float top = 0f;
+
+        RectTransform summaryRow =
+            CreateRow("Merchant Summary", merchantSkillList, top);
+        CreateText(
+            summaryRow,
+            $"商人Lv {merchantData.MerchantLevel}  " +
+            $"EXP {merchantData.MerchantExperience}/" +
+            $"{merchantData.ExperienceToNextLevel}  " +
+            $"所持金 {merchantData.Gold}G\n" +
+            $"未使用技能ポイント {merchantData.MerchantSkillPoints}  |  " +
+            $"習得技能: {merchantData.GetUnlockedMerchantSkills()}",
+            16,
+            FontStyle.Bold,
+            TextAnchor.MiddleLeft,
+            new Vector2(16f, -78f),
+            new Vector2(-16f, -12f),
+            Color.white);
+        top -= 112f;
+
+        CreateMerchantSkillRow(
+            merchantSkillList,
+            MerchantSkillType.Negotiation,
+            "交渉",
+            $"仕入れ {merchantData.GetMarketBuyMultiplier() * 100f:0}% / " +
+            $"売却 {merchantData.GetMarketSellMultiplier() * 100f:0}%\n" +
+            "Lv3 値切り術 / Lv7 商談の達人",
+            top);
+        top -= 112f;
+        CreateMerchantSkillRow(
+            merchantSkillList,
+            MerchantSkillType.Leadership,
+            "統率",
+            $"雇用成功率 {merchantData.GetHireSuccessRate() * 100f:0}% / " +
+            $"契約更新費 {merchantData.GetRenewalCostMultiplier() * 100f:0}%\n" +
+            "Lv3 人を見る目 / Lv7 契約管理",
+            top);
+        top -= 112f;
+        CreateMerchantSkillRow(
+            merchantSkillList,
+            MerchantSkillType.Appraisal,
+            "鑑定",
+            $"依頼ゴールド {merchantData.GetQuestGoldMultiplier() * 100f:0}% / " +
+            $"依頼EXP {merchantData.GetQuestExperienceMultiplier() * 100f:0}%\n" +
+            "Lv3 目利き / Lv7 慧眼",
+            top);
+        top -= 112f;
+        CreateMerchantSkillRow(
+            merchantSkillList,
+            MerchantSkillType.Logistics,
+            "兵站",
+            $"倉庫容量 +{merchantData.GetStorageCapacityBonus()} / " +
+            $"探索費用 {merchantData.GetExplorationExpenseMultiplier() * 100f:0}%\n" +
+            "Lv3 荷役整理 / Lv7 遠征計画",
+            top);
+        top -= 112f;
+
+        merchantSkillList.sizeDelta =
+            new Vector2(0f, Mathf.Max(470f, -top));
+    }
+
+    private void RebuildQuestList()
+    {
+        if (questList == null || progressionManager == null)
+        {
+            return;
+        }
+
+        ClearChildren(questList);
+        CreateText(
+            questList,
+            "長期目標\n" + progressionManager.GetAchievementSummary(),
+            14,
+            FontStyle.Normal,
+            TextAnchor.UpperLeft,
+            new Vector2(12f, -120f),
+            new Vector2(-12f, 0f),
+            MutedTextColor);
+        float top = -132f;
+        for (int i = 0; i < progressionManager.Quests.Count; i++)
+        {
+            int index = i;
+            QuestRecord quest = progressionManager.Quests[i];
+            RectTransform row = CreateRow($"Quest {i}", questList, top);
+            string type = quest.isSpecial ? "特殊" : "通常";
+            string state = quest.completed
+                ? "達成済み"
+                : quest.expired
+                    ? "期限切れ"
+                    : quest.accepted ? "進行中" : "未受注";
+            CreateText(
+                row,
+                $"[{type}] {quest.title}  {state}",
+                18,
+                FontStyle.Bold,
+                TextAnchor.MiddleLeft,
+                new Vector2(16f, -40f),
+                new Vector2(-150f, -10f),
+                Color.white);
+            string target = quest.questType == QuestType.ItemDelivery
+                ? JapaneseDisplayText.GetItemNameByRawName(quest.targetName)
+                : JapaneseDisplayText.GetEnemyName(quest.targetName);
+            CreateText(
+                row,
+                $"{target} {quest.currentAmount}/{quest.requiredAmount}  " +
+                $"期限 {quest.deadlineDay}日  報酬 " +
+                $"{progressionManager.GetQuestGoldReward(quest)}G / " +
+                $"商人EXP {progressionManager.GetQuestExperienceReward(quest)}",
+                13,
+                FontStyle.Normal,
+                TextAnchor.MiddleLeft,
+                new Vector2(16f, -76f),
+                new Vector2(-150f, -48f),
+                MutedTextColor);
+            Button button = CreateActionButton(
+                row,
+                quest.accepted ? state : "受注",
+                () => AcceptQuest(index));
+            button.interactable =
+                !quest.accepted && !quest.completed && !quest.expired;
+            top -= 112f;
+        }
+        questList.sizeDelta = new Vector2(0f, Mathf.Max(430f, -top));
+    }
+
+    private void AcceptQuest(int index)
+    {
+        if (progressionManager.AcceptQuest(index))
+        {
+            statusText.text = "依頼を受注しました。";
+        }
+        RebuildQuestList();
+        RefreshUI();
+    }
+
+    private void UpgradeStorage()
+    {
+        if (progressionManager != null &&
+            progressionManager.TryUpgradeStorage())
+        {
+            statusText.text = "倉庫を拡張しました。";
+        }
+        else
+        {
+            statusText.text = "商人レベルまたはゴールドが不足しています。";
+        }
+        RefreshUI();
+    }
+
+    private void RenewContract(MercenaryInstance mercenary)
+    {
+        if (hireManager.TryRenewContract(mercenary))
+        {
+            statusText.text = $"{mercenary.MercenaryName}の契約を更新しました。";
+        }
+        else
+        {
+            statusText.text = "契約を更新できませんでした。";
+        }
+        RebuildCompanyList();
+        RefreshUI();
+    }
+
+    private static string BuildMercenarySkillSummary(MercenaryInstance mercenary)
+    {
+        List<string> skills = new List<string>();
+        if (mercenary.Level >= 2)
+        {
+            switch (mercenary.MercenaryClass)
+            {
+                case MercenaryClass.Warrior:
+                    skills.Add("基礎体力: HP+10、防御+3");
+                    break;
+                case MercenaryClass.Archer:
+                    skills.Add("速射訓練: 攻撃速度+0.05");
+                    break;
+                case MercenaryClass.Mage:
+                    skills.Add("魔力集中: 攻撃+4");
+                    break;
+            }
+        }
+        if (mercenary.IsUnique &&
+            mercenary.Level >=
+            Mathf.Max(1, mercenary.BaseData.uniqueSkillUnlockLevel))
+        {
+            MercenaryDataSO data = mercenary.BaseData;
+            skills.Add(
+                $"{data.uniqueSkillName}: HP+{data.uniqueSkillBonusMaxHP}、" +
+                $"攻撃+{data.uniqueSkillBonusAttack}、" +
+                $"防御+{data.uniqueSkillBonusDefense}、" +
+                $"速度+{data.uniqueSkillBonusAttackSpeed:0.00}");
+        }
+        return skills.Count > 0
+            ? string.Join(" / ", skills)
+            : "Lv2で初歩スキルを取得";
+    }
+
+    private MercenaryContractType GetUnlockedContractType()
+    {
+        return hireManager.SelectedContract;
+    }
+
+    private void CycleHireContract()
+    {
+        MercenaryContractType selected =
+            hireManager.CycleSelectedContract();
+        contractSelectButton.GetComponentInChildren<Text>().text =
+            $"契約: {JapaneseDisplayText.GetContractType(selected)}";
+        RebuildHireList();
+    }
+
+    private static List<ItemDataSO> FindAllEquipmentAssets()
+    {
+        List<ItemDataSO> results =
+            new List<ItemDataSO>(Resources.LoadAll<ItemDataSO>(string.Empty));
+#if UNITY_EDITOR
+        string[] guids = AssetDatabase.FindAssets(
+            "t:ItemDataSO",
+            new[] { "Assets/Proiject/ScriptableObjects/Items" });
+        foreach (string guid in guids)
+        {
+            ItemDataSO item = AssetDatabase.LoadAssetAtPath<ItemDataSO>(
+                AssetDatabase.GUIDToAssetPath(guid));
+            if (item != null && !results.Contains(item))
+            {
+                results.Add(item);
+            }
+        }
+#endif
+        results.RemoveAll(item => item == null || !item.IsEquipment);
+        return results;
+    }
+}
+
+public enum InventoryFilter
+{
+    All,
+    Material,
+    Weapon,
+    Armor,
+    Accessory,
+    SetEquipment,
+    Locked
+}
+
+public enum EquipmentSort
+{
+    Name,
+    Quality,
+    Enhancement,
+    Set
 }

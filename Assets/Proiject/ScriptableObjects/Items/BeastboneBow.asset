@@ -20,6 +20,7 @@ MonoBehaviour:
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 1
+  equipmentSet: 3
   equipmentRank: 3
   bonusMaxHP: 6
   bonusAttack: 14

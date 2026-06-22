@@ -20,6 +20,8 @@ public class ItemDataSO : ScriptableObject
     [Header("Equipment")]
     public EquipmentSlot equipmentSlot = EquipmentSlot.Weapon;
     public MercenaryClass requiredClass = MercenaryClass.Warrior;
+    public bool allClassesCanEquip;
+    public EquipmentSetId equipmentSet = EquipmentSetId.None;
     [Min(1)] public int equipmentRank = 1;
     public int bonusMaxHP;
     public int bonusAttack;
@@ -30,6 +32,16 @@ public class ItemDataSO : ScriptableObject
 
     public bool CanEquip(MercenaryClass mercenaryClass)
     {
-        return IsEquipment && requiredClass == mercenaryClass;
+        return IsEquipment &&
+               (allClassesCanEquip || requiredClass == mercenaryClass);
     }
+}
+
+public enum EquipmentSetId
+{
+    None,
+    AncientGuardian,
+    Vanguard,
+    Windstalker,
+    ArcaneSage
 }

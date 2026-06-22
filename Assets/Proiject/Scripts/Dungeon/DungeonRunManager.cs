@@ -15,6 +15,7 @@ public class DungeonRunManager : MonoBehaviour
     [SerializeField] private MercenaryPartyManager partyManager;
     [SerializeField] private MerchantData merchantData;
     [SerializeField] private MerchantInventory merchantInventory;
+    [SerializeField] private ProgressionManager progressionManager;
     [SerializeField] private DungeonDataSO dungeonData;
     [SerializeField] private List<DungeonDataSO> availableDungeons =
         new List<DungeonDataSO>();
@@ -97,6 +98,7 @@ public class DungeonRunManager : MonoBehaviour
         }
 
         IsRunning = true;
+        progressionManager?.StartExploration();
         IsAwaitingEventChoice = false;
         CurrentEncounter = 0;
         ClearEvent();
@@ -308,6 +310,9 @@ public class DungeonRunManager : MonoBehaviour
 
         if (CurrentEncounter >= EncounterCount)
         {
+            TryGrantLimitedEquipment(
+                dungeonData != null ? dungeonData.bossLimitedDropChance : 0f,
+                "ボス限定ドロップ");
             GrantClearRewards();
             UnlockNextGrade();
             CompleteRun(true, "ダンジョンを踏破しました。");
@@ -374,16 +379,27 @@ public class DungeonRunManager : MonoBehaviour
                 if (optionIndex == 0)
                 {
                     HealParty(restHealAmount);
+                    progressionManager?.AddExplorationDelay(1);
                 }
                 else
                 {
                     GrantGold(treasureGoldReward / 2);
+                    TryGrantLimitedEquipment(
+                        dungeonData != null
+                            ? dungeonData.eventLimitedDropChance
+                            : 0f,
+                        "探索イベント限定ドロップ");
                 }
                 break;
             case DungeonEventType.TreasureCache:
                 if (optionIndex == 0)
                 {
                     GrantGold(treasureGoldReward);
+                    TryGrantLimitedEquipment(
+                        dungeonData != null
+                            ? dungeonData.eventLimitedDropChance
+                            : 0f,
+                        "宝箱限定ドロップ");
                 }
                 else
                 {
@@ -394,6 +410,7 @@ public class DungeonRunManager : MonoBehaviour
                 if (optionIndex == 0)
                 {
                     DamageParty(hazardDamage);
+                    progressionManager?.AddExplorationDelay(1);
                 }
                 else
                 {
@@ -462,6 +479,40 @@ public class DungeonRunManager : MonoBehaviour
             SendDungeonMessage(
                 $"踏破報酬: {JapaneseDisplayText.GetItemName(reward.item)} x{reward.amount}");
         }
+    }
+
+    private void TryGrantLimitedEquipment(float chance, string sourceLabel)
+    {
+        ResolveReferences();
+        if (merchantInventory == null ||
+            dungeonData?.limitedEquipmentDrops == null ||
+            dungeonData.limitedEquipmentDrops.Length == 0 ||
+            chance <= 0f ||
+            UnityEngine.Random.value > chance)
+        {
+            return;
+        }
+
+        List<ItemDataSO> validDrops = new List<ItemDataSO>();
+        foreach (ItemDataSO item in dungeonData.limitedEquipmentDrops)
+        {
+            if (item != null && item.IsEquipment)
+            {
+                validDrops.Add(item);
+            }
+        }
+
+        if (validDrops.Count == 0)
+        {
+            return;
+        }
+
+        ItemDataSO drop = validDrops[UnityEngine.Random.Range(0, validDrops.Count)];
+        EquipmentInstance equipment = EquipmentInstance.CreateRandom(drop);
+        merchantInventory.AddEquipmentInstance(equipment);
+        SendDungeonMessage(
+            $"{sourceLabel}: [{JapaneseDisplayText.GetEquipmentQuality(equipment.Quality)}] " +
+            $"{JapaneseDisplayText.GetItemName(drop)}");
     }
 
     private void PopulateDungeonDataIfNeeded()
@@ -617,6 +668,12 @@ public class DungeonRunManager : MonoBehaviour
         if (merchantInventory == null)
         {
             merchantInventory = FindObjectOfType<MerchantInventory>();
+        }
+
+        if (progressionManager == null)
+        {
+            progressionManager = GetComponent<ProgressionManager>() ??
+                                 FindObjectOfType<ProgressionManager>();
         }
 
         PopulateDungeonDataIfNeeded();

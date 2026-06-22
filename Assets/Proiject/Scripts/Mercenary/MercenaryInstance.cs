@@ -18,7 +18,14 @@ public class MercenaryInstance
     [SerializeField] private int defense;
     [SerializeField] private float attackSpeed;
     [SerializeField] private int hireCost;
+    [SerializeField] private int contractEndDay;
+    [SerializeField] private bool contractNeedsRenewal;
     [SerializeField] private ItemDataSO equippedWeapon;
+    [SerializeField] private EquipmentInstance equippedWeaponInstance;
+    [SerializeField] private ItemDataSO equippedArmor;
+    [SerializeField] private EquipmentInstance equippedArmorInstance;
+    [SerializeField] private ItemDataSO equippedAccessory;
+    [SerializeField] private EquipmentInstance equippedAccessoryInstance;
 
     public string InstanceId => instanceId;
     public MercenaryDataSO BaseData => baseData;
@@ -30,17 +37,36 @@ public class MercenaryInstance
     public int CurrentExperience => currentExperience;
     public int ExperienceToNextLevel => CalculateExperienceToNextLevel(level);
     public int CurrentHP => currentHP;
-    public int MaxHP => maxHP + GetEquipmentBonus(item => item.bonusMaxHP);
-    public int Attack => attack + GetEquipmentBonus(item => item.bonusAttack);
-    public int Defense => defense + GetEquipmentBonus(item => item.bonusDefense);
+    public int MaxHP => maxHP + GetEquipmentBonusMaxHP() + GetSetBonusMaxHP() +
+        GetSkillBonusMaxHP();
+    public int Attack => attack + GetEquipmentBonusAttack() + GetSetBonusAttack() +
+        GetSkillBonusAttack();
+    public int Defense => defense + GetEquipmentBonusDefense() + GetSetBonusDefense() +
+        GetSkillBonusDefense();
     public float AttackSpeed =>
-        attackSpeed + (equippedWeapon != null ? equippedWeapon.bonusAttackSpeed : 0f);
+        attackSpeed + GetEquipmentBonusAttackSpeed() + GetSetBonusAttackSpeed() +
+        GetSkillBonusAttackSpeed();
     public int HireCost => hireCost;
+    public int ContractEndDay => contractEndDay;
+    public bool ContractNeedsRenewal => contractNeedsRenewal;
+    public bool IsContractActive => !contractNeedsRenewal;
+    public string SkillBoardName => IsUnique
+        ? $"{mercenaryName}専用スキルボード"
+        : $"{mercenaryClass}標準スキルボード";
     public int BaseMaxHP => maxHP;
     public int BaseAttack => attack;
     public int BaseDefense => defense;
     public float BaseAttackSpeed => attackSpeed;
-    public ItemDataSO EquippedWeapon => equippedWeapon;
+    public ItemDataSO EquippedWeapon =>
+        equippedWeaponInstance?.BaseItem ?? equippedWeapon;
+    public EquipmentInstance EquippedWeaponInstance => equippedWeaponInstance;
+    public ItemDataSO EquippedArmor =>
+        equippedArmorInstance?.BaseItem ?? equippedArmor;
+    public EquipmentInstance EquippedArmorInstance => equippedArmorInstance;
+    public ItemDataSO EquippedAccessory =>
+        equippedAccessoryInstance?.BaseItem ?? equippedAccessory;
+    public EquipmentInstance EquippedAccessoryInstance =>
+        equippedAccessoryInstance;
     public bool IsUnique => baseData != null;
     public bool IsIncapacitated => currentHP <= 0;
 
@@ -115,36 +141,189 @@ public class MercenaryInstance
         currentHP = MaxHP;
     }
 
+    public void SetContract(
+        MercenaryContractType type,
+        int currentDay)
+    {
+        contractType = type;
+        contractNeedsRenewal = false;
+        switch (type)
+        {
+            case MercenaryContractType.Exclusive:
+                contractEndDay = 0;
+                break;
+            case MercenaryContractType.Temporary:
+                contractEndDay = currentDay + 6;
+                break;
+            default:
+                contractEndDay = currentDay;
+                break;
+        }
+    }
+
+    public void UpdateContractForDay(int currentDay)
+    {
+        if (contractType != MercenaryContractType.Exclusive &&
+            currentDay > contractEndDay)
+        {
+            contractNeedsRenewal = true;
+        }
+    }
+
+    public int GetRenewalCost()
+    {
+        return contractType == MercenaryContractType.Temporary
+            ? Mathf.Max(1, hireCost / 2)
+            : Mathf.Max(1, hireCost / 3);
+    }
+
+    public void RenewContract(int currentDay)
+    {
+        SetContract(contractType, currentDay);
+    }
+
     public bool EquipWeapon(ItemDataSO weapon)
     {
-        if (weapon == null ||
-            weapon.equipmentSlot != EquipmentSlot.Weapon ||
-            !weapon.CanEquip(mercenaryClass))
-        {
-            return false;
-        }
+        return weapon != null &&
+               weapon.equipmentSlot == EquipmentSlot.Weapon &&
+               EquipEquipment(weapon);
+    }
 
-        equippedWeapon = weapon;
-        currentHP = Mathf.Clamp(currentHP, 0, MaxHP);
-        return true;
+    public bool EquipWeapon(EquipmentInstance weapon)
+    {
+        return weapon?.BaseItem != null &&
+               weapon.BaseItem.equipmentSlot == EquipmentSlot.Weapon &&
+               EquipEquipment(weapon);
     }
 
     public ItemDataSO UnequipWeapon()
     {
-        ItemDataSO previousWeapon = equippedWeapon;
-        equippedWeapon = null;
-        currentHP = Mathf.Clamp(currentHP, 0, MaxHP);
-        return previousWeapon;
+        return UnequipEquipment(EquipmentSlot.Weapon);
+    }
+
+    public EquipmentInstance UnequipWeaponInstance()
+    {
+        return UnequipEquipmentInstance(EquipmentSlot.Weapon);
     }
 
     public void RestoreEquippedWeapon(ItemDataSO weapon)
     {
-        equippedWeapon =
-            weapon != null &&
-            weapon.equipmentSlot == EquipmentSlot.Weapon &&
-            weapon.CanEquip(mercenaryClass)
-                ? weapon
-                : null;
+        RestoreEquippedEquipment(EquipmentSlot.Weapon, weapon);
+    }
+
+    public void RestoreEquippedWeapon(EquipmentInstance weapon)
+    {
+        RestoreEquippedEquipment(EquipmentSlot.Weapon, weapon);
+    }
+
+    public ItemDataSO GetEquippedItem(EquipmentSlot slot)
+    {
+        EquipmentInstance instance = GetEquippedInstance(slot);
+        if (instance != null)
+        {
+            return instance.BaseItem;
+        }
+
+        switch (slot)
+        {
+            case EquipmentSlot.Armor: return equippedArmor;
+            case EquipmentSlot.Accessory: return equippedAccessory;
+            default: return equippedWeapon;
+        }
+    }
+
+    public EquipmentInstance GetEquippedInstance(EquipmentSlot slot)
+    {
+        switch (slot)
+        {
+            case EquipmentSlot.Armor: return equippedArmorInstance;
+            case EquipmentSlot.Accessory: return equippedAccessoryInstance;
+            default: return equippedWeaponInstance;
+        }
+    }
+
+    public bool EquipEquipment(ItemDataSO equipment)
+    {
+        if (equipment == null || !equipment.CanEquip(mercenaryClass))
+        {
+            return false;
+        }
+
+        SetEquipment(equipment.equipmentSlot, equipment, null);
+        return true;
+    }
+
+    public bool EquipEquipment(EquipmentInstance equipment)
+    {
+        if (equipment?.BaseItem == null ||
+            !equipment.BaseItem.CanEquip(mercenaryClass))
+        {
+            return false;
+        }
+
+        SetEquipment(equipment.BaseItem.equipmentSlot, null, equipment);
+        return true;
+    }
+
+    public ItemDataSO UnequipEquipment(EquipmentSlot slot)
+    {
+        ItemDataSO previous = GetEquippedInstance(slot) == null
+            ? GetEquippedItem(slot)
+            : null;
+        SetEquipment(slot, null, null);
+        return previous;
+    }
+
+    public EquipmentInstance UnequipEquipmentInstance(EquipmentSlot slot)
+    {
+        EquipmentInstance previous = GetEquippedInstance(slot);
+        SetEquipment(slot, null, null);
+        return previous;
+    }
+
+    public void RestoreEquippedEquipment(
+        EquipmentSlot slot,
+        ItemDataSO equipment)
+    {
+        bool isValid =
+            equipment != null &&
+            equipment.equipmentSlot == slot &&
+            equipment.CanEquip(mercenaryClass);
+        SetEquipment(slot, isValid ? equipment : null, null);
+    }
+
+    public void RestoreEquippedEquipment(
+        EquipmentSlot slot,
+        EquipmentInstance equipment)
+    {
+        bool isValid =
+            equipment?.BaseItem != null &&
+            equipment.BaseItem.equipmentSlot == slot &&
+            equipment.BaseItem.CanEquip(mercenaryClass);
+        SetEquipment(slot, null, isValid ? equipment : null);
+    }
+
+    private void SetEquipment(
+        EquipmentSlot slot,
+        ItemDataSO item,
+        EquipmentInstance instance)
+    {
+        switch (slot)
+        {
+            case EquipmentSlot.Armor:
+                equippedArmor = item;
+                equippedArmorInstance = instance;
+                break;
+            case EquipmentSlot.Accessory:
+                equippedAccessory = item;
+                equippedAccessoryInstance = instance;
+                break;
+            default:
+                equippedWeapon = item;
+                equippedWeaponInstance = instance;
+                break;
+        }
+
         currentHP = Mathf.Clamp(currentHP, 0, MaxHP);
     }
 
@@ -270,9 +449,176 @@ public class MercenaryInstance
         return mercenary;
     }
 
-    private int GetEquipmentBonus(Func<ItemDataSO, int> selector)
+    public void RestoreContractState(int endDay, bool needsRenewal)
     {
-        return equippedWeapon != null ? selector(equippedWeapon) : 0;
+        contractEndDay = endDay;
+        contractNeedsRenewal = needsRenewal;
+    }
+
+    private int GetEquipmentBonusMaxHP()
+    {
+        return GetBonusMaxHP(EquipmentSlot.Weapon) +
+               GetBonusMaxHP(EquipmentSlot.Armor) +
+               GetBonusMaxHP(EquipmentSlot.Accessory);
+    }
+
+    private int GetEquipmentBonusAttack()
+    {
+        return GetBonusAttack(EquipmentSlot.Weapon) +
+               GetBonusAttack(EquipmentSlot.Armor) +
+               GetBonusAttack(EquipmentSlot.Accessory);
+    }
+
+    private int GetEquipmentBonusDefense()
+    {
+        return GetBonusDefense(EquipmentSlot.Weapon) +
+               GetBonusDefense(EquipmentSlot.Armor) +
+               GetBonusDefense(EquipmentSlot.Accessory);
+    }
+
+    private float GetEquipmentBonusAttackSpeed()
+    {
+        return GetBonusAttackSpeed(EquipmentSlot.Weapon) +
+               GetBonusAttackSpeed(EquipmentSlot.Armor) +
+               GetBonusAttackSpeed(EquipmentSlot.Accessory);
+    }
+
+    public int GetEquippedSetCount(EquipmentSetId setId)
+    {
+        if (setId == EquipmentSetId.None)
+        {
+            return 0;
+        }
+
+        int count = 0;
+        foreach (EquipmentSlot slot in
+                 (EquipmentSlot[])Enum.GetValues(typeof(EquipmentSlot)))
+        {
+            ItemDataSO item = GetEquippedItem(slot);
+            if (item != null && item.equipmentSet == setId)
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private int GetSetBonusMaxHP()
+    {
+        int bonus = 0;
+        if (GetEquippedSetCount(EquipmentSetId.AncientGuardian) >= 2) bonus += 30;
+        if (GetEquippedSetCount(EquipmentSetId.Vanguard) >= 2) bonus += 20;
+        return bonus;
+    }
+
+    private int GetSetBonusAttack()
+    {
+        int bonus = 0;
+        if (GetEquippedSetCount(EquipmentSetId.AncientGuardian) >= 3) bonus += 12;
+        if (GetEquippedSetCount(EquipmentSetId.Vanguard) >= 3) bonus += 8;
+        if (GetEquippedSetCount(EquipmentSetId.Windstalker) >= 2) bonus += 5;
+        if (GetEquippedSetCount(EquipmentSetId.Windstalker) >= 3) bonus += 10;
+        if (GetEquippedSetCount(EquipmentSetId.ArcaneSage) >= 2) bonus += 10;
+        if (GetEquippedSetCount(EquipmentSetId.ArcaneSage) >= 3) bonus += 15;
+        return bonus;
+    }
+
+    private int GetSetBonusDefense()
+    {
+        int bonus = 0;
+        if (GetEquippedSetCount(EquipmentSetId.AncientGuardian) >= 2) bonus += 8;
+        if (GetEquippedSetCount(EquipmentSetId.Vanguard) >= 2) bonus += 10;
+        return bonus;
+    }
+
+    private float GetSetBonusAttackSpeed()
+    {
+        float bonus = 0f;
+        if (GetEquippedSetCount(EquipmentSetId.AncientGuardian) >= 3) bonus += 0.08f;
+        if (GetEquippedSetCount(EquipmentSetId.Windstalker) >= 2) bonus += 0.08f;
+        if (GetEquippedSetCount(EquipmentSetId.Windstalker) >= 3) bonus += 0.06f;
+        if (GetEquippedSetCount(EquipmentSetId.ArcaneSage) >= 3) bonus += 0.04f;
+        return bonus;
+    }
+
+    private int GetSkillBonusMaxHP()
+    {
+        int bonus = mercenaryClass == MercenaryClass.Warrior && level >= 2
+            ? 10
+            : 0;
+        return IsUnique &&
+               level >= Mathf.Max(1, baseData.uniqueSkillUnlockLevel)
+            ? bonus + baseData.uniqueSkillBonusMaxHP
+            : bonus;
+    }
+
+    private int GetSkillBonusAttack()
+    {
+        int bonus = mercenaryClass == MercenaryClass.Mage && level >= 2
+            ? 4
+            : 0;
+        return IsUnique &&
+               level >= Mathf.Max(1, baseData.uniqueSkillUnlockLevel)
+            ? bonus + baseData.uniqueSkillBonusAttack
+            : bonus;
+    }
+
+    private int GetSkillBonusDefense()
+    {
+        int bonus = mercenaryClass == MercenaryClass.Warrior && level >= 2
+            ? 3
+            : 0;
+        return IsUnique &&
+               level >= Mathf.Max(1, baseData.uniqueSkillUnlockLevel)
+            ? bonus + baseData.uniqueSkillBonusDefense
+            : bonus;
+    }
+
+    private float GetSkillBonusAttackSpeed()
+    {
+        float bonus = mercenaryClass == MercenaryClass.Archer && level >= 2
+            ? 0.05f
+            : 0f;
+        return IsUnique &&
+               level >= Mathf.Max(1, baseData.uniqueSkillUnlockLevel)
+            ? bonus + baseData.uniqueSkillBonusAttackSpeed
+            : bonus;
+    }
+
+    private int GetBonusMaxHP(EquipmentSlot slot)
+    {
+        EquipmentInstance instance = GetEquippedInstance(slot);
+        ItemDataSO item = GetEquippedItem(slot);
+        return instance != null
+            ? instance.BonusMaxHP
+            : item != null ? item.bonusMaxHP : 0;
+    }
+
+    private int GetBonusAttack(EquipmentSlot slot)
+    {
+        EquipmentInstance instance = GetEquippedInstance(slot);
+        ItemDataSO item = GetEquippedItem(slot);
+        return instance != null
+            ? instance.BonusAttack
+            : item != null ? item.bonusAttack : 0;
+    }
+
+    private int GetBonusDefense(EquipmentSlot slot)
+    {
+        EquipmentInstance instance = GetEquippedInstance(slot);
+        ItemDataSO item = GetEquippedItem(slot);
+        return instance != null
+            ? instance.BonusDefense
+            : item != null ? item.bonusDefense : 0;
+    }
+
+    private float GetBonusAttackSpeed(EquipmentSlot slot)
+    {
+        EquipmentInstance instance = GetEquippedInstance(slot);
+        ItemDataSO item = GetEquippedItem(slot);
+        return instance != null
+            ? instance.BonusAttackSpeed
+            : item != null ? item.bonusAttackSpeed : 0f;
     }
 
     private MercenaryInstance()

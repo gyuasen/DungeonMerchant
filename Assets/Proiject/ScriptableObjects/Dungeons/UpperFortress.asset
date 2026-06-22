@@ -26,3 +26,11 @@ MonoBehaviour:
   clearItemRewards:
   - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
     amount: 8
+  - item: {fileID: 11400000, guid: 41a4798a2b1e48dcbbf3d766cefd6229, type: 2}
+    amount: 4
+  eventLimitedDropChance: 0.04
+  bossLimitedDropChance: 0.1
+  limitedEquipmentDrops:
+  - {fileID: 11400000, guid: 68f03ed7307742d8814a1ec088c45bc1, type: 2}
+  - {fileID: 11400000, guid: 8177ed4faefc450885f8d06738f9a05e, type: 2}
+  - {fileID: 11400000, guid: 21d742c7122c4e4da77a01f608c511f6, type: 2}

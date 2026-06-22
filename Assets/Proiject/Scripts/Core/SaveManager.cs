@@ -18,6 +18,8 @@ public class SaveManager : MonoBehaviour
     private HealingManager healingManager;
     private BattleManager battleManager;
     private DungeonRunManager dungeonRunManager;
+    private ProgressionManager progressionManager;
+    private SimpleMercenaryHireUI simpleUI;
     private bool initialized;
     private bool isLoading;
 
@@ -126,7 +128,29 @@ public class SaveManager : MonoBehaviour
         GameSaveData data = new GameSaveData
         {
             gold = merchantData != null ? merchantData.Gold : 500,
+            merchantLevel = merchantData != null
+                ? merchantData.MerchantLevel
+                : 1,
+            merchantExperience = merchantData != null
+                ? merchantData.MerchantExperience
+                : 0,
+            merchantSkillPoints = merchantData != null
+                ? merchantData.MerchantSkillPoints
+                : 2,
+            merchantNegotiation = merchantData != null
+                ? merchantData.Negotiation
+                : 0,
+            merchantLeadership = merchantData != null
+                ? merchantData.Leadership
+                : 0,
+            merchantAppraisal = merchantData != null
+                ? merchantData.Appraisal
+                : 0,
+            merchantLogistics = merchantData != null
+                ? merchantData.Logistics
+                : 0,
             currentDay = dayManager != null ? dayManager.CurrentDay : 1,
+            currentTownIndex = simpleUI != null ? simpleUI.CurrentTownIndex : 0,
             highestUnlockedDungeonGrade = dungeonRunManager != null
                 ? (int)dungeonRunManager.HighestUnlockedGrade
                 : 0,
@@ -138,6 +162,8 @@ public class SaveManager : MonoBehaviour
 
         if (merchantInventory != null)
         {
+            data.discoveredEquipmentAssetNames.AddRange(
+                merchantInventory.DiscoveredEquipmentAssetNames);
             foreach (InventoryItemStack stack in merchantInventory.Items)
             {
                 if (stack?.Item == null || stack.Amount <= 0)
@@ -151,6 +177,14 @@ public class SaveManager : MonoBehaviour
                     itemName = stack.Item.itemName,
                     amount = stack.Amount
                 });
+            }
+
+            foreach (EquipmentInstance equipment in merchantInventory.EquipmentInstances)
+            {
+                if (equipment?.BaseItem != null)
+                {
+                    data.equipmentInventory.Add(CreateSavedEquipment(equipment));
+                }
             }
         }
 
@@ -183,9 +217,28 @@ public class SaveManager : MonoBehaviour
                     defense = mercenary.BaseDefense,
                     attackSpeed = mercenary.BaseAttackSpeed,
                     hireCost = mercenary.HireCost,
+                    contractEndDay = mercenary.ContractEndDay,
+                    contractNeedsRenewal = mercenary.ContractNeedsRenewal,
                     equippedWeaponAssetName = mercenary.EquippedWeapon != null
                         ? mercenary.EquippedWeapon.name
-                        : string.Empty
+                        : string.Empty,
+                    equippedWeaponInstance = mercenary.EquippedWeaponInstance != null
+                        ? CreateSavedEquipment(mercenary.EquippedWeaponInstance)
+                        : null,
+                    equippedArmorAssetName = mercenary.EquippedArmor != null
+                        ? mercenary.EquippedArmor.name
+                        : string.Empty,
+                    equippedArmorInstance = mercenary.EquippedArmorInstance != null
+                        ? CreateSavedEquipment(mercenary.EquippedArmorInstance)
+                        : null,
+                    equippedAccessoryAssetName = mercenary.EquippedAccessory != null
+                        ? mercenary.EquippedAccessory.name
+                        : string.Empty,
+                    equippedAccessoryInstance =
+                        mercenary.EquippedAccessoryInstance != null
+                            ? CreateSavedEquipment(
+                                mercenary.EquippedAccessoryInstance)
+                            : null
                 });
             }
         }
@@ -201,13 +254,31 @@ public class SaveManager : MonoBehaviour
             }
         }
 
+        if (progressionManager != null)
+        {
+            data.progression = progressionManager.CreateSaveData();
+        }
+
         return data;
     }
 
     private void ApplySaveData(GameSaveData data)
     {
         merchantData?.SetGold(data.gold);
+        merchantData?.RestoreProgression(
+            Mathf.Max(1, data.merchantLevel),
+            data.merchantExperience);
+        int skillPoints = data.version >= 9
+            ? data.merchantSkillPoints
+            : Mathf.Max(2, data.merchantLevel + 1);
+        merchantData?.RestoreSkills(
+            skillPoints,
+            data.merchantNegotiation,
+            data.merchantLeadership,
+            data.merchantAppraisal,
+            data.merchantLogistics);
         dayManager?.SetCurrentDay(data.currentDay);
+        simpleUI?.RestoreCurrentTown(data.currentTownIndex);
 
         List<InventoryItemStack> restoredItems = new List<InventoryItemStack>();
         if (data.inventory != null)
@@ -228,6 +299,23 @@ public class SaveManager : MonoBehaviour
         }
         merchantInventory?.RestoreItems(restoredItems);
 
+        List<EquipmentInstance> restoredEquipment =
+            new List<EquipmentInstance>();
+        if (data.equipmentInventory != null)
+        {
+            foreach (SavedEquipmentInstance savedEquipment in data.equipmentInventory)
+            {
+                EquipmentInstance equipment = RestoreEquipment(savedEquipment);
+                if (equipment != null)
+                {
+                    restoredEquipment.Add(equipment);
+                }
+            }
+        }
+        merchantInventory?.RestoreEquipmentInstances(restoredEquipment);
+        merchantInventory?.RestoreDiscoveredEquipment(
+            data.discoveredEquipmentAssetNames);
+
         List<MercenaryInstance> restoredMercenaries = new List<MercenaryInstance>();
         if (data.hiredMercenaries != null)
         {
@@ -240,6 +328,18 @@ public class SaveManager : MonoBehaviour
             }
         }
         hireManager?.RestoreHiredMercenaries(restoredMercenaries);
+        if (merchantInventory != null)
+        {
+            foreach (MercenaryInstance mercenary in restoredMercenaries)
+            {
+                merchantInventory.RegisterEquipmentDiscovery(
+                    mercenary.GetEquippedItem(EquipmentSlot.Weapon));
+                merchantInventory.RegisterEquipmentDiscovery(
+                    mercenary.GetEquippedItem(EquipmentSlot.Armor));
+                merchantInventory.RegisterEquipmentDiscovery(
+                    mercenary.GetEquippedItem(EquipmentSlot.Accessory));
+            }
+        }
 
         Dictionary<string, MercenaryInstance> mercenaryById =
             new Dictionary<string, MercenaryInstance>();
@@ -261,6 +361,7 @@ public class SaveManager : MonoBehaviour
             }
         }
         partyManager?.RestoreParty(restoredParty);
+        progressionManager?.Restore(data.progression);
 
         dungeonRunManager?.RestoreProgress(
             (DungeonGrade)Mathf.Clamp(
@@ -287,15 +388,108 @@ public class SaveManager : MonoBehaviour
             saved.defense,
             saved.attackSpeed,
             saved.hireCost);
-        mercenary.RestoreEquippedWeapon(
-            FindItem(saved.equippedWeaponAssetName, string.Empty));
+        RestoreMercenaryEquipment(
+            mercenary,
+            EquipmentSlot.Weapon,
+            saved.equippedWeaponAssetName,
+            saved.equippedWeaponInstance);
+        RestoreMercenaryEquipment(
+            mercenary,
+            EquipmentSlot.Armor,
+            saved.equippedArmorAssetName,
+            saved.equippedArmorInstance);
+        RestoreMercenaryEquipment(
+            mercenary,
+            EquipmentSlot.Accessory,
+            saved.equippedAccessoryAssetName,
+            saved.equippedAccessoryInstance);
         mercenary.SetCurrentHP(saved.currentHP);
+        mercenary.RestoreContractState(
+            saved.contractEndDay,
+            saved.contractNeedsRenewal);
         return mercenary;
+    }
+
+    private void RestoreMercenaryEquipment(
+        MercenaryInstance mercenary,
+        EquipmentSlot slot,
+        string itemAssetName,
+        SavedEquipmentInstance savedInstance)
+    {
+        EquipmentInstance equipment = RestoreEquipment(savedInstance);
+        if (equipment != null)
+        {
+            mercenary.RestoreEquippedEquipment(slot, equipment);
+            return;
+        }
+
+        mercenary.RestoreEquippedEquipment(
+            slot,
+            FindItem(itemAssetName, string.Empty));
+    }
+
+    private static SavedEquipmentInstance CreateSavedEquipment(
+        EquipmentInstance equipment)
+    {
+        SavedEquipmentInstance saved = new SavedEquipmentInstance
+        {
+            instanceId = equipment.InstanceId,
+            baseItemAssetName = equipment.BaseItem.name,
+            quality = equipment.Quality,
+            enhancementLevel = equipment.EnhancementLevel,
+            isLocked = equipment.IsLocked
+        };
+        foreach (EquipmentModifier modifier in equipment.Modifiers)
+        {
+            if (modifier != null)
+            {
+                saved.modifiers.Add(new SavedEquipmentModifier
+                {
+                    type = modifier.type,
+                    value = modifier.value
+                });
+            }
+        }
+        return saved;
+    }
+
+    private EquipmentInstance RestoreEquipment(SavedEquipmentInstance saved)
+    {
+        if (saved == null)
+        {
+            return null;
+        }
+
+        ItemDataSO baseItem = FindItem(saved.baseItemAssetName, string.Empty);
+        if (baseItem == null)
+        {
+            return null;
+        }
+
+        List<EquipmentModifier> modifiers = new List<EquipmentModifier>();
+        if (saved.modifiers != null)
+        {
+            foreach (SavedEquipmentModifier modifier in saved.modifiers)
+            {
+                if (modifier != null)
+                {
+                    modifiers.Add(new EquipmentModifier(modifier.type, modifier.value));
+                }
+            }
+        }
+        return EquipmentInstance.CreateRestored(
+            saved.instanceId,
+            baseItem,
+            saved.quality,
+            modifiers,
+            saved.enhancementLevel,
+            saved.isLocked);
     }
 
     private void Subscribe()
     {
         if (merchantData != null) merchantData.GoldChanged += HandleChanged;
+        if (merchantData != null) merchantData.ProgressionChanged += HandleChanged;
         if (dayManager != null) dayManager.DayChanged += HandleChanged;
         if (merchantInventory != null) merchantInventory.InventoryChanged += HandleChanged;
         if (hireManager != null) hireManager.MercenaryHired += HandleMercenaryChanged;
@@ -307,11 +501,16 @@ public class SaveManager : MonoBehaviour
             dungeonRunManager.DungeonCompleted += HandleDungeonCompleted;
             dungeonRunManager.DungeonStateChanged += HandleChanged;
         }
+        if (progressionManager != null)
+        {
+            progressionManager.ProgressionChanged += HandleChanged;
+        }
     }
 
     private void Unsubscribe()
     {
         if (merchantData != null) merchantData.GoldChanged -= HandleChanged;
+        if (merchantData != null) merchantData.ProgressionChanged -= HandleChanged;
         if (dayManager != null) dayManager.DayChanged -= HandleChanged;
         if (merchantInventory != null) merchantInventory.InventoryChanged -= HandleChanged;
         if (hireManager != null) hireManager.MercenaryHired -= HandleMercenaryChanged;
@@ -322,6 +521,10 @@ public class SaveManager : MonoBehaviour
         {
             dungeonRunManager.DungeonCompleted -= HandleDungeonCompleted;
             dungeonRunManager.DungeonStateChanged -= HandleChanged;
+        }
+        if (progressionManager != null)
+        {
+            progressionManager.ProgressionChanged -= HandleChanged;
         }
     }
 
@@ -408,5 +611,10 @@ public class SaveManager : MonoBehaviour
         battleManager = GetComponent<BattleManager>() ?? FindObjectOfType<BattleManager>();
         dungeonRunManager =
             GetComponent<DungeonRunManager>() ?? FindObjectOfType<DungeonRunManager>();
+        progressionManager =
+            GetComponent<ProgressionManager>() ?? FindObjectOfType<ProgressionManager>();
+        simpleUI =
+            GetComponent<SimpleMercenaryHireUI>() ??
+            FindObjectOfType<SimpleMercenaryHireUI>();
     }
 }
