@@ -54,6 +54,38 @@
 - `Assets/Proiject/Scripts/Core/DungeonMerchantBootstrap.cs`
 - `Assets/Proiject/Scripts/Item/MerchantInventory.cs`
 - `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.cs`
+
+## 家で行ったこと 2026-06-19
+
+- 傭兵の装備枠を武器・防具・装飾品の3枠へ拡張。
+- 3枠の固定装備と品質付き装備の能力補正を、HP・攻撃・防御・攻撃速度へ合算するようにした。
+- キャラクター詳細画面で、防具と装飾品も比較・装備・交換・解除できるようにした。
+- 装備候補は同じスロットの現在装備と比較し、品質と装備種別も表示する。
+- 防具と装飾品の装備状態をJSONセーブ・ロードへ追加。旧武器セーブとの互換性は維持。
+- 戦士・弓兵・魔法使い向けの防具3種、装飾品3種と鍛冶屋レシピを追加。
+- 鍛冶屋は既存の登録済みレシピがある場合も、新規レシピを自動検出して追加するようにした。
+- `dotnet build DungeonMerchant.sln` は警告・エラー0で成功。
+
+## 変更した主なファイル 2026-06-19
+
+- `Assets/Proiject/Scripts/Mercenary/MercenaryInstance.cs`
+- `Assets/Proiject/Scripts/Core/GameSaveData.cs`
+- `Assets/Proiject/Scripts/Core/SaveManager.cs`
+- `Assets/Proiject/Scripts/Blacksmith/BlacksmithManager.cs`
+- `Assets/Proiject/Scripts/UI/JapaneseDisplayText.cs`
+- `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.cs`
+- `Assets/Proiject/ScriptableObjects/Items/*Armor.asset`
+- `Assets/Proiject/ScriptableObjects/Items/*Leather.asset`
+- `Assets/Proiject/ScriptableObjects/Items/*Robe.asset`
+- `Assets/Proiject/ScriptableObjects/Items/*Emblem.asset`
+- `Assets/Proiject/ScriptableObjects/Items/*Charm.asset`
+- `Assets/Proiject/ScriptableObjects/Items/*Pendant.asset`
+- `Assets/Proiject/ScriptableObjects/Blacksmith/*ArmorRecipe.asset`
+- `Assets/Proiject/ScriptableObjects/Blacksmith/*LeatherRecipe.asset`
+- `Assets/Proiject/ScriptableObjects/Blacksmith/*RobeRecipe.asset`
+- `Assets/Proiject/ScriptableObjects/Blacksmith/*EmblemRecipe.asset`
+- `Assets/Proiject/ScriptableObjects/Blacksmith/*CharmRecipe.asset`
+- `Assets/Proiject/ScriptableObjects/Blacksmith/*PendantRecipe.asset`
 - `Assembly-CSharp.csproj`
 
 ## 家でやったこと 2026-06-17
@@ -175,6 +207,44 @@
 - 次回このチャットで行う最初の操作は、学校側の最新作業内容を読み込むこと。
 - 再開時は `handoff/SCHOOL_WORK_LOG.md`、`HANDOFF_HOME.md`、`handoff/SHARED_PROJECT_STATUS.md` を確認する。
 - 学校側と家側の内容に食い違いがある場合は、従来どおり家側の内容を優先する。
+
+## 家でやったこと 2026-06-19
+
+- 鍛冶装備へ品質とランダム能力補正を追加。
+- 品質は `粗悪`、`普通`、`良質`、`希少`、`伝説` の5段階。
+- 粗悪は補正1つ。70%でマイナス補正になり、残りは小さなプラス補正。
+- 普通は追加補正なし。
+- 良質はプラス補正1つ。
+- 希少は重複しないプラス補正2つ。
+- 伝説は重複しないプラス補正3つ。補正値も他品質より高い。
+- 補正対象は最大HP、攻撃、防御、攻撃速度。
+- 品質抽選率は粗悪15%、普通40%、良質25%、希少15%、伝説5%。
+- 市場の固定武器は従来どおりSO単位で扱い、鍛冶品を品質付き個体装備として生成。
+- 品質付き装備を在庫、売却、傭兵詳細、装備比較、着脱、交換へ対応。
+- 旧装備を交換・解除した際も品質とランダム補正を維持して在庫へ戻す。
+- 品質付き装備個体のID、基礎武器、品質、補正、装備状態をJSONセーブへ追加。旧セーブの固定武器も読込可能。
+- 品質による売値倍率を追加。粗悪65%、普通100%、良質120%、希少155%、伝説220%。
+- 鍛冶直後の状態表示に完成品の品質を表示。
+- `dotnet build DungeonMerchant.sln` は警告0・エラー0で成功。
+
+## 変更したファイル 2026-06-19
+
+- `Assets/Proiject/Scripts/Item/EquipmentQuality.cs`
+- `Assets/Proiject/Scripts/Item/EquipmentQuality.cs.meta`
+- `Assets/Proiject/Scripts/Item/EquipmentModifierType.cs`
+- `Assets/Proiject/Scripts/Item/EquipmentModifierType.cs.meta`
+- `Assets/Proiject/Scripts/Item/EquipmentModifier.cs`
+- `Assets/Proiject/Scripts/Item/EquipmentModifier.cs.meta`
+- `Assets/Proiject/Scripts/Item/EquipmentInstance.cs`
+- `Assets/Proiject/Scripts/Item/EquipmentInstance.cs.meta`
+- `Assets/Proiject/Scripts/Item/MerchantInventory.cs`
+- `Assets/Proiject/Scripts/Blacksmith/BlacksmithManager.cs`
+- `Assets/Proiject/Scripts/Mercenary/MercenaryInstance.cs`
+- `Assets/Proiject/Scripts/Core/GameSaveData.cs`
+- `Assets/Proiject/Scripts/Core/SaveManager.cs`
+- `Assets/Proiject/Scripts/UI/JapaneseDisplayText.cs`
+- `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.cs`
+- `Assembly-CSharp.csproj`
 - `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.cs`
 
 ## 家でやったこと 2026-06-19
@@ -259,3 +329,263 @@
 ## 変更したファイル 2026-06-19
 
 - `Assets/Proiject/Scripts/Dungeon/DungeonRunManager.cs`
+
+## 家で行ったこと 2026-06-19
+
+- INVENTORY画面に縦スクロールを追加。
+- 表示範囲外の在庫行をMaskで隠し、マウスホイールやドラッグで確認できるようにした。
+- 通常アイテムと品質付き装備の合計行数に応じて、スクロール内容の高さを自動調整するようにした。
+- `dotnet build DungeonMerchant.sln` は警告・エラー0で成功。
+
+## 変更したファイル 2026-06-19
+
+- `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.cs`
+
+## 家で行ったこと 2026-06-19
+
+- MARKET画面に縦スクロールと表示範囲のMaskを追加。
+- 市場候補を武器限定から、武器・防具・装飾品の全装備へ拡張。
+- 既存の市場候補が登録済みでも、新しい市場装備を自動検出するようにした。
+- 市場用ランク1防具として、鉄の鎧・革の鎧・見習いのローブを追加。
+- 市場用ランク1装飾品として、兵士の指輪・羽根のお守り・魔力の首飾りを追加。
+- 鍛冶屋の防具・装飾品は上位の品質付き装備として、鍛冶屋限定のまま維持。
+- `dotnet build DungeonMerchant.sln` は警告・エラー0で成功。
+
+## 変更した主なファイル 2026-06-19
+
+- `Assets/Proiject/Scripts/Merchant/MarketStockManager.cs`
+- `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.cs`
+- `Assets/Proiject/Scripts/UI/JapaneseDisplayText.cs`
+- `Assets/Proiject/ScriptableObjects/Items/IronArmor.asset`
+- `Assets/Proiject/ScriptableObjects/Items/LeatherArmor.asset`
+- `Assets/Proiject/ScriptableObjects/Items/ApprenticeRobe.asset`
+- `Assets/Proiject/ScriptableObjects/Items/SoldierRing.asset`
+- `Assets/Proiject/ScriptableObjects/Items/FeatherCharm.asset`
+- `Assets/Proiject/ScriptableObjects/Items/ManaPendant.asset`
+
+## 家で行ったこと 2026-06-19
+
+- 装備セットIDとセット効果を実装。
+- 限定セット「古代守護者」の武器・防具・装飾品を追加。全職業が装備可能。
+- 2部位で最大HP+30・防御+8、3部位で攻撃+12・攻撃速度+0.08が発動。
+- 傭兵詳細画面にセット装備数と発動状態を表示。
+- 品質ごとに装備名を色分け。粗悪は灰、普通は白、良質は緑、希少は青、伝説は橙。
+- 装備詳細画面で品質、強化値、性能、追加効果、セット効果、売値を確認可能。
+- 個体装備を最大+10まで強化可能。1段階ごとに基礎性能が10%増加。
+- 装備名の横に強化値を `+数値` で表示し、強化費用と強化済み売値も実装。
+- 市場購入装備も個体化し、詳細表示と強化の対象にした。
+- 強化値をJSONセーブへ追加し、バージョン6へ更新。旧セーブは強化値0として読み込み可能。
+- 宝箱・物資探索イベントと最終ボスから、古代守護者セットが低確率でドロップ。
+- イベント確率は低級2%から最上級5%、ボス確率は低級5%から最上級12%。
+- 限定ドロップにも品質とランダム追加効果が付く。
+- `dotnet build DungeonMerchant.sln` は警告・エラー0で成功。
+
+## 変更した主なファイル 2026-06-19
+
+- `Assets/Proiject/Scripts/Item/ItemDataSO.cs`
+- `Assets/Proiject/Scripts/Item/EquipmentInstance.cs`
+- `Assets/Proiject/Scripts/Item/MerchantInventory.cs`
+- `Assets/Proiject/Scripts/Mercenary/MercenaryInstance.cs`
+- `Assets/Proiject/Scripts/Merchant/MarketStockManager.cs`
+- `Assets/Proiject/Scripts/Core/GameSaveData.cs`
+- `Assets/Proiject/Scripts/Core/SaveManager.cs`
+- `Assets/Proiject/Scripts/Dungeon/DungeonDataSO.cs`
+- `Assets/Proiject/Scripts/Dungeon/DungeonRunManager.cs`
+- `Assets/Proiject/Scripts/UI/JapaneseDisplayText.cs`
+- `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.cs`
+- `Assets/Proiject/ScriptableObjects/Items/AncientGuardianBlade.asset`
+- `Assets/Proiject/ScriptableObjects/Items/AncientGuardianArmor.asset`
+- `Assets/Proiject/ScriptableObjects/Items/AncientGuardianSeal.asset`
+- `Assets/Proiject/ScriptableObjects/Dungeons/*.asset`
+
+## 家で行ったこと 2026-06-19
+
+- 装備ロックを実装。ロック中は売却不可だが、装備・交換・強化は可能。
+- ロック状態を装備詳細と在庫へ表示し、JSONセーブ・ロードへ追加。
+- 在庫に素材・武器・防具・装飾品・セット装備・ロック装備の絞り込みを追加。
+- 装備を名前・品質・強化値・セットで並び替え可能にした。
+- 強化専用素材 `強化鉱石` を追加し、全ダンジョンの踏破報酬へ設定。
+- 強化はゴールドと強化鉱石を消費する。必要鉱石数は強化段階に応じて増加。
+- 強化成功率を実装。+0～+1は100%、以降段階的に低下し、+9では30%。
+- 強化失敗時も装備破壊・強化値低下はなし。費用と素材のみ消費。
+- 既存鍛冶屋装備を使い、戦士「不屈の前衛」、弓兵「風狩り」、魔法使い「秘術賢者」の3セットを追加。
+- 各追加セットに2部位・3部位効果を設定。
+- 装備図鑑を追加。未入手・入手済み、装備種別、セット、入手場所、収集率を表示。
+- 図鑑の入手履歴は売却後も残り、JSONセーブ・ロードへ対応。
+- ダンジョン選択画面に、確定報酬、限定装備候補、イベント・ボスのドロップ率を表示。
+- セーブバージョンを7へ更新。旧セーブではロックなし・図鑑履歴を現在所持装備から補完。
+- 自動装備は方針どおり実装していない。
+- `dotnet build DungeonMerchant.sln` は警告・エラー0で成功。
+
+## 変更した主なファイル 2026-06-19
+
+- `Assets/Proiject/Scripts/Item/ItemDataSO.cs`
+- `Assets/Proiject/Scripts/Item/EquipmentInstance.cs`
+- `Assets/Proiject/Scripts/Item/MerchantInventory.cs`
+- `Assets/Proiject/Scripts/Mercenary/MercenaryInstance.cs`
+- `Assets/Proiject/Scripts/Core/GameSaveData.cs`
+- `Assets/Proiject/Scripts/Core/SaveManager.cs`
+- `Assets/Proiject/Scripts/UI/JapaneseDisplayText.cs`
+- `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.cs`
+- `Assets/Proiject/ScriptableObjects/Items/EnhancementOre.asset`
+- `Assets/Proiject/ScriptableObjects/Items/GoblinHunterSword.asset`
+- `Assets/Proiject/ScriptableObjects/Items/IronVanguardArmor.asset`
+- `Assets/Proiject/ScriptableObjects/Items/ChampionEmblem.asset`
+- `Assets/Proiject/ScriptableObjects/Items/BeastboneBow.asset`
+- `Assets/Proiject/ScriptableObjects/Items/WindrunnerLeather.asset`
+- `Assets/Proiject/ScriptableObjects/Items/HawkeyeCharm.asset`
+- `Assets/Proiject/ScriptableObjects/Items/HexwoodStaff.asset`
+- `Assets/Proiject/ScriptableObjects/Items/RunewovenRobe.asset`
+- `Assets/Proiject/ScriptableObjects/Items/ArcanePendant.asset`
+- `Assets/Proiject/ScriptableObjects/Dungeons/*.asset`
+
+## 家で行ったこと 2026-06-19
+
+- 強化鉱石をダンジョン等級に合わせた5段階へ分割。
+- `+1～+2` は低級強化鉱石、`+3～+4` は下級強化鉱石を使用。
+- `+5～+6` は中級、`+7～+8` は上級、`+9～+10` は最上級強化鉱石を使用。
+- 装備の現在強化値から、次回強化に必要な鉱石を自動選択するようにした。
+- 装備詳細画面へ必要な強化鉱石名と個数を表示。
+- 低級・下級・中級・上級・最上級ダンジョンの踏破報酬へ、それぞれ対応鉱石を設定。
+- 既存の `EnhancementOre.asset` は低級強化鉱石として再利用し、旧セーブの所持数を維持。
+- `dotnet build DungeonMerchant.sln` は警告・エラー0で成功。
+
+## 変更した主なファイル 2026-06-19
+
+- `Assets/Proiject/Scripts/Item/MerchantInventory.cs`
+- `Assets/Proiject/Scripts/UI/JapaneseDisplayText.cs`
+- `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.cs`
+- `Assets/Proiject/ScriptableObjects/Items/EnhancementOre.asset`
+- `Assets/Proiject/ScriptableObjects/Items/LowerGradeEnhancementOre.asset`
+- `Assets/Proiject/ScriptableObjects/Items/MiddleGradeEnhancementOre.asset`
+- `Assets/Proiject/ScriptableObjects/Items/UpperGradeEnhancementOre.asset`
+- `Assets/Proiject/ScriptableObjects/Items/HighestGradeEnhancementOre.asset`
+- `Assets/Proiject/ScriptableObjects/Dungeons/*.asset`
+
+## 家で行ったこと 2026-06-19
+
+- 探索画面の報酬プレビューと旧イベント説明文が重なっていた問題を修正。
+- 重複していた旧説明文を削除し、ダンジョン一覧との間に余白を確保。
+- 限定装備候補は個別名の長い列挙ではなく、セット名と種類数で短く表示。
+- 探索上部をダンジョン情報・確定報酬・限定候補と確率の3行へ整理。
+- `dotnet build DungeonMerchant.sln` は警告・エラー0で成功。
+
+## 変更したファイル 2026-06-19
+
+- `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.cs`
+
+## 家で行ったこと 2026-06-20
+
+- 商人レベルと商人経験値を実装。依頼・ダンジョン探索で経験値を獲得する。
+- 商人レベル1で日雇い、レベル2で臨時、レベル5で専属契約を解放。
+- 雇用画面で解放済み契約を切り替え可能。商人レベルに応じて雇用成功率が上昇。
+- 日雇いは契約当日のみ、臨時は7日間、専属は無期限。
+- 契約切れ傭兵はパーティーから外れ、商会画面から費用を払って更新可能。
+- 通常依頼を常時3件生成。素材納品または指定モンスター討伐、期限、ゴールド・商人経験値報酬に対応。
+- 商会画面から依頼UIを開き、受注と進行状況確認が可能。
+- `SpecialQuestSO` と最初の特殊依頼「商会設立記念・ゴブリン掃討」を追加。
+- 量産型傭兵へ職業別の初歩パッシブスキルを追加。レベル2で取得。
+- ネームド傭兵の固有スキル名、取得レベル、能力補正を `MercenaryDataSO` で設定可能。
+- ダンジョン探索終了時に確定で1日経過し、探索日数とダンジョン等級に応じた探索費用を支払う。
+- 休息または通路妨害イベントで追加1日が経過し、探索費用も増加。
+- 探索終了時に日数と探索費用をリザルト表示。
+- 倉庫容量を30、60、100、160枠の4段階に設定。商人レベル4、8、12で段階解放可能。
+- 倉庫拡張には高額ゴールドが必要。後半2段階は日数経過ごとに維持費が発生。
+- 在庫画面に倉庫使用量、維持費、倉庫拡張ボタンを追加。
+- 長期目標として商人Lv10、黒字探索10回、資産50000G、踏破20回を追加。
+- 依頼UIで長期目標の進捗を確認可能。
+- 商人レベル、契約期限、依頼、倉庫、実績をJSONセーブへ追加し、バージョン8へ更新。
+- 自動装備は方針どおり実装していない。
+- `dotnet build DungeonMerchant.sln` は警告・エラー0で成功。
+
+## 変更した主なファイル 2026-06-20
+
+- `Assets/Proiject/Scripts/Merchant/MerchantData.cs`
+- `Assets/Proiject/Scripts/Merchant/DayManager.cs`
+- `Assets/Proiject/Scripts/Merchant/ProgressionManager.cs`
+- `Assets/Proiject/Scripts/Merchant/SpecialQuestSO.cs`
+- `Assets/Proiject/Scripts/Mercenary/MercenaryHireManager.cs`
+- `Assets/Proiject/Scripts/Mercenary/MercenaryPartyManager.cs`
+- `Assets/Proiject/Scripts/Mercenary/MercenaryInstance.cs`
+- `Assets/Proiject/Scripts/Data/MercenaryDstsSO.cs`
+- `Assets/Proiject/Scripts/Battle/BattleManager.cs`
+- `Assets/Proiject/Scripts/Dungeon/DungeonRunManager.cs`
+- `Assets/Proiject/Scripts/Item/MerchantInventory.cs`
+- `Assets/Proiject/Scripts/Core/GameSaveData.cs`
+- `Assets/Proiject/Scripts/Core/SaveManager.cs`
+- `Assets/Proiject/Scripts/Core/DungeonMerchantBootstrap.cs`
+- `Assets/Proiject/Scripts/UI/JapaneseDisplayText.cs`
+- `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.cs`
+- `Assets/Proiject/ScriptableObjects/Mercenaries/MercenaryData.asset`
+- `Assets/Proiject/ScriptableObjects/Quests/FirstSpecialQuest.asset`
+- `Assembly-CSharp.csproj`
+
+## 家で行ったこと 2026-06-22
+
+- 商人専用の技能ポイントと、交渉・統率・鑑定・兵站の4能力を追加。
+- 商人Lv1で技能ポイント2、以後レベルアップごとに1ポイントを獲得。各能力は最大Lv10。
+- 各能力Lv3・Lv7で商人技能を自動習得する。
+  - 交渉: 値切り術、商談の達人
+  - 統率: 人を見る目、契約管理
+  - 鑑定: 目利き、慧眼
+  - 兵站: 荷役整理、遠征計画
+- 交渉を市場の仕入れ価格・売却価格へ反映。
+- 統率を雇用成功率・傭兵契約更新費へ反映。
+- 鑑定を依頼のゴールド報酬・商人経験値報酬へ反映。
+- 兵站を倉庫容量・探索費用へ反映。
+- 商会画面へ商人能力一覧、技能ポイント、強化ボタン、習得技能表示を追加。
+- 市場価格・依頼報酬・契約更新費などのUI表示も補正後の実値へ更新。
+- 商人能力と未使用技能ポイントをJSONセーブへ追加し、セーブバージョン9へ更新。
+- バージョン8以前のセーブには、現在の商人レベルに応じた未使用技能ポイントを補填する。
+- `dotnet build DungeonMerchant.sln` は警告・エラー0で成功。
+
+## 変更した主なファイル 2026-06-22
+
+- `Assets/Proiject/Scripts/Merchant/MerchantData.cs`
+- `Assets/Proiject/Scripts/Merchant/MarketPriceManager.cs`
+- `Assets/Proiject/Scripts/Merchant/MarketStockManager.cs`
+- `Assets/Proiject/Scripts/Merchant/ProgressionManager.cs`
+- `Assets/Proiject/Scripts/Mercenary/MercenaryHireManager.cs`
+- `Assets/Proiject/Scripts/Core/GameSaveData.cs`
+- `Assets/Proiject/Scripts/Core/SaveManager.cs`
+- `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.cs`
+
+## 家で行ったこと 2026-06-22 商人ステータスUI変更
+
+- 商会タブ内に表示していた商人能力・ステ振り欄を撤去。
+- 右上の商人レベル・所持金表示をクリック可能なボタンへ変更。
+- 右上ボタンから開く「商人ステータス」専用オーバーレイを追加。
+- 詳細画面で商人レベル、経験値、所持金、未使用技能ポイント、習得技能を確認可能。
+- 交渉・統率・鑑定・兵站の現在Lvと実際の補正値、Lv3・Lv7技能を表示。
+- 詳細画面内の `+1` ボタンから技能ポイントを割り振れる。
+- 能力値変更時は専用画面、市場価格、依頼報酬などの表示を即時更新。
+- `dotnet build DungeonMerchant.sln` は警告・エラー0で成功。
+
+## 変更したファイル 2026-06-22 商人ステータスUI変更
+
+- `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.cs`
+
+## 家で行ったこと 2026-06-23 マップ機能
+
+- 大陸全体マップと町内施設マップを追加。
+- ユーザー提供画像を構図・画風の参考に、大陸背景、町拠点、町内背景を制作して使用。
+- 起動時の最初の画面を大陸マップへ変更。
+- 大陸上にエルド交易都市、リーフ森林都市、セイル港湾都市を配置。
+- 町を選択すると町内マップへ移動し、別の町への移動時は1日経過する。
+- 現在いる町をセーブし、再起動後も現在地を復元する。
+- 各町の近くに低級洞窟、森林遺跡、海蝕迷宮を配置。
+- 全体マップまたは町内マップから近隣ダンジョンを選択できる。
+- 町内マップに酒場、商会本部、市場、鍛冶屋、倉庫、編成所、治療院、訓練場、ダンジョン門を配置。
+- 各施設ボタンは既存の雇用、商会、購入、鍛冶、在庫、編成、治療、戦闘、探索画面へ接続。
+- 右上付近に大陸地図へ戻るボタンを追加。
+- セーブバージョンを10へ更新。
+- `dotnet build DungeonMerchant.sln` は警告・エラー0で成功。
+
+## 変更した主なファイル 2026-06-23
+
+- `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.cs`
+- `Assets/Proiject/Scripts/Core/GameSaveData.cs`
+- `Assets/Proiject/Scripts/Core/SaveManager.cs`
+- `Assets/Proiject/Resources/Maps/ContinentMap.png`
+- `Assets/Proiject/Resources/Maps/TownMap.png`
+- `Assets/Proiject/Resources/Maps/TownMarker.png`

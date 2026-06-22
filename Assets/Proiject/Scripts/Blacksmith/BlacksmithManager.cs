@@ -13,6 +13,7 @@ public class BlacksmithManager : MonoBehaviour
         new List<EquipmentRecipeSO>();
 
     public IReadOnlyList<EquipmentRecipeSO> Recipes => recipes;
+    public EquipmentInstance LastCraftedEquipment { get; private set; }
 
     public event Action CraftingChanged;
 
@@ -58,6 +59,7 @@ public class BlacksmithManager : MonoBehaviour
     public bool TryCraft(EquipmentRecipeSO recipe)
     {
         ResolveReferences();
+        LastCraftedEquipment = null;
 
         if (!CanCraft(recipe) || !merchantData.TryPayGold(recipe.goldCost))
         {
@@ -70,7 +72,20 @@ public class BlacksmithManager : MonoBehaviour
             return false;
         }
 
-        merchantInventory.AddItem(recipe.resultItem, recipe.resultAmount);
+        for (int i = 0; i < recipe.resultAmount; i++)
+        {
+            if (recipe.resultItem.IsEquipment)
+            {
+                EquipmentInstance equipment =
+                    EquipmentInstance.CreateRandom(recipe.resultItem);
+                merchantInventory.AddEquipmentInstance(equipment);
+                LastCraftedEquipment = equipment;
+            }
+            else
+            {
+                merchantInventory.AddItem(recipe.resultItem);
+            }
+        }
         Debug.Log($"Crafted {recipe.resultItem.itemName} x{recipe.resultAmount}");
         CraftingChanged?.Invoke();
         return true;
@@ -79,10 +94,6 @@ public class BlacksmithManager : MonoBehaviour
     private void PopulateRecipesIfNeeded()
     {
         recipes.RemoveAll(recipe => recipe == null);
-        if (recipes.Count > 0)
-        {
-            return;
-        }
 
         foreach (EquipmentRecipeSO recipe in
                  Resources.LoadAll<EquipmentRecipeSO>(string.Empty))

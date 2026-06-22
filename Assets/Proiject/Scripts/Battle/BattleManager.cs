@@ -36,6 +36,7 @@ public class BattleManager : MonoBehaviour
     public event Action<string> BattleMessage;
     public event Action<string, BattleLogType> BattleMessageTyped;
     public event Action<bool> BattleCompleted;
+    public event Action<IReadOnlyList<EnemyDataSO>> EnemiesDefeated;
 
     public bool StartBattle()
     {
@@ -450,6 +451,7 @@ public class BattleManager : MonoBehaviour
             SendBattleMessage($"勝利！ 報酬: {totalGoldReward} G", BattleLogType.Reward);
             GrantExperienceRewards();
             GrantItemRewards();
+            EnemiesDefeated?.Invoke(battleEnemyData);
         }
         else
         {

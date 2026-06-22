@@ -14,6 +14,23 @@ public class MercenaryPartyManager : MonoBehaviour
 
     public event Action PartyChanged;
 
+    private void OnEnable()
+    {
+        ResolveReferences();
+        if (hireManager != null)
+        {
+            hireManager.ContractsChanged += RemoveInactiveContracts;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (hireManager != null)
+        {
+            hireManager.ContractsChanged -= RemoveInactiveContracts;
+        }
+    }
+
     public bool Contains(MercenaryInstance mercenary)
     {
         return mercenary != null && members.Contains(mercenary);
@@ -21,7 +38,11 @@ public class MercenaryPartyManager : MonoBehaviour
 
     public bool TryAdd(MercenaryInstance mercenary)
     {
-        if (mercenary == null || !IsHired(mercenary) || Contains(mercenary) || IsFull)
+        if (mercenary == null ||
+            !mercenary.IsContractActive ||
+            !IsHired(mercenary) ||
+            Contains(mercenary) ||
+            IsFull)
         {
             return false;
         }
@@ -49,7 +70,10 @@ public class MercenaryPartyManager : MonoBehaviour
         {
             foreach (MercenaryInstance mercenary in restoredMembers)
             {
-                if (mercenary != null && members.Count < maxPartySize && IsHired(mercenary))
+                if (mercenary != null &&
+                    mercenary.IsContractActive &&
+                    members.Count < maxPartySize &&
+                    IsHired(mercenary))
                 {
                     members.Add(mercenary);
                 }
@@ -77,6 +101,15 @@ public class MercenaryPartyManager : MonoBehaviour
         }
 
         return false;
+    }
+
+    private void RemoveInactiveContracts()
+    {
+        if (members.RemoveAll(member =>
+                member == null || !member.IsContractActive) > 0)
+        {
+            PartyChanged?.Invoke();
+        }
     }
 
     private void ResolveReferences()

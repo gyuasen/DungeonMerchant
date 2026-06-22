@@ -16,7 +16,7 @@ public static class JapaneseDisplayText
         switch (value)
         {
             case MercenaryContractType.Temporary: return "臨時契約";
-            case MercenaryContractType.Local: return "地域契約";
+            case MercenaryContractType.Local: return "日雇い契約";
             case MercenaryContractType.Exclusive: return "専属契約";
             default: return value.ToString();
         }
@@ -80,6 +80,27 @@ public static class JapaneseDisplayText
             case "Goblin Hunter Sword": return "ゴブリン狩りの剣";
             case "Beastbone Bow": return "獣骨の弓";
             case "Hexwood Staff": return "呪木の杖";
+            case "Iron Vanguard Armor": return "鉄壁の重鎧";
+            case "Windrunner Leather": return "風走りの革鎧";
+            case "Runewoven Robe": return "ルーン織りのローブ";
+            case "Champion Emblem": return "勇士の紋章";
+            case "Hawkeye Charm": return "鷹の目のお守り";
+            case "Arcane Pendant": return "秘術の首飾り";
+            case "Iron Armor": return "鉄の鎧";
+            case "Leather Armor": return "革の鎧";
+            case "Apprentice Robe": return "見習いのローブ";
+            case "Soldier Ring": return "兵士の指輪";
+            case "Feather Charm": return "羽根のお守り";
+            case "Mana Pendant": return "魔力の首飾り";
+            case "Enhancement Ore":
+            case "Low Grade Enhancement Ore": return "低級強化鉱石";
+            case "Lower Grade Enhancement Ore": return "下級強化鉱石";
+            case "Middle Grade Enhancement Ore": return "中級強化鉱石";
+            case "Upper Grade Enhancement Ore": return "上級強化鉱石";
+            case "Highest Grade Enhancement Ore": return "最上級強化鉱石";
+            case "Ancient Guardian Blade": return "古代守護者の刃";
+            case "Ancient Guardian Armor": return "古代守護者の鎧";
+            case "Ancient Guardian Seal": return "古代守護者の印";
             default: return item.itemName;
         }
     }
@@ -143,6 +164,57 @@ public static class JapaneseDisplayText
             case DungeonGrade.Middle: return "中級";
             case DungeonGrade.Upper: return "上級";
             case DungeonGrade.Highest: return "最上級";
+            default: return value.ToString();
+        }
+    }
+
+    public static string GetItemNameByRawName(string itemName)
+    {
+        if (string.IsNullOrWhiteSpace(itemName))
+        {
+            return "不明なアイテム";
+        }
+
+        ItemDataSO temporary = UnityEngine.ScriptableObject.CreateInstance<ItemDataSO>();
+        temporary.itemName = itemName;
+        string displayName = GetItemName(temporary);
+        UnityEngine.Object.Destroy(temporary);
+        return displayName;
+    }
+
+    public static string GetEquipmentQuality(EquipmentQuality value)
+    {
+        switch (value)
+        {
+            case EquipmentQuality.Poor: return "粗悪";
+            case EquipmentQuality.Normal: return "普通";
+            case EquipmentQuality.Fine: return "良質";
+            case EquipmentQuality.Rare: return "希少";
+            case EquipmentQuality.Legendary: return "伝説";
+            default: return value.ToString();
+        }
+    }
+
+    public static string GetEquipmentSet(EquipmentSetId value)
+    {
+        switch (value)
+        {
+            case EquipmentSetId.AncientGuardian: return "古代守護者";
+            case EquipmentSetId.Vanguard: return "不屈の前衛";
+            case EquipmentSetId.Windstalker: return "風狩り";
+            case EquipmentSetId.ArcaneSage: return "秘術賢者";
+            default: return "セットなし";
+        }
+    }
+
+    public static string GetEquipmentModifier(EquipmentModifierType value)
+    {
+        switch (value)
+        {
+            case EquipmentModifierType.MaxHP: return "最大HP";
+            case EquipmentModifierType.Attack: return "攻撃";
+            case EquipmentModifierType.Defense: return "防御";
+            case EquipmentModifierType.AttackSpeed: return "攻撃速度";
             default: return value.ToString();
         }
     }

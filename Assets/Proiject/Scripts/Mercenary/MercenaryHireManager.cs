@@ -6,6 +6,9 @@ public class MercenaryHireManager : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private MerchantData merchantData;
+    [SerializeField] private DayManager dayManager;
+    [SerializeField] private MercenaryContractType selectedContract =
+        MercenaryContractType.Local;
 
     [Header("Hire Target")]
     [SerializeField] private MercenaryDataSO targetMercenary;
@@ -15,8 +18,27 @@ public class MercenaryHireManager : MonoBehaviour
         new List<MercenaryInstance>();
 
     public IReadOnlyList<MercenaryInstance> HiredMercenaries => hiredMercenaries;
+    public MercenaryContractType SelectedContract => selectedContract;
 
     public event Action<MercenaryInstance> MercenaryHired;
+    public event Action ContractsChanged;
+
+    private void OnEnable()
+    {
+        ResolveReferences();
+        if (dayManager != null)
+        {
+            dayManager.DayChanged += HandleDayChanged;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (dayManager != null)
+        {
+            dayManager.DayChanged -= HandleDayChanged;
+        }
+    }
 
     public void HireMercenary()
     {
@@ -83,6 +105,19 @@ public class MercenaryHireManager : MonoBehaviour
             return false;
         }
 
+        MercenaryContractType contractType = merchantData.IsContractUnlocked(
+            selectedContract)
+            ? selectedContract
+            : MercenaryContractType.Local;
+        if (UnityEngine.Random.value > merchantData.GetHireSuccessRate())
+        {
+            merchantData.AddGold(mercenary.HireCost);
+            return false;
+        }
+        mercenary.SetContract(
+            contractType,
+            dayManager != null ? dayManager.CurrentDay : 1);
+
         hiredMercenaries.Add(mercenary);
         MercenaryHired?.Invoke(mercenary);
 
@@ -90,6 +125,84 @@ public class MercenaryHireManager : MonoBehaviour
             $"Hired {mercenary.MercenaryName}. " +
             $"Company mercenaries: {hiredMercenaries.Count}");
         return true;
+    }
+
+    public bool TryRenewContract(MercenaryInstance mercenary)
+    {
+        ResolveReferences();
+        if (mercenary == null ||
+            !hiredMercenaries.Contains(mercenary) ||
+            !mercenary.ContractNeedsRenewal ||
+            !merchantData.TryPayGold(GetRenewalCost(mercenary)))
+        {
+            return false;
+        }
+
+        mercenary.RenewContract(
+            dayManager != null ? dayManager.CurrentDay : 1);
+        ContractsChanged?.Invoke();
+        return true;
+    }
+
+    public int GetRenewalCost(MercenaryInstance mercenary)
+    {
+        if (mercenary == null)
+        {
+            return 0;
+        }
+
+        ResolveReferences();
+        float multiplier = merchantData != null
+            ? merchantData.GetRenewalCostMultiplier()
+            : 1f;
+        return Mathf.Max(
+            1,
+            Mathf.RoundToInt(mercenary.GetRenewalCost() * multiplier));
+    }
+
+    private MercenaryContractType GetBestUnlockedContract()
+    {
+        if (merchantData.IsContractUnlocked(MercenaryContractType.Exclusive))
+        {
+            return MercenaryContractType.Exclusive;
+        }
+        if (merchantData.IsContractUnlocked(MercenaryContractType.Temporary))
+        {
+            return MercenaryContractType.Temporary;
+        }
+        return MercenaryContractType.Local;
+    }
+
+    public MercenaryContractType CycleSelectedContract()
+    {
+        MercenaryContractType[] order =
+        {
+            MercenaryContractType.Local,
+            MercenaryContractType.Temporary,
+            MercenaryContractType.Exclusive
+        };
+        int currentIndex = Array.IndexOf(order, selectedContract);
+        for (int offset = 1; offset <= order.Length; offset++)
+        {
+            MercenaryContractType candidate =
+                order[(currentIndex + offset) % order.Length];
+            if (merchantData.IsContractUnlocked(candidate))
+            {
+                selectedContract = candidate;
+                return selectedContract;
+            }
+        }
+        selectedContract = MercenaryContractType.Local;
+        return selectedContract;
+    }
+
+    private void HandleDayChanged(int currentDay)
+    {
+        foreach (MercenaryInstance mercenary in hiredMercenaries)
+        {
+            mercenary?.UpdateContractForDay(currentDay);
+        }
+        ContractsChanged?.Invoke();
     }
 
     public bool CanAfford(MercenaryDataSO mercenary)
@@ -141,6 +254,12 @@ public class MercenaryHireManager : MonoBehaviour
         if (merchantData == null)
         {
             merchantData = FindObjectOfType<MerchantData>();
+        }
+
+        if (dayManager == null)
+        {
+            dayManager = GetComponent<DayManager>() ??
+                         FindObjectOfType<DayManager>();
         }
     }
 }

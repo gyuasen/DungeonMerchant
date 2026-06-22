@@ -18,4 +18,12 @@ public class MercenaryDataSO : ScriptableObject
 
     [Header("Employment")]
     public int hireCost = 100;
+
+    [Header("Unique Skill")]
+    [Min(1)] public int uniqueSkillUnlockLevel = 3;
+    public string uniqueSkillName = "固有技能";
+    public int uniqueSkillBonusMaxHP = 10;
+    public int uniqueSkillBonusAttack = 3;
+    public int uniqueSkillBonusDefense;
+    public float uniqueSkillBonusAttackSpeed = 0.03f;
 }

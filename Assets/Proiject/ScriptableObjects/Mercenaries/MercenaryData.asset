@@ -20,3 +20,9 @@ MonoBehaviour:
   defense: 3
   attackSpeed: 1
   hireCost: 100
+  uniqueSkillUnlockLevel: 3
+  uniqueSkillName: "\u4E0D\u5C48\u306E\u82F1\u96C4"
+  uniqueSkillBonusMaxHP: 15
+  uniqueSkillBonusAttack: 4
+  uniqueSkillBonusDefense: 2
+  uniqueSkillBonusAttackSpeed: 0.03

@@ -22,6 +22,11 @@ public class DungeonDataSO : ScriptableObject
     [Header("踏破報酬")]
     [Min(0)] public int clearGoldReward = 100;
     public DungeonItemReward[] clearItemRewards;
+
+    [Header("Limited Equipment Drops")]
+    [Range(0f, 1f)] public float eventLimitedDropChance = 0.03f;
+    [Range(0f, 1f)] public float bossLimitedDropChance = 0.08f;
+    public ItemDataSO[] limitedEquipmentDrops;
 }
 
 public enum DungeonGrade

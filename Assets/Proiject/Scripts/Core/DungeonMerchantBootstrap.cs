@@ -26,6 +26,7 @@ public static class DungeonMerchantBootstrap
         EnsureComponent<MercenaryGenerator>(root);
         EnsureComponent<BattleManager>(root);
         EnsureComponent<DungeonRunManager>(root);
+        EnsureComponent<ProgressionManager>(root);
         EnsureComponent<SimpleMercenaryHireUI>(root);
         SaveManager saveManager = EnsureComponent<SaveManager>(root);
         saveManager.InitializeAndLoad();
