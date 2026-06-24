@@ -20,6 +20,10 @@ public class DungeonRunManager : MonoBehaviour
     [SerializeField] private List<DungeonDataSO> availableDungeons =
         new List<DungeonDataSO>();
     [SerializeField] private DungeonGrade highestUnlockedGrade = DungeonGrade.Low;
+    private readonly HashSet<int> unlockedTownIndices = new HashSet<int> { 2 };
+    private readonly Dictionary<string, int> clearedFloorsByDungeon =
+        new Dictionary<string, int>();
+    [SerializeField, Min(0)] private int currentWorldMapIndex;
 
     [Header("Run Settings")]
     [SerializeField, Min(1)] private int encounterCount = 3;
@@ -46,6 +50,13 @@ public class DungeonRunManager : MonoBehaviour
     public int ClearGoldReward => dungeonData != null
         ? Mathf.Max(0, dungeonData.clearGoldReward)
         : 0;
+    public int CurrentFloor => GetCurrentFloor(dungeonData);
+    public int TotalFloors => dungeonData != null
+        ? Mathf.Max(1, dungeonData.totalFloors)
+        : 1;
+    public bool IsSelectedDungeonFullyCleared =>
+        dungeonData != null &&
+        GetClearedFloors(dungeonData) >= TotalFloors;
     public IReadOnlyList<DungeonDataSO> AvailableDungeons => availableDungeons;
     public DungeonDataSO SelectedDungeon => dungeonData;
     public DungeonGrade HighestUnlockedGrade => highestUnlockedGrade;
@@ -103,7 +114,9 @@ public class DungeonRunManager : MonoBehaviour
         CurrentEncounter = 0;
         ClearEvent();
         SubscribeToBattle();
-        SendDungeonMessage($"{DungeonName}の探索開始。遭遇回数: {EncounterCount}");
+        SendDungeonMessage(
+            $"{DungeonName} 第{CurrentFloor}/{TotalFloors}フロアの探索開始。" +
+            $"遭遇回数: {EncounterCount}");
         DungeonStateChanged?.Invoke();
         return StartNextEncounter();
     }
@@ -120,7 +133,84 @@ public class DungeonRunManager : MonoBehaviour
 
     public bool IsDungeonUnlocked(DungeonDataSO data)
     {
-        return data != null && (int)data.grade <= (int)highestUnlockedGrade;
+        return data != null &&
+               unlockedTownIndices.Contains(data.nearbyTownIndex);
+    }
+
+    public DungeonDataSO GetDungeonNearTown(int townIndex)
+    {
+        PopulateDungeonDataIfNeeded();
+        foreach (DungeonDataSO data in availableDungeons)
+        {
+            if (data != null && data.nearbyTownIndex == townIndex)
+            {
+                return data;
+            }
+        }
+
+        return null;
+    }
+
+    public int GetClearedFloors(DungeonDataSO data)
+    {
+        if (data == null ||
+            !clearedFloorsByDungeon.TryGetValue(data.name, out int clearedFloors))
+        {
+            return 0;
+        }
+
+        return Mathf.Clamp(clearedFloors, 0, Mathf.Max(1, data.totalFloors));
+    }
+
+    public int GetCurrentFloor(DungeonDataSO data)
+    {
+        if (data == null)
+        {
+            return 1;
+        }
+
+        int totalFloors = Mathf.Max(1, data.totalFloors);
+        return Mathf.Min(GetClearedFloors(data) + 1, totalFloors);
+    }
+
+    public List<SavedDungeonFloorProgress> CreateFloorProgressSaveData()
+    {
+        List<SavedDungeonFloorProgress> result =
+            new List<SavedDungeonFloorProgress>();
+        foreach (KeyValuePair<string, int> pair in clearedFloorsByDungeon)
+        {
+            result.Add(new SavedDungeonFloorProgress
+            {
+                dungeonAssetName = pair.Key,
+                clearedFloors = pair.Value
+            });
+        }
+
+        return result;
+    }
+
+    public void SetUnlockedTownIndices(IReadOnlyList<int> townIndices)
+    {
+        unlockedTownIndices.Clear();
+        unlockedTownIndices.Add(2);
+
+        if (townIndices != null)
+        {
+            foreach (int townIndex in townIndices)
+            {
+                if (townIndex >= 0)
+                {
+                    unlockedTownIndices.Add(townIndex);
+                }
+            }
+        }
+
+        PopulateDungeonDataIfNeeded();
+        if (dungeonData == null || !IsDungeonUnlocked(dungeonData))
+        {
+            dungeonData = FindFirstUnlockedDungeon();
+        }
+        DungeonStateChanged?.Invoke();
     }
 
     public bool TrySelectDungeon(DungeonDataSO data)
@@ -139,7 +229,8 @@ public class DungeonRunManager : MonoBehaviour
 
     public void RestoreProgress(
         DungeonGrade restoredHighestGrade,
-        string selectedDungeonAssetName)
+        string selectedDungeonAssetName,
+        IReadOnlyList<SavedDungeonFloorProgress> savedFloorProgress = null)
     {
         highestUnlockedGrade = (DungeonGrade)Mathf.Clamp(
             (int)restoredHighestGrade,
@@ -147,6 +238,21 @@ public class DungeonRunManager : MonoBehaviour
             (int)DungeonGrade.Highest);
         SaveDungeonProgress();
         PopulateDungeonDataIfNeeded();
+        clearedFloorsByDungeon.Clear();
+        if (savedFloorProgress != null)
+        {
+            foreach (SavedDungeonFloorProgress progress in savedFloorProgress)
+            {
+                if (progress == null ||
+                    string.IsNullOrWhiteSpace(progress.dungeonAssetName))
+                {
+                    continue;
+                }
+
+                clearedFloorsByDungeon[progress.dungeonAssetName] =
+                    Mathf.Max(0, progress.clearedFloors);
+            }
+        }
 
         DungeonDataSO restoredSelection = null;
         foreach (DungeonDataSO data in availableDungeons)
@@ -168,12 +274,13 @@ public class DungeonRunManager : MonoBehaviour
     public void ResetDungeonProgress()
     {
         highestUnlockedGrade = DungeonGrade.Low;
+        clearedFloorsByDungeon.Clear();
         PlayerPrefs.DeleteKey(UnlockedGradeSaveKey);
         PlayerPrefs.Save();
 
         PopulateDungeonDataIfNeeded();
         dungeonData = FindFirstUnlockedDungeon();
-        SendDungeonMessage("ダンジョンの開放状態を低級まで初期化しました。");
+        SendDungeonMessage("ダンジョンのフロア進行を初期化しました。");
         DungeonStateChanged?.Invoke();
     }
 
@@ -219,7 +326,13 @@ public class DungeonRunManager : MonoBehaviour
         int enemyIncrease = dungeonData != null
             ? Mathf.Max(0, dungeonData.enemyCountIncreasePerEncounter)
             : enemyCountIncreasePerEncounter;
-        int enemyCount = firstEnemyCount + ((CurrentEncounter - 1) * enemyIncrease);
+        int floorIncrease = dungeonData != null
+            ? Mathf.Max(0, dungeonData.enemyCountIncreasePerFloor)
+            : 0;
+        int enemyCount =
+            firstEnemyCount +
+            ((CurrentEncounter - 1) * enemyIncrease) +
+            ((CurrentFloor - 1) * floorIncrease);
         List<EnemyDataSO> enemies = CreateDungeonEncounter(enemyCount);
 
         SendDungeonMessage(
@@ -239,7 +352,9 @@ public class DungeonRunManager : MonoBehaviour
     private List<EnemyDataSO> CreateDungeonEncounter(int enemyCount)
     {
         List<EnemyDataSO> enemies = new List<EnemyDataSO>();
-        bool isBossEncounter = CurrentEncounter >= EncounterCount;
+        bool isFinalFloor = CurrentFloor >= TotalFloors;
+        bool isBossEncounter =
+            isFinalFloor && CurrentEncounter >= EncounterCount;
 
         if (dungeonData == null ||
             dungeonData.normalEnemies == null ||
@@ -310,12 +425,7 @@ public class DungeonRunManager : MonoBehaviour
 
         if (CurrentEncounter >= EncounterCount)
         {
-            TryGrantLimitedEquipment(
-                dungeonData != null ? dungeonData.bossLimitedDropChance : 0f,
-                "ボス限定ドロップ");
-            GrantClearRewards();
-            UnlockNextGrade();
-            CompleteRun(true, "ダンジョンを踏破しました。");
+            CompleteCurrentFloor();
             return;
         }
 
@@ -330,6 +440,44 @@ public class DungeonRunManager : MonoBehaviour
         SendDungeonMessage(message);
         DungeonStateChanged?.Invoke();
         DungeonCompleted?.Invoke(cleared);
+    }
+
+    private void CompleteCurrentFloor()
+    {
+        if (dungeonData == null)
+        {
+            CompleteRun(false, "ダンジョン情報が見つかりません。");
+            return;
+        }
+
+        int completedFloor = CurrentFloor;
+        int totalFloors = TotalFloors;
+        int previousClearedFloors = GetClearedFloors(dungeonData);
+        clearedFloorsByDungeon[dungeonData.name] =
+            Mathf.Max(previousClearedFloors, completedFloor);
+
+        int floorReward = Mathf.Max(0, dungeonData.floorClearGoldReward);
+        if (floorReward > 0)
+        {
+            GrantGold(floorReward);
+        }
+
+        if (completedFloor >= totalFloors)
+        {
+            TryGrantLimitedEquipment(
+                dungeonData.bossLimitedDropChance,
+                "最終フロア限定ドロップ");
+            GrantClearRewards();
+            CompleteRun(
+                true,
+                $"{DungeonName}の全{totalFloors}フロアを完全攻略しました。");
+            return;
+        }
+
+        CompleteRun(
+            true,
+            $"{DungeonName} 第{completedFloor}フロアを攻略しました。" +
+            $"次回は第{completedFloor + 1}フロアから開始します。");
     }
 
     private DungeonEventType currentEventType = DungeonEventType.None;
@@ -521,7 +669,10 @@ public class DungeonRunManager : MonoBehaviour
 
         foreach (DungeonDataSO data in Resources.LoadAll<DungeonDataSO>(string.Empty))
         {
-            AddDungeon(data);
+            if (data.worldMapIndex == currentWorldMapIndex)
+            {
+                AddDungeon(data);
+            }
         }
 
 #if UNITY_EDITOR
@@ -532,11 +683,23 @@ public class DungeonRunManager : MonoBehaviour
         foreach (string guid in guids)
         {
             string path = AssetDatabase.GUIDToAssetPath(guid);
-            AddDungeon(AssetDatabase.LoadAssetAtPath<DungeonDataSO>(path));
+            DungeonDataSO data =
+                AssetDatabase.LoadAssetAtPath<DungeonDataSO>(path);
+            if (data != null && data.worldMapIndex == currentWorldMapIndex)
+            {
+                AddDungeon(data);
+            }
         }
 #endif
 
-        availableDungeons.Sort((left, right) => left.grade.CompareTo(right.grade));
+        availableDungeons.Sort((left, right) =>
+        {
+            int townComparison =
+                left.nearbyTownIndex.CompareTo(right.nearbyTownIndex);
+            return townComparison != 0
+                ? townComparison
+                : left.grade.CompareTo(right.grade);
+        });
 
         if (dungeonData == null || !IsDungeonUnlocked(dungeonData))
         {
@@ -556,30 +719,12 @@ public class DungeonRunManager : MonoBehaviour
     {
         for (int i = availableDungeons.Count - 1; i >= 0; i--)
         {
-            if (availableDungeons[i] == null)
+            if (availableDungeons[i] == null ||
+                availableDungeons[i].worldMapIndex != currentWorldMapIndex)
             {
                 availableDungeons.RemoveAt(i);
             }
         }
-    }
-
-    private void UnlockNextGrade()
-    {
-        if (dungeonData == null || dungeonData.grade != highestUnlockedGrade)
-        {
-            return;
-        }
-
-        int nextGrade = (int)highestUnlockedGrade + 1;
-        if (nextGrade > (int)DungeonGrade.Highest)
-        {
-            return;
-        }
-
-        highestUnlockedGrade = (DungeonGrade)nextGrade;
-        SaveDungeonProgress();
-        SendDungeonMessage(
-            $"{JapaneseDisplayText.GetDungeonGrade(highestUnlockedGrade)}ダンジョンが開放されました。");
     }
 
     private void LoadDungeonProgress()

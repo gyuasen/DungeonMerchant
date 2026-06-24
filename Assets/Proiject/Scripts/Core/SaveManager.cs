@@ -150,7 +150,7 @@ public class SaveManager : MonoBehaviour
                 ? merchantData.Logistics
                 : 0,
             currentDay = dayManager != null ? dayManager.CurrentDay : 1,
-            currentTownIndex = simpleUI != null ? simpleUI.CurrentTownIndex : 0,
+            currentTownIndex = simpleUI != null ? simpleUI.CurrentTownIndex : 2,
             highestUnlockedDungeonGrade = dungeonRunManager != null
                 ? (int)dungeonRunManager.HighestUnlockedGrade
                 : 0,
@@ -159,6 +159,18 @@ public class SaveManager : MonoBehaviour
                     ? dungeonRunManager.SelectedDungeon.name
                     : string.Empty
         };
+
+        if (simpleUI != null)
+        {
+            data.unlockedTownIndices.Clear();
+            data.unlockedTownIndices.AddRange(simpleUI.GetUnlockedTownIndices());
+        }
+
+        if (dungeonRunManager != null)
+        {
+            data.dungeonFloorProgress.AddRange(
+                dungeonRunManager.CreateFloorProgressSaveData());
+        }
 
         if (merchantInventory != null)
         {
@@ -278,7 +290,9 @@ public class SaveManager : MonoBehaviour
             data.merchantAppraisal,
             data.merchantLogistics);
         dayManager?.SetCurrentDay(data.currentDay);
-        simpleUI?.RestoreCurrentTown(data.currentTownIndex);
+        simpleUI?.RestoreTownProgress(
+            data.currentTownIndex,
+            data.version >= 11 ? data.unlockedTownIndices : null);
 
         List<InventoryItemStack> restoredItems = new List<InventoryItemStack>();
         if (data.inventory != null)
@@ -368,7 +382,8 @@ public class SaveManager : MonoBehaviour
                 data.highestUnlockedDungeonGrade,
                 (int)DungeonGrade.Low,
                 (int)DungeonGrade.Highest),
-            data.selectedDungeonAssetName);
+            data.selectedDungeonAssetName,
+            data.version >= 12 ? data.dungeonFloorProgress : null);
     }
 
     private MercenaryInstance RestoreMercenary(SavedMercenary saved)

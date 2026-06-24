@@ -43,6 +43,8 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private readonly List<DungeonDataSO> displayedDungeons = new List<DungeonDataSO>();
     private readonly HashSet<MercenaryDataSO> hiredCandidates = new HashSet<MercenaryDataSO>();
     private readonly List<string> battleLogLines = new List<string>();
+    private readonly List<Button> townMapButtons = new List<Button>();
+    private readonly HashSet<int> unlockedTownIndices = new HashSet<int> { 2 };
 
     private RectTransform guildPanel;
     private RectTransform characterDetailOverlay;
@@ -65,9 +67,12 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform equipmentCollectionOverlay;
     private RectTransform equipmentCollectionContent;
     private Text equipmentCollectionText;
+    private RectTransform travelConfirmationOverlay;
+    private Text travelConfirmationText;
     private InventoryFilter inventoryFilter = InventoryFilter.All;
     private EquipmentSort equipmentSort = EquipmentSort.Name;
     private RectTransform hirePage;
+    private RectTransform globalMapPage;
     private RectTransform worldMapPage;
     private RectTransform townMapPage;
     private RectTransform hireList;
@@ -87,16 +92,16 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform marketList;
     private RectTransform blacksmithList;
     private RectTransform dungeonSelectionList;
-    private Button hireTabButton;
+    private Button hireTabButton = null;
     private Button mapButton;
-    private Button companyTabButton;
-    private Button partyTabButton;
-    private Button healTabButton;
-    private Button battleTabButton;
-    private Button dungeonTabButton;
-    private Button marketTabButton;
-    private Button blacksmithTabButton;
-    private Button inventoryTabButton;
+    private Button companyTabButton = null;
+    private Button partyTabButton = null;
+    private Button healTabButton = null;
+    private Button battleTabButton = null;
+    private Button dungeonTabButton = null;
+    private Button marketTabButton = null;
+    private Button blacksmithTabButton = null;
+    private Button inventoryTabButton = null;
     private Button startBattleButton;
     private Button startDungeonButton;
     private Button firstDungeonEventButton;
@@ -107,6 +112,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private Button inventoryFilterButton;
     private Button equipmentSortButton;
     private Text goldText;
+    private Text dayText;
     private Text statusText;
     private Text battleLogText;
     private Text dungeonStatusText;
@@ -118,7 +124,12 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform battleLogViewport;
     private ScrollRect battleLogScrollRect;
     private Coroutine battleLogScrollCoroutine;
-    private int currentTownIndex;
+    private int currentTownIndex = 2;
+    private int pendingTravelTownIndex = -1;
+    private int confirmationTravelTownIndex = -1;
+    private bool confirmationOpenDungeonAfterTravel;
+    private bool pendingTravelWasUnlock;
+    private bool pendingOpenDungeonAfterTravel;
 
     private static readonly string[] TownNames =
     {
@@ -129,9 +140,44 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     public int CurrentTownIndex => currentTownIndex;
 
-    public void RestoreCurrentTown(int townIndex)
+    public List<int> GetUnlockedTownIndices()
     {
+        List<int> result = new List<int>(unlockedTownIndices);
+        result.Sort();
+        return result;
+    }
+
+    public void RestoreTownProgress(
+        int townIndex,
+        IReadOnlyList<int> savedUnlockedTownIndices)
+    {
+        unlockedTownIndices.Clear();
+        unlockedTownIndices.Add(2);
+
+        int leftmostUnlockedTownIndex = 2;
+        if (savedUnlockedTownIndices != null)
+        {
+            foreach (int unlockedTownIndex in savedUnlockedTownIndices)
+            {
+                if (unlockedTownIndex >= 0 &&
+                    unlockedTownIndex < TownNames.Length)
+                {
+                    leftmostUnlockedTownIndex =
+                        Mathf.Min(leftmostUnlockedTownIndex, unlockedTownIndex);
+                }
+            }
+        }
+
         currentTownIndex = Mathf.Clamp(townIndex, 0, TownNames.Length - 1);
+        leftmostUnlockedTownIndex =
+            Mathf.Min(leftmostUnlockedTownIndex, currentTownIndex);
+        for (int i = leftmostUnlockedTownIndex; i < TownNames.Length; i++)
+        {
+            unlockedTownIndices.Add(i);
+        }
+
+        SyncDungeonUnlocks();
+        RefreshTownMapButtons();
     }
 
     private static readonly Color BackgroundColor = new Color(0.07f, 0.08f, 0.1f, 1f);
@@ -144,6 +190,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private void Start()
     {
         ResolveReferences();
+        SyncDungeonUnlocks();
 
         if (!HasRequiredReferences())
         {
@@ -175,7 +222,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         {
             progressionManager.ProgressionChanged += HandleProgressionChanged;
         }
-        ShowWorldMap();
+        ShowGlobalMap();
         RefreshUI();
     }
 
@@ -565,12 +612,37 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         CreateText(panel, "傭兵商会", 28, FontStyle.Bold, TextAnchor.MiddleLeft,
             new Vector2(28f, -62f), new Vector2(-28f, -18f), Color.white);
 
-        mapButton = CreateActionButton(panel, "大陸地図", ShowWorldMap);
+        mapButton = CreateActionButton(panel, "全体マップ", ShowGlobalMap);
         RectTransform mapRect = mapButton.GetComponent<RectTransform>();
         mapRect.anchorMin = mapRect.anchorMax = new Vector2(0f, 1f);
         mapRect.pivot = new Vector2(0f, 1f);
         mapRect.sizeDelta = new Vector2(120f, 40f);
         mapRect.anchoredPosition = new Vector2(172f, -18f);
+
+        RectTransform dayDisplayRect =
+            CreateUIObject("Day Display", panel);
+        dayDisplayRect.anchorMin = dayDisplayRect.anchorMax =
+            new Vector2(0f, 1f);
+        dayDisplayRect.pivot = new Vector2(0f, 1f);
+        dayDisplayRect.sizeDelta = new Vector2(170f, 44f);
+        dayDisplayRect.anchoredPosition = new Vector2(312f, -16f);
+        dayDisplayRect.gameObject.AddComponent<Image>().color =
+            new Color(0.11f, 0.13f, 0.16f, 1f);
+
+        dayText = CreateText(
+            dayDisplayRect,
+            string.Empty,
+            18,
+            FontStyle.Bold,
+            TextAnchor.MiddleCenter,
+            Vector2.zero,
+            Vector2.zero,
+            Color.white);
+        dayText.rectTransform.anchorMin = Vector2.zero;
+        dayText.rectTransform.anchorMax = Vector2.one;
+        dayText.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        dayText.rectTransform.offsetMin = Vector2.zero;
+        dayText.rectTransform.offsetMax = Vector2.zero;
 
         RectTransform merchantStatusButtonRect =
             CreateUIObject("Merchant Status Button", panel);
@@ -600,49 +672,8 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         goldText.rectTransform.offsetMin = new Vector2(12f, 0f);
         goldText.rectTransform.offsetMax = new Vector2(-12f, 0f);
 
-        hireTabButton = CreateNavigationButton(panel, "雇用", new Vector2(16f, -78f), ShowHirePage);
-        companyTabButton = CreateNavigationButton(
-            panel,
-            "商会",
-            new Vector2(104f, -78f),
-            ShowCompanyPage);
-        partyTabButton = CreateNavigationButton(
-            panel,
-            "編成",
-            new Vector2(192f, -78f),
-            ShowPartyPage);
-        healTabButton = CreateNavigationButton(
-            panel,
-            "治療",
-            new Vector2(280f, -78f),
-            ShowHealPage);
-        battleTabButton = CreateNavigationButton(
-            panel,
-            "戦闘",
-            new Vector2(368f, -78f),
-            ShowBattlePage);
-        dungeonTabButton = CreateNavigationButton(
-            panel,
-            "探索",
-            new Vector2(456f, -78f),
-            ShowDungeonPage);
-        marketTabButton = CreateNavigationButton(
-            panel,
-            "市場",
-            new Vector2(544f, -78f),
-            ShowMarketPage);
-        blacksmithTabButton = CreateNavigationButton(
-            panel,
-            "鍛冶",
-            new Vector2(632f, -78f),
-            ShowBlacksmithPage);
-        inventoryTabButton = CreateNavigationButton(
-            panel,
-            "在庫",
-            new Vector2(720f, -78f),
-            ShowInventoryPage);
-
         hirePage = CreatePage("Hire Page", panel);
+        globalMapPage = CreatePage("Global Map Page", panel);
         worldMapPage = CreatePage("World Map Page", panel);
         townMapPage = CreatePage("Town Map Page", panel);
         companyPage = CreatePage("Company Page", panel);
@@ -655,6 +686,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         inventoryPage = CreatePage("Inventory Page", panel);
 
         BuildHirePage();
+        BuildGlobalMapPage();
         BuildWorldMapPage();
         BuildTownMapPage();
         BuildCompanyPage();
@@ -677,55 +709,242 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         BuildEquipmentCollectionOverlay();
         BuildQuestOverlay();
         BuildMerchantStatusOverlay();
+        BuildTravelConfirmationOverlay();
+    }
+
+    private void BuildGlobalMapPage()
+    {
+        AddMapBackground(
+            globalMapPage,
+            "Maps/WorldMap",
+            "Maps/ContinentMap");
+
+        Button currentContinentButton = CreateWorldRegionButton(
+            globalMapPage,
+            "東方平原地域\n低級～中級",
+            new Vector2(225f, -5f),
+            new Vector2(390f, 390f),
+            ShowWorldMap);
+        ConfigureWorldRegionHover(
+            currentContinentButton,
+            new Color(0.08f, 0.7f, 0.35f, 0.28f));
+
+        Button secondContinentButton = CreateWorldRegionButton(
+            globalMapPage,
+            "北西山岳森林地域\n上級",
+            new Vector2(-225f, 120f),
+            new Vector2(360f, 220f),
+            () => ShowUnavailableWorldMap("北西山岳森林地域"));
+        StyleUnavailableWorldMapButton(secondContinentButton);
+
+        Button thirdContinentButton = CreateWorldRegionButton(
+            globalMapPage,
+            "南西黒土地域\n最高級",
+            new Vector2(-225f, -125f),
+            new Vector2(360f, 245f),
+            () => ShowUnavailableWorldMap("南西黒土地域"));
+        StyleUnavailableWorldMapButton(thirdContinentButton);
+
+        CreateText(
+            globalMapPage,
+            "探索する大陸を選択してください。",
+            16,
+            FontStyle.Bold,
+            TextAnchor.MiddleLeft,
+            new Vector2(14f, -34f),
+            new Vector2(-14f, -4f),
+            Color.white);
+    }
+
+    private static void StyleUnavailableWorldMapButton(Button button)
+    {
+        ConfigureWorldRegionHover(
+            button,
+            new Color(0.12f, 0.14f, 0.17f, 0.42f));
+        Text label = button.GetComponentInChildren<Text>();
+        if (label != null)
+        {
+            label.color = new Color(0.72f, 0.75f, 0.78f, 1f);
+        }
+    }
+
+    private static void ConfigureWorldRegionHover(
+        Button button,
+        Color hoverColor)
+    {
+        if (button == null || button.targetGraphic == null)
+        {
+            return;
+        }
+
+        Color transparent = new Color(
+            hoverColor.r,
+            hoverColor.g,
+            hoverColor.b,
+            0f);
+        button.targetGraphic.color = transparent;
+        button.transition = Selectable.Transition.ColorTint;
+
+        ColorBlock colors = button.colors;
+        colors.normalColor = transparent;
+        colors.highlightedColor = hoverColor;
+        colors.selectedColor = hoverColor;
+        colors.pressedColor = new Color(
+            hoverColor.r,
+            hoverColor.g,
+            hoverColor.b,
+            Mathf.Min(0.65f, hoverColor.a + 0.18f));
+        colors.disabledColor = transparent;
+        colors.colorMultiplier = 1f;
+        colors.fadeDuration = 0.12f;
+        button.colors = colors;
+    }
+
+    private Button CreateWorldRegionButton(
+        RectTransform parent,
+        string label,
+        Vector2 position,
+        Vector2 size,
+        UnityEngine.Events.UnityAction action)
+    {
+        Button button = CreateMapButton(
+            parent,
+            label,
+            position,
+            size,
+            action);
+        Text labelText = button.GetComponentInChildren<Text>();
+        if (labelText != null)
+        {
+            labelText.fontSize = 20;
+            labelText.alignment = TextAnchor.MiddleCenter;
+            Outline textOutline = labelText.gameObject.AddComponent<Outline>();
+            textOutline.effectColor = new Color(0f, 0f, 0f, 0.95f);
+            textOutline.effectDistance = new Vector2(2f, -2f);
+        }
+
+        return button;
+    }
+
+    private void BuildTravelConfirmationOverlay()
+    {
+        travelConfirmationOverlay =
+            CreateUIObject("Travel Confirmation Overlay", guildPanel);
+        travelConfirmationOverlay.anchorMin = Vector2.zero;
+        travelConfirmationOverlay.anchorMax = Vector2.one;
+        travelConfirmationOverlay.offsetMin = Vector2.zero;
+        travelConfirmationOverlay.offsetMax = Vector2.zero;
+        travelConfirmationOverlay.gameObject.AddComponent<Image>().color =
+            new Color(0f, 0f, 0f, 0.84f);
+
+        RectTransform window =
+            CreateUIObject("Travel Confirmation Window", travelConfirmationOverlay);
+        window.anchorMin = window.anchorMax = window.pivot =
+            new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(560f, 300f);
+        window.gameObject.AddComponent<Image>().color = PanelColor;
+
+        CreateText(
+            window,
+            "町を移動しますか？",
+            28,
+            FontStyle.Bold,
+            TextAnchor.MiddleCenter,
+            new Vector2(24f, -74f),
+            new Vector2(-24f, -22f),
+            Color.white);
+
+        travelConfirmationText = CreateText(
+            window,
+            string.Empty,
+            18,
+            FontStyle.Normal,
+            TextAnchor.MiddleCenter,
+            new Vector2(36f, -190f),
+            new Vector2(-36f, -82f),
+            MutedTextColor);
+
+        Button confirmButton =
+            CreateActionButton(window, "移動する", ConfirmTownTravel);
+        RectTransform confirmRect = confirmButton.GetComponent<RectTransform>();
+        confirmRect.anchorMin = confirmRect.anchorMax =
+            confirmRect.pivot = new Vector2(0.5f, 0f);
+        confirmRect.sizeDelta = new Vector2(180f, 48f);
+        confirmRect.anchoredPosition = new Vector2(-105f, 28f);
+        confirmButton.targetGraphic.color = AccentColor;
+
+        Button cancelButton =
+            CreateActionButton(window, "キャンセル", HideTravelConfirmation);
+        RectTransform cancelRect = cancelButton.GetComponent<RectTransform>();
+        cancelRect.anchorMin = cancelRect.anchorMax =
+            cancelRect.pivot = new Vector2(0.5f, 0f);
+        cancelRect.sizeDelta = new Vector2(180f, 48f);
+        cancelRect.anchoredPosition = new Vector2(105f, 28f);
+
+        travelConfirmationOverlay.gameObject.SetActive(false);
     }
 
     private void BuildWorldMapPage()
     {
-        AddMapBackground(worldMapPage, "Maps/ContinentMap");
+        AddMapBackground(
+            worldMapPage,
+            "Maps/Map",
+            "Maps/EasternRegionMap");
 
-        CreateTownMapButton(
+        townMapButtons.Add(CreateTownMapButton(
             worldMapPage,
             TownNames[0],
-            new Vector2(-230f, -70f),
-            () => TravelToTown(0));
-        CreateTownMapButton(
+            new Vector2(-330f, -15f),
+            () => TravelToTown(0)));
+        townMapButtons.Add(CreateTownMapButton(
             worldMapPage,
             TownNames[1],
-            new Vector2(50f, 110f),
-            () => TravelToTown(1));
-        CreateTownMapButton(
+            new Vector2(0f, 105f),
+            () => TravelToTown(1)));
+        townMapButtons.Add(CreateTownMapButton(
             worldMapPage,
             TownNames[2],
-            new Vector2(190f, -110f),
-            () => TravelToTown(2));
+            new Vector2(300f, 35f),
+            () => TravelToTown(2)));
         CreateMapButton(
             worldMapPage,
             "低級洞窟",
-            new Vector2(-85f, 10f),
+            new Vector2(-225f, -85f),
             new Vector2(96f, 42f),
             () => TravelToDungeon(0));
         CreateMapButton(
             worldMapPage,
             "森林遺跡",
-            new Vector2(190f, 120f),
+            new Vector2(115f, 100f),
             new Vector2(96f, 42f),
             () => TravelToDungeon(1));
         CreateMapButton(
             worldMapPage,
             "海蝕迷宮",
-            new Vector2(310f, -35f),
+            new Vector2(205f, -35f),
             new Vector2(96f, 42f),
             () => TravelToDungeon(2));
 
+        Button globalMapButton = CreateMapButton(
+            worldMapPage,
+            "← 全体マップへ",
+            new Vector2(-315f, -185f),
+            new Vector2(150f, 46f),
+            ShowGlobalMap);
+        globalMapButton.targetGraphic.color =
+            new Color(0.12f, 0.32f, 0.52f, 0.96f);
+
         CreateText(
             worldMapPage,
-            "町を選択すると移動します。町の移動で1日経過します。",
+            "未解放の町は移動クエストに勝利すると解放されます。町の移動で1日経過します。",
             14,
             FontStyle.Bold,
             TextAnchor.MiddleLeft,
             new Vector2(14f, -34f),
             new Vector2(-14f, -4f),
             Color.white);
+
+        RefreshTownMapButtons();
     }
 
     private void BuildTownMapPage()
@@ -759,14 +978,33 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         CreateMapButton(
             townMapPage, "近隣ダンジョン", new Vector2(0f, -172f),
             new Vector2(150f, 52f), OpenNearbyDungeon);
-        CreateMapButton(
-            townMapPage, "大陸へ", new Vector2(-315f, -178f),
-            new Vector2(100f, 44f), ShowWorldMap);
+        Button continentButton = CreateMapButton(
+            townMapPage, "← 地域マップへ", new Vector2(-300f, -172f),
+            new Vector2(142f, 52f), ShowWorldMap);
+        continentButton.targetGraphic.color =
+            new Color(0.12f, 0.32f, 0.52f, 0.96f);
+        ColorBlock continentColors = continentButton.colors;
+        continentColors.normalColor = Color.white;
+        continentColors.highlightedColor = new Color(1.15f, 1.15f, 1.15f, 1f);
+        continentColors.pressedColor = new Color(0.78f, 0.86f, 0.95f, 1f);
+        continentButton.colors = continentColors;
+
+        Outline continentOutline =
+            continentButton.gameObject.AddComponent<Outline>();
+        continentOutline.effectColor = new Color(0.35f, 0.72f, 1f, 0.9f);
+        continentOutline.effectDistance = new Vector2(2f, -2f);
     }
 
-    private void AddMapBackground(RectTransform parent, string resourcePath)
+    private void AddMapBackground(
+        RectTransform parent,
+        string resourcePath,
+        string fallbackResourcePath = null)
     {
         Texture2D texture = Resources.Load<Texture2D>(resourcePath);
+        if (texture == null && !string.IsNullOrEmpty(fallbackResourcePath))
+        {
+            texture = Resources.Load<Texture2D>(fallbackResourcePath);
+        }
         RectTransform backgroundRect = CreateUIObject("Map Background", parent);
         backgroundRect.anchorMin = Vector2.zero;
         backgroundRect.anchorMax = Vector2.one;
@@ -2458,9 +2696,18 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         image.color = RowColor;
 
         string grade = JapaneseDisplayText.GetDungeonGrade(data.grade);
+        string nearbyTown = data.nearbyTownIndex >= 0 &&
+                            data.nearbyTownIndex < TownNames.Length
+            ? TownNames[data.nearbyTownIndex]
+            : "町未設定";
+        int clearedFloors = dungeonRunManager.GetClearedFloors(data);
+        int totalFloors = Mathf.Max(1, data.totalFloors);
+        string floorProgress = clearedFloors >= totalFloors
+            ? $"完全攻略 {totalFloors}/{totalFloors}F"
+            : $"次回 {clearedFloors + 1}/{totalFloors}F";
         string details =
-            $"{grade}  |  {data.dungeonName}  |  {GetDungeonEnemyGradeSummary(data)}  |  " +
-            $"踏破{data.clearGoldReward} G";
+            $"{nearbyTown}近隣  |  {grade}  |  {data.dungeonName}  |  " +
+            $"{floorProgress}  |  {GetDungeonEnemyGradeSummary(data)}";
         CreateText(row, details, 14, FontStyle.Bold, TextAnchor.MiddleLeft,
             new Vector2(14f, -44f), new Vector2(-130f, -8f), Color.white);
 
@@ -2666,6 +2913,46 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         RebuildPartyList();
         RebuildHealList();
         RefreshUI();
+
+        if (pendingTravelTownIndex >= 0)
+        {
+            int destinationTownIndex = pendingTravelTownIndex;
+            bool wasUnlock = pendingTravelWasUnlock;
+            bool openDungeonAfterTravel = pendingOpenDungeonAfterTravel;
+            pendingTravelTownIndex = -1;
+            pendingTravelWasUnlock = false;
+            pendingOpenDungeonAfterTravel = false;
+
+            if (victory)
+            {
+                unlockedTownIndices.Add(destinationTownIndex);
+                currentTownIndex = destinationTownIndex;
+                dayManager.AdvanceDay();
+                SyncDungeonUnlocks();
+                RefreshTownMapButtons();
+                if (openDungeonAfterTravel)
+                {
+                    OpenNearbyDungeon();
+                }
+                else
+                {
+                    ShowTownMap();
+                }
+                statusText.text = wasUnlock
+                    ? $"街道戦闘に勝利し、{TownNames[destinationTownIndex]}を解放しました。"
+                    : $"街道戦闘に勝利し、{TownNames[destinationTownIndex]}へ到着しました。";
+                saveManager?.SaveGame();
+            }
+            else
+            {
+                ShowWorldMap();
+                statusText.text = wasUnlock
+                    ? $"街道戦闘に敗北しました。{TownNames[destinationTownIndex]}は未解放のままです。"
+                    : $"街道戦闘に敗北したため、{TownNames[destinationTownIndex]}へ移動できませんでした。";
+            }
+            return;
+        }
+
         statusText.text = victory ? "戦闘に勝利しました。" : "戦闘に敗北しました。";
     }
 
@@ -2704,9 +2991,15 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         string result = progressionManager != null
             ? progressionManager.LastExplorationResult
             : string.Empty;
-        statusText.text =
-            (cleared ? "ダンジョンを踏破しました。" : "ダンジョン探索を終了しました。") +
-            (string.IsNullOrEmpty(result) ? string.Empty : $" {result}");
+        statusText.text = cleared
+            ? dungeonRunManager.IsSelectedDungeonFullyCleared
+                ? "ダンジョンを完全攻略しました。"
+                : $"フロアを攻略しました。次回は第{dungeonRunManager.CurrentFloor}フロアです。"
+            : "ダンジョン探索を終了しました。";
+        if (!string.IsNullOrEmpty(result))
+        {
+            statusText.text += $" {result}";
+        }
         UpdateDungeonEventUI();
         RebuildDungeonSelectionList();
         RefreshUI();
@@ -3824,10 +4117,17 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         else
         {
             dungeonStatusText.text = dungeonRunManager.IsRunning
-                ? $"探索中: {dungeonRunManager.CurrentEncounter}/{dungeonRunManager.EncounterCount}"
+                ? $"第{dungeonRunManager.CurrentFloor}/" +
+                  $"{dungeonRunManager.TotalFloors}フロア探索中: " +
+                  $"{dungeonRunManager.CurrentEncounter}/" +
+                  $"{dungeonRunManager.EncounterCount}"
                 : $"{dungeonRunManager.DungeonName}  |  " +
-                  $"遭遇{dungeonRunManager.EncounterCount}回  |  " +
-                  $"踏破報酬 {dungeonRunManager.ClearGoldReward} G\n" +
+                  $"第{dungeonRunManager.CurrentFloor}/" +
+                  $"{dungeonRunManager.TotalFloors}フロア  |  " +
+                  $"遭遇{dungeonRunManager.EncounterCount}回\n" +
+                  $"フロア報酬 " +
+                  $"{Mathf.Max(0, dungeonRunManager.SelectedDungeon != null ? dungeonRunManager.SelectedDungeon.floorClearGoldReward : 0)} G  |  " +
+                  $"完全攻略報酬 {dungeonRunManager.ClearGoldReward} G\n" +
                   BuildDungeonRewardPreview(
                       dungeonRunManager.SelectedDungeon);
         }
@@ -3919,12 +4219,31 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             $"維持費 {(progressionManager != null ? progressionManager.StorageMaintenanceCost : 0)}G/日";
     }
 
+    private void ShowGlobalMap()
+    {
+        HideStandardPages();
+        globalMapPage.gameObject.SetActive(true);
+        worldMapPage.gameObject.SetActive(false);
+        townMapPage.gameObject.SetActive(false);
+        SetAllTabsInactive();
+        statusText.text =
+            $"現在地: {TownNames[currentTownIndex]}  |  大陸を選択";
+    }
+
+    private void ShowUnavailableWorldMap(string worldName)
+    {
+        statusText.text =
+            $"{worldName}は今後のアップデートで解放されます。";
+    }
+
     private void ShowWorldMap()
     {
         HideStandardPages();
+        globalMapPage.gameObject.SetActive(false);
         worldMapPage.gameObject.SetActive(true);
         townMapPage.gameObject.SetActive(false);
         SetAllTabsInactive();
+        RefreshTownMapButtons();
         statusText.text =
             $"現在地: {TownNames[currentTownIndex]}  |  移動先の町を選択";
     }
@@ -3932,6 +4251,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private void ShowTownMap()
     {
         HideStandardPages();
+        globalMapPage.gameObject.SetActive(false);
         worldMapPage.gameObject.SetActive(false);
         townMapPage.gameObject.SetActive(true);
         SetAllTabsInactive();
@@ -3942,29 +4262,130 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private void TravelToTown(int townIndex)
     {
         townIndex = Mathf.Clamp(townIndex, 0, TownNames.Length - 1);
-        if (townIndex != currentTownIndex)
+
+        if (townIndex == currentTownIndex)
         {
-            currentTownIndex = townIndex;
-            dayManager.AdvanceDay();
+            ShowTownMap();
+            return;
         }
-        ShowTownMap();
+
+        RequestTownTravel(townIndex, false);
+    }
+
+    private void RequestTownTravel(
+        int townIndex,
+        bool openDungeonAfterTravel)
+    {
+        bool isUnlocked = unlockedTownIndices.Contains(townIndex);
+        if (!isUnlocked)
+        {
+            int nextTownIndex = GetNextUnlockableTownIndex();
+            if (townIndex != nextTownIndex)
+            {
+                statusText.text = nextTownIndex >= 0
+                    ? $"先に{TownNames[nextTownIndex]}への移動クエストを攻略してください。"
+                    : "これ以上解放できる町はありません。";
+                return;
+            }
+        }
+
+        if (partyManager.Members.Count == 0)
+        {
+            statusText.text =
+                "町の移動には街道戦闘が発生するため、傭兵の編成が必要です。";
+            return;
+        }
+
+        confirmationTravelTownIndex = townIndex;
+        confirmationOpenDungeonAfterTravel = openDungeonAfterTravel;
+        string unlockNotice = isUnlocked
+            ? string.Empty
+            : "\n勝利すると新しい町が解放されます。";
+        travelConfirmationText.text =
+            $"{TownNames[currentTownIndex]} から\n" +
+            $"{TownNames[townIndex]} へ移動します。\n\n" +
+            $"・街道戦闘が発生します\n・勝利すると1日経過します" +
+            unlockNotice;
+        travelConfirmationOverlay.SetAsLastSibling();
+        travelConfirmationOverlay.gameObject.SetActive(true);
+    }
+
+    private void ConfirmTownTravel()
+    {
+        int destinationTownIndex = confirmationTravelTownIndex;
+        bool openDungeonAfterTravel = confirmationOpenDungeonAfterTravel;
+        HideTravelConfirmation();
+
+        if (destinationTownIndex < 0)
+        {
+            return;
+        }
+
+        StartTownTravelBattle(
+            destinationTownIndex,
+            openDungeonAfterTravel);
+    }
+
+    private void HideTravelConfirmation()
+    {
+        travelConfirmationOverlay?.gameObject.SetActive(false);
+        confirmationTravelTownIndex = -1;
+        confirmationOpenDungeonAfterTravel = false;
+    }
+
+    private void StartTownTravelBattle(
+        int destinationTownIndex,
+        bool openDungeonAfterTravel)
+    {
+        if (battleManager.IsBattling)
+        {
+            statusText.text = "戦闘中は町を移動できません。";
+            return;
+        }
+
+        if (partyManager.Members.Count == 0)
+        {
+            statusText.text =
+                $"{TownNames[destinationTownIndex]}への移動クエストには傭兵の編成が必要です。";
+            return;
+        }
+
+        ResetBattleLog();
+        pendingTravelTownIndex = destinationTownIndex;
+        pendingTravelWasUnlock =
+            !unlockedTownIndices.Contains(destinationTownIndex);
+        pendingOpenDungeonAfterTravel = openDungeonAfterTravel;
+        int enemyCount = 2 + Mathf.Abs(destinationTownIndex - currentTownIndex);
+        List<EnemyDataSO> enemies =
+            battleManager.CreateDefaultEnemyEncounter(enemyCount);
+
+        if (!battleManager.StartBattle(partyManager.Members, enemies))
+        {
+            pendingTravelTownIndex = -1;
+            pendingTravelWasUnlock = false;
+            pendingOpenDungeonAfterTravel = false;
+            statusText.text = "街道戦闘を開始できませんでした。";
+            return;
+        }
+
+        ShowBattlePage();
+        statusText.text =
+            $"町の移動: {TownNames[destinationTownIndex]}への街道を突破してください。";
     }
 
     private void OpenNearbyDungeon()
     {
-        if (dungeonRunManager.AvailableDungeons.Count > 0)
+        DungeonDataSO preferred =
+            dungeonRunManager.GetDungeonNearTown(currentTownIndex);
+        if (preferred == null)
         {
-            int preferredIndex = Mathf.Clamp(
-                currentTownIndex,
-                0,
-                dungeonRunManager.AvailableDungeons.Count - 1);
-            DungeonDataSO preferred =
-                dungeonRunManager.AvailableDungeons[preferredIndex];
-            if (!dungeonRunManager.TrySelectDungeon(preferred))
-            {
-                statusText.text =
-                    $"{TownNames[currentTownIndex]}近隣のダンジョンは未開放です。";
-            }
+            statusText.text =
+                $"{TownNames[currentTownIndex]}近隣に探索可能なダンジョンはありません。";
+        }
+        else if (!dungeonRunManager.TrySelectDungeon(preferred))
+        {
+            statusText.text =
+                $"{TownNames[currentTownIndex]}近隣のダンジョンは未開放です。";
         }
         ShowDungeonPage();
     }
@@ -3972,16 +4393,19 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private void TravelToDungeon(int townIndex)
     {
         townIndex = Mathf.Clamp(townIndex, 0, TownNames.Length - 1);
-        if (townIndex != currentTownIndex)
+
+        if (townIndex == currentTownIndex)
         {
-            currentTownIndex = townIndex;
-            dayManager.AdvanceDay();
+            OpenNearbyDungeon();
+            return;
         }
-        OpenNearbyDungeon();
+
+        RequestTownTravel(townIndex, true);
     }
 
     private void HideMapPages()
     {
+        globalMapPage?.gameObject.SetActive(false);
         worldMapPage?.gameObject.SetActive(false);
         townMapPage?.gameObject.SetActive(false);
     }
@@ -4016,6 +4440,12 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     {
         goldText.text =
             $"商人Lv{merchantData.MerchantLevel}  所持金 {merchantData.Gold} G";
+        if (dayText != null)
+        {
+            dayText.text = $"{dayManager.CurrentDay}日目";
+        }
+
+        RefreshTownMapButtons();
 
         for (int i = 0; i < hireButtons.Count; i++)
         {
@@ -4060,6 +4490,11 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private static void SetTabActive(Button button, bool isActive)
     {
+        if (button == null)
+        {
+            return;
+        }
+
         button.targetGraphic.color = isActive ? AccentColor : InactiveColor;
     }
 
@@ -4212,6 +4647,71 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             default:
                 return true;
         }
+    }
+
+    private void RefreshTownMapButtons()
+    {
+        for (int i = 0; i < townMapButtons.Count && i < TownNames.Length; i++)
+        {
+            Button button = townMapButtons[i];
+            if (button == null)
+            {
+                continue;
+            }
+
+            bool unlocked = unlockedTownIndices.Contains(i);
+            Text label = button.GetComponentInChildren<Text>();
+            if (label != null)
+            {
+                string state = i == currentTownIndex
+                    ? "\n【現在地】"
+                    : unlocked
+                        ? string.Empty
+                        : "\n【未解放】";
+                label.text = TownNames[i] + state;
+                label.color = unlocked
+                    ? Color.white
+                    : new Color(0.38f, 0.4f, 0.42f, 1f);
+            }
+
+            button.targetGraphic.color = unlocked
+                ? new Color(0.04f, 0.05f, 0.06f, 0.76f)
+                : new Color(0.005f, 0.005f, 0.008f, 0.97f);
+
+            RawImage[] markerImages = button.GetComponentsInChildren<RawImage>();
+            foreach (RawImage markerImage in markerImages)
+            {
+                markerImage.color = unlocked
+                    ? Color.white
+                    : new Color(0.035f, 0.035f, 0.04f, 1f);
+            }
+        }
+    }
+
+    private int GetNextUnlockableTownIndex()
+    {
+        int leftmostUnlockedTownIndex = TownNames.Length - 1;
+        foreach (int unlockedTownIndex in unlockedTownIndices)
+        {
+            leftmostUnlockedTownIndex =
+                Mathf.Min(leftmostUnlockedTownIndex, unlockedTownIndex);
+        }
+
+        return leftmostUnlockedTownIndex > 0
+            ? leftmostUnlockedTownIndex - 1
+            : -1;
+    }
+
+    private void SyncDungeonUnlocks()
+    {
+        if (dungeonRunManager == null)
+        {
+            dungeonRunManager =
+                GetComponent<DungeonRunManager>() ??
+                FindObjectOfType<DungeonRunManager>();
+        }
+
+        dungeonRunManager?.SetUnlockedTownIndices(GetUnlockedTownIndices());
     }
 
     private int CompareEquipment(
