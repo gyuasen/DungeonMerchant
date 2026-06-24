@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public class GameSaveData
 {
-    public int version = 10;
+    public int version = 12;
     public int gold = 500;
     public int merchantLevel = 1;
     public int merchantExperience;
@@ -14,9 +14,12 @@ public class GameSaveData
     public int merchantAppraisal;
     public int merchantLogistics;
     public int currentDay = 1;
-    public int currentTownIndex;
+    public int currentTownIndex = 2;
+    public List<int> unlockedTownIndices = new List<int> { 2 };
     public int highestUnlockedDungeonGrade;
     public string selectedDungeonAssetName;
+    public List<SavedDungeonFloorProgress> dungeonFloorProgress =
+        new List<SavedDungeonFloorProgress>();
     public List<SavedInventoryItem> inventory = new List<SavedInventoryItem>();
     public List<SavedEquipmentInstance> equipmentInventory =
         new List<SavedEquipmentInstance>();
@@ -59,6 +62,13 @@ public class SavedMercenary
     public SavedEquipmentInstance equippedArmorInstance;
     public string equippedAccessoryAssetName;
     public SavedEquipmentInstance equippedAccessoryInstance;
+}
+
+[Serializable]
+public class SavedDungeonFloorProgress
+{
+    public string dungeonAssetName;
+    public int clearedFloors;
 }
 
 [Serializable]

@@ -14,14 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dungeonName: "\u5C01\u3058\u3089\u308C\u305F\u5EC3\u5751"
   grade: 1
+  worldMapIndex: 0
+  nearbyTownIndex: 1
+  totalFloors: 4
   description: "\u9B54\u7269\u304C\u4F4F\u307F\u7740\u3044\u305F\u53E4\u3044\u9271\u5C71\u3002"
   encounterCount: 3
   firstEncounterEnemyCount: 3
   enemyCountIncreasePerEncounter: 1
+  enemyCountIncreasePerFloor: 1
   normalEnemies:
   - {fileID: 11400000, guid: 83e2c3814b5a44ffb387e19e1dbb7487, type: 2}
   - {fileID: 11400000, guid: a019250301a742f4bb74703c84e364d3, type: 2}
   bossEnemy: {fileID: 11400000, guid: 5801c50e8df7449bbab39e1ca0b4922f, type: 2}
+  floorClearGoldReward: 60
   clearGoldReward: 180
   clearItemRewards:
   - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
