@@ -494,23 +494,23 @@ public class DungeonRunManager : MonoBehaviour
             case DungeonEventType.AbandonedCamp:
                 EventTitle = "放棄された野営地";
                 EventDescription =
-                    "静かな野営地を発見しました。休息、物資探索、撤退を選べます。";
-                FirstOptionLabel = $"休息 HP+{restHealAmount}";
+                    "静かな野営地を発見しました。休息は時間を使いますが、今回のフロア探索は合計1日として処理されます。";
+                FirstOptionLabel = $"休息 HP+{restHealAmount}（時間消費）";
                 SecondOptionLabel = $"物資探索 +{treasureGoldReward / 2} G";
                 break;
             case DungeonEventType.TreasureCache:
                 EventTitle = "隠された宝箱";
                 EventDescription =
-                    "商人が隠したと思われる施錠された箱を発見しました。";
+                    "商人が隠したと思われる施錠された箱を発見しました。回収してもフロア探索日数は1日のままです。";
                 FirstOptionLabel = $"回収 +{treasureGoldReward} G";
-                SecondOptionLabel = $"休息 HP+{Mathf.Max(1, restHealAmount / 2)}";
+                SecondOptionLabel = $"休息 HP+{Mathf.Max(1, restHealAmount / 2)}（短時間）";
                 break;
             case DungeonEventType.CollapsedPassage:
                 EventTitle = "崩れた通路";
                 EventDescription =
-                    "近道は崩れかけています。強行突破するか、休息を取れます。";
-                FirstOptionLabel = $"強行突破 HP-{hazardDamage}";
-                SecondOptionLabel = $"休息 HP+{Mathf.Max(1, restHealAmount / 2)}";
+                    "近道は崩れかけています。強行突破は時間を使いますが、今回のフロア探索は合計1日として処理されます。";
+                FirstOptionLabel = $"強行突破 HP-{hazardDamage}（時間消費）";
+                SecondOptionLabel = $"休息 HP+{Mathf.Max(1, restHealAmount / 2)}（短時間）";
                 break;
         }
 

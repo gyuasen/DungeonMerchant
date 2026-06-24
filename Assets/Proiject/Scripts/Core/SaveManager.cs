@@ -227,6 +227,7 @@ public class SaveManager : MonoBehaviour
                     currentHP = mercenary.CurrentHP,
                     attack = mercenary.BaseAttack,
                     defense = mercenary.BaseDefense,
+                    maxMagicPower = mercenary.BaseMaxMagicPower,
                     attackSpeed = mercenary.BaseAttackSpeed,
                     hireCost = mercenary.HireCost,
                     contractEndDay = mercenary.ContractEndDay,
@@ -401,6 +402,7 @@ public class SaveManager : MonoBehaviour
             saved.currentHP,
             saved.attack,
             saved.defense,
+            saved.maxMagicPower,
             saved.attackSpeed,
             saved.hireCost);
         RestoreMercenaryEquipment(

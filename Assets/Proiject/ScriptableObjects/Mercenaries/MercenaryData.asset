@@ -18,6 +18,7 @@ MonoBehaviour:
   maxHP: 100
   attack: 10
   defense: 3
+  maxMagicPower: 60
   attackSpeed: 1
   hireCost: 100
   uniqueSkillUnlockLevel: 3
@@ -25,4 +26,5 @@ MonoBehaviour:
   uniqueSkillBonusMaxHP: 15
   uniqueSkillBonusAttack: 4
   uniqueSkillBonusDefense: 2
+  uniqueSkillBonusMaxMagicPower: 10
   uniqueSkillBonusAttackSpeed: 0.03

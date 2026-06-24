@@ -14,6 +14,7 @@ public class EnemyDataSO : ScriptableObject
     public int maxHP = 80;
     public int attack = 8;
     public int defense = 2;
+    [Min(0)] public int maxMagicPower = 40;
     public float attackSpeed = 1.0f;
 
     [Header("Reward")]

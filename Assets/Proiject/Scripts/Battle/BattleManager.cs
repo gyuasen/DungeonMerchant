@@ -19,6 +19,11 @@ public class BattleManager : MonoBehaviour
         new List<EnemyDataSO>();
     [SerializeField, Min(1)] private int fallbackEnemyCount = 3;
     [SerializeField, Min(0.05f)] private float actionDelay = 0.5f;
+    [SerializeField, Min(0)] private int magicPowerGainPerAction = 20;
+    [SerializeField, Min(0)] private int warriorTauntCost = 35;
+    [SerializeField, Min(0)] private int archerDoubleShotCost = 45;
+    [SerializeField, Min(0)] private int mageFireballCost = 50;
+    [SerializeField, Range(0f, 1f)] private float playerSkillUseChance = 0.6f;
 
     private readonly List<BattleUnit> playerUnits = new List<BattleUnit>();
     private readonly List<MercenaryInstance> battleMercenaries =
@@ -122,7 +127,9 @@ public class BattleManager : MonoBehaviour
             EnemyDataSO enemy = enemies[0];
             return $"{JapaneseDisplayText.GetEnemyName(enemy.enemyName)}  |  " +
                    $"{JapaneseDisplayText.GetMonsterGrade(enemy)}  |  HP {enemy.maxHP}  " +
-                   $"攻撃 {enemy.attack}  防御 {enemy.defense}  |  報酬 {enemy.goldReward} G";
+                   $"攻撃 {enemy.attack}  防御 {enemy.defense}  " +
+                   $"魔力 {enemy.maxMagicPower}  速度 {enemy.attackSpeed:0.00}  |  " +
+                   $"報酬 {enemy.goldReward} G";
         }
 
         int totalGold = 0;
@@ -204,6 +211,7 @@ public class BattleManager : MonoBehaviour
         fallbackEnemyData.maxHP = 20;
         fallbackEnemyData.attack = 5;
         fallbackEnemyData.defense = 1;
+        fallbackEnemyData.maxMagicPower = 20;
         fallbackEnemyData.attackSpeed = 1f;
         fallbackEnemyData.goldReward = 50;
         return fallbackEnemyData;
@@ -230,7 +238,9 @@ public class BattleManager : MonoBehaviour
                 mercenary.Attack,
                 mercenary.Defense,
                 mercenary.AttackSpeed,
-                true));
+                true,
+                mercenary.MercenaryClass,
+                mercenary.MaxMagicPower));
             battleMercenaries.Add(mercenary);
         }
 
@@ -259,7 +269,9 @@ public class BattleManager : MonoBehaviour
                 enemy.attack,
                 enemy.defense,
                 enemy.attackSpeed,
-                false));
+                false,
+                MercenaryClass.Warrior,
+                enemy.maxMagicPower));
             battleEnemyData.Add(enemy);
         }
     }
@@ -339,61 +351,75 @@ public class BattleManager : MonoBehaviour
 
         while (IsBattling)
         {
-            foreach (BattleUnit playerUnit in playerUnits)
+            List<BattleUnit> actionOrder = BuildActionOrder();
+            foreach (BattleUnit unit in actionOrder)
             {
-                if (playerUnit.IsDead)
+                if (unit.IsDead)
                 {
                     continue;
                 }
 
                 yield return new WaitForSeconds(actionDelay);
-                BattleUnit enemyTarget = GetFirstLivingEnemyUnit();
-                if (enemyTarget == null)
+
+                if (unit.IsPlayerSide)
                 {
-                    CompleteBattle(true);
-                    yield break;
+                    unit.GainMagicPower(CalculateMagicGain(unit));
+                    BattleUnit enemyTarget = GetFirstLivingEnemyUnit();
+                    if (enemyTarget == null)
+                    {
+                        CompleteBattle(true);
+                        yield break;
+                    }
+
+                    if (!TryUsePlayerSkill(unit, enemyTarget))
+                    {
+                        Attack(unit, enemyTarget);
+                    }
+                    unit.TickStatuses();
+
+                    if (GetFirstLivingEnemyUnit() == null)
+                    {
+                        CompleteBattle(true);
+                        yield break;
+                    }
                 }
-
-                Attack(playerUnit, enemyTarget);
-
-                if (GetFirstLivingEnemyUnit() == null)
+                else
                 {
-                    CompleteBattle(true);
-                    yield break;
-                }
-            }
+                    BattleUnit target = GetEnemyTarget();
+                    if (target == null)
+                    {
+                        CompleteBattle(false);
+                        yield break;
+                    }
 
-            BattleUnit target = GetFirstLivingPlayerUnit();
-            if (target == null)
-            {
-                CompleteBattle(false);
-                yield break;
-            }
+                    Attack(unit, target);
 
-            foreach (BattleUnit enemy in enemyUnits)
-            {
-                if (enemy.IsDead)
-                {
-                    continue;
-                }
-
-                target = GetFirstLivingPlayerUnit();
-                if (target == null)
-                {
-                    CompleteBattle(false);
-                    yield break;
-                }
-
-                yield return new WaitForSeconds(actionDelay);
-                Attack(enemy, target);
-
-                if (GetFirstLivingPlayerUnit() == null)
-                {
-                    CompleteBattle(false);
-                    yield break;
+                    if (GetFirstLivingPlayerUnit() == null)
+                    {
+                        CompleteBattle(false);
+                        yield break;
+                    }
                 }
             }
         }
+    }
+
+    private List<BattleUnit> BuildActionOrder()
+    {
+        List<BattleUnit> units = new List<BattleUnit>();
+        units.AddRange(playerUnits);
+        units.AddRange(enemyUnits);
+        units.RemoveAll(unit => unit == null || unit.IsDead);
+        units.Sort((left, right) =>
+            right.AttackSpeed.CompareTo(left.AttackSpeed));
+        return units;
+    }
+
+    private int CalculateMagicGain(BattleUnit unit)
+    {
+        return Mathf.Max(
+            1,
+            Mathf.RoundToInt(magicPowerGainPerAction * unit.AttackSpeed));
     }
 
     private void Attack(BattleUnit attacker, BattleUnit target)
@@ -408,6 +434,183 @@ public class BattleManager : MonoBehaviour
             attacker.IsPlayerSide ? BattleLogType.Player : BattleLogType.Enemy);
     }
 
+    private bool TryUsePlayerSkill(BattleUnit attacker, BattleUnit primaryTarget)
+    {
+        if (UnityEngine.Random.value > playerSkillUseChance)
+        {
+            return false;
+        }
+
+        if (CanDefeatWithNormalAttack(attacker, primaryTarget))
+        {
+            return false;
+        }
+
+        switch (attacker.MercenaryClass)
+        {
+            case MercenaryClass.Warrior:
+                return TryUseWarriorTaunt(attacker, primaryTarget);
+            case MercenaryClass.Archer:
+                return TryUseArcherDoubleShot(attacker, primaryTarget);
+            case MercenaryClass.Mage:
+                return TryUseMageFireball(attacker, primaryTarget);
+            default:
+                return false;
+        }
+    }
+
+    private bool TryUseWarriorTaunt(BattleUnit attacker, BattleUnit target)
+    {
+        if (attacker.IsTaunting)
+        {
+            return false;
+        }
+
+        if (!attacker.TryConsumeMagicPower(warriorTauntCost))
+        {
+            return false;
+        }
+
+        attacker.StartTaunt(2);
+        SendBattleMessage(
+            $"{attacker.UnitName}がスキル「挑発」を発動: " +
+            $"敵の攻撃を引きつけます。状態: {attacker.StatusSummary}。 " +
+            $"魔力 {attacker.CurrentMagicPower}/{attacker.MaxMagicPower}",
+            BattleLogType.Player);
+        return true;
+    }
+
+    private bool TryUseArcherDoubleShot(BattleUnit attacker, BattleUnit target)
+    {
+        if (!HasUsefulSkillTarget(
+                attacker,
+                Mathf.RoundToInt(attacker.Attack * 0.75f),
+                1) ||
+            !attacker.TryConsumeMagicPower(archerDoubleShotCost))
+        {
+            return false;
+        }
+
+        int totalDamage = 0;
+        for (int i = 0; i < 2; i++)
+        {
+            BattleUnit shotTarget = GetUsefulSkillTarget(
+                attacker,
+                Mathf.RoundToInt(attacker.Attack * 0.75f));
+            if (shotTarget == null)
+            {
+                break;
+            }
+
+            int previousHP = shotTarget.CurrentHP;
+            shotTarget.TakeDamage(Mathf.RoundToInt(attacker.Attack * 0.75f));
+            totalDamage += previousHP - shotTarget.CurrentHP;
+        }
+
+        SendBattleMessage(
+            $"{attacker.UnitName}がスキル「連射」を発動: " +
+            $"合計{totalDamage}ダメージ。 " +
+            $"魔力 {attacker.CurrentMagicPower}/{attacker.MaxMagicPower}",
+            BattleLogType.Player);
+        return true;
+    }
+
+    private bool TryUseMageFireball(BattleUnit attacker, BattleUnit target)
+    {
+        int fireballDamage = Mathf.RoundToInt(attacker.Attack * 1.65f);
+        BattleUnit skillTarget = GetUsefulSkillTarget(attacker, fireballDamage);
+        if (skillTarget == null ||
+            !attacker.TryConsumeMagicPower(mageFireballCost))
+        {
+            return false;
+        }
+
+        int previousHP = skillTarget.CurrentHP;
+        skillTarget.TakeDamage(fireballDamage);
+        int damageDealt = previousHP - skillTarget.CurrentHP;
+        SendBattleMessage(
+            $"{attacker.UnitName}がスキル「火球」を発動: " +
+            $"{skillTarget.UnitName}に{damageDealt}ダメージ。 " +
+            $"魔力 {attacker.CurrentMagicPower}/{attacker.MaxMagicPower}",
+            BattleLogType.Player);
+        return true;
+    }
+
+    private bool CanDefeatWithNormalAttack(BattleUnit attacker, BattleUnit target)
+    {
+        return target != null &&
+               target.CurrentHP <= target.EstimateDamageTaken(attacker.CalculateDamage());
+    }
+
+    private bool HasUsefulSkillTarget(
+        BattleUnit attacker,
+        int rawSkillDamage,
+        int maxTargets)
+    {
+        int found = 0;
+        foreach (BattleUnit enemy in enemyUnits)
+        {
+            if (IsUsefulSkillTarget(attacker, enemy, rawSkillDamage))
+            {
+                found++;
+                if (found >= maxTargets)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return found > 0;
+    }
+
+    private BattleUnit GetUsefulSkillTarget(
+        BattleUnit attacker,
+        int rawSkillDamage)
+    {
+        BattleUnit bestTarget = null;
+        int bestHP = -1;
+        foreach (BattleUnit enemy in enemyUnits)
+        {
+            if (!IsUsefulSkillTarget(attacker, enemy, rawSkillDamage))
+            {
+                continue;
+            }
+
+            if (enemy.CurrentHP > bestHP)
+            {
+                bestHP = enemy.CurrentHP;
+                bestTarget = enemy;
+            }
+        }
+
+        return bestTarget;
+    }
+
+    private bool IsUsefulSkillTarget(
+        BattleUnit attacker,
+        BattleUnit target,
+        int rawSkillDamage)
+    {
+        if (target == null || target.IsDead)
+        {
+            return false;
+        }
+
+        int normalDamage = target.EstimateDamageTaken(attacker.CalculateDamage());
+        if (target.CurrentHP <= normalDamage)
+        {
+            return false;
+        }
+
+        int skillDamage = target.EstimateDamageTaken(rawSkillDamage);
+        if (skillDamage <= normalDamage)
+        {
+            return false;
+        }
+
+        return skillDamage <= target.CurrentHP + Mathf.Max(8, normalDamage);
+    }
+
     private BattleUnit GetFirstLivingPlayerUnit()
     {
         foreach (BattleUnit playerUnit in playerUnits)
@@ -419,6 +622,19 @@ public class BattleManager : MonoBehaviour
         }
 
         return null;
+    }
+
+    private BattleUnit GetEnemyTarget()
+    {
+        foreach (BattleUnit playerUnit in playerUnits)
+        {
+            if (playerUnit.IsTaunting)
+            {
+                return playerUnit;
+            }
+        }
+
+        return GetFirstLivingPlayerUnit();
     }
 
     private BattleUnit GetFirstLivingEnemyUnit()

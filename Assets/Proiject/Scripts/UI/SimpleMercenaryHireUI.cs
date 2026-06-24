@@ -94,6 +94,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform dungeonSelectionList;
     private Button hireTabButton = null;
     private Button mapButton;
+    private Button townMapButton;
     private Button companyTabButton = null;
     private Button partyTabButton = null;
     private Button healTabButton = null;
@@ -619,13 +620,20 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         mapRect.sizeDelta = new Vector2(120f, 40f);
         mapRect.anchoredPosition = new Vector2(172f, -18f);
 
+        townMapButton = CreateActionButton(panel, "町マップ", ShowTownMap);
+        RectTransform townMapRect = townMapButton.GetComponent<RectTransform>();
+        townMapRect.anchorMin = townMapRect.anchorMax = new Vector2(0f, 1f);
+        townMapRect.pivot = new Vector2(0f, 1f);
+        townMapRect.sizeDelta = new Vector2(100f, 40f);
+        townMapRect.anchoredPosition = new Vector2(296f, -18f);
+
         RectTransform dayDisplayRect =
             CreateUIObject("Day Display", panel);
         dayDisplayRect.anchorMin = dayDisplayRect.anchorMax =
             new Vector2(0f, 1f);
         dayDisplayRect.pivot = new Vector2(0f, 1f);
-        dayDisplayRect.sizeDelta = new Vector2(170f, 44f);
-        dayDisplayRect.anchoredPosition = new Vector2(312f, -16f);
+        dayDisplayRect.sizeDelta = new Vector2(78f, 44f);
+        dayDisplayRect.anchoredPosition = new Vector2(404f, -16f);
         dayDisplayRect.gameObject.AddComponent<Image>().color =
             new Color(0.11f, 0.13f, 0.16f, 1f);
 
@@ -3117,7 +3125,8 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             $"HP: {mercenary.CurrentHP} / {mercenary.MaxHP}\n" +
             $"攻撃: {mercenary.Attack}\n" +
             $"防御: {mercenary.Defense}\n" +
-            $"攻撃速度: {mercenary.AttackSpeed:0.00}\n" +
+            $"行動速度: {mercenary.AttackSpeed:0.00}\n" +
+            $"最大魔力: {mercenary.MaxMagicPower}\n" +
             $"武器: {GetEquippedEquipmentName(mercenary, EquipmentSlot.Weapon)}\n" +
             $"防具: {GetEquippedEquipmentName(mercenary, EquipmentSlot.Armor)}\n" +
             $"装飾品: {GetEquippedEquipmentName(mercenary, EquipmentSlot.Accessory)}\n" +
@@ -4226,6 +4235,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         worldMapPage.gameObject.SetActive(false);
         townMapPage.gameObject.SetActive(false);
         SetAllTabsInactive();
+        SetMapHeaderButtons(false);
         statusText.text =
             $"現在地: {TownNames[currentTownIndex]}  |  大陸を選択";
     }
@@ -4243,6 +4253,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         worldMapPage.gameObject.SetActive(true);
         townMapPage.gameObject.SetActive(false);
         SetAllTabsInactive();
+        SetMapHeaderButtons(false);
         RefreshTownMapButtons();
         statusText.text =
             $"現在地: {TownNames[currentTownIndex]}  |  移動先の町を選択";
@@ -4255,6 +4266,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         worldMapPage.gameObject.SetActive(false);
         townMapPage.gameObject.SetActive(true);
         SetAllTabsInactive();
+        SetMapHeaderButtons(false);
         statusText.text =
             $"{TownNames[currentTownIndex]}  |  利用する施設を選択";
     }
@@ -4408,6 +4420,20 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         globalMapPage?.gameObject.SetActive(false);
         worldMapPage?.gameObject.SetActive(false);
         townMapPage?.gameObject.SetActive(false);
+        SetMapHeaderButtons(true);
+    }
+
+    private void SetMapHeaderButtons(bool showTownMapButton)
+    {
+        if (mapButton != null)
+        {
+            mapButton.gameObject.SetActive(true);
+        }
+
+        if (townMapButton != null)
+        {
+            townMapButton.gameObject.SetActive(showTownMapButton);
+        }
     }
 
     private void HideStandardPages()
@@ -5014,6 +5040,19 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private static string BuildMercenarySkillSummary(MercenaryInstance mercenary)
     {
         List<string> skills = new List<string>();
+        switch (mercenary.MercenaryClass)
+        {
+            case MercenaryClass.Warrior:
+                skills.Add("戦闘スキル: 挑発の一撃（魔力35）");
+                break;
+            case MercenaryClass.Archer:
+                skills.Add("戦闘スキル: 連射（魔力45）");
+                break;
+            case MercenaryClass.Mage:
+                skills.Add("戦闘スキル: 火球（魔力50）");
+                break;
+        }
+
         if (mercenary.Level >= 2)
         {
             switch (mercenary.MercenaryClass)
@@ -5038,11 +5077,12 @@ public class SimpleMercenaryHireUI : MonoBehaviour
                 $"{data.uniqueSkillName}: HP+{data.uniqueSkillBonusMaxHP}、" +
                 $"攻撃+{data.uniqueSkillBonusAttack}、" +
                 $"防御+{data.uniqueSkillBonusDefense}、" +
+                $"魔力+{data.uniqueSkillBonusMaxMagicPower}、" +
                 $"速度+{data.uniqueSkillBonusAttackSpeed:0.00}");
         }
         return skills.Count > 0
             ? string.Join(" / ", skills)
-            : "Lv2で初歩スキルを取得";
+            : "スキル未設定";
     }
 
     private MercenaryContractType GetUnlockedContractType()

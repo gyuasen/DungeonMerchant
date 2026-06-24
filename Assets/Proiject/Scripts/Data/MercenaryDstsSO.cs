@@ -14,6 +14,7 @@ public class MercenaryDataSO : ScriptableObject
     public int maxHP = 100;
     public int attack = 10;
     public int defense = 3;
+    [Min(0)] public int maxMagicPower = 60;
     public float attackSpeed = 1.0f;
 
     [Header("Employment")]
@@ -25,5 +26,6 @@ public class MercenaryDataSO : ScriptableObject
     public int uniqueSkillBonusMaxHP = 10;
     public int uniqueSkillBonusAttack = 3;
     public int uniqueSkillBonusDefense;
+    public int uniqueSkillBonusMaxMagicPower;
     public float uniqueSkillBonusAttackSpeed = 0.03f;
 }
