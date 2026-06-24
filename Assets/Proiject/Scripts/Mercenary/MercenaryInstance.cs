@@ -16,6 +16,7 @@ public class MercenaryInstance
     [SerializeField] private int currentHP;
     [SerializeField] private int attack;
     [SerializeField] private int defense;
+    [SerializeField] private int maxMagicPower;
     [SerializeField] private float attackSpeed;
     [SerializeField] private int hireCost;
     [SerializeField] private int contractEndDay;
@@ -46,6 +47,7 @@ public class MercenaryInstance
     public float AttackSpeed =>
         attackSpeed + GetEquipmentBonusAttackSpeed() + GetSetBonusAttackSpeed() +
         GetSkillBonusAttackSpeed();
+    public int MaxMagicPower => maxMagicPower + GetSkillBonusMaxMagicPower();
     public int HireCost => hireCost;
     public int ContractEndDay => contractEndDay;
     public bool ContractNeedsRenewal => contractNeedsRenewal;
@@ -56,6 +58,7 @@ public class MercenaryInstance
     public int BaseMaxHP => maxHP;
     public int BaseAttack => attack;
     public int BaseDefense => defense;
+    public int BaseMaxMagicPower => maxMagicPower;
     public float BaseAttackSpeed => attackSpeed;
     public ItemDataSO EquippedWeapon =>
         equippedWeaponInstance?.BaseItem ?? equippedWeapon;
@@ -88,8 +91,10 @@ public class MercenaryInstance
         currentHP = maxHP;
         attack = mercenaryData.attack;
         defense = mercenaryData.defense;
+        maxMagicPower = mercenaryData.maxMagicPower;
         attackSpeed = mercenaryData.attackSpeed;
         hireCost = mercenaryData.hireCost;
+        ApplyClassStatBonuses();
     }
 
     public MercenaryInstance(
@@ -98,6 +103,7 @@ public class MercenaryInstance
         int generatedMaxHP,
         int generatedAttack,
         int generatedDefense,
+        int generatedMaxMagicPower,
         float generatedAttackSpeed,
         int generatedHireCost)
     {
@@ -117,8 +123,10 @@ public class MercenaryInstance
         currentHP = maxHP;
         attack = generatedAttack;
         defense = generatedDefense;
+        maxMagicPower = generatedMaxMagicPower;
         attackSpeed = generatedAttackSpeed;
         hireCost = generatedHireCost;
+        ApplyClassStatBonuses();
     }
 
     public void SetCurrentHP(int value)
@@ -380,6 +388,7 @@ public class MercenaryInstance
                 hpGrowth = 7;
                 attackGrowth = 4;
                 defenseGrowth = 1;
+                maxMagicPower += 5;
                 speedGrowth = 0.01f;
                 break;
             default:
@@ -414,6 +423,7 @@ public class MercenaryInstance
         int restoredCurrentHP,
         int restoredAttack,
         int restoredDefense,
+        int restoredMaxMagicPower,
         float restoredAttackSpeed,
         int restoredHireCost)
     {
@@ -432,9 +442,11 @@ public class MercenaryInstance
             maxHP = Mathf.Max(1, restoredMaxHP),
             attack = Mathf.Max(0, restoredAttack),
             defense = Mathf.Max(0, restoredDefense),
+            maxMagicPower = Mathf.Max(0, restoredMaxMagicPower),
             attackSpeed = Mathf.Max(0.1f, restoredAttackSpeed),
             hireCost = Mathf.Max(0, restoredHireCost)
         };
+        mercenary.EnsureRestoredMagicStat();
         mercenary.currentHP = Mathf.Clamp(restoredCurrentHP, 0, mercenary.maxHP);
         if (mercenary.level >= 99)
         {
@@ -583,6 +595,49 @@ public class MercenaryInstance
                level >= Mathf.Max(1, baseData.uniqueSkillUnlockLevel)
             ? bonus + baseData.uniqueSkillBonusAttackSpeed
             : bonus;
+    }
+
+    private int GetSkillBonusMaxMagicPower()
+    {
+        int bonus = IsUnique &&
+                    level >= Mathf.Max(1, baseData.uniqueSkillUnlockLevel)
+            ? baseData.uniqueSkillBonusMaxMagicPower
+            : 0;
+        return bonus;
+    }
+
+    private void ApplyClassStatBonuses()
+    {
+        switch (mercenaryClass)
+        {
+            case MercenaryClass.Archer:
+                attackSpeed += 0.15f;
+                break;
+            case MercenaryClass.Mage:
+                maxMagicPower += 25;
+                break;
+        }
+    }
+
+    private void EnsureRestoredMagicStat()
+    {
+        if (maxMagicPower > 0)
+        {
+            return;
+        }
+
+        switch (mercenaryClass)
+        {
+            case MercenaryClass.Mage:
+                maxMagicPower = 125;
+                break;
+            case MercenaryClass.Archer:
+                maxMagicPower = 75;
+                break;
+            default:
+                maxMagicPower = 60;
+                break;
+        }
     }
 
     private int GetBonusMaxHP(EquipmentSlot slot)

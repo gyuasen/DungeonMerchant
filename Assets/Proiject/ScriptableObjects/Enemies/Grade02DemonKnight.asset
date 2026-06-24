@@ -18,6 +18,7 @@ MonoBehaviour:
   maxHP: 145
   attack: 31
   defense: 14
+  maxMagicPower: 60
   attackSpeed: 1
   goldReward: 300
   itemDrops:

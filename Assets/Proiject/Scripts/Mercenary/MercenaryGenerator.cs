@@ -133,6 +133,7 @@ public class MercenaryGenerator : MonoBehaviour
             VaryInt(archetype.baseMaxHP, archetype.statVariation, 1),
             VaryInt(archetype.baseAttack, archetype.statVariation, 0),
             VaryInt(archetype.baseDefense, archetype.statVariation, 0),
+            VaryInt(archetype.baseMaxMagicPower, archetype.statVariation, 0),
             VaryFloat(archetype.baseAttackSpeed, archetype.statVariation, 0.1f),
             VaryInt(archetype.baseHireCost, archetype.hireCostVariation, 0));
     }
@@ -230,6 +231,7 @@ public class MercenaryGenerator : MonoBehaviour
                 fallback.baseMaxHP = 82;
                 fallback.baseAttack = 13;
                 fallback.baseDefense = 2;
+                fallback.baseMaxMagicPower = 75;
                 fallback.baseAttackSpeed = 1.25f;
                 fallback.baseHireCost = 110;
                 break;
@@ -237,6 +239,7 @@ public class MercenaryGenerator : MonoBehaviour
                 fallback.baseMaxHP = 72;
                 fallback.baseAttack = 16;
                 fallback.baseDefense = 1;
+                fallback.baseMaxMagicPower = 100;
                 fallback.baseAttackSpeed = 0.9f;
                 fallback.baseHireCost = 120;
                 break;
@@ -244,6 +247,7 @@ public class MercenaryGenerator : MonoBehaviour
                 fallback.baseMaxHP = 100;
                 fallback.baseAttack = 10;
                 fallback.baseDefense = 3;
+                fallback.baseMaxMagicPower = 60;
                 fallback.baseAttackSpeed = 1f;
                 fallback.baseHireCost = 100;
                 break;

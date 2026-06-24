@@ -13,6 +13,7 @@ public class MercenaryArchetypeSO : ScriptableObject
     [Min(1)] public int baseMaxHP = 100;
     [Min(0)] public int baseAttack = 10;
     [Min(0)] public int baseDefense = 3;
+    [Min(0)] public int baseMaxMagicPower = 60;
     [Min(0.1f)] public float baseAttackSpeed = 1f;
     [Min(0)] public int baseHireCost = 100;
 

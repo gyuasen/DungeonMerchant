@@ -199,7 +199,7 @@ public class ProgressionManager : MonoBehaviour
     private void HandleDungeonCompleted(bool cleared)
     {
         ResolveReferences();
-        int days = 1 + explorationExtraDays;
+        int days = 1;
         int grade = dungeonRunManager?.SelectedDungeon != null
             ? (int)dungeonRunManager.SelectedDungeon.grade
             : 0;

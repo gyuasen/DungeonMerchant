@@ -17,6 +17,7 @@ MonoBehaviour:
   baseMaxHP: 72
   baseAttack: 16
   baseDefense: 1
+  baseMaxMagicPower: 100
   baseAttackSpeed: 0.9
   baseHireCost: 120
   statVariation: 0.15

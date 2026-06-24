@@ -386,3 +386,86 @@
 - This removes reliance on the intermediate inventory event timing and saves the final equipment state immediately.
 - `dotnet build DungeonMerchant.sln` completed with 0 warnings and 0 errors.
 - Rollback: remove the `SaveManager` reference and `SaveEquipmentChanges()` calls from `SimpleMercenaryHireUI.cs`.
+## 2026-06-24
+
+### 施設画面から町マップへ戻る導線を追加
+- ユーザーから、町施設をクリックした後の遷移先が全体マップだけになっていると報告あり。
+- 既存の `全体マップ` ボタンの横に `町マップ` ヘッダーボタンを追加。
+- 通常の施設画面では `全体マップ` と `町マップ` の両方を表示し、現在の町マップへ直接戻れるようにした。
+- マップ画面では追加した `町マップ` ボタンを非表示にし、既存のマップ内ナビゲーションを維持。
+- 新しいボタンと重ならないように、日数表示の位置と幅を調整。
+- `dotnet build DungeonMerchant.sln` は最初、読み取り専用サンドボックスのためMSBuildが一時ファイルを作れず失敗。
+- 同じビルドを承認付きで再実行し、警告0件、エラー0件で成功。
+- 戻す場合は `townMapButton`、`BuildUI` での生成、`SetMapHeaderButtons`、`ShowGlobalMap` / `ShowWorldMap` / `ShowTownMap` / `HideMapPages` の関連呼び出しを戻す。
+## 2026-06-24
+
+### 戦闘スキルと戦闘用魔力を実装
+- ユーザーから、スキルの実装とスキル発動に必要な魔力の実装依頼あり。
+- `BattleUnit` に戦闘中だけ使う魔力を追加。
+- プレイヤー側の戦闘ユニットは少量の魔力を持って戦闘を開始し、行動開始時に魔力を `20` 回復する。
+- `MercenaryInstance` に最大魔力を追加。
+  - 戦士: `60 + level * 2`
+  - 弓兵: `75 + level * 2`
+  - 魔法使い: `100 + level * 3`
+- 魔力が足りている場合、職業ごとのスキルを自動発動する処理を追加。
+  - 戦士: `挑発の一撃`、消費35、低威力攻撃と敵の攻撃引きつけ。
+  - 弓兵: `連射`、消費45、威力を落とした2回攻撃。
+  - 魔法使い: `火球`、消費50、単体へ高威力攻撃。
+- 挑発中の戦士がいる場合、敵のターゲット選択で優先されるようにした。
+- 戦闘ログにスキル名、ダメージ、残り魔力を表示。
+- 傭兵詳細UIに最大魔力と各傭兵の戦闘スキル情報を表示。
+- 現在魔力は戦闘専用で、戦闘間では保存しない方針。
+- `dotnet build DungeonMerchant.sln` は警告0件、エラー0件で成功。
+- 戻す場合は `BattleUnit.cs`、`BattleManager.cs`、`MercenaryInstance.cs`、`SimpleMercenaryHireUI.cs` のスキル表示追加を戻す。
+## 2026-06-24
+
+### 傭兵とモンスターに魔力と行動速度ステータスを追加
+- ユーザーから、傭兵とモンスターの両方に魔力と行動順を決める速度ステータスを追加する依頼あり。
+- `MercenaryDataSO`、`MercenaryArchetypeSO`、`MercenaryInstance`、`EnemyDataSO`、セーブデータに `maxMagicPower` を追加。
+- 既存の `attackSpeed` を、戦闘中の行動順を決める速度ステータスとして使用。
+- 戦闘順は「味方全員の後に敵全員」ではなく、生存している味方と敵を毎ラウンド速度順で並べるように変更。
+- 魔力回復量は行動速度に応じて増え、速いユニットほど魔力がたまりやすくなった。
+- 先に実装した戦闘スキルは、傭兵のステータス上の `MaxMagicPower` を使うように変更。
+- 弓兵は生成時に速度ボーナスを得る。
+- 魔法使いは生成時に最大魔力ボーナスを得て、レベルアップ時にも追加で魔力が伸びる。
+- 古いセーブで魔力ステータスがない場合は、職業に応じて補完する。
+- 敵SOアセットに `maxMagicPower` の値を明示的に追加。
+- 傭兵アーキタイプと固有傭兵アセットにも魔力の値を明示的に追加。
+- 傭兵詳細UIでは速度ステータスを `行動速度` と表示。
+- セーブバージョンを13へ更新。
+- `dotnet build DungeonMerchant.sln` は警告0件、エラー0件で成功。
+- 戻す場合は `EnemyDateSO.cs`、`MercenaryDstsSO.cs`、`MercenaryArchetypeSO.cs`、`MercenaryInstance.cs`、`MercenaryGenerator.cs`、`BattleManager.cs`、`GameSaveData.cs`、`SaveManager.cs`、`SimpleMercenaryHireUI.cs`、編集した敵/傭兵SOアセットを戻す。
+## 2026-06-24
+
+### フロア日数、スキルAI、挑発状態の挙動を調整
+- ユーザーから、ダンジョン1フロアの探索日数を1日にする依頼あり。
+- 探索完了時の処理を変更し、イベント遅延日数に関係なくフロア探索は必ず `1` 日だけ進むようにした。
+- ユーザーから、通常攻撃で倒せる場合や過剰攻撃になる場合など、無駄になる場面ではスキルを使わないようにする依頼あり。
+- スキル発動前にランダム発動率と有用性チェックを追加。
+- 現在のターゲットを通常攻撃で倒せる場合、スキルは使わないようにした。
+- ダメージスキルは有効な対象を探し、大きな過剰攻撃を避けるようにした。
+- 弓兵の `連射` は硬い単体相手には使えるが、通常攻撃で倒せる対象へ無駄撃ちしない。
+- ユーザー指摘により、`挑発` は攻撃スキルではない扱いへ変更。
+- 戦士の `挑発` をダメージ攻撃から、自分に付与する状態効果へ変更。
+- `BattleUnit` に挑発ターン、防御バフターン、防御バフ量、実効防御、状態概要の戦闘状態フィールドを追加。
+- 敵のターゲット選択は、挑発中のユニットを引き続き優先する。
+- この時点では挑発はダメージを与えず、敵の攻撃を引きつけ、一時的な防御ボーナスを得る効果にした。
+- `dotnet build DungeonMerchant.sln` は警告0件、エラー0件で成功。
+- 戻す場合は `ProgressionManager.cs`、`BattleUnit.cs`、`BattleManager.cs` の変更を戻す。
+## 2026-06-24
+
+### 挑発の防御アップ削除とダンジョンイベント文言の調整
+- ユーザー要望により、挑発による防御上昇を削除。
+- `BattleUnit` の挑発状態は敵の狙われやすさだけに影響し、防御力は変化しない。
+- `BattleManager` の戦士挑発ログから防御アップの表記を削除。
+- ダンジョンイベントの説明文と選択肢に、時間消費と「フロア探索は合計1日として処理される」内容を追記。
+- `dotnet build DungeonMerchant.sln` は警告0件、エラー0件で成功。
+- 戻す場合は `BattleUnit.cs`、`BattleManager.cs`、`DungeonRunManager.cs` の変更を戻す。
+## 2026-06-24
+
+### 今日分の共有記録を日本語表記へ修正
+- ユーザー要望により、今日行った変更の共有記録で英語のまま残っていた部分を日本語へ修正。
+- `handoff/SCHOOL_WORK_LOG.md` の2026-06-24分にある、町マップ導線、戦闘スキル、魔力/行動速度、フロア日数/スキルAIの記録を日本語化。
+- `handoff/SHARED_PROJECT_STATUS.md` の2026-06-24分にある学校側更新を日本語化。
+- コード変更はなく、共有記録のみの修正のためビルドは未実行。
+- 戻す場合は、この節の直前に行った `handoff/SCHOOL_WORK_LOG.md` と `handoff/SHARED_PROJECT_STATUS.md` の文言修正を戻す。
