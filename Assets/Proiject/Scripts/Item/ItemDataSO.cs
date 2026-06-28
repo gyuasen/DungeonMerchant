@@ -43,5 +43,6 @@ public enum EquipmentSetId
     AncientGuardian,
     Vanguard,
     Windstalker,
-    ArcaneSage
+    ArcaneSage,
+    OniHunter
 }

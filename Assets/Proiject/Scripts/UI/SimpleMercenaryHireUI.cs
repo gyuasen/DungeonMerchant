@@ -50,9 +50,16 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform characterDetailOverlay;
     private Text characterDetailTitle;
     private Text characterDetailText;
+    private RectTransform characterStatusPage;
+    private RectTransform characterEquipmentPage;
+    private RectTransform characterSkillList;
+    private Text characterSkillDetailText;
+    private Button characterStatusTabButton;
+    private Button characterEquipmentTabButton;
     private RectTransform characterEquipmentList;
     private ScrollRect characterEquipmentScrollRect;
     private MercenaryInstance selectedDetailMercenary;
+    private bool showingCharacterStatusPage = true;
     private RectTransform equipmentDetailOverlay;
     private Text equipmentDetailTitle;
     private Text equipmentDetailText;
@@ -80,6 +87,11 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform partyPage;
     private RectTransform healPage;
     private RectTransform battlePage;
+    private RectTransform roadBattlePage;
+    private Text roadBattleRouteText;
+    private Button roadContinueButton;
+    private Button roadRetreatButton;
+    private RectTransform battleLogPanel;
     private RectTransform dungeonPage;
     private RectTransform marketPage;
     private RectTransform blacksmithPage;
@@ -121,6 +133,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private Text dungeonEventDescriptionText;
     private Text marketInfoText;
     private Font uiFont;
+    private Font uiBodyFont;
     private RectTransform battleLogContent;
     private RectTransform battleLogViewport;
     private ScrollRect battleLogScrollRect;
@@ -131,6 +144,10 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private bool confirmationOpenDungeonAfterTravel;
     private bool pendingTravelWasUnlock;
     private bool pendingOpenDungeonAfterTravel;
+    private int pendingTravelEncounterCount;
+    private int pendingTravelEncounterIndex;
+    private bool pendingRoadRareEncounter;
+    private bool isAwaitingRoadTravelChoice;
 
     private static readonly string[] TownNames =
     {
@@ -183,10 +200,27 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private static readonly Color BackgroundColor = new Color(0.07f, 0.08f, 0.1f, 1f);
     private static readonly Color PanelColor = new Color(0.13f, 0.15f, 0.18f, 1f);
-    private static readonly Color RowColor = new Color(0.19f, 0.21f, 0.24f, 1f);
-    private static readonly Color AccentColor = new Color(0.2f, 0.65f, 0.48f, 1f);
-    private static readonly Color InactiveColor = new Color(0.25f, 0.28f, 0.32f, 1f);
-    private static readonly Color MutedTextColor = new Color(0.7f, 0.74f, 0.78f, 1f);
+    private static readonly Color RowColor =
+        new Color(0.27f, 0.16f, 0.09f, 0.94f);
+    private static readonly Color AccentColor =
+        new Color(0.18f, 0.36f, 0.24f, 1f);
+    private static readonly Color InactiveColor =
+        new Color(0.24f, 0.14f, 0.08f, 0.96f);
+    private static readonly Color WoodButtonColor =
+        new Color(0.35f, 0.22f, 0.13f, 1f);
+    private static readonly Color ImportantButtonColor =
+        new Color(0.43f, 0.15f, 0.12f, 1f);
+    private static readonly Color FrameColor =
+        new Color(0.72f, 0.52f, 0.27f, 0.9f);
+    private static readonly Color ButtonTextColor =
+        new Color(1f, 0.94f, 0.79f, 1f);
+    private static readonly Color MutedTextColor =
+        new Color(0.82f, 0.73f, 0.59f, 1f);
+    private static readonly Color ParchmentTextColor =
+        Color.black;
+    private static readonly Color ParchmentMutedColor =
+        Color.black;
+    private static Sprite parchmentPanelSprite;
 
     private void Start()
     {
@@ -199,6 +233,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         }
 
         uiFont = LoadUIFont();
+        uiBodyFont = LoadBodyFont();
         PopulateUniqueCandidatesIfNeeded();
         CacheAlreadyHiredCandidates();
         EnsureEventSystem();
@@ -463,7 +498,18 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private Font LoadUIFont()
     {
         Font font = Font.CreateDynamicFontFromOSFont(
-            new[] { "Yu Gothic UI", "Yu Gothic", "Meiryo", "MS Gothic" },
+            new[]
+            {
+                "游明朝 Demibold",
+                "Yu Mincho Demibold",
+                "UD デジタル 教科書体 N",
+                "UD Digi Kyokasho N",
+                "游明朝",
+                "Yu Mincho",
+                "Yu Gothic UI",
+                "Meiryo",
+                "MS Gothic"
+            },
             16);
 
         if (font == null)
@@ -477,6 +523,12 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         }
 
         return font;
+    }
+
+    private Font LoadBodyFont()
+    {
+        Font font = Resources.Load<Font>("Fonts/ZenKurenaido-Regular");
+        return font != null ? font : uiFont;
     }
 
     private void PopulateUniqueCandidatesIfNeeded()
@@ -611,7 +663,8 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         guildPanel = panel;
 
         CreateText(panel, "傭兵商会", 28, FontStyle.Bold, TextAnchor.MiddleLeft,
-            new Vector2(28f, -62f), new Vector2(-28f, -18f), Color.white);
+            new Vector2(28f, -62f), new Vector2(-28f, -18f),
+            ParchmentTextColor);
 
         mapButton = CreateActionButton(panel, "全体マップ", ShowGlobalMap);
         RectTransform mapRect = mapButton.GetComponent<RectTransform>();
@@ -634,8 +687,9 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         dayDisplayRect.pivot = new Vector2(0f, 1f);
         dayDisplayRect.sizeDelta = new Vector2(78f, 44f);
         dayDisplayRect.anchoredPosition = new Vector2(404f, -16f);
-        dayDisplayRect.gameObject.AddComponent<Image>().color =
-            new Color(0.11f, 0.13f, 0.16f, 1f);
+        Image dayDisplayImage = dayDisplayRect.gameObject.AddComponent<Image>();
+        dayDisplayImage.color = RowColor;
+        AddFantasyFrame(dayDisplayImage, 1.5f);
 
         dayText = CreateText(
             dayDisplayRect,
@@ -661,11 +715,13 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         merchantStatusButtonRect.anchoredPosition = new Vector2(-20f, -16f);
         Image merchantStatusButtonImage =
             merchantStatusButtonRect.gameObject.AddComponent<Image>();
-        merchantStatusButtonImage.color = new Color(0.11f, 0.13f, 0.16f, 1f);
+        merchantStatusButtonImage.color = RowColor;
+        AddFantasyFrame(merchantStatusButtonImage, 1.5f);
         Button merchantStatusButton =
             merchantStatusButtonRect.gameObject.AddComponent<Button>();
         merchantStatusButton.targetGraphic = merchantStatusButtonImage;
         merchantStatusButton.onClick.AddListener(ShowMerchantStatusOverlay);
+        ApplyButtonTransitions(merchantStatusButton);
         goldText = CreateText(
             merchantStatusButtonRect,
             string.Empty,
@@ -688,6 +744,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         partyPage = CreatePage("Party Page", panel);
         healPage = CreatePage("Heal Page", panel);
         battlePage = CreatePage("Battle Page", panel);
+        roadBattlePage = CreatePage("Road Battle Page", panel);
         dungeonPage = CreatePage("Dungeon Page", panel);
         marketPage = CreatePage("Market Page", panel);
         blacksmithPage = CreatePage("Blacksmith Page", panel);
@@ -701,13 +758,15 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         BuildPartyPage();
         BuildHealPage();
         BuildBattlePage();
+        BuildRoadBattlePage();
         BuildDungeonPage();
         BuildMarketPage();
         BuildBlacksmithPage();
         BuildInventoryPage();
 
         statusText = CreateText(panel, "雇用する傭兵を選択してください。", 15, FontStyle.Normal,
-            TextAnchor.MiddleLeft, new Vector2(28f, 22f), new Vector2(-28f, 54f), MutedTextColor);
+            TextAnchor.MiddleLeft, new Vector2(28f, 22f),
+            new Vector2(-28f, 54f), ParchmentMutedColor);
         statusText.rectTransform.anchorMin = new Vector2(0f, 0f);
         statusText.rectTransform.anchorMax = new Vector2(1f, 0f);
         statusText.rectTransform.pivot = new Vector2(0.5f, 0f);
@@ -850,7 +909,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         window.anchorMin = window.anchorMax = window.pivot =
             new Vector2(0.5f, 0.5f);
         window.sizeDelta = new Vector2(560f, 300f);
-        window.gameObject.AddComponent<Image>().color = PanelColor;
+        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
 
         CreateText(
             window,
@@ -860,7 +919,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             TextAnchor.MiddleCenter,
             new Vector2(24f, -74f),
             new Vector2(-24f, -22f),
-            Color.white);
+            ParchmentTextColor);
 
         travelConfirmationText = CreateText(
             window,
@@ -870,7 +929,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             TextAnchor.MiddleCenter,
             new Vector2(36f, -190f),
             new Vector2(-36f, -82f),
-            MutedTextColor);
+            ParchmentMutedColor);
 
         Button confirmButton =
             CreateActionButton(window, "移動する", ConfirmTownTravel);
@@ -899,6 +958,15 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             "Maps/Map",
             "Maps/EasternRegionMap");
 
+        CreateMapRoad(
+            worldMapPage,
+            new Vector2(300f, 35f),
+            new Vector2(0f, 105f));
+        CreateMapRoad(
+            worldMapPage,
+            new Vector2(0f, 105f),
+            new Vector2(-330f, -15f));
+
         townMapButtons.Add(CreateTownMapButton(
             worldMapPage,
             TownNames[0],
@@ -916,19 +984,19 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             () => TravelToTown(2)));
         CreateMapButton(
             worldMapPage,
-            "低級洞窟",
+            GetNearbyDungeonMapLabel(0),
             new Vector2(-225f, -85f),
             new Vector2(96f, 42f),
             () => TravelToDungeon(0));
         CreateMapButton(
             worldMapPage,
-            "森林遺跡",
+            GetNearbyDungeonMapLabel(1),
             new Vector2(115f, 100f),
             new Vector2(96f, 42f),
             () => TravelToDungeon(1));
         CreateMapButton(
             worldMapPage,
-            "海蝕迷宮",
+            GetNearbyDungeonMapLabel(2),
             new Vector2(205f, -35f),
             new Vector2(96f, 42f),
             () => TravelToDungeon(2));
@@ -953,6 +1021,38 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             Color.white);
 
         RefreshTownMapButtons();
+    }
+
+    private static void CreateMapRoad(
+        RectTransform parent,
+        Vector2 start,
+        Vector2 end)
+    {
+        Vector2 direction = end - start;
+        RectTransform road = CreateUIObject("Town Road", parent);
+        road.anchorMin = road.anchorMax = road.pivot =
+            new Vector2(0.5f, 0.5f);
+        road.sizeDelta = new Vector2(direction.magnitude, 9f);
+        road.anchoredPosition = (start + end) * 0.5f;
+        road.localRotation = Quaternion.Euler(
+            0f,
+            0f,
+            Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg);
+
+        Image roadImage = road.gameObject.AddComponent<Image>();
+        roadImage.color = new Color(0.73f, 0.52f, 0.24f, 0.9f);
+        roadImage.raycastTarget = false;
+
+        Outline outline = road.gameObject.AddComponent<Outline>();
+        outline.effectColor = new Color(0.18f, 0.09f, 0.03f, 0.95f);
+        outline.effectDistance = new Vector2(2f, -2f);
+        outline.useGraphicAlpha = true;
+    }
+
+    private string GetNearbyDungeonMapLabel(int townIndex)
+    {
+        DungeonDataSO dungeon = dungeonRunManager.GetDungeonNearTown(townIndex);
+        return dungeon != null ? dungeon.dungeonName : "近隣ダンジョン";
     }
 
     private void BuildTownMapPage()
@@ -980,9 +1080,6 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         CreateMapButton(
             townMapPage, "治療院", new Vector2(235f, -42f),
             new Vector2(100f, 48f), ShowHealPage);
-        CreateMapButton(
-            townMapPage, "訓練場", new Vector2(105f, -105f),
-            new Vector2(100f, 48f), ShowBattlePage);
         CreateMapButton(
             townMapPage, "近隣ダンジョン", new Vector2(0f, -172f),
             new Vector2(150f, 52f), OpenNearbyDungeon);
@@ -1095,7 +1192,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         window.anchorMin = window.anchorMax = window.pivot =
             new Vector2(0.5f, 0.5f);
         window.sizeDelta = new Vector2(760f, 580f);
-        window.gameObject.AddComponent<Image>().color = PanelColor;
+        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
 
         CreateText(
             window,
@@ -1105,7 +1202,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             TextAnchor.MiddleLeft,
             new Vector2(28f, -64f),
             new Vector2(-120f, -20f),
-            Color.white);
+            ParchmentTextColor);
 
         RectTransform viewport =
             CreateUIObject("Merchant Status Viewport", window);
@@ -1155,14 +1252,16 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         RectTransform window = CreateUIObject("Equipment Detail Window", equipmentDetailOverlay);
         window.anchorMin = window.anchorMax = window.pivot = new Vector2(0.5f, 0.5f);
         window.sizeDelta = new Vector2(600f, 470f);
-        window.gameObject.AddComponent<Image>().color = PanelColor;
+        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
 
         equipmentDetailTitle = CreateText(
             window, string.Empty, 26, FontStyle.Bold, TextAnchor.MiddleLeft,
-            new Vector2(28f, -66f), new Vector2(-28f, -20f), Color.white);
+            new Vector2(28f, -66f), new Vector2(-28f, -20f),
+            ParchmentTextColor);
         equipmentDetailText = CreateText(
             window, string.Empty, 17, FontStyle.Normal, TextAnchor.UpperLeft,
-            new Vector2(28f, 92f), new Vector2(-28f, -82f), Color.white);
+            new Vector2(28f, 92f), new Vector2(-28f, -82f),
+            ParchmentTextColor);
         equipmentDetailText.rectTransform.anchorMin = Vector2.zero;
         equipmentDetailText.rectTransform.anchorMax = Vector2.one;
         equipmentDetailText.rectTransform.offsetMin = new Vector2(28f, 92f);
@@ -1177,6 +1276,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
         equipmentSellButton =
             CreateActionButton(window, "売却", SellSelectedEquipment);
+        equipmentSellButton.targetGraphic.color = ImportantButtonColor;
         RectTransform sellRect = equipmentSellButton.GetComponent<RectTransform>();
         sellRect.anchorMin = sellRect.anchorMax = new Vector2(1f, 0f);
         sellRect.pivot = new Vector2(1f, 0f);
@@ -1215,11 +1315,12 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         window.anchorMin = window.anchorMax = window.pivot =
             new Vector2(0.5f, 0.5f);
         window.sizeDelta = new Vector2(720f, 560f);
-        window.gameObject.AddComponent<Image>().color = PanelColor;
+        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
 
         CreateText(
             window, "装備図鑑", 26, FontStyle.Bold, TextAnchor.MiddleLeft,
-            new Vector2(28f, -64f), new Vector2(-120f, -20f), Color.white);
+            new Vector2(28f, -64f), new Vector2(-120f, -20f),
+            ParchmentTextColor);
 
         RectTransform viewport = CreateUIObject("Collection Viewport", window);
         viewport.anchorMin = Vector2.zero;
@@ -1239,7 +1340,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         equipmentCollectionText = CreateText(
             equipmentCollectionContent, string.Empty, 16, FontStyle.Normal,
             TextAnchor.UpperLeft, new Vector2(12f, 12f),
-            new Vector2(-12f, -12f), Color.white);
+            new Vector2(-12f, -12f), ParchmentTextColor);
         equipmentCollectionText.supportRichText = true;
 
         ScrollRect scroll = viewport.gameObject.AddComponent<ScrollRect>();
@@ -1273,10 +1374,11 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         window.anchorMin = window.anchorMax = window.pivot =
             new Vector2(0.5f, 0.5f);
         window.sizeDelta = new Vector2(720f, 560f);
-        window.gameObject.AddComponent<Image>().color = PanelColor;
+        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
         CreateText(
             window, "依頼", 26, FontStyle.Bold, TextAnchor.MiddleLeft,
-            new Vector2(28f, -64f), new Vector2(-120f, -20f), Color.white);
+            new Vector2(28f, -64f), new Vector2(-120f, -20f),
+            ParchmentTextColor);
 
         RectTransform viewport = CreateUIObject("Quest Viewport", window);
         viewport.anchorMin = Vector2.zero;
@@ -1327,8 +1429,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         window.anchoredPosition = Vector2.zero;
 
         Image windowImage = window.gameObject.AddComponent<Image>();
-        windowImage.color = PanelColor;
-
+        ApplyParchmentPanel(windowImage);
         characterDetailTitle = CreateText(
             window,
             string.Empty,
@@ -1337,43 +1438,130 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             TextAnchor.MiddleLeft,
             new Vector2(28f, -64f),
             new Vector2(-120f, -20f),
-            Color.white);
+            ParchmentTextColor);
+
+        characterStatusTabButton =
+            CreateActionButton(window, "ステータス", ShowCharacterStatusPage);
+        RectTransform statusTabRect =
+            characterStatusTabButton.GetComponent<RectTransform>();
+        statusTabRect.anchorMin = statusTabRect.anchorMax =
+            new Vector2(0f, 1f);
+        statusTabRect.pivot = new Vector2(0f, 1f);
+        statusTabRect.sizeDelta = new Vector2(130f, 38f);
+        statusTabRect.anchoredPosition = new Vector2(28f, -76f);
+
+        characterEquipmentTabButton =
+            CreateActionButton(window, "装備", ShowCharacterEquipmentPage);
+        RectTransform equipmentTabRect =
+            characterEquipmentTabButton.GetComponent<RectTransform>();
+        equipmentTabRect.anchorMin = equipmentTabRect.anchorMax =
+            new Vector2(0f, 1f);
+        equipmentTabRect.pivot = new Vector2(0f, 1f);
+        equipmentTabRect.sizeDelta = new Vector2(130f, 38f);
+        equipmentTabRect.anchoredPosition = new Vector2(166f, -76f);
+
+        characterStatusPage = CreateUIObject("Character Status Page", window);
+        characterStatusPage.anchorMin = Vector2.zero;
+        characterStatusPage.anchorMax = Vector2.one;
+        characterStatusPage.offsetMin = new Vector2(28f, 28f);
+        characterStatusPage.offsetMax = new Vector2(-28f, -122f);
 
         characterDetailText = CreateText(
-            window,
+            characterStatusPage,
             string.Empty,
-            17,
+            16,
             FontStyle.Normal,
             TextAnchor.UpperLeft,
-            new Vector2(28f, 28f),
-            new Vector2(-414f, -86f),
-            Color.white);
+            new Vector2(0f, 0f),
+            new Vector2(-386f, 0f),
+            ParchmentTextColor);
         characterDetailText.rectTransform.anchorMin = Vector2.zero;
         characterDetailText.rectTransform.anchorMax = Vector2.one;
-        characterDetailText.rectTransform.offsetMin = new Vector2(28f, 28f);
-        characterDetailText.rectTransform.offsetMax = new Vector2(-414f, -86f);
+        characterDetailText.rectTransform.offsetMin = Vector2.zero;
+        characterDetailText.rectTransform.offsetMax = new Vector2(-386f, 0f);
 
         CreateText(
-            window,
+            characterStatusPage,
+            "獲得スキル",
+            20,
+            FontStyle.Bold,
+            TextAnchor.MiddleLeft,
+            new Vector2(360f, -36f),
+            new Vector2(0f, 0f),
+            ParchmentTextColor);
+
+        RectTransform skillViewport =
+            CreateUIObject("Skill Viewport", characterStatusPage);
+        skillViewport.anchorMin = new Vector2(1f, 1f);
+        skillViewport.anchorMax = new Vector2(1f, 1f);
+        skillViewport.pivot = new Vector2(1f, 1f);
+        skillViewport.sizeDelta = new Vector2(336f, 184f);
+        skillViewport.anchoredPosition = new Vector2(0f, -46f);
+        skillViewport.gameObject.AddComponent<Image>().color =
+            new Color(0.28f, 0.16f, 0.07f, 0.12f);
+        Mask skillMask = skillViewport.gameObject.AddComponent<Mask>();
+        skillMask.showMaskGraphic = false;
+
+        characterSkillList = CreateUIObject("Skill List", skillViewport);
+        characterSkillList.anchorMin = new Vector2(0f, 1f);
+        characterSkillList.anchorMax = new Vector2(1f, 1f);
+        characterSkillList.pivot = new Vector2(0.5f, 1f);
+        characterSkillList.anchoredPosition = Vector2.zero;
+
+        ScrollRect skillScroll = skillViewport.gameObject.AddComponent<ScrollRect>();
+        skillScroll.content = characterSkillList;
+        skillScroll.viewport = skillViewport;
+        skillScroll.horizontal = false;
+        skillScroll.vertical = true;
+        skillScroll.movementType = ScrollRect.MovementType.Clamped;
+        skillScroll.scrollSensitivity = 24f;
+
+        characterSkillDetailText = CreateText(
+            characterStatusPage,
+            "スキルを選択すると詳細を表示します。",
+            15,
+            FontStyle.Normal,
+            TextAnchor.UpperLeft,
+            new Vector2(360f, 0f),
+            new Vector2(0f, -250f),
+            ParchmentMutedColor);
+        characterSkillDetailText.rectTransform.anchorMin =
+            new Vector2(1f, 0f);
+        characterSkillDetailText.rectTransform.anchorMax =
+            new Vector2(1f, 0f);
+        characterSkillDetailText.rectTransform.pivot = new Vector2(1f, 0f);
+        characterSkillDetailText.rectTransform.sizeDelta = new Vector2(336f, 146f);
+        characterSkillDetailText.rectTransform.anchoredPosition = Vector2.zero;
+
+        characterEquipmentPage =
+            CreateUIObject("Character Equipment Page", window);
+        characterEquipmentPage.anchorMin = Vector2.zero;
+        characterEquipmentPage.anchorMax = Vector2.one;
+        characterEquipmentPage.offsetMin = new Vector2(28f, 28f);
+        characterEquipmentPage.offsetMax = new Vector2(-28f, -122f);
+
+        CreateText(
+            characterEquipmentPage,
             "装備変更",
             20,
             FontStyle.Bold,
             TextAnchor.MiddleLeft,
-            new Vector2(386f, -104f),
-            new Vector2(-28f, -68f),
-            Color.white);
+            new Vector2(0f, -36f),
+            new Vector2(0f, 0f),
+            ParchmentTextColor);
 
         RectTransform equipmentViewport =
-            CreateUIObject("Equipment Viewport", window);
+            CreateUIObject("Equipment Viewport", characterEquipmentPage);
         equipmentViewport.anchorMin = new Vector2(1f, 1f);
         equipmentViewport.anchorMax = new Vector2(1f, 1f);
         equipmentViewport.pivot = new Vector2(1f, 1f);
-        equipmentViewport.sizeDelta = new Vector2(366f, 398f);
-        equipmentViewport.anchoredPosition = new Vector2(-28f, -112f);
+        equipmentViewport.sizeDelta = new Vector2(724f, 360f);
+        equipmentViewport.anchoredPosition = new Vector2(0f, -46f);
 
         Image equipmentViewportImage =
             equipmentViewport.gameObject.AddComponent<Image>();
-        equipmentViewportImage.color = new Color(0f, 0f, 0f, 0.12f);
+        equipmentViewportImage.color =
+            new Color(0.28f, 0.16f, 0.07f, 0.12f);
         Mask equipmentMask = equipmentViewport.gameObject.AddComponent<Mask>();
         equipmentMask.showMaskGraphic = false;
 
@@ -1404,10 +1592,45 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         characterDetailOverlay.gameObject.SetActive(false);
     }
 
+    private static void ApplyParchmentPanel(Image target)
+    {
+        if (parchmentPanelSprite == null)
+        {
+            Texture2D texture = Resources.Load<Texture2D>("UI/ParchmentPanel");
+            if (texture != null)
+            {
+                texture.wrapMode = TextureWrapMode.Clamp;
+                Rect paperRect = new Rect(
+                    72f,
+                    40f,
+                    texture.width - 144f,
+                    texture.height - 84f);
+                parchmentPanelSprite = Sprite.Create(
+                    texture,
+                    paperRect,
+                    new Vector2(0.5f, 0.5f),
+                    100f,
+                    0,
+                    SpriteMeshType.FullRect,
+                    new Vector4(54f, 54f, 54f, 54f));
+            }
+        }
+
+        if (parchmentPanelSprite == null)
+        {
+            target.color = PanelColor;
+            return;
+        }
+
+        target.sprite = parchmentPanelSprite;
+        target.type = Image.Type.Sliced;
+        target.color = Color.white;
+    }
+
     private void BuildHirePage()
     {
         CreateText(hirePage, "契約可能な傭兵", 15, FontStyle.Normal, TextAnchor.MiddleLeft,
-            new Vector2(0f, -30f), new Vector2(0f, 0f), MutedTextColor);
+            new Vector2(0f, -30f), new Vector2(0f, 0f), ParchmentMutedColor);
 
         contractSelectButton = CreateActionButton(
             hirePage,
@@ -1490,7 +1713,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private void BuildCompanyPage()
     {
         CreateText(companyPage, "雇用済み傭兵", 15, FontStyle.Normal, TextAnchor.MiddleLeft,
-            new Vector2(0f, -30f), new Vector2(0f, 0f), MutedTextColor);
+            new Vector2(0f, -30f), new Vector2(0f, 0f), ParchmentMutedColor);
 
         Button questButton =
             CreateActionButton(companyPage, "依頼", ShowQuestOverlay);
@@ -1531,7 +1754,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private void BuildPartyPage()
     {
         CreateText(partyPage, "探索パーティー", 15, FontStyle.Normal, TextAnchor.MiddleLeft,
-            new Vector2(0f, -30f), new Vector2(0f, 0f), MutedTextColor);
+            new Vector2(0f, -30f), new Vector2(0f, 0f), ParchmentMutedColor);
 
         partyList = CreateUIObject("Party List", partyPage);
         partyList.anchorMin = new Vector2(0f, 0f);
@@ -1544,7 +1767,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     {
         CreateText(healPage, "治療所", 15, FontStyle.Normal,
             TextAnchor.MiddleLeft, new Vector2(0f, -30f), new Vector2(0f, 0f),
-            MutedTextColor);
+            ParchmentMutedColor);
 
         CreateText(
             healPage,
@@ -1557,7 +1780,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             TextAnchor.MiddleLeft,
             new Vector2(0f, -72f),
             new Vector2(0f, -42f),
-            MutedTextColor);
+            ParchmentMutedColor);
 
         RectTransform viewport = CreateUIObject("Heal Viewport", healPage);
         viewport.anchorMin = new Vector2(0f, 0f);
@@ -1590,10 +1813,11 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         string enemyDescription = battleManager.GetEncounterDescription();
 
         CreateText(battlePage, "戦闘準備", 15, FontStyle.Normal, TextAnchor.MiddleLeft,
-            new Vector2(0f, -30f), new Vector2(0f, 0f), MutedTextColor);
+            new Vector2(0f, -30f), new Vector2(0f, 0f), ParchmentMutedColor);
 
         CreateText(battlePage, enemyDescription, 18, FontStyle.Bold, TextAnchor.MiddleLeft,
-            new Vector2(0f, -78f), new Vector2(-160f, -42f), Color.white);
+            new Vector2(0f, -78f), new Vector2(-160f, -42f),
+            ParchmentTextColor);
 
         startBattleButton = CreateActionButton(
             battlePage,
@@ -1605,16 +1829,17 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         startRect.pivot = new Vector2(1f, 1f);
         startRect.anchoredPosition = new Vector2(0f, -36f);
 
-        RectTransform logPanel = CreateUIObject("Battle Log", battlePage);
-        logPanel.anchorMin = new Vector2(0f, 0f);
-        logPanel.anchorMax = new Vector2(1f, 1f);
-        logPanel.offsetMin = Vector2.zero;
-        logPanel.offsetMax = new Vector2(0f, -104f);
+        battleLogPanel = CreateUIObject("Battle Log", battlePage);
+        battleLogPanel.anchorMin = new Vector2(0f, 0f);
+        battleLogPanel.anchorMax = new Vector2(1f, 1f);
+        battleLogPanel.offsetMin = Vector2.zero;
+        battleLogPanel.offsetMax = new Vector2(0f, -104f);
 
-        Image logBackground = logPanel.gameObject.AddComponent<Image>();
+        Image logBackground = battleLogPanel.gameObject.AddComponent<Image>();
         logBackground.color = RowColor;
 
-        battleLogViewport = CreateUIObject("Battle Log Viewport", logPanel);
+        battleLogViewport =
+            CreateUIObject("Battle Log Viewport", battleLogPanel);
         battleLogViewport.anchorMin = Vector2.zero;
         battleLogViewport.anchorMax = Vector2.one;
         battleLogViewport.offsetMin = new Vector2(16f, 16f);
@@ -1651,11 +1876,64 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         battleLogText.rectTransform.offsetMax = new Vector2(0f, -8f);
     }
 
+    private void BuildRoadBattlePage()
+    {
+        CreateText(
+            roadBattlePage,
+            "街道戦闘",
+            24,
+            FontStyle.Bold,
+            TextAnchor.MiddleLeft,
+            new Vector2(0f, -38f),
+            new Vector2(0f, 0f),
+            ParchmentTextColor);
+
+        roadBattleRouteText = CreateText(
+            roadBattlePage,
+            string.Empty,
+            16,
+            FontStyle.Normal,
+            TextAnchor.MiddleLeft,
+            new Vector2(0f, -82f),
+            new Vector2(0f, -42f),
+            ParchmentTextColor);
+
+        roadContinueButton =
+            CreateActionButton(
+                roadBattlePage,
+                "次へ進む",
+                ContinueTownTravel);
+        RectTransform continueRect =
+            roadContinueButton.GetComponent<RectTransform>();
+        continueRect.anchorMin = continueRect.anchorMax =
+            new Vector2(1f, 1f);
+        continueRect.pivot = new Vector2(1f, 1f);
+        continueRect.sizeDelta = new Vector2(120f, 40f);
+        continueRect.anchoredPosition = new Vector2(-130f, -4f);
+
+        roadRetreatButton =
+            CreateActionButton(
+                roadBattlePage,
+                "撤退する",
+                RetreatFromTownTravel);
+        RectTransform retreatRect =
+            roadRetreatButton.GetComponent<RectTransform>();
+        retreatRect.anchorMin = retreatRect.anchorMax =
+            new Vector2(1f, 1f);
+        retreatRect.pivot = new Vector2(1f, 1f);
+        retreatRect.sizeDelta = new Vector2(120f, 40f);
+        retreatRect.anchoredPosition = new Vector2(0f, -4f);
+        roadRetreatButton.targetGraphic.color = ImportantButtonColor;
+
+        roadContinueButton.gameObject.SetActive(false);
+        roadRetreatButton.gameObject.SetActive(false);
+    }
+
     private void BuildDungeonPage()
     {
         CreateText(dungeonPage, "ダンジョン探索", 15, FontStyle.Normal,
             TextAnchor.MiddleLeft, new Vector2(0f, -30f), new Vector2(0f, 0f),
-            MutedTextColor);
+            ParchmentMutedColor);
 
         dungeonStatusText = CreateText(
             dungeonPage,
@@ -1665,7 +1943,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             TextAnchor.MiddleLeft,
             new Vector2(0f, -154f),
             new Vector2(-170f, -42f),
-            Color.white);
+            ParchmentTextColor);
 
         startDungeonButton = CreateActionButton(
             dungeonPage,
@@ -1691,7 +1969,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             TextAnchor.MiddleLeft,
             new Vector2(0f, -230f),
             new Vector2(0f, -184f),
-            AccentColor);
+            ParchmentTextColor);
 
         dungeonEventDescriptionText = CreateText(
             dungeonPage,
@@ -1701,7 +1979,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             TextAnchor.UpperLeft,
             new Vector2(0f, -300f),
             new Vector2(0f, -238f),
-            Color.white);
+            ParchmentTextColor);
 
         firstDungeonEventButton = CreateActionButton(
             dungeonPage,
@@ -1739,11 +2017,11 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     {
         CreateText(inventoryPage, "商人在庫", 15, FontStyle.Normal,
             TextAnchor.MiddleLeft, new Vector2(0f, -30f), new Vector2(0f, 0f),
-            MutedTextColor);
+            ParchmentMutedColor);
 
         marketInfoText = CreateText(inventoryPage, string.Empty, 16, FontStyle.Bold,
             TextAnchor.MiddleLeft, new Vector2(0f, -70f), new Vector2(-160f, -38f),
-            Color.white);
+            ParchmentTextColor);
 
         nextDayButton = CreateActionButton(inventoryPage, "翌日へ", AdvanceDay);
         RectTransform nextDayRect = nextDayButton.GetComponent<RectTransform>();
@@ -1816,7 +2094,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     {
         CreateText(marketPage, "本日の仕入れ商品", 15, FontStyle.Normal,
             TextAnchor.MiddleLeft, new Vector2(0f, -30f), new Vector2(0f, 0f),
-            MutedTextColor);
+            ParchmentMutedColor);
 
         RectTransform viewport = CreateUIObject("Market Viewport", marketPage);
         viewport.anchorMin = new Vector2(0f, 0f);
@@ -1848,7 +2126,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     {
         CreateText(blacksmithPage, "鍛冶屋", 15, FontStyle.Normal,
             TextAnchor.MiddleLeft, new Vector2(0f, -30f), new Vector2(0f, 0f),
-            MutedTextColor);
+            ParchmentMutedColor);
 
         CreateText(
             blacksmithPage,
@@ -1858,7 +2136,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             TextAnchor.MiddleLeft,
             new Vector2(0f, -70f),
             new Vector2(0f, -38f),
-            MutedTextColor);
+            ParchmentMutedColor);
 
         RectTransform viewport = CreateUIObject("Blacksmith Viewport", blacksmithPage);
         viewport.anchorMin = Vector2.zero;
@@ -1896,7 +2174,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             CreateText(companyList, "雇用済みの傭兵はいません。", 18, FontStyle.Normal,
                 TextAnchor.MiddleCenter, new Vector2(0f, -180f),
                 new Vector2(0f, -80f),
-                MutedTextColor);
+                ParchmentMutedColor);
             return;
         }
 
@@ -1973,7 +2251,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         {
             CreateText(healList, "治療できる傭兵はいません。", 18, FontStyle.Normal,
                 TextAnchor.MiddleCenter, new Vector2(0f, -180f), new Vector2(0f, -80f),
-                MutedTextColor);
+                ParchmentMutedColor);
             return;
         }
 
@@ -1997,7 +2275,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         {
             CreateText(inventoryList, "在庫はありません。", 18, FontStyle.Normal,
                 TextAnchor.MiddleCenter, new Vector2(0f, -180f), new Vector2(0f, -80f),
-                MutedTextColor);
+                ParchmentMutedColor);
             return;
         }
 
@@ -2060,7 +2338,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         {
             CreateText(marketList, "本日仕入れ可能な商品はありません。", 18, FontStyle.Normal,
                 TextAnchor.MiddleCenter, new Vector2(0f, -180f), new Vector2(0f, -80f),
-                MutedTextColor);
+                ParchmentMutedColor);
             return;
         }
 
@@ -2089,7 +2367,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         {
             CreateText(blacksmithList, "制作可能なレシピはありません。", 18, FontStyle.Normal,
                 TextAnchor.MiddleCenter, new Vector2(0f, -180f), new Vector2(0f, -80f),
-                MutedTextColor);
+                ParchmentMutedColor);
             return;
         }
 
@@ -2453,6 +2731,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
         Image rowImage = row.gameObject.AddComponent<Image>();
         rowImage.color = RowColor;
+        AddFantasyFrame(rowImage, 1f);
         return row;
     }
 
@@ -2471,10 +2750,12 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
         Image image = buttonRect.gameObject.AddComponent<Image>();
         image.color = InactiveColor;
+        AddFantasyFrame(image, 1.5f);
 
         Button button = buttonRect.gameObject.AddComponent<Button>();
         button.targetGraphic = image;
         button.onClick.AddListener(action);
+        ApplyButtonTransitions(button);
         CreateButtonLabel(buttonRect, label, 15);
         return button;
     }
@@ -2492,19 +2773,43 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         buttonRect.anchoredPosition = new Vector2(-18f, 0f);
 
         Image image = buttonRect.gameObject.AddComponent<Image>();
-        image.color = AccentColor;
+        image.color = WoodButtonColor;
+        AddFantasyFrame(image, 1.5f);
 
         Button button = buttonRect.gameObject.AddComponent<Button>();
         button.targetGraphic = image;
         button.onClick.AddListener(action);
+        ApplyButtonTransitions(button);
         CreateButtonLabel(buttonRect, label, 17);
         return button;
+    }
+
+    private static void AddFantasyFrame(Image image, float thickness)
+    {
+        Outline outline = image.gameObject.AddComponent<Outline>();
+        outline.effectColor = FrameColor;
+        outline.effectDistance = new Vector2(thickness, -thickness);
+        outline.useGraphicAlpha = true;
+    }
+
+    private static void ApplyButtonTransitions(Button button)
+    {
+        ColorBlock colors = button.colors;
+        colors.normalColor = Color.white;
+        colors.highlightedColor = new Color(1.18f, 1.12f, 0.96f, 1f);
+        colors.pressedColor = new Color(0.76f, 0.68f, 0.56f, 1f);
+        colors.selectedColor = new Color(1.08f, 1.02f, 0.88f, 1f);
+        colors.disabledColor = new Color(0.42f, 0.38f, 0.32f, 0.72f);
+        colors.colorMultiplier = 1f;
+        colors.fadeDuration = 0.08f;
+        button.colors = colors;
     }
 
     private void CreateButtonLabel(RectTransform parent, string label, int fontSize)
     {
         Text buttonText = CreateText(parent, label, fontSize, FontStyle.Bold,
-            TextAnchor.MiddleCenter, Vector2.zero, Vector2.zero, Color.white);
+            TextAnchor.MiddleCenter, Vector2.zero, Vector2.zero,
+            ButtonTextColor);
         buttonText.rectTransform.anchorMin = Vector2.zero;
         buttonText.rectTransform.anchorMax = Vector2.one;
         buttonText.rectTransform.pivot = new Vector2(0.5f, 0.5f);
@@ -2619,6 +2924,15 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private void StartDungeonRun()
     {
+        DungeonDataSO selected = dungeonRunManager.SelectedDungeon;
+        if (selected == null || selected.nearbyTownIndex != currentTownIndex)
+        {
+            statusText.text =
+                $"{TownNames[currentTownIndex]}近隣のダンジョンを選択してください。";
+            ShowDungeonPage();
+            return;
+        }
+
         ShowBattlePage();
         ResetBattleLog();
 
@@ -2657,6 +2971,13 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private void SelectDungeon(DungeonDataSO data)
     {
+        if (data == null || data.nearbyTownIndex != currentTownIndex)
+        {
+            statusText.text =
+                $"{TownNames[currentTownIndex]}からはこのダンジョンへ入れません。";
+            return;
+        }
+
         if (!dungeonRunManager.TrySelectDungeon(data))
         {
             statusText.text = "このダンジョンはまだ選択できません。";
@@ -2681,13 +3002,26 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         float rowTop = 0f;
         foreach (DungeonDataSO data in dungeonRunManager.AvailableDungeons)
         {
-            if (data == null)
+            if (data == null || data.nearbyTownIndex != currentTownIndex)
             {
                 continue;
             }
 
             CreateDungeonSelectionRow(data, rowTop);
             rowTop -= 50f;
+        }
+
+        if (displayedDungeons.Count == 0)
+        {
+            CreateText(
+                dungeonSelectionList,
+                $"{TownNames[currentTownIndex]}近隣に探索可能なダンジョンはありません。",
+                16,
+                FontStyle.Normal,
+                TextAnchor.MiddleCenter,
+                new Vector2(0f, -110f),
+                new Vector2(0f, -40f),
+                ParchmentTextColor);
         }
     }
 
@@ -2927,9 +3261,27 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             int destinationTownIndex = pendingTravelTownIndex;
             bool wasUnlock = pendingTravelWasUnlock;
             bool openDungeonAfterTravel = pendingOpenDungeonAfterTravel;
+
+            if (victory &&
+                pendingTravelEncounterIndex < pendingTravelEncounterCount)
+            {
+                isAwaitingRoadTravelChoice = true;
+                roadContinueButton.gameObject.SetActive(true);
+                roadRetreatButton.gameObject.SetActive(true);
+                roadBattleRouteText.text =
+                    $"接敵 {pendingTravelEncounterIndex}/" +
+                    $"{pendingTravelEncounterCount} を突破しました。\n" +
+                    "次の区間へ進むか、出発した町へ撤退してください。";
+                statusText.text = "街道戦闘を続行しますか？";
+                return;
+            }
+
             pendingTravelTownIndex = -1;
             pendingTravelWasUnlock = false;
             pendingOpenDungeonAfterTravel = false;
+            pendingTravelEncounterCount = 0;
+            pendingTravelEncounterIndex = 0;
+            isAwaitingRoadTravelChoice = false;
 
             if (victory)
             {
@@ -3105,7 +3457,30 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             return;
         }
 
+        bool keepCurrentDetailPage =
+            characterDetailOverlay.gameObject.activeSelf &&
+            ReferenceEquals(selectedDetailMercenary, mercenary);
         selectedDetailMercenary = mercenary;
+        if (!keepCurrentDetailPage)
+        {
+            showingCharacterStatusPage = true;
+        }
+        RefreshCharacterDetailText();
+        RebuildCharacterSkillList();
+        RebuildCharacterEquipmentList();
+        ApplyCharacterDetailPageVisibility();
+        characterDetailOverlay.SetAsLastSibling();
+        characterDetailOverlay.gameObject.SetActive(true);
+    }
+
+    private void RefreshCharacterDetailText()
+    {
+        if (selectedDetailMercenary == null || characterDetailText == null)
+        {
+            return;
+        }
+
+        MercenaryInstance mercenary = selectedDetailMercenary;
         string source = mercenary.IsUnique ? "固有傭兵" : "量産型傭兵";
         string condition = mercenary.IsIncapacitated ? "戦闘不能" : "行動可能";
         string shortId = mercenary.InstanceId.Substring(0, 8).ToUpperInvariant();
@@ -3131,13 +3506,46 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             $"防具: {GetEquippedEquipmentName(mercenary, EquipmentSlot.Armor)}\n" +
             $"装飾品: {GetEquippedEquipmentName(mercenary, EquipmentSlot.Accessory)}\n" +
             $"セット: {BuildActiveSetSummary(mercenary)}\n" +
-            $"スキル: {mercenary.SkillBoardName}\n" +
-            $"{BuildMercenarySkillSummary(mercenary)}\n" +
+            $"スキルボード: {mercenary.SkillBoardName}\n" +
+            $"獲得スキル: {GetMercenarySkillInfos(mercenary).Count}\n" +
             $"雇用費: {mercenary.HireCost} G";
+    }
 
-        RebuildCharacterEquipmentList();
-        characterDetailOverlay.SetAsLastSibling();
-        characterDetailOverlay.gameObject.SetActive(true);
+    private void ShowCharacterStatusPage()
+    {
+        showingCharacterStatusPage = true;
+        ApplyCharacterDetailPageVisibility();
+    }
+
+    private void ShowCharacterEquipmentPage()
+    {
+        showingCharacterStatusPage = false;
+        ApplyCharacterDetailPageVisibility();
+    }
+
+    private void ApplyCharacterDetailPageVisibility()
+    {
+        if (characterStatusPage != null)
+        {
+            characterStatusPage.gameObject.SetActive(showingCharacterStatusPage);
+        }
+
+        if (characterEquipmentPage != null)
+        {
+            characterEquipmentPage.gameObject.SetActive(!showingCharacterStatusPage);
+        }
+
+        if (characterStatusTabButton != null)
+        {
+            characterStatusTabButton.targetGraphic.color =
+                showingCharacterStatusPage ? AccentColor : RowColor;
+        }
+
+        if (characterEquipmentTabButton != null)
+        {
+            characterEquipmentTabButton.targetGraphic.color =
+                showingCharacterStatusPage ? RowColor : AccentColor;
+        }
     }
 
     private void HideCharacterDetails()
@@ -3148,6 +3556,64 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         }
 
         selectedDetailMercenary = null;
+    }
+
+    private void RebuildCharacterSkillList()
+    {
+        if (characterSkillList == null || selectedDetailMercenary == null)
+        {
+            return;
+        }
+
+        ClearChildren(characterSkillList);
+        List<MercenarySkillInfo> skills =
+            GetMercenarySkillInfos(selectedDetailMercenary);
+        float top = 0f;
+        for (int i = 0; i < skills.Count; i++)
+        {
+            MercenarySkillInfo skill = skills[i];
+            RectTransform row = CreateRow($"Skill {skill.Name}", characterSkillList, top);
+            CreateText(
+                row,
+                $"{skill.Name}\n{skill.ShortDescription}",
+                14,
+                FontStyle.Normal,
+                TextAnchor.MiddleLeft,
+                new Vector2(12f, -62f),
+                new Vector2(-92f, -8f),
+                skill.Unlocked ? Color.white : MutedTextColor);
+            Button detailButton = CreateActionButton(
+                row,
+                "詳細",
+                () => ShowMercenarySkillDetail(skill));
+            RectTransform detailRect = detailButton.GetComponent<RectTransform>();
+            detailRect.sizeDelta = new Vector2(72f, 34f);
+            detailRect.anchoredPosition = new Vector2(-8f, 0f);
+            top -= 104f;
+        }
+
+        characterSkillList.sizeDelta = new Vector2(0f, Mathf.Max(184f, -top));
+        if (skills.Count > 0)
+        {
+            ShowMercenarySkillDetail(skills[0]);
+        }
+        else if (characterSkillDetailText != null)
+        {
+            characterSkillDetailText.text = "獲得済みスキルはありません。";
+        }
+    }
+
+    private void ShowMercenarySkillDetail(MercenarySkillInfo skill)
+    {
+        if (characterSkillDetailText == null)
+        {
+            return;
+        }
+
+        string state = skill.Unlocked ? "習得済み" : "未習得";
+        characterSkillDetailText.text =
+            $"{skill.Name}  [{state}]\n\n" +
+            $"{skill.DetailDescription}";
     }
 
     private void RebuildCharacterEquipmentList()
@@ -3808,6 +4274,10 @@ public class SimpleMercenaryHireUI : MonoBehaviour
                 return "セット: 秘術賢者\n" +
                        "2部位: 攻撃+10\n" +
                        "3部位: 攻撃+15、攻撃速度+0.04";
+            case EquipmentSetId.OniHunter:
+                return "セット: 鬼狩り\n" +
+                       "2部位: 最大HP+10、攻撃+3\n" +
+                       "3部位: 攻撃+5、防御+2";
             default:
                 return "セット: 古代守護者\n" +
                        "2部位: 最大HP+30、防御+8\n" +
@@ -4071,6 +4541,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private void ShowBattlePage()
     {
+        MoveBattleLogTo(battlePage);
         HideMapPages();
         hirePage.gameObject.SetActive(false);
         companyPage.gameObject.SetActive(false);
@@ -4081,6 +4552,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         marketPage.gameObject.SetActive(false);
         blacksmithPage.gameObject.SetActive(false);
         inventoryPage.gameObject.SetActive(false);
+        roadBattlePage.gameObject.SetActive(false);
         SetTabActive(hireTabButton, false);
         SetTabActive(companyTabButton, false);
         SetTabActive(partyTabButton, false);
@@ -4092,11 +4564,52 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         SetTabActive(inventoryTabButton, false);
         startBattleButton.interactable =
             partyManager.Members.Count > 0 && !battleManager.IsBattling;
+        startBattleButton.gameObject.SetActive(!battleManager.IsBattling);
         statusText.text = $"戦闘参加: 傭兵{partyManager.Members.Count}人";
+    }
+
+    private void ShowRoadBattlePage(
+        int originTownIndex,
+        int destinationTownIndex)
+    {
+        HideStandardPages();
+        HideMapPages();
+        roadBattlePage.gameObject.SetActive(true);
+        MoveBattleLogTo(roadBattlePage);
+        SetAllTabsInactive();
+        mapButton?.gameObject.SetActive(false);
+        townMapButton?.gameObject.SetActive(false);
+        roadContinueButton.gameObject.SetActive(
+            isAwaitingRoadTravelChoice);
+        roadRetreatButton.gameObject.SetActive(
+            isAwaitingRoadTravelChoice);
+        roadBattleRouteText.text =
+            $"{TownNames[originTownIndex]} → " +
+            $"{TownNames[destinationTownIndex]}\n" +
+            $"接敵 {pendingTravelEncounterIndex}/" +
+            $"{pendingTravelEncounterCount}  |  " +
+            (pendingRoadRareEncounter
+                ? "幻獣の気配を確認！"
+                : "両地域の通常モンスターが街道を塞いでいます。");
+    }
+
+    private void MoveBattleLogTo(RectTransform destinationPage)
+    {
+        if (battleLogPanel == null || destinationPage == null)
+        {
+            return;
+        }
+
+        battleLogPanel.SetParent(destinationPage, false);
+        battleLogPanel.anchorMin = Vector2.zero;
+        battleLogPanel.anchorMax = Vector2.one;
+        battleLogPanel.offsetMin = Vector2.zero;
+        battleLogPanel.offsetMax = new Vector2(0f, -104f);
     }
 
     private void ShowDungeonPage()
     {
+        EnsureNearbyDungeonSelected();
         HideMapPages();
         hirePage.gameObject.SetActive(false);
         companyPage.gameObject.SetActive(false);
@@ -4145,6 +4658,27 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         RebuildDungeonSelectionList();
         statusText.text = $"探索パーティー: 傭兵{partyManager.Members.Count}人";
         RefreshUI();
+    }
+
+    private void EnsureNearbyDungeonSelected()
+    {
+        if (dungeonRunManager.IsRunning)
+        {
+            return;
+        }
+
+        DungeonDataSO selected = dungeonRunManager.SelectedDungeon;
+        if (selected != null && selected.nearbyTownIndex == currentTownIndex)
+        {
+            return;
+        }
+
+        DungeonDataSO nearby =
+            dungeonRunManager.GetDungeonNearTown(currentTownIndex);
+        if (nearby != null && dungeonRunManager.IsDungeonUnlocked(nearby))
+        {
+            dungeonRunManager.TrySelectDungeon(nearby);
+        }
     }
 
     private void ShowMarketPage()
@@ -4288,6 +4822,18 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         int townIndex,
         bool openDungeonAfterTravel)
     {
+        if (Mathf.Abs(townIndex - currentTownIndex) > 1)
+        {
+            int nextTownIndex =
+                currentTownIndex > townIndex
+                    ? currentTownIndex - 1
+                    : currentTownIndex + 1;
+            statusText.text =
+                $"{TownNames[townIndex]}へ直接は移動できません。" +
+                $"先に{TownNames[nextTownIndex]}を経由してください。";
+            return;
+        }
+
         bool isUnlocked = unlockedTownIndices.Contains(townIndex);
         if (!isUnlocked)
         {
@@ -4316,7 +4862,8 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         travelConfirmationText.text =
             $"{TownNames[currentTownIndex]} から\n" +
             $"{TownNames[townIndex]} へ移動します。\n\n" +
-            $"・街道戦闘が発生します\n・勝利すると1日経過します" +
+            $"・両地域の通常モンスターと3～5回接敵します\n" +
+            $"・勝利すると1日経過します" +
             unlockNotice;
         travelConfirmationOverlay.SetAsLastSibling();
         travelConfirmationOverlay.gameObject.SetActive(true);
@@ -4362,27 +4909,211 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             return;
         }
 
+        if (Mathf.Abs(destinationTownIndex - currentTownIndex) != 1)
+        {
+            statusText.text = "街道で結ばれていない町へは移動できません。";
+            return;
+        }
+
         ResetBattleLog();
         pendingTravelTownIndex = destinationTownIndex;
         pendingTravelWasUnlock =
             !unlockedTownIndices.Contains(destinationTownIndex);
         pendingOpenDungeonAfterTravel = openDungeonAfterTravel;
-        int enemyCount = 2 + Mathf.Abs(destinationTownIndex - currentTownIndex);
+        pendingTravelEncounterCount = UnityEngine.Random.Range(3, 6);
+        pendingTravelEncounterIndex = 1;
+        isAwaitingRoadTravelChoice = false;
         List<EnemyDataSO> enemies =
-            battleManager.CreateDefaultEnemyEncounter(enemyCount);
+            CreateTownRoadEncounter(currentTownIndex, destinationTownIndex);
 
         if (!battleManager.StartBattle(partyManager.Members, enemies))
         {
             pendingTravelTownIndex = -1;
             pendingTravelWasUnlock = false;
             pendingOpenDungeonAfterTravel = false;
+            pendingTravelEncounterCount = 0;
+            pendingTravelEncounterIndex = 0;
+            isAwaitingRoadTravelChoice = false;
             statusText.text = "街道戦闘を開始できませんでした。";
             return;
         }
 
-        ShowBattlePage();
+        ShowRoadBattlePage(currentTownIndex, destinationTownIndex);
         statusText.text =
-            $"町の移動: {TownNames[destinationTownIndex]}への街道を突破してください。";
+            $"町の移動: 街道戦闘 {pendingTravelEncounterIndex}/" +
+            $"{pendingTravelEncounterCount}";
+    }
+
+    private IEnumerator ContinueTownTravelBattleRoutine()
+    {
+        yield return null;
+
+        int destinationTownIndex = pendingTravelTownIndex;
+        if (destinationTownIndex < 0)
+        {
+            yield break;
+        }
+
+        List<EnemyDataSO> enemies =
+            CreateTownRoadEncounter(currentTownIndex, destinationTownIndex);
+        if (!battleManager.StartBattle(partyManager.Members, enemies))
+        {
+            pendingTravelTownIndex = -1;
+            pendingTravelWasUnlock = false;
+            pendingOpenDungeonAfterTravel = false;
+            pendingTravelEncounterCount = 0;
+            pendingTravelEncounterIndex = 0;
+            isAwaitingRoadTravelChoice = false;
+            ShowWorldMap();
+            statusText.text = "次の街道戦闘を開始できませんでした。";
+            yield break;
+        }
+
+        ShowRoadBattlePage(currentTownIndex, destinationTownIndex);
+        statusText.text =
+            $"町の移動: 街道戦闘 {pendingTravelEncounterIndex}/" +
+            $"{pendingTravelEncounterCount}";
+    }
+
+    private void ContinueTownTravel()
+    {
+        if (!isAwaitingRoadTravelChoice ||
+            pendingTravelTownIndex < 0 ||
+            battleManager.IsBattling)
+        {
+            return;
+        }
+
+        isAwaitingRoadTravelChoice = false;
+        roadContinueButton.gameObject.SetActive(false);
+        roadRetreatButton.gameObject.SetActive(false);
+        pendingTravelEncounterIndex++;
+        statusText.text =
+            $"街道戦闘 {pendingTravelEncounterIndex}/" +
+            $"{pendingTravelEncounterCount} の敵が接近しています。";
+        StartCoroutine(ContinueTownTravelBattleRoutine());
+    }
+
+    private void RetreatFromTownTravel()
+    {
+        if (!isAwaitingRoadTravelChoice || battleManager.IsBattling)
+        {
+            return;
+        }
+
+        pendingTravelTownIndex = -1;
+        pendingTravelWasUnlock = false;
+        pendingOpenDungeonAfterTravel = false;
+        pendingTravelEncounterCount = 0;
+        pendingTravelEncounterIndex = 0;
+        isAwaitingRoadTravelChoice = false;
+        pendingRoadRareEncounter = false;
+        roadContinueButton.gameObject.SetActive(false);
+        roadRetreatButton.gameObject.SetActive(false);
+        ShowTownMap();
+        statusText.text =
+            "街道から撤退し、出発した町へ戻りました。";
+    }
+
+    private List<EnemyDataSO> CreateTownRoadEncounter(
+        int originTownIndex,
+        int destinationTownIndex)
+    {
+        pendingRoadRareEncounter = false;
+        List<EnemyDataSO> originEnemies =
+            GetRoadEnemiesNearTown(originTownIndex);
+        List<EnemyDataSO> destinationEnemies =
+            GetRoadEnemiesNearTown(destinationTownIndex);
+        List<EnemyDataSO> encounter = new List<EnemyDataSO>();
+
+        AddUniqueRoadEnemies(encounter, originEnemies);
+        AddUniqueRoadEnemies(encounter, destinationEnemies);
+
+        int harderRouteIndex = Mathf.Min(
+            originTownIndex,
+            destinationTownIndex);
+        int enemyCount = harderRouteIndex == 0 ? 5 : 4;
+        List<EnemyDataSO> combined = new List<EnemyDataSO>();
+        combined.AddRange(originEnemies);
+        combined.AddRange(destinationEnemies);
+
+        while (encounter.Count < enemyCount && combined.Count > 0)
+        {
+            encounter.Add(
+                combined[UnityEngine.Random.Range(0, combined.Count)]);
+        }
+
+        TryReplaceWithRoadRareEnemy(encounter, harderRouteIndex);
+
+        return encounter.Count > 0
+            ? encounter
+            : battleManager.CreateDefaultEnemyEncounter(enemyCount);
+    }
+
+    private void TryReplaceWithRoadRareEnemy(
+        List<EnemyDataSO> encounter,
+        int harderRouteIndex)
+    {
+        const float rareEncounterChance = 0.08f;
+        int targetGrade = harderRouteIndex == 1
+            ? 7
+            : harderRouteIndex == 0
+                ? 5
+                : -1;
+        if (targetGrade < 0 ||
+            encounter.Count == 0 ||
+            UnityEngine.Random.value >= rareEncounterChance)
+        {
+            return;
+        }
+
+        EnemyDataSO[] rareEnemies =
+            Resources.LoadAll<EnemyDataSO>("Enemies/RoadRare");
+        foreach (EnemyDataSO enemy in rareEnemies)
+        {
+            if (enemy != null &&
+                enemy.category == EnemyCategory.MythicalBeast &&
+                enemy.monsterGrade == targetGrade)
+            {
+                encounter[encounter.Count - 1] = enemy;
+                pendingRoadRareEncounter = true;
+                return;
+            }
+        }
+    }
+
+    private List<EnemyDataSO> GetRoadEnemiesNearTown(int townIndex)
+    {
+        List<EnemyDataSO> result = new List<EnemyDataSO>();
+        DungeonDataSO dungeon =
+            dungeonRunManager.GetDungeonNearTown(townIndex);
+        if (dungeon?.normalEnemies == null)
+        {
+            return result;
+        }
+
+        foreach (EnemyDataSO enemy in dungeon.normalEnemies)
+        {
+            if (enemy != null && !enemy.isBoss && !result.Contains(enemy))
+            {
+                result.Add(enemy);
+            }
+        }
+
+        return result;
+    }
+
+    private static void AddUniqueRoadEnemies(
+        List<EnemyDataSO> encounter,
+        List<EnemyDataSO> candidates)
+    {
+        foreach (EnemyDataSO enemy in candidates)
+        {
+            if (enemy != null && !encounter.Contains(enemy))
+            {
+                encounter.Add(enemy);
+            }
+        }
     }
 
     private void OpenNearbyDungeon()
@@ -4417,6 +5148,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private void HideMapPages()
     {
+        roadBattlePage?.gameObject.SetActive(false);
         globalMapPage?.gameObject.SetActive(false);
         worldMapPage?.gameObject.SetActive(false);
         townMapPage?.gameObject.SetActive(false);
@@ -4443,6 +5175,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         partyPage.gameObject.SetActive(false);
         healPage.gameObject.SetActive(false);
         battlePage.gameObject.SetActive(false);
+        roadBattlePage.gameObject.SetActive(false);
         dungeonPage.gameObject.SetActive(false);
         marketPage.gameObject.SetActive(false);
         blacksmithPage.gameObject.SetActive(false);
@@ -4506,11 +5239,15 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
         if (startDungeonButton != null)
         {
+            DungeonDataSO selectedDungeon =
+                dungeonRunManager.SelectedDungeon;
             startDungeonButton.gameObject.SetActive(!dungeonRunManager.IsRunning);
             startDungeonButton.interactable =
                 partyManager.Members.Count > 0 &&
                 !battleManager.IsBattling &&
-                !dungeonRunManager.IsRunning;
+                !dungeonRunManager.IsRunning &&
+                selectedDungeon != null &&
+                selectedDungeon.nearbyTownIndex == currentTownIndex;
         }
     }
 
@@ -4567,7 +5304,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         panel.anchoredPosition = Vector2.zero;
 
         Image panelImage = panel.gameObject.AddComponent<Image>();
-        panelImage.color = PanelColor;
+        ApplyParchmentPanel(panelImage);
         return panel;
     }
 
@@ -4600,9 +5337,13 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
         Text text = rect.gameObject.AddComponent<Text>();
         text.text = content;
-        text.font = uiFont;
+        text.font = fontStyle == FontStyle.Normal ? uiBodyFont : uiFont;
         text.fontSize = fontSize;
-        text.fontStyle = fontStyle;
+        bool isDirectParchmentText =
+            color == ParchmentTextColor || color == ParchmentMutedColor;
+        text.fontStyle = isDirectParchmentText
+            ? FontStyle.Bold
+            : fontStyle;
         text.alignment = alignment;
         text.color = color;
         text.raycastTarget = false;
@@ -4686,28 +5427,34 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             }
 
             bool unlocked = unlockedTownIndices.Contains(i);
+            bool reachable =
+                i == currentTownIndex ||
+                Mathf.Abs(i - currentTownIndex) == 1;
             Text label = button.GetComponentInChildren<Text>();
             if (label != null)
             {
                 string state = i == currentTownIndex
                     ? "\n【現在地】"
-                    : unlocked
+                    : !reachable
+                        ? "\n【要経由】"
+                        : unlocked
                         ? string.Empty
                         : "\n【未解放】";
                 label.text = TownNames[i] + state;
-                label.color = unlocked
+                label.color = unlocked && reachable
                     ? Color.white
                     : new Color(0.38f, 0.4f, 0.42f, 1f);
             }
 
-            button.targetGraphic.color = unlocked
+            button.interactable = reachable;
+            button.targetGraphic.color = unlocked && reachable
                 ? new Color(0.04f, 0.05f, 0.06f, 0.76f)
                 : new Color(0.005f, 0.005f, 0.008f, 0.97f);
 
             RawImage[] markerImages = button.GetComponentsInChildren<RawImage>();
             foreach (RawImage markerImage in markerImages)
             {
-                markerImage.color = unlocked
+                markerImage.color = unlocked && reachable
                     ? Color.white
                     : new Color(0.035f, 0.035f, 0.04f, 1f);
             }
@@ -5037,19 +5784,46 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         RefreshUI();
     }
 
-    private static string BuildMercenarySkillSummary(MercenaryInstance mercenary)
+    private class MercenarySkillInfo
     {
-        List<string> skills = new List<string>();
+        public string Name;
+        public string ShortDescription;
+        public string DetailDescription;
+        public bool Unlocked = true;
+    }
+
+    private static List<MercenarySkillInfo> GetMercenarySkillInfos(
+        MercenaryInstance mercenary)
+    {
+        List<MercenarySkillInfo> skills = new List<MercenarySkillInfo>();
         switch (mercenary.MercenaryClass)
         {
             case MercenaryClass.Warrior:
-                skills.Add("戦闘スキル: 挑発の一撃（魔力35）");
+                skills.Add(new MercenarySkillInfo
+                {
+                    Name = "挑発",
+                    ShortDescription = "戦闘スキル / 魔力35",
+                    DetailDescription =
+                        "敵の攻撃を自分に引きつけます。ダメージを与えるスキルではありませんが、味方を守りたい場面で有効です。"
+                });
                 break;
             case MercenaryClass.Archer:
-                skills.Add("戦闘スキル: 連射（魔力45）");
+                skills.Add(new MercenarySkillInfo
+                {
+                    Name = "連射",
+                    ShortDescription = "戦闘スキル / 魔力45",
+                    DetailDescription =
+                        "攻撃力を少し下げた射撃を2回行います。通常攻撃より有効な対象がいる場合に自動発動します。"
+                });
                 break;
             case MercenaryClass.Mage:
-                skills.Add("戦闘スキル: 火球（魔力50）");
+                skills.Add(new MercenarySkillInfo
+                {
+                    Name = "火球",
+                    ShortDescription = "戦闘スキル / 魔力50",
+                    DetailDescription =
+                        "敵1体に高威力の魔法攻撃を行います。通常攻撃では倒しきれない相手への決定打になります。"
+                });
                 break;
         }
 
@@ -5058,28 +5832,107 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             switch (mercenary.MercenaryClass)
             {
                 case MercenaryClass.Warrior:
-                    skills.Add("基礎体力: HP+10、防御+3");
+                    skills.Add(new MercenarySkillInfo
+                    {
+                        Name = "基礎体力",
+                        ShortDescription = "パッシブ / Lv2",
+                        DetailDescription =
+                            "最大HPが10、防御が3上昇します。前衛として長く戦えるようになります。"
+                    });
                     break;
                 case MercenaryClass.Archer:
-                    skills.Add("速射訓練: 攻撃速度+0.05");
+                    skills.Add(new MercenarySkillInfo
+                    {
+                        Name = "速射訓練",
+                        ShortDescription = "パッシブ / Lv2",
+                        DetailDescription =
+                            "攻撃速度が0.05上昇します。行動順が早くなり、魔力の回復機会も増えやすくなります。"
+                    });
                     break;
                 case MercenaryClass.Mage:
-                    skills.Add("魔力集中: 攻撃+4");
+                    skills.Add(new MercenarySkillInfo
+                    {
+                        Name = "魔力集中",
+                        ShortDescription = "パッシブ / Lv2",
+                        DetailDescription =
+                            "攻撃が4上昇します。通常攻撃と火球の両方の威力が上がります。"
+                    });
                     break;
             }
         }
+        else
+        {
+            string passiveName;
+            string passiveDescription;
+            switch (mercenary.MercenaryClass)
+            {
+                case MercenaryClass.Warrior:
+                    passiveName = "基礎体力";
+                    passiveDescription = "Lv2で習得。最大HP+10、防御+3。";
+                    break;
+                case MercenaryClass.Archer:
+                    passiveName = "速射訓練";
+                    passiveDescription = "Lv2で習得。攻撃速度+0.05。";
+                    break;
+                case MercenaryClass.Mage:
+                    passiveName = "魔力集中";
+                    passiveDescription = "Lv2で習得。攻撃+4。";
+                    break;
+                default:
+                    passiveName = null;
+                    passiveDescription = null;
+                    break;
+            }
+
+            if (!string.IsNullOrEmpty(passiveName))
+            {
+                skills.Add(new MercenarySkillInfo
+                {
+                    Name = passiveName,
+                    ShortDescription = "未習得 / Lv2",
+                    DetailDescription = passiveDescription,
+                    Unlocked = false
+                });
+            }
+        }
+
         if (mercenary.IsUnique &&
-            mercenary.Level >=
-            Mathf.Max(1, mercenary.BaseData.uniqueSkillUnlockLevel))
+            mercenary.BaseData != null)
         {
             MercenaryDataSO data = mercenary.BaseData;
-            skills.Add(
-                $"{data.uniqueSkillName}: HP+{data.uniqueSkillBonusMaxHP}、" +
-                $"攻撃+{data.uniqueSkillBonusAttack}、" +
-                $"防御+{data.uniqueSkillBonusDefense}、" +
-                $"魔力+{data.uniqueSkillBonusMaxMagicPower}、" +
-                $"速度+{data.uniqueSkillBonusAttackSpeed:0.00}");
+            bool unlocked =
+                mercenary.Level >= Mathf.Max(1, data.uniqueSkillUnlockLevel);
+            skills.Add(new MercenarySkillInfo
+            {
+                Name = data.uniqueSkillName,
+                ShortDescription = unlocked
+                    ? "固有スキル"
+                    : $"未習得 / Lv{data.uniqueSkillUnlockLevel}",
+                DetailDescription =
+                    $"固有傭兵専用の能力です。\n" +
+                    $"習得Lv: {data.uniqueSkillUnlockLevel}\n" +
+                    $"最大HP+{data.uniqueSkillBonusMaxHP}、" +
+                    $"攻撃+{data.uniqueSkillBonusAttack}、" +
+                    $"防御+{data.uniqueSkillBonusDefense}、" +
+                    $"魔力+{data.uniqueSkillBonusMaxMagicPower}、" +
+                    $"速度+{data.uniqueSkillBonusAttackSpeed:0.00}",
+                Unlocked = unlocked
+            });
         }
+        return skills;
+    }
+
+    private static string BuildMercenarySkillSummary(MercenaryInstance mercenary)
+    {
+        List<string> skills = new List<string>();
+        foreach (MercenarySkillInfo skill in GetMercenarySkillInfos(mercenary))
+        {
+            if (skill.Unlocked)
+            {
+                skills.Add($"{skill.Name}: {skill.ShortDescription}");
+            }
+        }
+
         return skills.Count > 0
             ? string.Join(" / ", skills)
             : "スキル未設定";

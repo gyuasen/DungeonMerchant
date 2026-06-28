@@ -16,7 +16,7 @@ MonoBehaviour:
   grade: 0
   worldMapIndex: 0
   nearbyTownIndex: 2
-  totalFloors: 3
+  totalFloors: 5
   description: "\u5546\u968A\u306E\u8FD1\u304F\u306B\u3042\u308B\u5C0F\u3055\u306A\u6D1E\u7A9F\u3002"
   encounterCount: 3
   firstEncounterEnemyCount: 2
@@ -27,7 +27,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9017a6d57352445198b657303e35421e, type: 2}
   bossEnemy: {fileID: 11400000, guid: 5c78c95223f24a0ea9217d76786d9044, type: 2}
   floorClearGoldReward: 40
-  clearGoldReward: 100
+  clearGoldReward: 1000
   clearItemRewards:
   - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
     amount: 2
@@ -36,6 +36,6 @@ MonoBehaviour:
   eventLimitedDropChance: 0.02
   bossLimitedDropChance: 0.05
   limitedEquipmentDrops:
-  - {fileID: 11400000, guid: 68f03ed7307742d8814a1ec088c45bc1, type: 2}
-  - {fileID: 11400000, guid: 8177ed4faefc450885f8d06738f9a05e, type: 2}
-  - {fileID: 11400000, guid: 21d742c7122c4e4da77a01f608c511f6, type: 2}
+  - {fileID: 11400000, guid: 2966a1f3f3e048b699ad1dfcab913a4c, type: 2}
+  - {fileID: 11400000, guid: 6830512a6bab4dc6a53eb0ce3be24f8a, type: 2}
+  - {fileID: 11400000, guid: 198753fb2ca1461599b6fe3eb59d16ca, type: 2}

@@ -254,6 +254,10 @@ public class BattleManager : MonoBehaviour
         {
             EnemyDataSO enemy = enemies[i];
             string enemyName = JapaneseDisplayText.GetEnemyName(enemy.enemyName);
+            if (enemy.category == EnemyCategory.MythicalBeast)
+            {
+                enemyName = $"幻獣 {enemyName}";
+            }
             if (enemy.isBoss)
             {
                 enemyName = $"ボス {enemyName}";
@@ -727,6 +731,9 @@ public class BattleManager : MonoBehaviour
             {
                 enemyExperience *= 2;
             }
+            enemyExperience = Mathf.RoundToInt(
+                enemyExperience *
+                Mathf.Max(1f, enemy.experienceMultiplier));
 
             totalExperience += enemyExperience;
         }

@@ -86,6 +86,9 @@ public static class JapaneseDisplayText
             case "Champion Emblem": return "勇士の紋章";
             case "Hawkeye Charm": return "鷹の目のお守り";
             case "Arcane Pendant": return "秘術の首飾り";
+            case "Oni Hunter Cleaver": return "鬼狩りの鉈";
+            case "Oni Hunter Garb": return "鬼狩りの装束";
+            case "Goblin Fang Talisman": return "小鬼牙のお守り";
             case "Iron Armor": return "鉄の鎧";
             case "Leather Armor": return "革の鎧";
             case "Apprentice Robe": return "見習いのローブ";
@@ -135,6 +138,10 @@ public static class JapaneseDisplayText
             case "Ruin Guardian": return "遺跡の守護者";
             case "Black Iron General": return "黒鉄将軍";
             case "Abyss Lord": return "深淵の王";
+            case "Mistfang Wolf": return "霧牙狼";
+            case "Thunderhorn Kirin": return "雷角麒麟";
+            case "Flamewing Gryphon": return "炎翼グリフォン";
+            case "Astral Dragon": return "星界竜";
             default: return enemyName;
         }
     }
@@ -151,8 +158,12 @@ public static class JapaneseDisplayText
             : enemy.monsterGrade > 10
                 ? 10
                 : enemy.monsterGrade;
+        string categoryLabel =
+            enemy.category == EnemyCategory.MythicalBeast
+                ? " 幻獣"
+                : string.Empty;
         string bossLabel = enemy.isBoss ? " ボス" : string.Empty;
-        return $"{grade}等級{bossLabel}";
+        return $"{grade}等級{categoryLabel}{bossLabel}";
     }
 
     public static string GetDungeonGrade(DungeonGrade value)
@@ -203,6 +214,7 @@ public static class JapaneseDisplayText
             case EquipmentSetId.Vanguard: return "不屈の前衛";
             case EquipmentSetId.Windstalker: return "風狩り";
             case EquipmentSetId.ArcaneSage: return "秘術賢者";
+            case EquipmentSetId.OniHunter: return "鬼狩り";
             default: return "セットなし";
         }
     }

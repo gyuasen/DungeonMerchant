@@ -38,9 +38,12 @@ public class DungeonRunManager : MonoBehaviour
     public bool IsRunning { get; private set; }
     public bool IsAwaitingEventChoice { get; private set; }
     public int CurrentEncounter { get; private set; }
-    public int EncounterCount => dungeonData != null
-        ? Mathf.Max(1, dungeonData.encounterCount)
-        : encounterCount;
+    private int currentRunEncounterCount;
+    public int EncounterCount => IsRunning
+        ? Mathf.Max(1, currentRunEncounterCount)
+        : dungeonData != null
+            ? Mathf.Max(1, dungeonData.encounterCount)
+            : encounterCount;
     public string DungeonName => dungeonData != null
         ? dungeonData.dungeonName
         : "ダンジョン";
@@ -112,6 +115,7 @@ public class DungeonRunManager : MonoBehaviour
         progressionManager?.StartExploration();
         IsAwaitingEventChoice = false;
         CurrentEncounter = 0;
+        currentRunEncounterCount = UnityEngine.Random.Range(3, 6);
         ClearEvent();
         SubscribeToBattle();
         SendDungeonMessage(
