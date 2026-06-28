@@ -520,6 +520,7 @@ public class MercenaryInstance
         int bonus = 0;
         if (GetEquippedSetCount(EquipmentSetId.AncientGuardian) >= 2) bonus += 30;
         if (GetEquippedSetCount(EquipmentSetId.Vanguard) >= 2) bonus += 20;
+        if (GetEquippedSetCount(EquipmentSetId.OniHunter) >= 2) bonus += 10;
         return bonus;
     }
 
@@ -532,6 +533,8 @@ public class MercenaryInstance
         if (GetEquippedSetCount(EquipmentSetId.Windstalker) >= 3) bonus += 10;
         if (GetEquippedSetCount(EquipmentSetId.ArcaneSage) >= 2) bonus += 10;
         if (GetEquippedSetCount(EquipmentSetId.ArcaneSage) >= 3) bonus += 15;
+        if (GetEquippedSetCount(EquipmentSetId.OniHunter) >= 2) bonus += 3;
+        if (GetEquippedSetCount(EquipmentSetId.OniHunter) >= 3) bonus += 5;
         return bonus;
     }
 
@@ -540,6 +543,7 @@ public class MercenaryInstance
         int bonus = 0;
         if (GetEquippedSetCount(EquipmentSetId.AncientGuardian) >= 2) bonus += 8;
         if (GetEquippedSetCount(EquipmentSetId.Vanguard) >= 2) bonus += 10;
+        if (GetEquippedSetCount(EquipmentSetId.OniHunter) >= 3) bonus += 2;
         return bonus;
     }
 

@@ -9,6 +9,7 @@ public class EnemyDataSO : ScriptableObject
     public string enemyName;
     [Range(1, 10)] public int monsterGrade = 10;
     public bool isBoss;
+    public EnemyCategory category = EnemyCategory.Normal;
 
     [Header("Stats")]
     public int maxHP = 80;
@@ -19,7 +20,14 @@ public class EnemyDataSO : ScriptableObject
 
     [Header("Reward")]
     public int goldReward = 50;
+    [Min(1f)] public float experienceMultiplier = 1f;
     public ItemDropEntry[] itemDrops;
+}
+
+public enum EnemyCategory
+{
+    Normal,
+    MythicalBeast
 }
 
 [System.Serializable]
