@@ -14,12 +14,35 @@ public class BattleUnit
     public int Attack { get; private set; }
     public int Defense { get; private set; }
     public float AttackSpeed { get; private set; }
+    public float CriticalRate { get; private set; }
+    public float EvasionRate { get; private set; }
     public int TauntTurns { get; private set; }
+    public BattleStatusEffect StatusEffect { get; private set; }
+    public int StatusTurns { get; private set; }
+    private float criticalRateBonus;
+    private int criticalRateBonusTurns;
 
     public bool IsDead => CurrentHP <= 0;
     public bool IsTaunting => !IsDead && TauntTurns > 0;
     public int EffectiveDefense => Defense;
-    public string StatusSummary => IsTaunting ? "挑発" : "なし";
+    public string StatusSummary
+    {
+        get
+        {
+            string status = StatusEffect == BattleStatusEffect.Poison
+                ? "毒"
+                : StatusEffect == BattleStatusEffect.Paralysis
+                    ? "麻痺"
+                    : string.Empty;
+            if (IsTaunting)
+            {
+                status = string.IsNullOrEmpty(status)
+                    ? "挑発"
+                    : $"{status}・挑発";
+            }
+            return string.IsNullOrEmpty(status) ? "なし" : status;
+        }
+    }
 
     public BattleUnit(
         string unitName,
@@ -30,7 +53,10 @@ public class BattleUnit
         float attackSpeed,
         bool isPlayerSide,
         MercenaryClass mercenaryClass = MercenaryClass.Warrior,
-        int maxMagicPower = 0)
+        int maxMagicPower = 0,
+        float criticalRate = 0f,
+        float evasionRate = 0f,
+        BattleStatusEffect initialStatus = BattleStatusEffect.None)
     {
         UnitName = unitName;
         IsPlayerSide = isPlayerSide;
@@ -40,10 +66,16 @@ public class BattleUnit
         Attack = attack;
         Defense = defense;
         AttackSpeed = attackSpeed;
+        CriticalRate = Mathf.Clamp(criticalRate, 0f, 0.75f);
+        EvasionRate = Mathf.Clamp(evasionRate, 0f, 0.75f);
         MaxMagicPower = Mathf.Max(0, maxMagicPower);
         CurrentMagicPower = isPlayerSide
             ? Mathf.Min(MaxMagicPower, 20)
             : 0;
+        if (initialStatus != BattleStatusEffect.None)
+        {
+            ApplyStatus(initialStatus, initialStatus == BattleStatusEffect.Poison ? 3 : 1);
+        }
     }
 
     public void TakeDamage(int damage)
@@ -51,6 +83,78 @@ public class BattleUnit
         int finalDamage = Mathf.Max(1, damage - EffectiveDefense);
         CurrentHP -= finalDamage;
         CurrentHP = Mathf.Max(0, CurrentHP);
+    }
+
+    public void TakePureDamage(int damage)
+    {
+        CurrentHP = Mathf.Max(0, CurrentHP - Mathf.Max(1, damage));
+    }
+
+    public void Heal(int amount)
+    {
+        CurrentHP = Mathf.Min(
+            MaxHP,
+            CurrentHP + Mathf.Max(0, amount));
+    }
+
+    public bool TryEvade()
+    {
+        return !IsDead && UnityEngine.Random.value < EvasionRate;
+    }
+
+    public bool RollCritical()
+    {
+        return UnityEngine.Random.value <
+               Mathf.Clamp(CriticalRate + criticalRateBonus, 0f, 0.9f);
+    }
+
+    public void BoostCriticalRate(float amount, int turns)
+    {
+        criticalRateBonus = Mathf.Max(criticalRateBonus, Mathf.Max(0f, amount));
+        criticalRateBonusTurns = Mathf.Max(criticalRateBonusTurns, turns);
+    }
+
+    public void ApplyStatus(BattleStatusEffect effect, int turns)
+    {
+        if (effect == BattleStatusEffect.None || IsDead)
+        {
+            return;
+        }
+
+        StatusEffect = effect;
+        StatusTurns = Mathf.Max(StatusTurns, Mathf.Max(1, turns));
+    }
+
+    public int ProcessPoisonDamage()
+    {
+        if (StatusEffect != BattleStatusEffect.Poison || StatusTurns <= 0)
+        {
+            return 0;
+        }
+
+        int damage = Mathf.Max(1, Mathf.RoundToInt(MaxHP * 0.06f));
+        TakePureDamage(damage);
+        StatusTurns--;
+        if (StatusTurns <= 0)
+        {
+            StatusEffect = BattleStatusEffect.None;
+        }
+        return damage;
+    }
+
+    public bool ConsumeParalysisTurn()
+    {
+        if (StatusEffect != BattleStatusEffect.Paralysis || StatusTurns <= 0)
+        {
+            return false;
+        }
+
+        StatusTurns--;
+        if (StatusTurns <= 0)
+        {
+            StatusEffect = BattleStatusEffect.None;
+        }
+        return true;
     }
 
     public int EstimateDamageTaken(int damage)
@@ -102,5 +206,13 @@ public class BattleUnit
             TauntTurns--;
         }
 
+        if (criticalRateBonusTurns > 0)
+        {
+            criticalRateBonusTurns--;
+            if (criticalRateBonusTurns <= 0)
+            {
+                criticalRateBonus = 0f;
+            }
+        }
     }
 }
