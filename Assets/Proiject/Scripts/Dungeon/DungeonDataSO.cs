@@ -23,6 +23,11 @@ public class DungeonDataSO : ScriptableObject
     public EnemyDataSO[] normalEnemies;
     public EnemyDataSO bossEnemy;
 
+    [Header("特殊個体")]
+    [Range(0f, 1f)] public float specialVariantChance = 0.08f;
+    [Range(0f, 1f)] public float specialBossChance = 0.03f;
+    public EnemySkillType[] specialVariantSkillPool;
+
     [Header("踏破報酬")]
     [Min(0)] public int floorClearGoldReward = 40;
     [Min(0)] public int clearGoldReward = 100;

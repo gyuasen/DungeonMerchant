@@ -10,6 +10,9 @@ public class EnemyDataSO : ScriptableObject
     [Range(1, 10)] public int monsterGrade = 10;
     public bool isBoss;
     public EnemyCategory category = EnemyCategory.Normal;
+    public EnemySkillType enemySkill = EnemySkillType.None;
+    public bool isSpecialVariant;
+    public string specialVariantTitle;
 
     [Header("Stats")]
     public int maxHP = 80;
@@ -17,6 +20,8 @@ public class EnemyDataSO : ScriptableObject
     public int defense = 2;
     [Min(0)] public int maxMagicPower = 40;
     public float attackSpeed = 1.0f;
+    [Range(0f, 0.75f)] public float criticalRate;
+    [Range(0f, 0.75f)] public float evasionRate;
 
     [Header("Reward")]
     public int goldReward = 50;

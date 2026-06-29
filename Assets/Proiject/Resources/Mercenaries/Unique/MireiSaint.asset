@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de912b2128fc8ae41be1a8be596f5b30, type: 3}
+  m_Name: MireiSaint
+  m_EditorClassIdentifier:
+  mercenaryName: "\u30DF\u30EC\u30A4"
+  mercenaryClass: 3
+  contractType: 0
+  maxHP: 86
+  attack: 11
+  defense: 4
+  maxMagicPower: 125
+  attackSpeed: 1
+  hireCost: 155
+  uniqueSkillUnlockLevel: 8
+  uniqueSkillName: "\u8056\u5149\u306E\u7948\u308A"
+  uniqueSkillBonusMaxHP: 15
+  uniqueSkillBonusAttack: 2
+  uniqueSkillBonusDefense: 3
+  uniqueSkillBonusMaxMagicPower: 20
+  uniqueSkillBonusAttackSpeed: 0.02
