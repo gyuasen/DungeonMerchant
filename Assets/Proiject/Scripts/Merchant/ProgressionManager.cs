@@ -212,8 +212,8 @@ public class ProgressionManager : MonoBehaviour
                 days * (100 + grade * 75) * expenseMultiplier));
         int goldBefore = merchantData != null ? merchantData.Gold : 0;
         merchantData?.TryPayGold(Mathf.Min(goldBefore, expense));
-        dayManager?.AdvanceDays(days);
         merchantData?.AddExperience(cleared ? 40 + grade * 20 : 10);
+        dayManager?.AdvanceDays(days);
         if (cleared)
         {
             totalDungeonClears++;
