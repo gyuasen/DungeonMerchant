@@ -148,11 +148,33 @@ public static class JapaneseDisplayText
         switch (enemyName)
         {
             case "Slime": return "スライム";
+            case "Green Slime": return "グリーンスライム";
+            case "Blue Slime": return "ブルースライム";
+            case "Moss Slime": return "苔スライム";
+            case "Horn Rabbit": return "角ウサギ";
             case "Goblin": return "ゴブリン";
+            case "Kobold": return "コボルト";
+            case "Goblin Scout": return "ゴブリン斥候";
+            case "Wild Dog": return "野犬";
+            case "Goblin Spearman": return "ゴブリン槍兵";
             case "Cave Bat": return "洞窟コウモリ";
+            case "Giant Rat": return "大ネズミ";
+            case "Cave Spider": return "洞窟グモ";
+            case "Venom Moth": return "毒蛾";
+            case "Rock Beetle": return "岩甲虫";
             case "Skeleton": return "スケルトン";
+            case "Zombie": return "ゾンビ";
+            case "Armored Skeleton": return "装甲スケルトン";
+            case "Wraith": return "レイス";
+            case "Bone Hound": return "骨猟犬";
             case "Orc": return "オーク";
+            case "Lizardman": return "リザードマン";
+            case "Hobgoblin": return "ホブゴブリン";
+            case "Troll": return "トロル";
+            case "Marsh Lizard": return "沼トカゲ";
             case "Stone Golem": return "ストーンゴーレム";
+            case "Iron Golem": return "アイアンゴーレム";
+            case "Ogre Mage": return "オーガメイジ";
             case "Dark Mage": return "闇の魔術師";
             case "Wyvern": return "ワイバーン";
             case "Demon Knight": return "魔界騎士";

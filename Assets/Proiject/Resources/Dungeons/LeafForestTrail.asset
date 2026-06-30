@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e979c614ce1242bd9c993974ec08851e, type: 3}
-  m_Name: DungeonData
-  m_EditorClassIdentifier: 
-  dungeonName: "\u306F\u3058\u307E\u308A\u306E\u6D1E\u7A9F"
+  m_Name: LeafForestTrail
+  m_EditorClassIdentifier:
+  dungeonName: リーフ樹海の獣道
   grade: 0
   worldMapIndex: 0
-  nearbyTownIndex: 2
-  totalFloors: 5
-  description: "\u5546\u968A\u306E\u8FD1\u304F\u306B\u3042\u308B\u5C0F\u3055\u306A\u6D1E\u7A9F\u3002"
+  nearbyTownIndex: 1
+  totalFloors: 3
+  description: リーフ森林都市の外れに続く、魔物の足跡が残る深い獣道。
   encounterCount: 3
   firstEncounterEnemyCount: 2
   enemyCountIncreasePerEncounter: 1
@@ -34,19 +34,17 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a04018ea899b41bbbe41cff593236c22, type: 2}
   - {fileID: 11400000, guid: 170c65f3d2c74740a72add3b3b46291e, type: 2}
   bossEnemy: {fileID: 11400000, guid: 5c78c95223f24a0ea9217d76786d9044, type: 2}
-  floorClearGoldReward: 40
-  clearGoldReward: 1000
+  specialVariantChance: 0.06
+  specialBossChance: 0.02
+  specialVariantSkillPool: 0100000002000000
+  floorClearGoldReward: 35
+  clearGoldReward: 120
   clearItemRewards:
   - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
     amount: 2
-  - item: {fileID: 11400000, guid: 41759c6c3b674e80badbff072ddc6b6d, type: 2}
-    amount: 1
   eventLimitedDropChance: 0.02
   bossLimitedDropChance: 0.05
   limitedEquipmentDrops:
   - {fileID: 11400000, guid: 2966a1f3f3e048b699ad1dfcab913a4c, type: 2}
   - {fileID: 11400000, guid: 6830512a6bab4dc6a53eb0ce3be24f8a, type: 2}
   - {fileID: 11400000, guid: 198753fb2ca1461599b6fe3eb59d16ca, type: 2}
-  specialVariantChance: 0.06
-  specialBossChance: 0.02
-  specialVariantSkillPool: 0100000002000000

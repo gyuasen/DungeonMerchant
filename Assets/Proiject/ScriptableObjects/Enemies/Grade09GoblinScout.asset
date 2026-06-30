@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
+  m_Name: Grade09GoblinScout
+  m_EditorClassIdentifier:
+  enemyName: Goblin Scout
+  monsterGrade: 9
+  isBoss: 0
+  category: 0
+  enemySkill: 0
+  isSpecialVariant: 0
+  specialVariantTitle:
+  maxHP: 23
+  attack: 7
+  defense: 1
+  maxMagicPower: 25
+  attackSpeed: 1.35
+  criticalRate: 0.05
+  evasionRate: 0.07
+  goldReward: 60
+  experienceMultiplier: 1
+  itemDrops:
+  - item: {fileID: 11400000, guid: c004e837db61404f91a3642e14170b20, type: 2}
+    amount: 1
+    dropChance: 0.8
