@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e979c614ce1242bd9c993974ec08851e, type: 3}
-  m_Name: LowerMine
-  m_EditorClassIdentifier: 
-  dungeonName: "\u5C01\u3058\u3089\u308C\u305F\u5EC3\u5751"
+  m_Name: EldOldQuarry
+  m_EditorClassIdentifier:
+  dungeonName: エルド旧採石場
   grade: 1
   worldMapIndex: 0
-  nearbyTownIndex: 1
+  nearbyTownIndex: 0
   totalFloors: 4
-  description: "\u9B54\u7269\u304C\u4F4F\u307F\u7740\u3044\u305F\u53E4\u3044\u9271\u5C71\u3002"
+  description: 交易都市の建材を切り出していた、崩落の進む危険な採石場。
   encounterCount: 3
   firstEncounterEnemyCount: 3
   enemyCountIncreasePerEncounter: 1
@@ -34,19 +34,17 @@ MonoBehaviour:
   - {fileID: 11400000, guid: db0d9adf899945e39e292eca1e11fea1, type: 2}
   - {fileID: 11400000, guid: 3c8a2207d91941d5a31d652a6206a2d5, type: 2}
   bossEnemy: {fileID: 11400000, guid: 5801c50e8df7449bbab39e1ca0b4922f, type: 2}
-  floorClearGoldReward: 60
-  clearGoldReward: 180
+  specialVariantChance: 0.07
+  specialBossChance: 0.025
+  specialVariantSkillPool: 010000000200000003000000
+  floorClearGoldReward: 55
+  clearGoldReward: 170
   clearItemRewards:
   - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
     amount: 3
-  - item: {fileID: 11400000, guid: 40d324bd58104032a21ed695ddb8e3ab, type: 2}
-    amount: 2
   eventLimitedDropChance: 0.025
   bossLimitedDropChance: 0.06
   limitedEquipmentDrops:
   - {fileID: 11400000, guid: 68f03ed7307742d8814a1ec088c45bc1, type: 2}
   - {fileID: 11400000, guid: 8177ed4faefc450885f8d06738f9a05e, type: 2}
   - {fileID: 11400000, guid: 21d742c7122c4e4da77a01f608c511f6, type: 2}
-  specialVariantChance: 0.07
-  specialBossChance: 0.025
-  specialVariantSkillPool: 010000000200000003000000
