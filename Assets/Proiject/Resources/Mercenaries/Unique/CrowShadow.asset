@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de912b2128fc8ae41be1a8be596f5b30, type: 3}
+  m_Name: CrowShadow
+  m_EditorClassIdentifier:
+  mercenaryName: "\u30AF\u30ED\u30A6"
+  mercenaryClass: 4
+  contractType: 0
+  maxHP: 82
+  attack: 16
+  defense: 3
+  maxMagicPower: 80
+  attackSpeed: 1.4
+  hireCost: 165
+  uniqueSkillUnlockLevel: 8
+  uniqueSkillName: "\u5F71\u6E21\u308A"
+  uniqueSkillBonusMaxHP: 5
+  uniqueSkillBonusAttack: 6
+  uniqueSkillBonusDefense: 1
+  uniqueSkillBonusMaxMagicPower: 8
+  uniqueSkillBonusAttackSpeed: 0.08

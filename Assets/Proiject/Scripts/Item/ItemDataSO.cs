@@ -28,13 +28,26 @@ public class ItemDataSO : ScriptableObject
     public int bonusDefense;
     public float bonusAttackSpeed;
 
+    [Header("Consumable")]
+    public ConsumableEffectType consumableEffect = ConsumableEffectType.None;
+
     public bool IsEquipment => itemType == ItemType.Equipment;
 
     public bool CanEquip(MercenaryClass mercenaryClass)
     {
         return IsEquipment &&
-               (allClassesCanEquip || requiredClass == mercenaryClass);
+               (allClassesCanEquip ||
+                requiredClass ==
+                MercenaryClassProgression.GetBaseClass(mercenaryClass));
     }
+}
+
+public enum ConsumableEffectType
+{
+    None,
+    CurePoison,
+    CureParalysis,
+    CureAllStatus
 }
 
 public enum EquipmentSetId

@@ -9,6 +9,7 @@ public class MercenaryInstance
     [SerializeField] private MercenaryArchetypeSO archetype;
     [SerializeField] private string mercenaryName;
     [SerializeField] private MercenaryClass mercenaryClass;
+    [SerializeField] private MercenaryClass originalClass;
     [SerializeField] private MercenaryContractType contractType;
     [SerializeField] private int level;
     [SerializeField] private int currentExperience;
@@ -18,6 +19,7 @@ public class MercenaryInstance
     [SerializeField] private int defense;
     [SerializeField] private int maxMagicPower;
     [SerializeField] private float attackSpeed;
+    [SerializeField] private BattleStatusEffect statusEffect;
     [SerializeField] private int hireCost;
     [SerializeField] private int contractEndDay;
     [SerializeField] private bool contractNeedsRenewal;
@@ -33,21 +35,44 @@ public class MercenaryInstance
     public MercenaryArchetypeSO Archetype => archetype;
     public string MercenaryName => mercenaryName;
     public MercenaryClass MercenaryClass => mercenaryClass;
+    public MercenaryClass OriginalClass =>
+        MercenaryClassProgression.GetBaseClass(originalClass);
     public MercenaryContractType ContractType => contractType;
     public int Level => level;
     public int CurrentExperience => currentExperience;
     public int ExperienceToNextLevel => CalculateExperienceToNextLevel(level);
     public int CurrentHP => currentHP;
     public int MaxHP => maxHP + GetEquipmentBonusMaxHP() + GetSetBonusMaxHP() +
-        GetSkillBonusMaxHP();
+        GetSkillBonusMaxHP() + GetProgressionBonus(skill => skill.BonusMaxHP);
     public int Attack => attack + GetEquipmentBonusAttack() + GetSetBonusAttack() +
-        GetSkillBonusAttack();
+        GetSkillBonusAttack() + GetProgressionBonus(skill => skill.BonusAttack);
     public int Defense => defense + GetEquipmentBonusDefense() + GetSetBonusDefense() +
-        GetSkillBonusDefense();
+        GetSkillBonusDefense() +
+        GetProgressionBonus(skill => skill.BonusDefense);
     public float AttackSpeed =>
         attackSpeed + GetEquipmentBonusAttackSpeed() + GetSetBonusAttackSpeed() +
-        GetSkillBonusAttackSpeed();
-    public int MaxMagicPower => maxMagicPower + GetSkillBonusMaxMagicPower();
+        GetSkillBonusAttackSpeed() +
+        GetProgressionBonusFloat(skill => skill.BonusAttackSpeed);
+    public int MaxMagicPower =>
+        maxMagicPower + GetSkillBonusMaxMagicPower() +
+        GetProgressionBonus(skill => skill.BonusMaxMagicPower);
+    public float CriticalRate =>
+        0.08f + GetProgressionBonusFloat(
+            skill => skill.BonusCriticalRate);
+    public float EvasionRate =>
+        (OriginalClass == MercenaryClass.Archer ||
+         OriginalClass == MercenaryClass.Rogue
+             ? 0.1f
+             : OriginalClass == MercenaryClass.Mage ||
+               OriginalClass == MercenaryClass.Priest
+                   ? 0.06f
+                   : 0.03f) +
+        GetProgressionBonusFloat(skill => skill.BonusEvasionRate);
+    public int LevelCap =>
+        MercenaryClassProgression.GetLevelCap(mercenaryClass);
+    public bool IsAtLevelCap => level >= LevelCap;
+    public BattleStatusEffect StatusEffect => statusEffect;
+    public bool HasStatusEffect => statusEffect != BattleStatusEffect.None;
     public int HireCost => hireCost;
     public int ContractEndDay => contractEndDay;
     public bool ContractNeedsRenewal => contractNeedsRenewal;
@@ -84,6 +109,7 @@ public class MercenaryInstance
         baseData = mercenaryData;
         mercenaryName = mercenaryData.mercenaryName;
         mercenaryClass = mercenaryData.mercenaryClass;
+        originalClass = mercenaryData.mercenaryClass;
         contractType = mercenaryData.contractType;
         level = 1;
         currentExperience = 0;
@@ -116,6 +142,7 @@ public class MercenaryInstance
         archetype = sourceArchetype;
         mercenaryName = generatedName;
         mercenaryClass = sourceArchetype.mercenaryClass;
+        originalClass = sourceArchetype.mercenaryClass;
         contractType = sourceArchetype.contractType;
         level = 1;
         currentExperience = 0;
@@ -147,6 +174,54 @@ public class MercenaryInstance
     public void RestoreFullHP()
     {
         currentHP = MaxHP;
+    }
+
+    public void ApplyStatusEffect(BattleStatusEffect effect)
+    {
+        if (effect != BattleStatusEffect.None)
+        {
+            statusEffect = effect;
+        }
+    }
+
+    public bool CureStatusEffect(BattleStatusEffect effect)
+    {
+        if (statusEffect == BattleStatusEffect.None ||
+            (effect != BattleStatusEffect.None && statusEffect != effect))
+        {
+            return false;
+        }
+
+        statusEffect = BattleStatusEffect.None;
+        return true;
+    }
+
+    public void RestoreStatusEffect(BattleStatusEffect effect)
+    {
+        statusEffect = effect;
+    }
+
+    public bool CanPromote =>
+        level >= MercenaryClassProgression.PromotionLevel &&
+        MercenaryClassProgression.IsBaseClass(mercenaryClass);
+
+    public bool PromoteTo(MercenaryClass targetClass)
+    {
+        if (!CanPromote ||
+            MercenaryClassProgression.GetBaseClass(targetClass) != OriginalClass ||
+            MercenaryClassProgression.IsBaseClass(targetClass))
+        {
+            return false;
+        }
+
+        mercenaryClass = targetClass;
+        maxHP += 15;
+        attack += 5;
+        defense += 3;
+        maxMagicPower += 15;
+        attackSpeed += 0.04f;
+        currentHP = Mathf.Min(MaxHP, currentHP + 15);
+        return true;
     }
 
     public void SetContract(
@@ -337,7 +412,7 @@ public class MercenaryInstance
 
     public int AddExperience(int amount)
     {
-        if (amount <= 0 || level >= 99)
+        if (amount <= 0 || IsAtLevelCap)
         {
             return 0;
         }
@@ -345,14 +420,15 @@ public class MercenaryInstance
         currentExperience += amount;
         int levelsGained = 0;
 
-        while (level < 99 && currentExperience >= ExperienceToNextLevel)
+        while (!IsAtLevelCap &&
+               currentExperience >= ExperienceToNextLevel)
         {
             currentExperience -= ExperienceToNextLevel;
             LevelUp();
             levelsGained++;
         }
 
-        if (level >= 99)
+        if (IsAtLevelCap)
         {
             currentExperience = 0;
         }
@@ -376,7 +452,7 @@ public class MercenaryInstance
         int defenseGrowth;
         float speedGrowth;
 
-        switch (mercenaryClass)
+        switch (OriginalClass)
         {
             case MercenaryClass.Archer:
                 hpGrowth = 8;
@@ -436,6 +512,7 @@ public class MercenaryInstance
             archetype = restoredArchetype,
             mercenaryName = restoredName,
             mercenaryClass = restoredClass,
+            originalClass = MercenaryClassProgression.GetBaseClass(restoredClass),
             contractType = restoredContractType,
             level = Mathf.Max(1, restoredLevel),
             currentExperience = Mathf.Max(0, restoredCurrentExperience),
@@ -448,7 +525,10 @@ public class MercenaryInstance
         };
         mercenary.EnsureRestoredMagicStat();
         mercenary.currentHP = Mathf.Clamp(restoredCurrentHP, 0, mercenary.maxHP);
-        if (mercenary.level >= 99)
+        mercenary.level = Mathf.Min(
+            mercenary.level,
+            mercenary.LevelCap);
+        if (mercenary.IsAtLevelCap)
         {
             mercenary.currentExperience = 0;
         }
@@ -472,6 +552,38 @@ public class MercenaryInstance
         return GetBonusMaxHP(EquipmentSlot.Weapon) +
                GetBonusMaxHP(EquipmentSlot.Armor) +
                GetBonusMaxHP(EquipmentSlot.Accessory);
+    }
+
+    private int GetProgressionBonus(
+        Func<MercenarySkillDefinition, int> selector)
+    {
+        int total = 0;
+        foreach (MercenarySkillDefinition skill in
+                 MercenaryClassProgression.GetSkillProgression(
+                     mercenaryClass))
+        {
+            if (skill.IsPassive && level >= skill.UnlockLevel)
+            {
+                total += selector(skill);
+            }
+        }
+        return total;
+    }
+
+    private float GetProgressionBonusFloat(
+        Func<MercenarySkillDefinition, float> selector)
+    {
+        float total = 0f;
+        foreach (MercenarySkillDefinition skill in
+                 MercenaryClassProgression.GetSkillProgression(
+                     mercenaryClass))
+        {
+            if (skill.IsPassive && level >= skill.UnlockLevel)
+            {
+                total += selector(skill);
+            }
+        }
+        return total;
     }
 
     private int GetEquipmentBonusAttack()
@@ -559,7 +671,7 @@ public class MercenaryInstance
 
     private int GetSkillBonusMaxHP()
     {
-        int bonus = mercenaryClass == MercenaryClass.Warrior && level >= 2
+        int bonus = OriginalClass == MercenaryClass.Warrior && level >= 2
             ? 10
             : 0;
         return IsUnique &&
@@ -570,7 +682,7 @@ public class MercenaryInstance
 
     private int GetSkillBonusAttack()
     {
-        int bonus = mercenaryClass == MercenaryClass.Mage && level >= 2
+        int bonus = OriginalClass == MercenaryClass.Mage && level >= 2
             ? 4
             : 0;
         return IsUnique &&
@@ -581,7 +693,7 @@ public class MercenaryInstance
 
     private int GetSkillBonusDefense()
     {
-        int bonus = mercenaryClass == MercenaryClass.Warrior && level >= 2
+        int bonus = OriginalClass == MercenaryClass.Warrior && level >= 2
             ? 3
             : 0;
         return IsUnique &&
@@ -592,7 +704,7 @@ public class MercenaryInstance
 
     private float GetSkillBonusAttackSpeed()
     {
-        float bonus = mercenaryClass == MercenaryClass.Archer && level >= 2
+        float bonus = OriginalClass == MercenaryClass.Archer && level >= 2
             ? 0.05f
             : 0f;
         return IsUnique &&
@@ -612,7 +724,7 @@ public class MercenaryInstance
 
     private void ApplyClassStatBonuses()
     {
-        switch (mercenaryClass)
+        switch (OriginalClass)
         {
             case MercenaryClass.Archer:
                 attackSpeed += 0.15f;
@@ -630,7 +742,7 @@ public class MercenaryInstance
             return;
         }
 
-        switch (mercenaryClass)
+        switch (OriginalClass)
         {
             case MercenaryClass.Mage:
                 maxMagicPower = 125;

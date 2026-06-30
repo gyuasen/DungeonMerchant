@@ -75,6 +75,8 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform equipmentCollectionContent;
     private Text equipmentCollectionText;
     private RectTransform travelConfirmationOverlay;
+    private RectTransform globalMenuOverlay;
+    private Button globalMenuButton;
     private Text travelConfirmationText;
     private InventoryFilter inventoryFilter = InventoryFilter.All;
     private EquipmentSort equipmentSort = EquipmentSort.Name;
@@ -96,6 +98,9 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform marketPage;
     private RectTransform blacksmithPage;
     private RectTransform inventoryPage;
+    private RectTransform jobChangePage;
+    private RectTransform jobChangeList;
+    private Button jobFacilityButton;
     private RectTransform companyScrollContent;
     private RectTransform companyList;
     private RectTransform partyList;
@@ -116,6 +121,8 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private Button blacksmithTabButton = null;
     private Button inventoryTabButton = null;
     private Button startBattleButton;
+    private Button battleSpeedButton;
+    private Button roadSpeedButton;
     private Button startDungeonButton;
     private Button firstDungeonEventButton;
     private Button secondDungeonEventButton;
@@ -128,9 +135,14 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private Text dayText;
     private Text statusText;
     private Text battleLogText;
+    private Text battlePageTitleText;
+    private Text battleEncounterText;
     private Text dungeonStatusText;
     private Text dungeonEventTitleText;
     private Text dungeonEventDescriptionText;
+    private RectTransform dungeonResultPanel;
+    private Text dungeonResultText;
+    private Button dungeonNextFloorButton;
     private Text marketInfoText;
     private Font uiFont;
     private Font uiBodyFont;
@@ -534,10 +546,6 @@ public class SimpleMercenaryHireUI : MonoBehaviour
     private void PopulateUniqueCandidatesIfNeeded()
     {
         RemoveMissingCandidates();
-        if (candidates.Count > 0)
-        {
-            return;
-        }
 
         foreach (MercenaryDataSO candidate in Resources.LoadAll<MercenaryDataSO>(string.Empty))
         {
@@ -736,6 +744,15 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         goldText.rectTransform.offsetMin = new Vector2(12f, 0f);
         goldText.rectTransform.offsetMax = new Vector2(-12f, 0f);
 
+        globalMenuButton =
+            CreateActionButton(panel, "メニュー", ShowGlobalMenu);
+        RectTransform menuRect =
+            globalMenuButton.GetComponent<RectTransform>();
+        menuRect.anchorMin = menuRect.anchorMax = new Vector2(1f, 1f);
+        menuRect.pivot = new Vector2(1f, 1f);
+        menuRect.sizeDelta = new Vector2(110f, 40f);
+        menuRect.anchoredPosition = new Vector2(-20f, -68f);
+
         hirePage = CreatePage("Hire Page", panel);
         globalMapPage = CreatePage("Global Map Page", panel);
         worldMapPage = CreatePage("World Map Page", panel);
@@ -749,6 +766,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         marketPage = CreatePage("Market Page", panel);
         blacksmithPage = CreatePage("Blacksmith Page", panel);
         inventoryPage = CreatePage("Inventory Page", panel);
+        jobChangePage = CreatePage("Job Change Page", panel);
 
         BuildHirePage();
         BuildGlobalMapPage();
@@ -763,6 +781,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         BuildMarketPage();
         BuildBlacksmithPage();
         BuildInventoryPage();
+        BuildJobChangePage();
 
         statusText = CreateText(panel, "雇用する傭兵を選択してください。", 15, FontStyle.Normal,
             TextAnchor.MiddleLeft, new Vector2(28f, 22f),
@@ -777,6 +796,101 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         BuildQuestOverlay();
         BuildMerchantStatusOverlay();
         BuildTravelConfirmationOverlay();
+        BuildGlobalMenuOverlay();
+    }
+
+    private void BuildGlobalMenuOverlay()
+    {
+        globalMenuOverlay =
+            CreateUIObject("Global Menu Overlay", guildPanel);
+        globalMenuOverlay.anchorMin = Vector2.zero;
+        globalMenuOverlay.anchorMax = Vector2.one;
+        globalMenuOverlay.offsetMin = Vector2.zero;
+        globalMenuOverlay.offsetMax = Vector2.zero;
+        globalMenuOverlay.gameObject.AddComponent<Image>().color =
+            new Color(0f, 0f, 0f, 0.78f);
+
+        RectTransform window =
+            CreateUIObject("Global Menu Window", globalMenuOverlay);
+        window.anchorMin = window.anchorMax = window.pivot =
+            new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(570f, 430f);
+        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
+
+        CreateText(
+            window,
+            "メニュー",
+            28,
+            FontStyle.Bold,
+            TextAnchor.MiddleCenter,
+            new Vector2(40f, -72f),
+            new Vector2(-40f, -22f),
+            ParchmentTextColor);
+
+        CreateGlobalMenuButton(
+            window, "傭兵一覧", new Vector2(-135f, 80f),
+            () => OpenGlobalMenuDestination(ShowCompanyPage));
+        CreateGlobalMenuButton(
+            window, "パーティー編成", new Vector2(135f, 80f),
+            () => OpenGlobalMenuDestination(ShowPartyPage));
+        CreateGlobalMenuButton(
+            window, "在庫確認", new Vector2(-135f, 15f),
+            () => OpenGlobalMenuDestination(ShowInventoryPage));
+        CreateGlobalMenuButton(
+            window, "装備図鑑", new Vector2(135f, 15f),
+            () => OpenGlobalMenuDestination(ShowEquipmentCollection));
+        CreateGlobalMenuButton(
+            window, "商人情報", new Vector2(-135f, -50f),
+            () => OpenGlobalMenuDestination(ShowMerchantStatusOverlay));
+        CreateGlobalMenuButton(
+            window, "依頼確認", new Vector2(135f, -50f),
+            () => OpenGlobalMenuDestination(ShowQuestOverlay));
+        CreateGlobalMenuButton(
+            window, "地域マップ", new Vector2(-135f, -115f),
+            () => OpenGlobalMenuDestination(ShowWorldMap));
+        CreateGlobalMenuButton(
+            window, "閉じる", new Vector2(135f, -115f),
+            HideGlobalMenu);
+
+        globalMenuOverlay.gameObject.SetActive(false);
+    }
+
+    private void CreateGlobalMenuButton(
+        RectTransform parent,
+        string label,
+        Vector2 position,
+        UnityEngine.Events.UnityAction action)
+    {
+        Button button = CreateActionButton(parent, label, action);
+        RectTransform rect = button.GetComponent<RectTransform>();
+        rect.anchorMin = rect.anchorMax = rect.pivot =
+            new Vector2(0.5f, 0.5f);
+        rect.sizeDelta = new Vector2(220f, 50f);
+        rect.anchoredPosition = position;
+    }
+
+    private void ShowGlobalMenu()
+    {
+        if (battleManager.IsBattling)
+        {
+            statusText.text = "戦闘中はメニューを開けません。";
+            return;
+        }
+
+        globalMenuOverlay.SetAsLastSibling();
+        globalMenuOverlay.gameObject.SetActive(true);
+    }
+
+    private void HideGlobalMenu()
+    {
+        globalMenuOverlay?.gameObject.SetActive(false);
+    }
+
+    private void OpenGlobalMenuDestination(
+        UnityEngine.Events.UnityAction destination)
+    {
+        HideGlobalMenu();
+        destination?.Invoke();
     }
 
     private void BuildGlobalMapPage()
@@ -1083,6 +1197,9 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         CreateMapButton(
             townMapPage, "近隣ダンジョン", new Vector2(0f, -172f),
             new Vector2(150f, 52f), OpenNearbyDungeon);
+        jobFacilityButton = CreateMapButton(
+            townMapPage, "転職神殿", new Vector2(105f, -105f),
+            new Vector2(110f, 48f), ShowJobChangePage);
         Button continentButton = CreateMapButton(
             townMapPage, "← 地域マップへ", new Vector2(-300f, -172f),
             new Vector2(142f, 52f), ShowWorldMap);
@@ -1810,12 +1927,12 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private void BuildBattlePage()
     {
-        string enemyDescription = battleManager.GetEncounterDescription();
-
-        CreateText(battlePage, "戦闘準備", 15, FontStyle.Normal, TextAnchor.MiddleLeft,
+        battlePageTitleText = CreateText(
+            battlePage, "ダンジョン戦闘", 15, FontStyle.Normal, TextAnchor.MiddleLeft,
             new Vector2(0f, -30f), new Vector2(0f, 0f), ParchmentMutedColor);
 
-        CreateText(battlePage, enemyDescription, 18, FontStyle.Bold, TextAnchor.MiddleLeft,
+        battleEncounterText = CreateText(
+            battlePage, string.Empty, 18, FontStyle.Bold, TextAnchor.MiddleLeft,
             new Vector2(0f, -78f), new Vector2(-160f, -42f),
             ParchmentTextColor);
 
@@ -1828,6 +1945,17 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         startRect.anchorMax = new Vector2(1f, 1f);
         startRect.pivot = new Vector2(1f, 1f);
         startRect.anchoredPosition = new Vector2(0f, -36f);
+        startBattleButton.gameObject.SetActive(false);
+
+        battleSpeedButton =
+            CreateActionButton(battlePage, "速度 x1", CycleBattleSpeed);
+        RectTransform battleSpeedRect =
+            battleSpeedButton.GetComponent<RectTransform>();
+        battleSpeedRect.anchorMin = battleSpeedRect.anchorMax =
+            new Vector2(1f, 1f);
+        battleSpeedRect.pivot = new Vector2(1f, 1f);
+        battleSpeedRect.sizeDelta = new Vector2(100f, 38f);
+        battleSpeedRect.anchoredPosition = new Vector2(-140f, -36f);
 
         battleLogPanel = CreateUIObject("Battle Log", battlePage);
         battleLogPanel.anchorMin = new Vector2(0f, 0f);
@@ -1897,6 +2025,16 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             new Vector2(0f, -82f),
             new Vector2(0f, -42f),
             ParchmentTextColor);
+
+        roadSpeedButton =
+            CreateActionButton(roadBattlePage, "速度 x1", CycleBattleSpeed);
+        RectTransform roadSpeedRect =
+            roadSpeedButton.GetComponent<RectTransform>();
+        roadSpeedRect.anchorMin = roadSpeedRect.anchorMax =
+            new Vector2(1f, 1f);
+        roadSpeedRect.pivot = new Vector2(1f, 1f);
+        roadSpeedRect.sizeDelta = new Vector2(100f, 38f);
+        roadSpeedRect.anchoredPosition = new Vector2(-270f, -4f);
 
         roadContinueButton =
             CreateActionButton(
@@ -1999,6 +2137,55 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             () => ChooseDungeonEventOption(2));
         PositionDungeonEventButton(thirdDungeonEventButton, 496f);
 
+        dungeonResultPanel =
+            CreateUIObject("Dungeon Floor Result", dungeonPage);
+        dungeonResultPanel.anchorMin = Vector2.zero;
+        dungeonResultPanel.anchorMax = Vector2.one;
+        dungeonResultPanel.offsetMin = new Vector2(40f, 42f);
+        dungeonResultPanel.offsetMax = new Vector2(-40f, -42f);
+        Image resultBackground =
+            dungeonResultPanel.gameObject.AddComponent<Image>();
+        resultBackground.color = RowColor;
+        AddFantasyFrame(resultBackground, 2f);
+
+        dungeonResultText = CreateText(
+            dungeonResultPanel,
+            string.Empty,
+            22,
+            FontStyle.Bold,
+            TextAnchor.MiddleCenter,
+            new Vector2(36f, 100f),
+            new Vector2(-36f, -70f),
+            ButtonTextColor);
+        dungeonResultText.rectTransform.anchorMin = Vector2.zero;
+        dungeonResultText.rectTransform.anchorMax = Vector2.one;
+
+        dungeonNextFloorButton = CreateActionButton(
+            dungeonResultPanel,
+            "次のフロアへ進む",
+            ContinueToNextDungeonFloor);
+        RectTransform nextFloorRect =
+            dungeonNextFloorButton.GetComponent<RectTransform>();
+        nextFloorRect.anchorMin = nextFloorRect.anchorMax =
+            new Vector2(0.5f, 0f);
+        nextFloorRect.pivot = new Vector2(0.5f, 0f);
+        nextFloorRect.sizeDelta = new Vector2(220f, 50f);
+        nextFloorRect.anchoredPosition = new Vector2(-125f, 28f);
+
+        Button returnTownButton = CreateActionButton(
+            dungeonResultPanel,
+            "町へ戻る",
+            ReturnToTownAfterDungeon);
+        RectTransform returnTownRect =
+            returnTownButton.GetComponent<RectTransform>();
+        returnTownRect.anchorMin = returnTownRect.anchorMax =
+            new Vector2(0.5f, 0f);
+        returnTownRect.pivot = new Vector2(0.5f, 0f);
+        returnTownRect.sizeDelta = new Vector2(220f, 50f);
+        returnTownRect.anchoredPosition = new Vector2(125f, 28f);
+
+        dungeonResultPanel.gameObject.SetActive(false);
+
         UpdateDungeonEventUI();
         RebuildDungeonSelectionList();
     }
@@ -2088,6 +2275,43 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         scrollRect.vertical = true;
         scrollRect.movementType = ScrollRect.MovementType.Clamped;
         scrollRect.scrollSensitivity = 28f;
+    }
+
+    private void BuildJobChangePage()
+    {
+        CreateText(
+            jobChangePage,
+            $"転職神殿（転職可能 Lv{MercenaryClassProgression.PromotionLevel}）",
+            17,
+            FontStyle.Bold,
+            TextAnchor.MiddleLeft,
+            new Vector2(0f, -34f),
+            Vector2.zero,
+            ParchmentTextColor);
+
+        RectTransform viewport =
+            CreateUIObject("Job Change Viewport", jobChangePage);
+        viewport.anchorMin = Vector2.zero;
+        viewport.anchorMax = Vector2.one;
+        viewport.offsetMin = Vector2.zero;
+        viewport.offsetMax = new Vector2(0f, -48f);
+        viewport.gameObject.AddComponent<Image>().color =
+            new Color(0f, 0f, 0f, 0.01f);
+        Mask mask = viewport.gameObject.AddComponent<Mask>();
+        mask.showMaskGraphic = false;
+
+        jobChangeList = CreateUIObject("Job Change List", viewport);
+        jobChangeList.anchorMin = new Vector2(0f, 1f);
+        jobChangeList.anchorMax = new Vector2(1f, 1f);
+        jobChangeList.pivot = new Vector2(0.5f, 1f);
+
+        ScrollRect scroll = viewport.gameObject.AddComponent<ScrollRect>();
+        scroll.content = jobChangeList;
+        scroll.viewport = viewport;
+        scroll.horizontal = false;
+        scroll.vertical = true;
+        scroll.movementType = ScrollRect.MovementType.Clamped;
+        scroll.scrollSensitivity = 28f;
     }
 
     private void BuildMarketPage()
@@ -2567,7 +2791,22 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         CreateText(row, details, 14, FontStyle.Normal, TextAnchor.MiddleLeft,
             new Vector2(18f, -76f), new Vector2(-160f, -48f), MutedTextColor);
 
-        CreateActionButton(row, "売却", () => SellItem(item));
+        Button sellButton =
+            CreateActionButton(row, "売却", () => SellItem(item));
+        if (item.itemType == ItemType.Consumable)
+        {
+            RectTransform sellRect =
+                sellButton.GetComponent<RectTransform>();
+            sellRect.sizeDelta = new Vector2(100f, 44f);
+            sellRect.anchoredPosition = new Vector2(-18f, -22f);
+
+            Button useButton =
+                CreateActionButton(row, "使用", () => UseConsumable(item));
+            RectTransform useRect =
+                useButton.GetComponent<RectTransform>();
+            useRect.sizeDelta = new Vector2(100f, 44f);
+            useRect.anchoredPosition = new Vector2(-18f, 26f);
+        }
     }
 
     private void CreateMarketRow(
@@ -2939,6 +3178,15 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         if (!dungeonRunManager.StartRun())
         {
             ShowDungeonPage();
+        }
+        else
+        {
+            startBattleButton.gameObject.SetActive(false);
+            battlePageTitleText.text = "ダンジョン戦闘";
+            battleEncounterText.text =
+                $"{dungeonRunManager.DungeonName}  |  " +
+                $"第{dungeonRunManager.CurrentFloor}/" +
+                $"{dungeonRunManager.TotalFloors}フロア";
         }
 
         RefreshUI();
@@ -3360,6 +3608,20 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         {
             statusText.text += $" {result}";
         }
+        ShowDungeonPage();
+        bool fullyCleared =
+            dungeonRunManager.IsSelectedDungeonFullyCleared;
+        dungeonResultText.text = cleared
+            ? fullyCleared
+                ? $"{dungeonRunManager.DungeonName}\n完全攻略！\n\n" +
+                  "すべてのフロアを攻略しました。"
+                : $"フロア攻略完了\n\n" +
+                  $"次は第{dungeonRunManager.CurrentFloor}フロアです。"
+            : "探索終了\n\n町へ戻って態勢を整えましょう。";
+        dungeonNextFloorButton.gameObject.SetActive(
+            cleared && !fullyCleared);
+        dungeonResultPanel.SetAsLastSibling();
+        dungeonResultPanel.gameObject.SetActive(true);
         UpdateDungeonEventUI();
         RebuildDungeonSelectionList();
         RefreshUI();
@@ -3473,6 +3735,21 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         characterDetailOverlay.gameObject.SetActive(true);
     }
 
+    private void CycleBattleSpeed()
+    {
+        float speed = battleManager.CycleBattleSpeed();
+        string label = $"速度 x{speed:0}";
+        if (battleSpeedButton != null)
+        {
+            SetButtonLabel(battleSpeedButton, label);
+        }
+        if (roadSpeedButton != null)
+        {
+            SetButtonLabel(roadSpeedButton, label);
+        }
+        statusText.text = $"戦闘速度を{speed:0}倍に変更しました。";
+    }
+
     private void RefreshCharacterDetailText()
     {
         if (selectedDetailMercenary == null || characterDetailText == null)
@@ -3484,6 +3761,10 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         string source = mercenary.IsUnique ? "固有傭兵" : "量産型傭兵";
         string condition = mercenary.IsIncapacitated ? "戦闘不能" : "行動可能";
         string shortId = mercenary.InstanceId.Substring(0, 8).ToUpperInvariant();
+        string experienceText = mercenary.IsAtLevelCap
+            ? "上限到達"
+            : $"{mercenary.CurrentExperience} / " +
+              $"{mercenary.ExperienceToNextLevel}";
 
         characterDetailTitle.text = mercenary.MercenaryName;
         characterDetailText.text =
@@ -3494,14 +3775,16 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             $"契約期限: {(mercenary.ContractEndDay > 0 ? mercenary.ContractEndDay + "日" : "無期限")}" +
             $"{(mercenary.ContractNeedsRenewal ? "（更新待ち）" : string.Empty)}\n" +
             $"状態: {condition}\n\n" +
-            $"レベル: {mercenary.Level}\n" +
-            $"経験値: {mercenary.CurrentExperience} / " +
-            $"{mercenary.ExperienceToNextLevel}\n\n" +
+            $"レベル: {mercenary.Level} / {mercenary.LevelCap}\n" +
+            $"経験値: {experienceText}\n\n" +
             $"HP: {mercenary.CurrentHP} / {mercenary.MaxHP}\n" +
             $"攻撃: {mercenary.Attack}\n" +
             $"防御: {mercenary.Defense}\n" +
             $"行動速度: {mercenary.AttackSpeed:0.00}\n" +
+            $"クリティカル率: {mercenary.CriticalRate * 100f:0}%\n" +
+            $"回避率: {mercenary.EvasionRate * 100f:0}%\n" +
             $"最大魔力: {mercenary.MaxMagicPower}\n" +
+            $"状態異常: {JapaneseDisplayText.GetBattleStatus(mercenary.StatusEffect)}\n" +
             $"武器: {GetEquippedEquipmentName(mercenary, EquipmentSlot.Weapon)}\n" +
             $"防具: {GetEquippedEquipmentName(mercenary, EquipmentSlot.Armor)}\n" +
             $"装飾品: {GetEquippedEquipmentName(mercenary, EquipmentSlot.Accessory)}\n" +
@@ -4564,8 +4847,70 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         SetTabActive(inventoryTabButton, false);
         startBattleButton.interactable =
             partyManager.Members.Count > 0 && !battleManager.IsBattling;
-        startBattleButton.gameObject.SetActive(!battleManager.IsBattling);
+        startBattleButton.gameObject.SetActive(false);
         statusText.text = $"戦闘参加: 傭兵{partyManager.Members.Count}人";
+    }
+
+    private void UseConsumable(ItemDataSO item)
+    {
+        if (item == null ||
+            item.itemType != ItemType.Consumable ||
+            battleManager.IsBattling)
+        {
+            statusText.text = "現在はこの消費アイテムを使用できません。";
+            return;
+        }
+
+        BattleStatusEffect targetStatus;
+        switch (item.consumableEffect)
+        {
+            case ConsumableEffectType.CurePoison:
+                targetStatus = BattleStatusEffect.Poison;
+                break;
+            case ConsumableEffectType.CureParalysis:
+                targetStatus = BattleStatusEffect.Paralysis;
+                break;
+            case ConsumableEffectType.CureAllStatus:
+                targetStatus = BattleStatusEffect.None;
+                break;
+            default:
+                statusText.text = "この消費アイテムには使用効果がありません。";
+                return;
+        }
+
+        MercenaryInstance target = null;
+        foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
+        {
+            if (mercenary != null &&
+                mercenary.HasStatusEffect &&
+                (targetStatus == BattleStatusEffect.None ||
+                 mercenary.StatusEffect == targetStatus))
+            {
+                target = mercenary;
+                break;
+            }
+        }
+
+        if (target == null)
+        {
+            statusText.text = "治療対象となる傭兵がいません。";
+            return;
+        }
+
+        if (!merchantInventory.TryRemoveItem(item) ||
+            !target.CureStatusEffect(targetStatus))
+        {
+            statusText.text = "消費アイテムを使用できませんでした。";
+            return;
+        }
+
+        statusText.text =
+            $"{JapaneseDisplayText.GetItemName(item)}を使用し、" +
+            $"{target.MercenaryName}の状態異常を治療しました。";
+        RebuildInventoryList();
+        RebuildCompanyList();
+        RefreshCharacterDetailText();
+        saveManager?.SaveGame();
     }
 
     private void ShowRoadBattlePage(
@@ -4609,6 +4954,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private void ShowDungeonPage()
     {
+        dungeonResultPanel?.gameObject.SetActive(false);
         EnsureNearbyDungeonSelected();
         HideMapPages();
         hirePage.gameObject.SetActive(false);
@@ -4658,6 +5004,19 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         RebuildDungeonSelectionList();
         statusText.text = $"探索パーティー: 傭兵{partyManager.Members.Count}人";
         RefreshUI();
+    }
+
+    private void ContinueToNextDungeonFloor()
+    {
+        dungeonResultPanel?.gameObject.SetActive(false);
+        StartDungeonRun();
+    }
+
+    private void ReturnToTownAfterDungeon()
+    {
+        dungeonResultPanel?.gameObject.SetActive(false);
+        ShowTownMap();
+        statusText.text = $"{TownNames[currentTownIndex]}へ戻りました。";
     }
 
     private void EnsureNearbyDungeonSelected()
@@ -4762,6 +5121,152 @@ public class SimpleMercenaryHireUI : MonoBehaviour
             $"維持費 {(progressionManager != null ? progressionManager.StorageMaintenanceCost : 0)}G/日";
     }
 
+    private void ShowJobChangePage()
+    {
+        if (currentTownIndex != 0)
+        {
+            statusText.text =
+                "転職神殿はエルド交易都市でのみ利用できます。";
+            return;
+        }
+
+        HideStandardPages();
+        HideMapPages();
+        jobChangePage.gameObject.SetActive(true);
+        SetAllTabsInactive();
+        RebuildJobChangeList();
+        statusText.text =
+            $"Lv{MercenaryClassProgression.PromotionLevel}以上の基本職が転職できます。";
+    }
+
+    private void RebuildJobChangeList()
+    {
+        if (jobChangeList == null)
+        {
+            return;
+        }
+
+        ClearChildren(jobChangeList);
+        float top = 0f;
+        foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
+        {
+            RectTransform row =
+                CreateRow($"Job Change {mercenary.InstanceId}", jobChangeList, top);
+            CreateText(
+                row,
+                $"{mercenary.MercenaryName}  Lv{mercenary.Level}  " +
+                $"{JapaneseDisplayText.GetMercenaryClass(mercenary.MercenaryClass)}",
+                18,
+                FontStyle.Bold,
+                TextAnchor.MiddleLeft,
+                new Vector2(16f, -44f),
+                new Vector2(-370f, -8f),
+                Color.white);
+
+            if (mercenary.CanPromote)
+            {
+                MercenaryClass[] advanced =
+                    MercenaryClassProgression.GetAdvancedClasses(
+                        mercenary.MercenaryClass);
+                CreatePromotionButton(row, mercenary, advanced[0], -18f);
+                CreatePromotionButton(row, mercenary, advanced[1], -130f);
+
+                bool showSpecial =
+                    mercenary.IsUnique || HasSpecialJobCertificate();
+                if (showSpecial)
+                {
+                    CreatePromotionButton(
+                        row,
+                        mercenary,
+                        MercenaryClassProgression.GetSpecialClass(
+                            mercenary.MercenaryClass),
+                        -242f);
+                }
+            }
+            else
+            {
+                string message = MercenaryClassProgression.IsBaseClass(
+                    mercenary.MercenaryClass)
+                    ? $"Lv{MercenaryClassProgression.PromotionLevel}で転職可能"
+                    : "転職済み";
+                CreateText(
+                    row,
+                    message,
+                    14,
+                    FontStyle.Normal,
+                    TextAnchor.MiddleRight,
+                    new Vector2(16f, -72f),
+                    new Vector2(-18f, -42f),
+                    MutedTextColor);
+            }
+            top -= 112f;
+        }
+        jobChangeList.sizeDelta =
+            new Vector2(0f, Mathf.Max(430f, -top));
+    }
+
+    private void CreatePromotionButton(
+        RectTransform row,
+        MercenaryInstance mercenary,
+        MercenaryClass target,
+        float x)
+    {
+        Button button = CreateActionButton(
+            row,
+            JapaneseDisplayText.GetMercenaryClass(target),
+            () => PromoteMercenary(mercenary, target));
+        RectTransform rect = button.GetComponent<RectTransform>();
+        rect.sizeDelta = new Vector2(104f, 44f);
+        rect.anchoredPosition = new Vector2(x, 0f);
+    }
+
+    private void PromoteMercenary(
+        MercenaryInstance mercenary,
+        MercenaryClass target)
+    {
+        bool isSpecial =
+            target == MercenaryClassProgression.GetSpecialClass(
+                mercenary.MercenaryClass);
+        ItemDataSO certificate = GetSpecialJobCertificate();
+        if (isSpecial &&
+            !mercenary.IsUnique &&
+            (certificate == null ||
+             !merchantInventory.TryRemoveItem(certificate)))
+        {
+            statusText.text = "特殊転職に必要な秘伝の転職証がありません。";
+            return;
+        }
+
+        if (!mercenary.PromoteTo(target))
+        {
+            if (isSpecial && !mercenary.IsUnique && certificate != null)
+            {
+                merchantInventory.AddItem(certificate);
+            }
+            statusText.text = "転職条件を満たしていません。";
+            return;
+        }
+
+        statusText.text =
+            $"{mercenary.MercenaryName}は" +
+            $"{JapaneseDisplayText.GetMercenaryClass(target)}へ転職しました。";
+        RebuildJobChangeList();
+        RebuildCompanyList();
+        saveManager?.SaveGame();
+    }
+
+    private ItemDataSO GetSpecialJobCertificate()
+    {
+        return Resources.Load<ItemDataSO>(
+            "Items/JobChange/SecretJobCertificate");
+    }
+
+    private bool HasSpecialJobCertificate()
+    {
+        ItemDataSO item = GetSpecialJobCertificate();
+        return item != null && merchantInventory.HasItem(item);
+    }
+
     private void ShowGlobalMap()
     {
         HideStandardPages();
@@ -4803,6 +5308,10 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         SetMapHeaderButtons(false);
         statusText.text =
             $"{TownNames[currentTownIndex]}  |  利用する施設を選択";
+        if (jobFacilityButton != null)
+        {
+            jobFacilityButton.gameObject.SetActive(currentTownIndex == 0);
+        }
     }
 
     private void TravelToTown(int townIndex)
@@ -5148,6 +5657,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private void HideMapPages()
     {
+        jobChangePage?.gameObject.SetActive(false);
         roadBattlePage?.gameObject.SetActive(false);
         globalMapPage?.gameObject.SetActive(false);
         worldMapPage?.gameObject.SetActive(false);
@@ -5180,6 +5690,7 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         marketPage.gameObject.SetActive(false);
         blacksmithPage.gameObject.SetActive(false);
         inventoryPage.gameObject.SetActive(false);
+        jobChangePage.gameObject.SetActive(false);
     }
 
     private void SetAllTabsInactive()
@@ -5197,6 +5708,10 @@ public class SimpleMercenaryHireUI : MonoBehaviour
 
     private void RefreshUI()
     {
+        if (globalMenuButton != null)
+        {
+            globalMenuButton.interactable = !battleManager.IsBattling;
+        }
         goldText.text =
             $"商人Lv{merchantData.MerchantLevel}  所持金 {merchantData.Gold} G";
         if (dayText != null)
@@ -5796,7 +6311,8 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         MercenaryInstance mercenary)
     {
         List<MercenarySkillInfo> skills = new List<MercenarySkillInfo>();
-        switch (mercenary.MercenaryClass)
+        switch (MercenaryClassProgression.GetBaseClass(
+                    mercenary.MercenaryClass))
         {
             case MercenaryClass.Warrior:
                 skills.Add(new MercenarySkillInfo
@@ -5827,9 +6343,45 @@ public class SimpleMercenaryHireUI : MonoBehaviour
                 break;
         }
 
+        if (skills.Count == 0)
+        {
+            MercenarySkillDefinition skill =
+                MercenaryClassProgression.GetPrimarySkill(
+                    mercenary.MercenaryClass);
+            skills.Add(new MercenarySkillInfo
+            {
+                Name = skill.Name,
+                ShortDescription =
+                    $"戦闘スキル / 魔力{skill.MagicCost}",
+                DetailDescription = skill.Description
+            });
+        }
+
+        List<MercenarySkillDefinition> progressionSkills =
+            MercenaryClassProgression.GetSkillProgression(
+                mercenary.MercenaryClass);
+        foreach (MercenarySkillDefinition definition in progressionSkills)
+        {
+            if (!definition.IsPassive)
+            {
+                continue;
+            }
+            bool unlocked = mercenary.Level >= definition.UnlockLevel;
+            skills.Add(new MercenarySkillInfo
+            {
+                Name = definition.Name,
+                ShortDescription = unlocked
+                    ? $"パッシブ / Lv{definition.UnlockLevel}"
+                    : $"未習得 / Lv{definition.UnlockLevel}",
+                DetailDescription = definition.Description,
+                Unlocked = unlocked
+            });
+        }
+
         if (mercenary.Level >= 2)
         {
-            switch (mercenary.MercenaryClass)
+            switch (MercenaryClassProgression.GetBaseClass(
+                        mercenary.MercenaryClass))
             {
                 case MercenaryClass.Warrior:
                     skills.Add(new MercenarySkillInfo
@@ -5864,7 +6416,8 @@ public class SimpleMercenaryHireUI : MonoBehaviour
         {
             string passiveName;
             string passiveDescription;
-            switch (mercenary.MercenaryClass)
+            switch (MercenaryClassProgression.GetBaseClass(
+                        mercenary.MercenaryClass))
             {
                 case MercenaryClass.Warrior:
                     passiveName = "基礎体力";
