@@ -42,9 +42,9 @@ MonoBehaviour:
   eventLimitedDropChance: 0.03
   bossLimitedDropChance: 0.08
   limitedEquipmentDrops:
-  - {fileID: 11400000, guid: 68f03ed7307742d8814a1ec088c45bc1, type: 2}
-  - {fileID: 11400000, guid: 8177ed4faefc450885f8d06738f9a05e, type: 2}
-  - {fileID: 11400000, guid: 21d742c7122c4e4da77a01f608c511f6, type: 2}
+  - {fileID: 11400000, guid: 73a8c434118d42358527e015d22c248b, type: 2}
+  - {fileID: 11400000, guid: 5e351ccf25cb41b89f9430fe8ba4180c, type: 2}
+  - {fileID: 11400000, guid: 81298c932fe144998d74fbb60b65898a, type: 2}
   specialVariantChance: 0.08
   specialBossChance: 0.03
   specialVariantSkillPool: 010000000300000004000000

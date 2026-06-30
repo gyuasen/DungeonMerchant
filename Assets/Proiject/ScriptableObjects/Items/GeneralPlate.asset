@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
+  m_Name: GeneralPlate
+  m_EditorClassIdentifier:
+  itemName: Black Iron General Plate
+  itemType: 1
+  rarity: 3
+  description: Heavy plate bearing the scars of countless fortress battles.
+  basePrice: 1450
+  acquisitionType: 2
+  equipmentSlot: 1
+  requiredClass: 0
+  allClassesCanEquip: 1
+  equipmentSet: 0
+  equipmentRank: 4
+  bonusMaxHP: 34
+  bonusAttack: 2
+  bonusDefense: 15
+  bonusAttackSpeed: 0.01
