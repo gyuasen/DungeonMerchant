@@ -20,10 +20,10 @@ public class BattleManager : MonoBehaviour
     [SerializeField, Min(1)] private int fallbackEnemyCount = 3;
     [SerializeField, Min(0.05f)] private float actionDelay = 0.5f;
     [SerializeField, Min(0)] private int magicPowerGainPerAction = 20;
-    [SerializeField, Min(0)] private int warriorTauntCost = 35;
-    [SerializeField, Min(0)] private int archerDoubleShotCost = 45;
-    [SerializeField, Min(0)] private int mageFireballCost = 50;
     [SerializeField, Range(0f, 1f)] private float playerSkillUseChance = 0.6f;
+    [SerializeField, Range(0f, 1f)] private float enemySkillUseChance = 0.3f;
+    [SerializeField, Range(0f, 1f)] private float baseCriticalRate = 0.08f;
+    [SerializeField, Min(1f)] private float criticalDamageMultiplier = 1.5f;
 
     private readonly List<BattleUnit> playerUnits = new List<BattleUnit>();
     private readonly List<MercenaryInstance> battleMercenaries =
@@ -36,6 +36,7 @@ public class BattleManager : MonoBehaviour
     private ItemDataSO fallbackDropItem;
 
     public bool IsBattling { get; private set; }
+    public float BattleSpeedMultiplier { get; private set; } = 1f;
     public EnemyDataSO EnemyData => enemyData;
 
     public event Action<string> BattleMessage;
@@ -240,7 +241,10 @@ public class BattleManager : MonoBehaviour
                 mercenary.AttackSpeed,
                 true,
                 mercenary.MercenaryClass,
-                mercenary.MaxMagicPower));
+                mercenary.MaxMagicPower,
+                mercenary.CriticalRate,
+                mercenary.EvasionRate,
+                mercenary.StatusEffect));
             battleMercenaries.Add(mercenary);
         }
 
@@ -254,6 +258,14 @@ public class BattleManager : MonoBehaviour
         {
             EnemyDataSO enemy = enemies[i];
             string enemyName = JapaneseDisplayText.GetEnemyName(enemy.enemyName);
+            if (enemy.isSpecialVariant)
+            {
+                string title = string.IsNullOrWhiteSpace(
+                    enemy.specialVariantTitle)
+                    ? "変異した"
+                    : enemy.specialVariantTitle;
+                enemyName = $"{title}{enemyName}";
+            }
             if (enemy.category == EnemyCategory.MythicalBeast)
             {
                 enemyName = $"幻獣 {enemyName}";
@@ -275,7 +287,9 @@ public class BattleManager : MonoBehaviour
                 enemy.attackSpeed,
                 false,
                 MercenaryClass.Warrior,
-                enemy.maxMagicPower));
+                enemy.maxMagicPower,
+                baseCriticalRate + enemy.criticalRate,
+                enemy.evasionRate));
             battleEnemyData.Add(enemy);
         }
     }
@@ -363,7 +377,42 @@ public class BattleManager : MonoBehaviour
                     continue;
                 }
 
-                yield return new WaitForSeconds(actionDelay);
+                yield return new WaitForSeconds(
+                    actionDelay / Mathf.Max(1f, BattleSpeedMultiplier));
+
+                int poisonDamage = unit.ProcessPoisonDamage();
+                if (poisonDamage > 0)
+                {
+                    SendBattleMessage(
+                        $"{unit.UnitName}は毒で{poisonDamage}ダメージ。 " +
+                        $"HP {unit.CurrentHP}/{unit.MaxHP}",
+                        unit.IsPlayerSide
+                            ? BattleLogType.Enemy
+                            : BattleLogType.Player);
+                    if (unit.IsDead)
+                    {
+                        if (GetFirstLivingPlayerUnit() == null)
+                        {
+                            CompleteBattle(false);
+                            yield break;
+                        }
+                        if (GetFirstLivingEnemyUnit() == null)
+                        {
+                            CompleteBattle(true);
+                            yield break;
+                        }
+                        continue;
+                    }
+                }
+
+                if (unit.ConsumeParalysisTurn())
+                {
+                    SendBattleMessage(
+                        $"{unit.UnitName}は麻痺して行動できません。",
+                        BattleLogType.System);
+                    unit.TickStatuses();
+                    continue;
+                }
 
                 if (unit.IsPlayerSide)
                 {
@@ -396,7 +445,16 @@ public class BattleManager : MonoBehaviour
                         yield break;
                     }
 
-                    Attack(unit, target);
+                    int enemyIndex = enemyUnits.IndexOf(unit);
+                    EnemyDataSO sourceData =
+                        enemyIndex >= 0 && enemyIndex < battleEnemyData.Count
+                            ? battleEnemyData[enemyIndex]
+                            : null;
+                    if (!TryUseEnemySkill(unit, target, sourceData))
+                    {
+                        Attack(unit, target);
+                    }
+                    unit.TickStatuses();
 
                     if (GetFirstLivingPlayerUnit() == null)
                     {
@@ -428,14 +486,199 @@ public class BattleManager : MonoBehaviour
 
     private void Attack(BattleUnit attacker, BattleUnit target)
     {
+        if (target.TryEvade())
+        {
+            SendBattleMessage(
+                $"{target.UnitName}は{attacker.UnitName}の攻撃を回避しました。",
+                attacker.IsPlayerSide
+                    ? BattleLogType.Player
+                    : BattleLogType.Enemy);
+            return;
+        }
+
+        bool critical = attacker.RollCritical();
+        int rawDamage = critical
+            ? Mathf.RoundToInt(
+                attacker.CalculateDamage() * criticalDamageMultiplier)
+            : attacker.CalculateDamage();
         int previousHP = target.CurrentHP;
-        target.TakeDamage(attacker.CalculateDamage());
+        target.TakeDamage(rawDamage);
         int damageDealt = previousHP - target.CurrentHP;
 
         SendBattleMessage(
             $"{attacker.UnitName}が{target.UnitName}を攻撃: " +
+            (critical ? "クリティカル！ " : string.Empty) +
             $"{damageDealt}ダメージ、HP {target.CurrentHP}/{target.MaxHP}",
             attacker.IsPlayerSide ? BattleLogType.Player : BattleLogType.Enemy);
+    }
+
+    public float CycleBattleSpeed()
+    {
+        BattleSpeedMultiplier = BattleSpeedMultiplier < 1.5f
+            ? 2f
+            : BattleSpeedMultiplier < 3f
+                ? 4f
+                : 1f;
+        return BattleSpeedMultiplier;
+    }
+
+    private bool TryUseEnemySkill(
+        BattleUnit attacker,
+        BattleUnit target,
+        EnemyDataSO data)
+    {
+        if (data == null ||
+            UnityEngine.Random.value > enemySkillUseChance)
+        {
+            return false;
+        }
+
+        EnemySkillType skill = data.enemySkill != EnemySkillType.None
+            ? data.enemySkill
+            : GetDefaultEnemySkill(data.monsterGrade);
+        switch (skill)
+        {
+            case EnemySkillType.PowerStrike:
+                return UseEnemyDamageSkill(
+                    attacker,
+                    target,
+                    "強撃",
+                    1.45f,
+                    BattleStatusEffect.None);
+            case EnemySkillType.VenomStrike:
+                return UseEnemyDamageSkill(
+                    attacker,
+                    target,
+                    "毒牙",
+                    0.9f,
+                    BattleStatusEffect.Poison);
+            case EnemySkillType.ParalyzingRoar:
+                SendBattleMessage(
+                    $"{attacker.UnitName}がスキル「麻痺の咆哮」を発動。",
+                    BattleLogType.Enemy);
+                target.ApplyStatus(BattleStatusEffect.Paralysis, 1);
+                return true;
+            case EnemySkillType.CriticalFocus:
+                attacker.BoostCriticalRate(0.25f, 3);
+                SendBattleMessage(
+                    $"{attacker.UnitName}がスキル「研ぎ澄ます」を発動: " +
+                    "次の2行動はクリティカル率+25%。",
+                    BattleLogType.Enemy);
+                return true;
+            case EnemySkillType.DoubleStrike:
+                UseEnemyDamageSkill(
+                    attacker,
+                    target,
+                    "連撃",
+                    0.72f,
+                    BattleStatusEffect.None);
+                if (!target.IsDead)
+                {
+                    UseEnemyDamageSkill(
+                        attacker,
+                        target,
+                        "連撃",
+                        0.72f,
+                        BattleStatusEffect.None);
+                }
+                return true;
+            case EnemySkillType.LifeDrain:
+                return UseEnemyLifeDrain(attacker, target);
+            default:
+                return false;
+        }
+    }
+
+    private bool UseEnemyLifeDrain(
+        BattleUnit attacker,
+        BattleUnit target)
+    {
+        if (target.TryEvade())
+        {
+            SendBattleMessage(
+                $"{attacker.UnitName}の「吸命」を" +
+                $"{target.UnitName}が回避しました。",
+                BattleLogType.Enemy);
+            return true;
+        }
+
+        bool critical = attacker.RollCritical();
+        float multiplier = critical
+            ? criticalDamageMultiplier
+            : 1f;
+        int previousHP = target.CurrentHP;
+        target.TakeDamage(
+            Mathf.RoundToInt(attacker.Attack * 0.9f * multiplier));
+        int damage = previousHP - target.CurrentHP;
+        int heal = Mathf.Max(1, damage / 2);
+        attacker.Heal(heal);
+        SendBattleMessage(
+            $"{attacker.UnitName}がスキル「吸命」を発動: " +
+            (critical ? "クリティカル！ " : string.Empty) +
+            $"{damage}ダメージを与え、HPを{heal}回復。",
+            BattleLogType.Enemy);
+        return true;
+    }
+
+    private bool UseEnemyDamageSkill(
+        BattleUnit attacker,
+        BattleUnit target,
+        string skillName,
+        float power,
+        BattleStatusEffect status)
+    {
+        if (target.TryEvade())
+        {
+            SendBattleMessage(
+                $"{attacker.UnitName}の「{skillName}」を" +
+                $"{target.UnitName}が回避しました。",
+                BattleLogType.Enemy);
+            return true;
+        }
+
+        bool critical = attacker.RollCritical();
+        float multiplier = power *
+            (critical ? criticalDamageMultiplier : 1f);
+        int previousHP = target.CurrentHP;
+        target.TakeDamage(
+            Mathf.RoundToInt(attacker.CalculateDamage() * multiplier));
+        int damage = previousHP - target.CurrentHP;
+        if (!target.IsDead && status != BattleStatusEffect.None)
+        {
+            target.ApplyStatus(
+                status,
+                status == BattleStatusEffect.Poison ? 3 : 1);
+        }
+
+        SendBattleMessage(
+            $"{attacker.UnitName}がスキル「{skillName}」を発動: " +
+            (critical ? "クリティカル！ " : string.Empty) +
+            $"{target.UnitName}に{damage}ダメージ" +
+            (status != BattleStatusEffect.None && !target.IsDead
+                ? $"、{GetStatusName(status)}を付与。"
+                : "。"),
+            BattleLogType.Enemy);
+        return true;
+    }
+
+    private static EnemySkillType GetDefaultEnemySkill(int monsterGrade)
+    {
+        int selector = Mathf.Abs(monsterGrade) % 3;
+        return selector == 0
+            ? EnemySkillType.VenomStrike
+            : selector == 1
+                ? EnemySkillType.ParalyzingRoar
+                : EnemySkillType.PowerStrike;
+    }
+
+    private static string GetStatusName(BattleStatusEffect status)
+    {
+        switch (status)
+        {
+            case BattleStatusEffect.Poison: return "毒";
+            case BattleStatusEffect.Paralysis: return "麻痺";
+            default: return "状態異常";
+        }
     }
 
     private bool TryUsePlayerSkill(BattleUnit attacker, BattleUnit primaryTarget)
@@ -450,27 +693,39 @@ public class BattleManager : MonoBehaviour
             return false;
         }
 
-        switch (attacker.MercenaryClass)
+        MercenarySkillDefinition skill =
+            MercenaryClassProgression.GetPrimarySkill(
+                attacker.MercenaryClass);
+        switch (skill.Id)
         {
-            case MercenaryClass.Warrior:
-                return TryUseWarriorTaunt(attacker, primaryTarget);
-            case MercenaryClass.Archer:
-                return TryUseArcherDoubleShot(attacker, primaryTarget);
-            case MercenaryClass.Mage:
-                return TryUseMageFireball(attacker, primaryTarget);
+            case MercenarySkillId.Taunt:
+                return TryUseWarriorTaunt(attacker, primaryTarget, skill);
+            case MercenarySkillId.DoubleShot:
+                return TryUseArcherDoubleShot(attacker, primaryTarget, skill);
+            case MercenarySkillId.Fireball:
+                return TryUseMageFireball(attacker, primaryTarget, skill);
+            case MercenarySkillId.Heal:
+                return TryUsePriestHeal(attacker, skill);
+            case MercenarySkillId.PoisonBlade:
+                return TryUsePoisonBlade(attacker, primaryTarget, skill);
+            case MercenarySkillId.PiercingThrust:
+                return TryUsePiercingThrust(attacker, primaryTarget, skill);
             default:
                 return false;
         }
     }
 
-    private bool TryUseWarriorTaunt(BattleUnit attacker, BattleUnit target)
+    private bool TryUseWarriorTaunt(
+        BattleUnit attacker,
+        BattleUnit target,
+        MercenarySkillDefinition skill)
     {
         if (attacker.IsTaunting)
         {
             return false;
         }
 
-        if (!attacker.TryConsumeMagicPower(warriorTauntCost))
+        if (!attacker.TryConsumeMagicPower(skill.MagicCost))
         {
             return false;
         }
@@ -484,58 +739,202 @@ public class BattleManager : MonoBehaviour
         return true;
     }
 
-    private bool TryUseArcherDoubleShot(BattleUnit attacker, BattleUnit target)
+    private bool TryUseArcherDoubleShot(
+        BattleUnit attacker,
+        BattleUnit target,
+        MercenarySkillDefinition skill)
     {
         if (!HasUsefulSkillTarget(
                 attacker,
-                Mathf.RoundToInt(attacker.Attack * 0.75f),
+                Mathf.RoundToInt(attacker.Attack * skill.Power),
                 1) ||
-            !attacker.TryConsumeMagicPower(archerDoubleShotCost))
+            !attacker.TryConsumeMagicPower(skill.MagicCost))
         {
             return false;
         }
 
         int totalDamage = 0;
+        int criticalCount = 0;
         for (int i = 0; i < 2; i++)
         {
             BattleUnit shotTarget = GetUsefulSkillTarget(
                 attacker,
-                Mathf.RoundToInt(attacker.Attack * 0.75f));
+                Mathf.RoundToInt(attacker.Attack * skill.Power));
             if (shotTarget == null)
             {
                 break;
             }
 
+            if (shotTarget.TryEvade())
+            {
+                continue;
+            }
+
+            bool critical = attacker.RollCritical();
+            if (critical)
+            {
+                criticalCount++;
+            }
             int previousHP = shotTarget.CurrentHP;
-            shotTarget.TakeDamage(Mathf.RoundToInt(attacker.Attack * 0.75f));
+            float multiplier = critical ? criticalDamageMultiplier : 1f;
+            shotTarget.TakeDamage(
+                Mathf.RoundToInt(attacker.Attack * skill.Power * multiplier));
             totalDamage += previousHP - shotTarget.CurrentHP;
         }
 
+        // The current action ticks status durations at its end, so 3 keeps the
+        // bonus active for the following two actions.
+        attacker.BoostCriticalRate(0.15f, 3);
+
         SendBattleMessage(
             $"{attacker.UnitName}がスキル「連射」を発動: " +
-            $"合計{totalDamage}ダメージ。 " +
+            $"合計{totalDamage}ダメージ" +
+            (criticalCount > 0
+                ? $"（クリティカル{criticalCount}回）"
+                : string.Empty) +
+            "。次の2行動はクリティカル率+15%。 " +
             $"魔力 {attacker.CurrentMagicPower}/{attacker.MaxMagicPower}",
             BattleLogType.Player);
         return true;
     }
 
-    private bool TryUseMageFireball(BattleUnit attacker, BattleUnit target)
+    private bool TryUseMageFireball(
+        BattleUnit attacker,
+        BattleUnit target,
+        MercenarySkillDefinition skill)
     {
-        int fireballDamage = Mathf.RoundToInt(attacker.Attack * 1.65f);
+        int fireballDamage = Mathf.RoundToInt(attacker.Attack * skill.Power);
         BattleUnit skillTarget = GetUsefulSkillTarget(attacker, fireballDamage);
         if (skillTarget == null ||
-            !attacker.TryConsumeMagicPower(mageFireballCost))
+            !attacker.TryConsumeMagicPower(skill.MagicCost))
         {
             return false;
         }
 
+        if (skillTarget.TryEvade())
+        {
+            SendBattleMessage(
+                $"{attacker.UnitName}がスキル「火球」を発動しましたが、" +
+                $"{skillTarget.UnitName}が回避しました。 " +
+                $"魔力 {attacker.CurrentMagicPower}/{attacker.MaxMagicPower}",
+                BattleLogType.Player);
+            return true;
+        }
+
+        bool critical = attacker.RollCritical();
+        if (critical)
+        {
+            fireballDamage =
+                Mathf.RoundToInt(fireballDamage * criticalDamageMultiplier);
+        }
         int previousHP = skillTarget.CurrentHP;
         skillTarget.TakeDamage(fireballDamage);
         int damageDealt = previousHP - skillTarget.CurrentHP;
         SendBattleMessage(
             $"{attacker.UnitName}がスキル「火球」を発動: " +
+            (critical ? "クリティカル！ " : string.Empty) +
             $"{skillTarget.UnitName}に{damageDealt}ダメージ。 " +
             $"魔力 {attacker.CurrentMagicPower}/{attacker.MaxMagicPower}",
+            BattleLogType.Player);
+        return true;
+    }
+
+    private bool TryUsePriestHeal(
+        BattleUnit attacker,
+        MercenarySkillDefinition skill)
+    {
+        BattleUnit target = null;
+        int largestMissingHP = 0;
+        foreach (BattleUnit ally in playerUnits)
+        {
+            if (ally == null || ally.IsDead)
+            {
+                continue;
+            }
+            int missingHP = ally.MaxHP - ally.CurrentHP;
+            if (missingHP > largestMissingHP)
+            {
+                largestMissingHP = missingHP;
+                target = ally;
+            }
+        }
+        if (target == null ||
+            largestMissingHP < Mathf.Max(8, target.MaxHP / 5) ||
+            !attacker.TryConsumeMagicPower(skill.MagicCost))
+        {
+            return false;
+        }
+
+        int before = target.CurrentHP;
+        target.Heal(Mathf.RoundToInt(attacker.Attack * skill.Power));
+        int healed = target.CurrentHP - before;
+        SendBattleMessage(
+            $"{attacker.UnitName}がスキル「{skill.Name}」を発動: " +
+            $"{target.UnitName}のHPを{healed}回復。 " +
+            $"魔力 {attacker.CurrentMagicPower}/{attacker.MaxMagicPower}",
+            BattleLogType.Player);
+        return true;
+    }
+
+    private bool TryUsePoisonBlade(
+        BattleUnit attacker,
+        BattleUnit target,
+        MercenarySkillDefinition skill)
+    {
+        if (target == null ||
+            !attacker.TryConsumeMagicPower(skill.MagicCost))
+        {
+            return false;
+        }
+        if (target.TryEvade())
+        {
+            SendBattleMessage(
+                $"{attacker.UnitName}の「{skill.Name}」を" +
+                $"{target.UnitName}が回避しました。",
+                BattleLogType.Player);
+            return true;
+        }
+
+        int before = target.CurrentHP;
+        target.TakeDamage(Mathf.RoundToInt(attacker.Attack * skill.Power));
+        int damage = before - target.CurrentHP;
+        if (!target.IsDead)
+        {
+            target.ApplyStatus(BattleStatusEffect.Poison, 3);
+        }
+        SendBattleMessage(
+            $"{attacker.UnitName}がスキル「{skill.Name}」を発動: " +
+            $"{damage}ダメージ、毒を付与。",
+            BattleLogType.Player);
+        return true;
+    }
+
+    private bool TryUsePiercingThrust(
+        BattleUnit attacker,
+        BattleUnit target,
+        MercenarySkillDefinition skill)
+    {
+        if (target == null ||
+            !attacker.TryConsumeMagicPower(skill.MagicCost))
+        {
+            return false;
+        }
+        if (target.TryEvade())
+        {
+            SendBattleMessage(
+                $"{attacker.UnitName}の「{skill.Name}」を" +
+                $"{target.UnitName}が回避しました。",
+                BattleLogType.Player);
+            return true;
+        }
+
+        int before = target.CurrentHP;
+        target.TakePureDamage(
+            Mathf.RoundToInt(attacker.Attack * skill.Power));
+        int damage = before - target.CurrentHP;
+        SendBattleMessage(
+            $"{attacker.UnitName}がスキル「{skill.Name}」を発動: " +
+            $"防御を貫通して{damage}ダメージ。",
             BattleLogType.Player);
         return true;
     }
@@ -695,6 +1094,15 @@ public class BattleManager : MonoBehaviour
 
         foreach (MercenaryInstance mercenary in battleMercenaries)
         {
+            if (mercenary.IsAtLevelCap)
+            {
+                SendBattleMessage(
+                    $"{mercenary.MercenaryName}は" +
+                    $"レベル上限（Lv{mercenary.LevelCap}）に到達しています。",
+                    BattleLogType.Reward);
+                continue;
+            }
+
             int previousLevel = mercenary.Level;
             int levelsGained = mercenary.AddExperience(experiencePerMercenary);
 
@@ -748,9 +1156,11 @@ public class BattleManager : MonoBehaviour
             MercenaryInstance mercenary = battleMercenaries[i];
             BattleUnit unit = playerUnits[i];
             mercenary.SetCurrentHP(unit.CurrentHP);
+            mercenary.RestoreStatusEffect(unit.StatusEffect);
             SendBattleMessage(
                 $"{mercenary.MercenaryName}の戦闘後HP: " +
-                $"{mercenary.CurrentHP}/{mercenary.MaxHP}",
+                $"{mercenary.CurrentHP}/{mercenary.MaxHP}  状態: " +
+                $"{unit.StatusSummary}",
                 BattleLogType.System);
         }
     }

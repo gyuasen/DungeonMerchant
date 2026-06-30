@@ -81,7 +81,18 @@ public class MercenaryGenerator : MonoBehaviour
     {
         List<MercenaryArchetypeSO> result = new List<MercenaryArchetypeSO>();
 
-        foreach (MercenaryClass mercenaryClass in Enum.GetValues(typeof(MercenaryClass)))
+        List<MercenaryClass> baseClasses =
+            new List<MercenaryClass>(
+                MercenaryClassProgression.GetBaseClasses());
+        for (int i = baseClasses.Count - 1; i > 0; i--)
+        {
+            int swapIndex = UnityEngine.Random.Range(0, i + 1);
+            MercenaryClass temporary = baseClasses[i];
+            baseClasses[i] = baseClasses[swapIndex];
+            baseClasses[swapIndex] = temporary;
+        }
+
+        foreach (MercenaryClass mercenaryClass in baseClasses)
         {
             if (result.Count >= amount)
             {
@@ -176,6 +187,9 @@ public class MercenaryGenerator : MonoBehaviour
         EnsureClassArchetype(validArchetypes, MercenaryClass.Warrior);
         EnsureClassArchetype(validArchetypes, MercenaryClass.Archer);
         EnsureClassArchetype(validArchetypes, MercenaryClass.Mage);
+        EnsureClassArchetype(validArchetypes, MercenaryClass.Priest);
+        EnsureClassArchetype(validArchetypes, MercenaryClass.Rogue);
+        EnsureClassArchetype(validArchetypes, MercenaryClass.Lancer);
 
         return validArchetypes;
     }
@@ -242,6 +256,30 @@ public class MercenaryGenerator : MonoBehaviour
                 fallback.baseMaxMagicPower = 100;
                 fallback.baseAttackSpeed = 0.9f;
                 fallback.baseHireCost = 120;
+                break;
+            case MercenaryClass.Priest:
+                fallback.baseMaxHP = 80;
+                fallback.baseAttack = 9;
+                fallback.baseDefense = 3;
+                fallback.baseMaxMagicPower = 110;
+                fallback.baseAttackSpeed = 0.95f;
+                fallback.baseHireCost = 115;
+                break;
+            case MercenaryClass.Rogue:
+                fallback.baseMaxHP = 78;
+                fallback.baseAttack = 14;
+                fallback.baseDefense = 2;
+                fallback.baseMaxMagicPower = 70;
+                fallback.baseAttackSpeed = 1.35f;
+                fallback.baseHireCost = 120;
+                break;
+            case MercenaryClass.Lancer:
+                fallback.baseMaxHP = 95;
+                fallback.baseAttack = 13;
+                fallback.baseDefense = 4;
+                fallback.baseMaxMagicPower = 70;
+                fallback.baseAttackSpeed = 1.05f;
+                fallback.baseHireCost = 115;
                 break;
             default:
                 fallback.baseMaxHP = 100;

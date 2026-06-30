@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public class GameSaveData
 {
-    public int version = 13;
+    public int version = 15;
     public int gold = 500;
     public int merchantLevel = 1;
     public int merchantExperience;
@@ -54,6 +54,7 @@ public class SavedMercenary
     public int defense;
     public int maxMagicPower;
     public float attackSpeed;
+    public BattleStatusEffect statusEffect;
     public int hireCost;
     public int contractEndDay;
     public bool contractNeedsRenewal;

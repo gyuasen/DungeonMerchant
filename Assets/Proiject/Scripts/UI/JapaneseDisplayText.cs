@@ -7,6 +7,27 @@ public static class JapaneseDisplayText
             case MercenaryClass.Warrior: return "戦士";
             case MercenaryClass.Archer: return "弓兵";
             case MercenaryClass.Mage: return "魔術師";
+            case MercenaryClass.Priest: return "僧侶";
+            case MercenaryClass.Rogue: return "盗賊";
+            case MercenaryClass.Lancer: return "槍兵";
+            case MercenaryClass.Knight: return "騎士";
+            case MercenaryClass.Berserker: return "狂戦士";
+            case MercenaryClass.Sniper: return "狙撃手";
+            case MercenaryClass.Ranger: return "レンジャー";
+            case MercenaryClass.Sage: return "賢者";
+            case MercenaryClass.Elementalist: return "元素術師";
+            case MercenaryClass.Bishop: return "司祭";
+            case MercenaryClass.Paladin: return "聖騎士";
+            case MercenaryClass.Assassin: return "暗殺者";
+            case MercenaryClass.Ninja: return "忍者";
+            case MercenaryClass.Dragoon: return "竜騎兵";
+            case MercenaryClass.GuardianLancer: return "守護槍兵";
+            case MercenaryClass.Warlord: return "覇軍";
+            case MercenaryClass.Beastmaster: return "幻獣使い";
+            case MercenaryClass.Chronomancer: return "時詠み";
+            case MercenaryClass.Saint: return "聖者";
+            case MercenaryClass.Shadow: return "影";
+            case MercenaryClass.DragonKnight: return "竜騎士";
             default: return value.ToString();
         }
     }
@@ -95,6 +116,9 @@ public static class JapaneseDisplayText
             case "Soldier Ring": return "兵士の指輪";
             case "Feather Charm": return "羽根のお守り";
             case "Mana Pendant": return "魔力の首飾り";
+            case "Antidote": return "解毒薬";
+            case "Paralysis Remedy": return "麻痺治し";
+            case "Secret Job Certificate": return "秘伝の転職証";
             case "Enhancement Ore":
             case "Low Grade Enhancement Ore": return "低級強化鉱石";
             case "Lower Grade Enhancement Ore": return "下級強化鉱石";
@@ -164,6 +188,16 @@ public static class JapaneseDisplayText
                 : string.Empty;
         string bossLabel = enemy.isBoss ? " ボス" : string.Empty;
         return $"{grade}等級{categoryLabel}{bossLabel}";
+    }
+
+    public static string GetBattleStatus(BattleStatusEffect status)
+    {
+        switch (status)
+        {
+            case BattleStatusEffect.Poison: return "毒";
+            case BattleStatusEffect.Paralysis: return "麻痺";
+            default: return "正常";
+        }
     }
 
     public static string GetDungeonGrade(DungeonGrade value)

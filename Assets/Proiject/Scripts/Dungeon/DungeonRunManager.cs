@@ -370,24 +370,162 @@ public class DungeonRunManager : MonoBehaviour
         int normalEnemyCount = isBossEncounter && dungeonData.bossEnemy != null
             ? Mathf.Max(0, enemyCount - 1)
             : enemyCount;
+        bool specialVariantAdded = false;
 
         for (int i = 0; i < normalEnemyCount; i++)
         {
             EnemyDataSO enemy = GetRandomNormalEnemy();
             if (enemy != null)
             {
+                if (!specialVariantAdded &&
+                    enemy.category == EnemyCategory.Normal &&
+                    UnityEngine.Random.value <
+                    dungeonData.specialVariantChance)
+                {
+                    enemy = CreateSpecialVariant(enemy, false);
+                    specialVariantAdded = enemy != null &&
+                                          enemy.isSpecialVariant;
+                }
                 enemies.Add(enemy);
             }
         }
 
         if (isBossEncounter && dungeonData.bossEnemy != null)
         {
-            enemies.Add(dungeonData.bossEnemy);
+            EnemyDataSO boss = dungeonData.bossEnemy;
+            bool hasPreviouslyFullyCleared =
+                GetClearedFloors(dungeonData) >= TotalFloors;
+            if (hasPreviouslyFullyCleared &&
+                UnityEngine.Random.value < dungeonData.specialBossChance)
+            {
+                boss = CreateSpecialVariant(boss, true);
+            }
+            enemies.Add(boss);
         }
 
         return enemies.Count > 0
             ? enemies
             : battleManager.CreateDefaultEnemyEncounter(enemyCount);
+    }
+
+    private EnemyDataSO CreateSpecialVariant(
+        EnemyDataSO source,
+        bool isBossVariant)
+    {
+        if (source == null ||
+            dungeonData?.specialVariantSkillPool == null ||
+            dungeonData.specialVariantSkillPool.Length == 0)
+        {
+            return source;
+        }
+
+        List<EnemySkillType> skills = new List<EnemySkillType>();
+        foreach (EnemySkillType skill in dungeonData.specialVariantSkillPool)
+        {
+            if (skill != EnemySkillType.None)
+            {
+                skills.Add(skill);
+            }
+        }
+        if (skills.Count == 0)
+        {
+            return source;
+        }
+
+        EnemyDataSO variant = Instantiate(source);
+        variant.name = $"{source.name} Special Variant";
+        variant.hideFlags = HideFlags.DontSave;
+        variant.isSpecialVariant = true;
+        variant.enemySkill =
+            skills[UnityEngine.Random.Range(0, skills.Count)];
+        variant.specialVariantTitle =
+            GetSpecialVariantTitle(variant.enemySkill, isBossVariant);
+        variant.maxHP = Mathf.RoundToInt(
+            source.maxHP * (isBossVariant ? 1.3f : 1.2f));
+        variant.attack = Mathf.RoundToInt(
+            source.attack * (isBossVariant ? 1.22f : 1.15f));
+        variant.defense = Mathf.RoundToInt(source.defense * 1.15f);
+        variant.goldReward = Mathf.RoundToInt(source.goldReward * 1.5f);
+        variant.experienceMultiplier =
+            Mathf.Max(1f, source.experienceMultiplier) * 1.5f;
+
+        ApplySpecialSkillStatBonus(variant);
+        if (isBossVariant)
+        {
+            AddSpecialJobCertificateDrop(variant);
+        }
+        return variant;
+    }
+
+    private void AddSpecialJobCertificateDrop(EnemyDataSO variant)
+    {
+        ItemDataSO certificate = Resources.Load<ItemDataSO>(
+            "Items/JobChange/SecretJobCertificate");
+        if (certificate == null)
+        {
+            return;
+        }
+
+        List<ItemDropEntry> drops = new List<ItemDropEntry>();
+        if (variant.itemDrops != null)
+        {
+            drops.AddRange(variant.itemDrops);
+        }
+        float chance = Mathf.Clamp01(
+            0.5f + ((int)dungeonData.grade * 0.125f));
+        drops.Add(new ItemDropEntry
+        {
+            item = certificate,
+            amount = 1,
+            dropChance = chance
+        });
+        variant.itemDrops = drops.ToArray();
+    }
+
+    private static string GetSpecialVariantTitle(
+        EnemySkillType skill,
+        bool isBossVariant)
+    {
+        if (isBossVariant)
+        {
+            return "異形の";
+        }
+
+        switch (skill)
+        {
+            case EnemySkillType.PowerStrike: return "凶暴な";
+            case EnemySkillType.VenomStrike: return "猛毒の";
+            case EnemySkillType.ParalyzingRoar: return "震声の";
+            case EnemySkillType.CriticalFocus: return "鋭眼の";
+            case EnemySkillType.DoubleStrike: return "迅撃の";
+            case EnemySkillType.LifeDrain: return "吸命の";
+            default: return "変異した";
+        }
+    }
+
+    private static void ApplySpecialSkillStatBonus(EnemyDataSO variant)
+    {
+        switch (variant.enemySkill)
+        {
+            case EnemySkillType.PowerStrike:
+                variant.attack = Mathf.RoundToInt(variant.attack * 1.15f);
+                break;
+            case EnemySkillType.VenomStrike:
+                variant.attackSpeed *= 1.1f;
+                break;
+            case EnemySkillType.ParalyzingRoar:
+                variant.defense = Mathf.RoundToInt(variant.defense * 1.15f);
+                break;
+            case EnemySkillType.CriticalFocus:
+                variant.criticalRate += 0.2f;
+                break;
+            case EnemySkillType.DoubleStrike:
+                variant.attackSpeed *= 1.2f;
+                break;
+            case EnemySkillType.LifeDrain:
+                variant.maxHP = Mathf.RoundToInt(variant.maxHP * 1.2f);
+                break;
+        }
     }
 
     private EnemyDataSO GetRandomNormalEnemy()

@@ -229,6 +229,7 @@ public class SaveManager : MonoBehaviour
                     defense = mercenary.BaseDefense,
                     maxMagicPower = mercenary.BaseMaxMagicPower,
                     attackSpeed = mercenary.BaseAttackSpeed,
+                    statusEffect = mercenary.StatusEffect,
                     hireCost = mercenary.HireCost,
                     contractEndDay = mercenary.ContractEndDay,
                     contractNeedsRenewal = mercenary.ContractNeedsRenewal,
@@ -421,6 +422,10 @@ public class SaveManager : MonoBehaviour
             saved.equippedAccessoryAssetName,
             saved.equippedAccessoryInstance);
         mercenary.SetCurrentHP(saved.currentHP);
+        if (saved.statusEffect != BattleStatusEffect.None)
+        {
+            mercenary.RestoreStatusEffect(saved.statusEffect);
+        }
         mercenary.RestoreContractState(
             saved.contractEndDay,
             saved.contractNeedsRenewal);

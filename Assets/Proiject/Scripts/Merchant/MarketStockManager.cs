@@ -209,7 +209,7 @@ public class MarketStockManager : MonoBehaviour
 
     private void AddPurchasableItem(ItemDataSO item)
     {
-        if (IsPurchasableEquipment(item) && !purchasableItems.Contains(item))
+        if (IsPurchasableItem(item) && !purchasableItems.Contains(item))
         {
             purchasableItems.Add(item);
         }
@@ -219,17 +219,17 @@ public class MarketStockManager : MonoBehaviour
     {
         for (int i = purchasableItems.Count - 1; i >= 0; i--)
         {
-            if (!IsPurchasableEquipment(purchasableItems[i]))
+            if (!IsPurchasableItem(purchasableItems[i]))
             {
                 purchasableItems.RemoveAt(i);
             }
         }
     }
 
-    private static bool IsPurchasableEquipment(ItemDataSO item)
+    private static bool IsPurchasableItem(ItemDataSO item)
     {
         return item != null &&
-               item.IsEquipment &&
+               (item.IsEquipment || item.itemType == ItemType.Consumable) &&
                item.acquisitionType == ItemAcquisitionType.Market;
     }
 

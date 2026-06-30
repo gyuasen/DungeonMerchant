@@ -5,3 +5,21 @@ public enum BattleLogType
     Enemy,
     Reward
 }
+
+public enum BattleStatusEffect
+{
+    None,
+    Poison,
+    Paralysis
+}
+
+public enum EnemySkillType
+{
+    None,
+    PowerStrike,
+    VenomStrike,
+    ParalyzingRoar,
+    CriticalFocus,
+    DoubleStrike,
+    LifeDrain
+}
