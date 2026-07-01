@@ -15,7 +15,7 @@ MonoBehaviour:
   enemyName: Wraith
   monsterGrade: 7
   isBoss: 0
-  enemySkill: 3
+  enemySkill: 6
   maxHP: 40
   attack: 12
   defense: 3

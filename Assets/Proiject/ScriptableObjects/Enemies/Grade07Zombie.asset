@@ -16,7 +16,7 @@ MonoBehaviour:
   monsterGrade: 7
   isBoss: 0
   category: 0
-  enemySkill: 0
+  enemySkill: 11
   isSpecialVariant: 0
   specialVariantTitle:
   maxHP: 54

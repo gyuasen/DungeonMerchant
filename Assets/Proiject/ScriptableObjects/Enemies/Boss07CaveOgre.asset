@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyName: Cave Ogre
   monsterGrade: 7
+  enemySkill: 12
   isBoss: 1
   maxHP: 120
   attack: 16

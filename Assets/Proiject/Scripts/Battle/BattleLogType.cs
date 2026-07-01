@@ -21,5 +21,13 @@ public enum EnemySkillType
     ParalyzingRoar,
     CriticalFocus,
     DoubleStrike,
-    LifeDrain
+    LifeDrain,
+    ArmorPierce,
+    FlameBreath,
+    FrostBite,
+    TripleStrike,
+    BattleHeal,
+    SacrificialStrike,
+    Execute,
+    ToxicCloud
 }

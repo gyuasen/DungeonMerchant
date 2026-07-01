@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyName: Abyss Dragon
   monsterGrade: 1
+  enemySkill: 8
   isBoss: 0
   maxHP: 190
   attack: 38

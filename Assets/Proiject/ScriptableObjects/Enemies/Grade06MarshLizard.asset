@@ -15,7 +15,7 @@ MonoBehaviour:
   enemyName: Marsh Lizard
   monsterGrade: 6
   isBoss: 0
-  enemySkill: 2
+  enemySkill: 14
   maxHP: 59
   attack: 14
   defense: 5

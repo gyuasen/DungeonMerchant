@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de912b2128fc8ae41be1a8be596f5b30, type: 3}
+  m_Name: NoaChronomancer
+  m_EditorClassIdentifier:
+  mercenaryName: "ノア"
+  mercenaryClass: 2
+  contractType: 0
+  maxHP: 70
+  attack: 17
+  defense: 2
+  maxMagicPower: 135
+  attackSpeed: 0.96
+  hireCost: 175
+  uniqueSkillUnlockLevel: 8
+  uniqueSkillName: "星刻の記憶"
+  uniqueSkillBonusMaxHP: 4
+  uniqueSkillBonusAttack: 3
+  uniqueSkillBonusDefense: 1
+  uniqueSkillBonusMaxMagicPower: 32
+  uniqueSkillBonusAttackSpeed: 0.02

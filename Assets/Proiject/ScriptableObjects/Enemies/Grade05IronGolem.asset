@@ -15,7 +15,7 @@ MonoBehaviour:
   enemyName: Iron Golem
   monsterGrade: 5
   isBoss: 0
-  enemySkill: 4
+  enemySkill: 7
   maxHP: 92
   attack: 15
   defense: 12

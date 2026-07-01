@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyName: Demon Knight
   monsterGrade: 2
+  enemySkill: 13
   isBoss: 0
   maxHP: 145
   attack: 31

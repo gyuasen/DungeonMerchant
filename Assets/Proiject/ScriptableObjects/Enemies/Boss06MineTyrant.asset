@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyName: Mine Tyrant
   monsterGrade: 6
+  enemySkill: 13
   isBoss: 1
   maxHP: 160
   attack: 20

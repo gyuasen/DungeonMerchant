@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e979c614ce1242bd9c993974ec08851e, type: 3}
+  m_Name: VelmBlackIronMine
+  m_EditorClassIdentifier:
+  dungeonName: "ヴェルム黒鉄坑"
+  grade: 3
+  worldMapIndex: 2
+  nearbyTownIndex: 5
+  totalFloors: 6
+  description: "黒い大地の地下へ続く古代鉱坑。魔導兵器と竜種が坑道を占拠している。"
+  encounterCount: 4
+  firstEncounterEnemyCount: 4
+  enemyCountIncreasePerEncounter: 2
+  enemyCountIncreasePerFloor: 1
+  normalEnemies:
+  - {fileID: 11400000, guid: f8cc8e9386e84dbd87ad119e3a14e07d, type: 2}
+  - {fileID: 11400000, guid: d5b504215a634161b572384055626995, type: 2}
+  bossEnemy: {fileID: 11400000, guid: aee8a74142e14cfa89a2f95831de161b, type: 2}
+  specialVariantChance: 0.09
+  specialBossChance: 0.045
+  specialVariantSkillPool: 02000000040000000500000007000000080000000a0000000c0000000d000000
+  floorClearGoldReward: 150
+  clearGoldReward: 650
+  clearItemRewards:
+  - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
+    amount: 10
+  eventLimitedDropChance: 0.045
+  bossLimitedDropChance: 0.11
+  limitedEquipmentDrops: []

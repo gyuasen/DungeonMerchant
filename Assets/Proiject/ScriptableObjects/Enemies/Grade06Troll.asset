@@ -15,7 +15,7 @@ MonoBehaviour:
   enemyName: Troll
   monsterGrade: 6
   isBoss: 0
-  enemySkill: 1
+  enemySkill: 11
   maxHP: 76
   attack: 16
   defense: 4

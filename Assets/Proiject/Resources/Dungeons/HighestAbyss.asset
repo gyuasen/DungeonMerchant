@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e979c614ce1242bd9c993974ec08851e, type: 3}
-  m_Name: HighestAbyss
+  m_Name: FinalBlackSoilAbyss
   m_EditorClassIdentifier: 
-  dungeonName: "\u6DF1\u6DF5\u306E\u738B\u5EA7"
+  dungeonName: "終焉の黒土深淵"
   grade: 4
   worldMapIndex: 2
-  nearbyTownIndex: 2
+  nearbyTownIndex: 6
   totalFloors: 7
-  description: "\u6700\u3082\u5371\u967A\u306A\u9B54\u7269\u304C\u96C6\u3046\u6DF1\u6DF5\u306E\u6700\u5965\u3002"
+  description: "黒土大陸の最深部。深淵の王と最上位の魔物が眠る終着地。"
   encounterCount: 5
   firstEncounterEnemyCount: 5
   enemyCountIncreasePerEncounter: 2
@@ -40,5 +40,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8177ed4faefc450885f8d06738f9a05e, type: 2}
   - {fileID: 11400000, guid: 21d742c7122c4e4da77a01f608c511f6, type: 2}
   specialVariantChance: 0.1
-  specialBossChance: 0.04
-  specialVariantSkillPool: 03000000040000000500000006000000
+  specialBossChance: 0.05
+  specialVariantSkillPool: 0300000004000000050000000600000007000000080000000a0000000b0000000c0000000d0000000e000000

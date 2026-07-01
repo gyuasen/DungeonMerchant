@@ -63,6 +63,7 @@ public class DungeonRunManager : MonoBehaviour
     public IReadOnlyList<DungeonDataSO> AvailableDungeons => availableDungeons;
     public DungeonDataSO SelectedDungeon => dungeonData;
     public DungeonGrade HighestUnlockedGrade => highestUnlockedGrade;
+    public int CurrentWorldMapIndex => currentWorldMapIndex;
     public string EventTitle { get; private set; } = string.Empty;
     public string EventDescription { get; private set; } = string.Empty;
     public string FirstOptionLabel { get; private set; } = string.Empty;
@@ -138,6 +139,7 @@ public class DungeonRunManager : MonoBehaviour
     public bool IsDungeonUnlocked(DungeonDataSO data)
     {
         return data != null &&
+               data.worldMapIndex == currentWorldMapIndex &&
                unlockedTownIndices.Contains(data.nearbyTownIndex);
     }
 
@@ -153,6 +155,38 @@ public class DungeonRunManager : MonoBehaviour
         }
 
         return null;
+    }
+
+    public DungeonDataSO GetHighestGradeDungeonNearTown(int townIndex)
+    {
+        PopulateDungeonDataIfNeeded();
+        DungeonDataSO result = null;
+        foreach (DungeonDataSO data in availableDungeons)
+        {
+            if (data == null || data.nearbyTownIndex != townIndex)
+            {
+                continue;
+            }
+
+            if (result == null || data.grade > result.grade)
+            {
+                result = data;
+            }
+        }
+        return result;
+    }
+
+    public void SetCurrentWorldMapIndex(int worldMapIndex)
+    {
+        currentWorldMapIndex = Mathf.Max(0, worldMapIndex);
+        PopulateDungeonDataIfNeeded();
+        if (dungeonData == null ||
+            dungeonData.worldMapIndex != currentWorldMapIndex ||
+            !IsDungeonUnlocked(dungeonData))
+        {
+            dungeonData = FindFirstUnlockedDungeon();
+        }
+        DungeonStateChanged?.Invoke();
     }
 
     public int GetClearedFloors(DungeonDataSO data)
@@ -441,20 +475,49 @@ public class DungeonRunManager : MonoBehaviour
         variant.specialVariantTitle =
             GetSpecialVariantTitle(variant.enemySkill, isBossVariant);
         variant.maxHP = Mathf.RoundToInt(
-            source.maxHP * (isBossVariant ? 1.3f : 1.2f));
+            source.maxHP * (isBossVariant ? 1.4f : 1.18f));
         variant.attack = Mathf.RoundToInt(
-            source.attack * (isBossVariant ? 1.22f : 1.15f));
-        variant.defense = Mathf.RoundToInt(source.defense * 1.15f);
-        variant.goldReward = Mathf.RoundToInt(source.goldReward * 1.5f);
+            source.attack * (isBossVariant ? 1.25f : 1.12f));
+        variant.defense = Mathf.RoundToInt(
+            source.defense * (isBossVariant ? 1.2f : 1.1f));
+        variant.goldReward = Mathf.RoundToInt(
+            source.goldReward * (isBossVariant ? 3f : 1.75f));
         variant.experienceMultiplier =
-            Mathf.Max(1f, source.experienceMultiplier) * 1.5f;
+            Mathf.Max(1f, source.experienceMultiplier) *
+            (isBossVariant ? 2.5f : 2f);
 
         ApplySpecialSkillStatBonus(variant);
+        AddSpecialVariantMaterialDrop(variant, isBossVariant);
         if (isBossVariant)
         {
             AddSpecialJobCertificateDrop(variant);
         }
         return variant;
+    }
+
+    private static void AddSpecialVariantMaterialDrop(
+        EnemyDataSO variant,
+        bool isBossVariant)
+    {
+        ItemDataSO material = Resources.Load<ItemDataSO>(
+            "Items/Special/MutantCore");
+        if (variant == null || material == null)
+        {
+            return;
+        }
+
+        List<ItemDropEntry> drops = new List<ItemDropEntry>();
+        if (variant.itemDrops != null)
+        {
+            drops.AddRange(variant.itemDrops);
+        }
+        drops.Add(new ItemDropEntry
+        {
+            item = material,
+            amount = isBossVariant ? 2 : 1,
+            dropChance = isBossVariant ? 1f : 0.5f
+        });
+        variant.itemDrops = drops.ToArray();
     }
 
     private void AddSpecialJobCertificateDrop(EnemyDataSO variant)
@@ -499,6 +562,14 @@ public class DungeonRunManager : MonoBehaviour
             case EnemySkillType.CriticalFocus: return "鋭眼の";
             case EnemySkillType.DoubleStrike: return "迅撃の";
             case EnemySkillType.LifeDrain: return "吸命の";
+            case EnemySkillType.ArmorPierce: return "破甲の";
+            case EnemySkillType.FlameBreath: return "炎息の";
+            case EnemySkillType.FrostBite: return "氷牙の";
+            case EnemySkillType.TripleStrike: return "裂爪の";
+            case EnemySkillType.BattleHeal: return "再生する";
+            case EnemySkillType.SacrificialStrike: return "狂戦の";
+            case EnemySkillType.Execute: return "処刑者の";
+            case EnemySkillType.ToxicCloud: return "瘴気の";
             default: return "変異した";
         }
     }
@@ -524,6 +595,31 @@ public class DungeonRunManager : MonoBehaviour
                 break;
             case EnemySkillType.LifeDrain:
                 variant.maxHP = Mathf.RoundToInt(variant.maxHP * 1.2f);
+                break;
+            case EnemySkillType.ArmorPierce:
+                variant.attack = Mathf.RoundToInt(variant.attack * 1.1f);
+                break;
+            case EnemySkillType.FlameBreath:
+                variant.maxMagicPower += 25;
+                break;
+            case EnemySkillType.FrostBite:
+                variant.defense = Mathf.RoundToInt(variant.defense * 1.12f);
+                break;
+            case EnemySkillType.TripleStrike:
+                variant.attackSpeed *= 1.15f;
+                break;
+            case EnemySkillType.BattleHeal:
+                variant.maxHP = Mathf.RoundToInt(variant.maxHP * 1.25f);
+                break;
+            case EnemySkillType.SacrificialStrike:
+                variant.attack = Mathf.RoundToInt(variant.attack * 1.18f);
+                break;
+            case EnemySkillType.Execute:
+                variant.criticalRate += 0.12f;
+                break;
+            case EnemySkillType.ToxicCloud:
+                variant.maxMagicPower += 20;
+                variant.attackSpeed *= 1.08f;
                 break;
         }
     }
@@ -811,10 +907,7 @@ public class DungeonRunManager : MonoBehaviour
 
         foreach (DungeonDataSO data in Resources.LoadAll<DungeonDataSO>(string.Empty))
         {
-            if (data.worldMapIndex == currentWorldMapIndex)
-            {
-                AddDungeon(data);
-            }
+            AddDungeon(data);
         }
 
 #if UNITY_EDITOR
@@ -827,10 +920,7 @@ public class DungeonRunManager : MonoBehaviour
             string path = AssetDatabase.GUIDToAssetPath(guid);
             DungeonDataSO data =
                 AssetDatabase.LoadAssetAtPath<DungeonDataSO>(path);
-            if (data != null && data.worldMapIndex == currentWorldMapIndex)
-            {
-                AddDungeon(data);
-            }
+            AddDungeon(data);
         }
 #endif
 
@@ -861,8 +951,7 @@ public class DungeonRunManager : MonoBehaviour
     {
         for (int i = availableDungeons.Count - 1; i >= 0; i--)
         {
-            if (availableDungeons[i] == null ||
-                availableDungeons[i].worldMapIndex != currentWorldMapIndex)
+            if (availableDungeons[i] == null)
             {
                 availableDungeons.RemoveAt(i);
             }
@@ -890,7 +979,9 @@ public class DungeonRunManager : MonoBehaviour
     {
         foreach (DungeonDataSO data in availableDungeons)
         {
-            if (IsDungeonUnlocked(data))
+            if (data != null &&
+                data.worldMapIndex == currentWorldMapIndex &&
+                IsDungeonUnlocked(data))
             {
                 return data;
             }

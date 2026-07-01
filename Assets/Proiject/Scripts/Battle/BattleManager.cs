@@ -126,7 +126,7 @@ public class BattleManager : MonoBehaviour
         if (enemies.Count == 1)
         {
             EnemyDataSO enemy = enemies[0];
-            return $"{JapaneseDisplayText.GetEnemyName(enemy.enemyName)}  |  " +
+            return $"{GetEnemyDisplayName(enemy)}  |  " +
                    $"{JapaneseDisplayText.GetMonsterGrade(enemy)}  |  HP {enemy.maxHP}  " +
                    $"攻撃 {enemy.attack}  防御 {enemy.defense}  " +
                    $"魔力 {enemy.maxMagicPower}  速度 {enemy.attackSpeed:0.00}  |  " +
@@ -139,7 +139,7 @@ public class BattleManager : MonoBehaviour
             totalGold += enemy.goldReward;
         }
 
-        return $"{JapaneseDisplayText.GetEnemyName(enemies[0].enemyName)} x{enemies.Count}  |  " +
+        return $"{GetEnemyDisplayName(enemies[0])} x{enemies.Count}  |  " +
                $"合計報酬 {totalGold} G";
     }
 
@@ -257,26 +257,11 @@ public class BattleManager : MonoBehaviour
         for (int i = 0; i < enemies.Count; i++)
         {
             EnemyDataSO enemy = enemies[i];
-            string enemyName = JapaneseDisplayText.GetEnemyName(enemy.enemyName);
-            if (enemy.isSpecialVariant)
-            {
-                string title = string.IsNullOrWhiteSpace(
-                    enemy.specialVariantTitle)
-                    ? "変異した"
-                    : enemy.specialVariantTitle;
-                enemyName = $"{title}{enemyName}";
-            }
-            if (enemy.category == EnemyCategory.MythicalBeast)
-            {
-                enemyName = $"幻獣 {enemyName}";
-            }
-            if (enemy.isBoss)
-            {
-                enemyName = $"ボス {enemyName}";
-            }
+            string enemyName = BuildEnemyDisplayName(enemy);
             string unitName = enemies.Count == 1
                 ? enemyName
                 : $"{enemyName} {i + 1}";
+            unitName = ColorSpecialEnemyName(unitName, enemy.isSpecialVariant);
 
             enemyUnits.Add(new BattleUnit(
                 unitName,
@@ -292,6 +277,49 @@ public class BattleManager : MonoBehaviour
                 enemy.evasionRate));
             battleEnemyData.Add(enemy);
         }
+    }
+
+    private static string GetEnemyDisplayName(EnemyDataSO enemy)
+    {
+        if (enemy == null)
+        {
+            return "不明な敵";
+        }
+        return ColorSpecialEnemyName(
+            BuildEnemyDisplayName(enemy),
+            enemy.isSpecialVariant);
+    }
+
+    private static string BuildEnemyDisplayName(EnemyDataSO enemy)
+    {
+        string enemyName =
+            JapaneseDisplayText.GetEnemyName(enemy.enemyName);
+        if (enemy.isSpecialVariant)
+        {
+            string title = string.IsNullOrWhiteSpace(
+                enemy.specialVariantTitle)
+                ? "変異した"
+                : enemy.specialVariantTitle;
+            enemyName = $"{title}{enemyName}";
+        }
+        if (enemy.category == EnemyCategory.MythicalBeast)
+        {
+            enemyName = $"幻獣 {enemyName}";
+        }
+        if (enemy.isBoss)
+        {
+            enemyName = $"ボス {enemyName}";
+        }
+        return enemyName;
+    }
+
+    private static string ColorSpecialEnemyName(
+        string enemyName,
+        bool isSpecialVariant)
+    {
+        return isSpecialVariant
+            ? $"<color=#D86BFF>{enemyName}</color>"
+            : enemyName;
     }
 
     private List<EnemyDataSO> BuildEnemyEncounterData()
@@ -584,9 +612,199 @@ public class BattleManager : MonoBehaviour
                 return true;
             case EnemySkillType.LifeDrain:
                 return UseEnemyLifeDrain(attacker, target);
+            case EnemySkillType.ArmorPierce:
+                return UseEnemyPureDamageSkill(
+                    attacker, target, "装甲穿ち", 1.05f);
+            case EnemySkillType.FlameBreath:
+                return UseEnemyAreaDamageSkill(
+                    attacker, "灼熱の息", 0.68f, BattleStatusEffect.None);
+            case EnemySkillType.FrostBite:
+                return UseEnemyDamageSkill(
+                    attacker,
+                    target,
+                    "氷結牙",
+                    0.82f,
+                    BattleStatusEffect.Paralysis);
+            case EnemySkillType.TripleStrike:
+                return UseEnemyMultiStrike(attacker, target, "三連爪", 3, 0.52f);
+            case EnemySkillType.BattleHeal:
+                return UseEnemyBattleHeal(attacker);
+            case EnemySkillType.SacrificialStrike:
+                return UseEnemySacrificialStrike(attacker, target);
+            case EnemySkillType.Execute:
+                return UseEnemyExecute(attacker, target);
+            case EnemySkillType.ToxicCloud:
+                return UseEnemyAreaDamageSkill(
+                    attacker, "毒霧", 0.42f, BattleStatusEffect.Poison);
             default:
                 return false;
         }
+    }
+
+    private bool UseEnemyPureDamageSkill(
+        BattleUnit attacker,
+        BattleUnit target,
+        string skillName,
+        float power)
+    {
+        if (target.TryEvade())
+        {
+            SendBattleMessage(
+                $"{attacker.UnitName}の「{skillName}」を" +
+                $"{target.UnitName}が回避しました。",
+                BattleLogType.Enemy);
+            return true;
+        }
+
+        bool critical = attacker.RollCritical();
+        int damage = Mathf.Max(
+            1,
+            Mathf.RoundToInt(
+                attacker.Attack * power *
+                (critical ? criticalDamageMultiplier : 1f)));
+        int previousHP = target.CurrentHP;
+        target.TakePureDamage(damage);
+        damage = previousHP - target.CurrentHP;
+        SendBattleMessage(
+            $"{attacker.UnitName}がスキル「{skillName}」を発動: " +
+            (critical ? "クリティカル！ " : string.Empty) +
+            $"{target.UnitName}へ防御無視の{damage}ダメージ。",
+            BattleLogType.Enemy);
+        return true;
+    }
+
+    private bool UseEnemyAreaDamageSkill(
+        BattleUnit attacker,
+        string skillName,
+        float power,
+        BattleStatusEffect status)
+    {
+        List<BattleUnit> targets =
+            playerUnits.FindAll(unit => unit != null && !unit.IsDead);
+        if (targets.Count == 0)
+        {
+            return false;
+        }
+
+        int totalDamage = 0;
+        int affected = 0;
+        foreach (BattleUnit areaTarget in targets)
+        {
+            if (areaTarget.TryEvade())
+            {
+                continue;
+            }
+
+            int previousHP = areaTarget.CurrentHP;
+            areaTarget.TakeDamage(
+                Mathf.RoundToInt(attacker.CalculateDamage() * power));
+            totalDamage += previousHP - areaTarget.CurrentHP;
+            affected++;
+            if (!areaTarget.IsDead && status != BattleStatusEffect.None)
+            {
+                areaTarget.ApplyStatus(
+                    status,
+                    status == BattleStatusEffect.Poison ? 3 : 1);
+            }
+        }
+
+        SendBattleMessage(
+            $"{attacker.UnitName}がスキル「{skillName}」を発動: " +
+            $"{affected}人へ合計{totalDamage}ダメージ" +
+            (status != BattleStatusEffect.None
+                ? $"、{GetStatusName(status)}を付与。"
+                : "。"),
+            BattleLogType.Enemy);
+        return true;
+    }
+
+    private bool UseEnemyMultiStrike(
+        BattleUnit attacker,
+        BattleUnit target,
+        string skillName,
+        int hitCount,
+        float power)
+    {
+        int totalDamage = 0;
+        int landedHits = 0;
+        for (int i = 0; i < hitCount && !target.IsDead; i++)
+        {
+            if (target.TryEvade())
+            {
+                continue;
+            }
+
+            int previousHP = target.CurrentHP;
+            target.TakeDamage(
+                Mathf.RoundToInt(attacker.CalculateDamage() * power));
+            totalDamage += previousHP - target.CurrentHP;
+            landedHits++;
+        }
+
+        SendBattleMessage(
+            $"{attacker.UnitName}がスキル「{skillName}」を発動: " +
+            $"{landedHits}/{hitCount}回命中、合計{totalDamage}ダメージ。",
+            BattleLogType.Enemy);
+        return true;
+    }
+
+    private bool UseEnemyBattleHeal(BattleUnit attacker)
+    {
+        int missingHP = attacker.MaxHP - attacker.CurrentHP;
+        if (missingHP < Mathf.Max(1, attacker.MaxHP / 5))
+        {
+            return false;
+        }
+
+        int before = attacker.CurrentHP;
+        attacker.Heal(Mathf.RoundToInt(attacker.MaxHP * 0.28f));
+        SendBattleMessage(
+            $"{attacker.UnitName}がスキル「再生」を発動: " +
+            $"HPを{attacker.CurrentHP - before}回復。",
+            BattleLogType.Enemy);
+        return true;
+    }
+
+    private bool UseEnemySacrificialStrike(
+        BattleUnit attacker,
+        BattleUnit target)
+    {
+        if (attacker.CurrentHP <= Mathf.Max(1, attacker.MaxHP / 10))
+        {
+            return false;
+        }
+
+        int recoil = Mathf.Max(1, Mathf.RoundToInt(attacker.MaxHP * 0.08f));
+        attacker.TakePureDamage(recoil);
+        bool used = UseEnemyDamageSkill(
+            attacker,
+            target,
+            "捨て身の猛撃",
+            1.85f,
+            BattleStatusEffect.None);
+        if (used)
+        {
+            SendBattleMessage(
+                $"{attacker.UnitName}は反動で{recoil}ダメージ。",
+                BattleLogType.Enemy);
+        }
+        return used;
+    }
+
+    private bool UseEnemyExecute(
+        BattleUnit attacker,
+        BattleUnit target)
+    {
+        float hpRatio = target.MaxHP > 0
+            ? (float)target.CurrentHP / target.MaxHP
+            : 1f;
+        float power = hpRatio <= 0.35f ? 2f : 0.85f;
+        return UseEnemyDamageSkill(
+            attacker,
+            target,
+            hpRatio <= 0.35f ? "処刑撃" : "追い込み",
+            power,
+            BattleStatusEffect.None);
     }
 
     private bool UseEnemyLifeDrain(
@@ -663,12 +881,27 @@ public class BattleManager : MonoBehaviour
 
     private static EnemySkillType GetDefaultEnemySkill(int monsterGrade)
     {
-        int selector = Mathf.Abs(monsterGrade) % 3;
-        return selector == 0
-            ? EnemySkillType.VenomStrike
-            : selector == 1
-                ? EnemySkillType.ParalyzingRoar
-                : EnemySkillType.PowerStrike;
+        EnemySkillType[] lowerGradeSkills =
+        {
+            EnemySkillType.PowerStrike,
+            EnemySkillType.VenomStrike,
+            EnemySkillType.FrostBite,
+            EnemySkillType.DoubleStrike
+        };
+        EnemySkillType[] upperGradeSkills =
+        {
+            EnemySkillType.ArmorPierce,
+            EnemySkillType.FlameBreath,
+            EnemySkillType.TripleStrike,
+            EnemySkillType.BattleHeal,
+            EnemySkillType.SacrificialStrike,
+            EnemySkillType.Execute,
+            EnemySkillType.ToxicCloud
+        };
+        EnemySkillType[] candidates =
+            monsterGrade <= 5 ? upperGradeSkills : lowerGradeSkills;
+        int selector = Mathf.Abs(monsterGrade) % candidates.Length;
+        return candidates[selector];
     }
 
     private static string GetStatusName(BattleStatusEffect status)
