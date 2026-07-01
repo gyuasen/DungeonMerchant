@@ -46,5 +46,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 5e351ccf25cb41b89f9430fe8ba4180c, type: 2}
   - {fileID: 11400000, guid: 81298c932fe144998d74fbb60b65898a, type: 2}
   specialVariantChance: 0.08
-  specialBossChance: 0.03
-  specialVariantSkillPool: 010000000300000004000000
+  specialBossChance: 0.04
+  specialVariantSkillPool: 01000000030000000400000007000000090000000b0000000e000000

@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e979c614ce1242bd9c993974ec08851e, type: 3}
-  m_Name: UpperFortress
+  m_Name: GlaadSkyFortress
   m_EditorClassIdentifier: 
-  dungeonName: "\u9ED2\u9244\u306E\u5C71\u5CB3\u8981\u585E"
+  dungeonName: "グラード天嶺砦"
   grade: 3
   worldMapIndex: 1
-  nearbyTownIndex: 2
+  nearbyTownIndex: 4
   totalFloors: 6
-  description: "\u5C71\u5CB3\u5730\u5E2F\u3092\u652F\u914D\u3059\u308B\u9B54\u7269\u306E\u8981\u585E\u3002"
+  description: "雪峰と古樹の境界に築かれた、飛竜と魔族が守る天空の砦。"
   encounterCount: 4
   firstEncounterEnemyCount: 4
   enemyCountIncreasePerEncounter: 2
@@ -40,5 +40,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 49d671b1e1474d7a8ed92fd7c4736391, type: 2}
   - {fileID: 11400000, guid: fbfea5b05f1044edb80a7f0eda0a47c9, type: 2}
   specialVariantChance: 0.09
-  specialBossChance: 0.035
-  specialVariantSkillPool: 020000000400000005000000
+  specialBossChance: 0.045
+  specialVariantSkillPool: 02000000040000000500000007000000080000000a0000000c0000000d000000

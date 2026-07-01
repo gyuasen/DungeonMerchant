@@ -128,6 +128,8 @@ public static class JapaneseDisplayText
             case "Oni Hunter Cleaver": return "鬼狩りの鉈";
             case "Oni Hunter Garb": return "鬼狩りの装束";
             case "Goblin Fang Talisman": return "小鬼牙のお守り";
+            case "Mutant Core": return "変異核";
+            case "Mutant Core Charm": return "変異核の護符";
             case "Iron Armor": return "鉄の鎧";
             case "Leather Armor": return "革の鎧";
             case "Apprentice Robe": return "見習いのローブ";

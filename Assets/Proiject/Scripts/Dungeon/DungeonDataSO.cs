@@ -9,7 +9,7 @@ public class DungeonDataSO : ScriptableObject
     public string dungeonName = "はじまりの洞窟";
     public DungeonGrade grade = DungeonGrade.Low;
     [Min(0)] public int worldMapIndex;
-    [Range(0, 2)] public int nearbyTownIndex = 2;
+    [Range(0, 6)] public int nearbyTownIndex = 2;
     [Min(1)] public int totalFloors = 3;
 
     [TextArea]

@@ -15,7 +15,7 @@ MonoBehaviour:
   enemyName: Bone Hound
   monsterGrade: 7
   isBoss: 0
-  enemySkill: 2
+  enemySkill: 10
   maxHP: 43
   attack: 13
   defense: 4

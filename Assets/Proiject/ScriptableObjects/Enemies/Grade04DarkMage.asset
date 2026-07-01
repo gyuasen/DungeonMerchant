@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyName: Dark Mage
   monsterGrade: 4
+  enemySkill: 14
   isBoss: 0
   maxHP: 78
   attack: 22

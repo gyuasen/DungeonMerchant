@@ -15,7 +15,7 @@ MonoBehaviour:
   enemyName: Ogre Mage
   monsterGrade: 5
   isBoss: 0
-  enemySkill: 3
+  enemySkill: 8
   maxHP: 72
   attack: 18
   defense: 6
