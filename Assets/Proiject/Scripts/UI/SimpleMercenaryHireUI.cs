@@ -247,6 +247,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
 
         viewedWorldMapIndex = CurrentWorldMapIndex;
         dungeonRunManager?.SetCurrentWorldMapIndex(viewedWorldMapIndex);
+        ApplyTownServiceSettings(false, false);
         SyncDungeonUnlocks();
         RefreshTownMapButtons();
     }
@@ -287,6 +288,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
 
         uiFont = LoadUIFont();
         uiBodyFont = LoadBodyFont();
+        ApplyTownServiceSettings(true, true);
         PopulateUniqueCandidatesIfNeeded();
         CacheAlreadyHiredCandidates();
         EnsureEventSystem();
@@ -3313,6 +3315,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
 
     private void HandleDayChanged(int currentDay)
     {
+        mercenaryGenerator.GenerateCandidates();
         RebuildMarketList();
         RebuildInventoryList();
         RebuildHealList();
@@ -4140,6 +4143,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
                 viewedWorldMapIndex = CurrentWorldMapIndex;
                 dungeonRunManager.SetCurrentWorldMapIndex(
                     viewedWorldMapIndex);
+                ApplyTownServiceSettings(false, false);
                 dayManager.AdvanceDay();
                 SyncDungeonUnlocks();
                 RefreshTownMapButtons();
@@ -5343,7 +5347,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         SetTabActive(marketTabButton, false);
         SetTabActive(blacksmithTabButton, false);
         SetTabActive(inventoryTabButton, false);
-        statusText.text = "雇用する傭兵を選択してください。";
+        statusText.text =
+            $"{TownNames[currentTownIndex]}の雇用候補  |  " +
+            $"Lv{mercenaryGenerator.CurrentMinimumLevel}～" +
+            $"Lv{mercenaryGenerator.CurrentMaximumLevel}  |  " +
+            "雇用する傭兵を選択してください。";
     }
 
     private void ShowCompanyPage()
@@ -5669,7 +5677,9 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         SetTabActive(inventoryTabButton, false);
         RebuildMarketList();
         statusText.text =
-            $"仕入れ商品: {marketStockManager.Stock.Count}種類 / {marketPriceManager.GetMarketSummary()}";
+            $"{TownNames[currentTownIndex]}市場  |  " +
+            $"仕入れ商品: {marketStockManager.Stock.Count}種類 / " +
+            marketPriceManager.GetMarketSummary();
     }
 
     private void ShowBlacksmithPage()
@@ -5694,7 +5704,9 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         SetTabActive(blacksmithTabButton, true);
         SetTabActive(inventoryTabButton, false);
         RebuildBlacksmithList();
-        statusText.text = $"鍛冶レシピ: {blacksmithManager.Recipes.Count}種類";
+        statusText.text =
+            $"{TownNames[currentTownIndex]}鍛冶屋  |  " +
+            $"レシピ: {blacksmithManager.Recipes.Count}種類";
         RefreshUI();
     }
 
@@ -6667,6 +6679,17 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             }
         }
         return -1;
+    }
+
+    private void ApplyTownServiceSettings(
+        bool regenerateCandidates,
+        bool regenerateMarket)
+    {
+        mercenaryGenerator?.SetTownIndex(
+            currentTownIndex, regenerateCandidates);
+        marketStockManager?.SetTownIndex(
+            currentTownIndex, regenerateMarket);
+        blacksmithManager?.SetTownIndex(currentTownIndex);
     }
 
     private void SyncDungeonUnlocks()
