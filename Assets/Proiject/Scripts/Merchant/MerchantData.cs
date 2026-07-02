@@ -3,20 +3,25 @@ using UnityEngine;
 
 public class MerchantData : MonoBehaviour
 {
+    public const int MaxMerchantLevel = 100;
+    public const int MaxSkillRank = 50;
+
     [Header("Merchant Status")]
     [SerializeField, Min(0)] private int gold = 500;
     [SerializeField, Min(1)] private int merchantLevel = 1;
     [SerializeField, Min(0)] private int merchantExperience;
+    [SerializeField, Min(0)] private int lifetimeGoldEarned;
     [SerializeField, Min(0)] private int merchantSkillPoints = 2;
-    [SerializeField, Range(0, 10)] private int negotiation;
-    [SerializeField, Range(0, 10)] private int leadership;
-    [SerializeField, Range(0, 10)] private int appraisal;
-    [SerializeField, Range(0, 10)] private int logistics;
+    [SerializeField, Range(0, MaxSkillRank)] private int negotiation;
+    [SerializeField, Range(0, MaxSkillRank)] private int leadership;
+    [SerializeField, Range(0, MaxSkillRank)] private int appraisal;
+    [SerializeField, Range(0, MaxSkillRank)] private int logistics;
 
     public int Gold => gold;
     public int MerchantLevel => merchantLevel;
     public int MerchantExperience => merchantExperience;
-    public int ExperienceToNextLevel => 100 + (merchantLevel - 1) * 75;
+    public int ExperienceToNextLevel => GetGoldRequiredForLevel(merchantLevel);
+    public int LifetimeGoldEarned => lifetimeGoldEarned;
     public int MerchantSkillPoints => merchantSkillPoints;
     public int Negotiation => negotiation;
     public int Leadership => leadership;
@@ -70,6 +75,8 @@ public class MerchantData : MonoBehaviour
         }
 
         gold += amount;
+        lifetimeGoldEarned += amount;
+        RecalculateLevelFromEarnings();
         GoldChanged?.Invoke(gold);
         Debug.Log($"Gained {amount} G. Current gold: {gold} G");
     }
@@ -82,23 +89,18 @@ public class MerchantData : MonoBehaviour
 
     public void AddExperience(int amount)
     {
-        merchantExperience += Mathf.Max(0, amount);
-        int gainedLevels = 0;
-        while (merchantLevel < 20 &&
-               merchantExperience >= ExperienceToNextLevel)
-        {
-            merchantExperience -= ExperienceToNextLevel;
-            merchantLevel++;
-            gainedLevels++;
-        }
-        merchantSkillPoints += gainedLevels;
-        ProgressionChanged?.Invoke();
+        // Merchant growth is based only on earned gold.
     }
 
-    public void RestoreProgression(int level, int experience)
+    public void RestoreProgression(
+        int level,
+        int experience,
+        int savedLifetimeGoldEarned = -1)
     {
-        merchantLevel = Mathf.Clamp(level, 1, 20);
-        merchantExperience = Mathf.Max(0, experience);
+        lifetimeGoldEarned = savedLifetimeGoldEarned >= 0
+            ? savedLifetimeGoldEarned
+            : EstimateLifetimeEarnings(level, experience);
+        RecalculateLevelFromEarnings(false);
         ProgressionChanged?.Invoke();
     }
 
@@ -110,10 +112,10 @@ public class MerchantData : MonoBehaviour
         int logisticsRank)
     {
         merchantSkillPoints = Mathf.Max(0, skillPoints);
-        negotiation = Mathf.Clamp(negotiationRank, 0, 10);
-        leadership = Mathf.Clamp(leadershipRank, 0, 10);
-        appraisal = Mathf.Clamp(appraisalRank, 0, 10);
-        logistics = Mathf.Clamp(logisticsRank, 0, 10);
+        negotiation = Mathf.Clamp(negotiationRank, 0, MaxSkillRank);
+        leadership = Mathf.Clamp(leadershipRank, 0, MaxSkillRank);
+        appraisal = Mathf.Clamp(appraisalRank, 0, MaxSkillRank);
+        logistics = Mathf.Clamp(logisticsRank, 0, MaxSkillRank);
         ProgressionChanged?.Invoke();
     }
 
@@ -131,7 +133,8 @@ public class MerchantData : MonoBehaviour
 
     public bool TryIncreaseSkill(MerchantSkillType skill)
     {
-        if (merchantSkillPoints <= 0 || GetSkillRank(skill) >= 10)
+        if (merchantSkillPoints <= 0 ||
+            GetSkillRank(skill) >= MaxSkillRank)
         {
             return false;
         }
@@ -249,6 +252,56 @@ public class MerchantData : MonoBehaviour
         if (logistics >= 3) skills.Add("荷役整理");
         if (logistics >= 7) skills.Add("遠征計画");
         return skills.Count > 0 ? string.Join("、", skills) : "なし";
+    }
+
+    private static int GetGoldRequiredForLevel(int level)
+    {
+        if (level >= MaxMerchantLevel)
+        {
+            return 0;
+        }
+
+        return 500 + level * level * 100;
+    }
+
+    private static int EstimateLifetimeEarnings(int level, int experience)
+    {
+        long total = Mathf.Max(0, experience);
+        int targetLevel = Mathf.Clamp(level, 1, MaxMerchantLevel);
+        for (int currentLevel = 1; currentLevel < targetLevel; currentLevel++)
+        {
+            total += GetGoldRequiredForLevel(currentLevel);
+        }
+        return (int)Math.Min(int.MaxValue, total);
+    }
+
+    private void RecalculateLevelFromEarnings(bool grantSkillPoints = true)
+    {
+        int previousLevel = merchantLevel;
+        int calculatedLevel = 1;
+        long remaining = Mathf.Max(0, lifetimeGoldEarned);
+
+        while (calculatedLevel < MaxMerchantLevel)
+        {
+            int required = GetGoldRequiredForLevel(calculatedLevel);
+            if (remaining < required)
+            {
+                break;
+            }
+            remaining -= required;
+            calculatedLevel++;
+        }
+
+        merchantLevel = calculatedLevel;
+        merchantExperience = merchantLevel >= MaxMerchantLevel
+            ? 0
+            : (int)Math.Min(int.MaxValue, remaining);
+
+        if (grantSkillPoints && merchantLevel > previousLevel)
+        {
+            merchantSkillPoints += merchantLevel - previousLevel;
+        }
+        ProgressionChanged?.Invoke();
     }
 }
 
