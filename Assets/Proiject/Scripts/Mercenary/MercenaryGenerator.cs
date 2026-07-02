@@ -6,11 +6,29 @@ public class MercenaryGenerator : MonoBehaviour
 {
     private static readonly string[] FallbackNames =
     {
-        "Alden",
-        "Brina",
-        "Cato",
-        "Daria",
-        "Elric"
+        "Alden", "Brina", "Cato", "Daria", "Elric",
+        "Faris", "Greta", "Hugo", "Ilse", "Jared",
+        "Klaus", "Lydia", "Marek", "Nina", "Oskar",
+        "Petra", "Quinn", "Rolf", "Sylvia", "Theo",
+        "Ulric", "Viola", "Wolfram", "Xenia", "Yoren",
+        "Zara", "Arno", "Bianca", "Cedric", "Daphne",
+        "Eamon", "Flora", "Gideon", "Hilda", "Ivo",
+        "Judith", "Kellan", "Luna", "Magnus", "Nora"
+    };
+
+    private static readonly int[] TownMinimumLevels =
+    {
+        5, 3, 1, 8, 10, 12, 13
+    };
+
+    private static readonly int[] TownMaximumLevels =
+    {
+        8, 5, 3, 10, 12, 14, 15
+    };
+
+    private static readonly float[] TownHireCostMultipliers =
+    {
+        1.25f, 1.1f, 1f, 1.4f, 1.55f, 1.7f, 1.85f
     };
 
     [Header("Generation Sources")]
@@ -29,10 +47,23 @@ public class MercenaryGenerator : MonoBehaviour
 
     private readonly List<MercenaryArchetypeSO> runtimeFallbackArchetypes =
         new List<MercenaryArchetypeSO>();
+    private int currentTownIndex = 2;
 
     public IReadOnlyList<MercenaryInstance> Candidates => candidates;
+    public int CurrentMinimumLevel => TownMinimumLevels[currentTownIndex];
+    public int CurrentMaximumLevel => TownMaximumLevels[currentTownIndex];
 
     public event Action CandidatesChanged;
+
+    public void SetTownIndex(int townIndex, bool regenerate = true)
+    {
+        currentTownIndex = Mathf.Clamp(
+            townIndex, 0, TownMinimumLevels.Length - 1);
+        if (regenerate)
+        {
+            GenerateCandidates();
+        }
+    }
 
     private void Awake()
     {
@@ -69,7 +100,16 @@ public class MercenaryGenerator : MonoBehaviour
             }
 
             string generatedName = TakeRandomName(availableNames);
-            candidates.Add(CreateMercenary(archetype, generatedName));
+            MercenaryInstance candidate =
+                CreateMercenary(archetype, generatedName);
+            int minimumLevel = TownMinimumLevels[currentTownIndex];
+            int maximumLevel = TownMaximumLevels[currentTownIndex];
+            int generatedLevel = UnityEngine.Random.Range(
+                minimumLevel, maximumLevel + 1);
+            candidate.PrepareAsRecruit(
+                generatedLevel,
+                TownHireCostMultipliers[currentTownIndex]);
+            candidates.Add(candidate);
         }
 
         CandidatesChanged?.Invoke();

@@ -15,11 +15,21 @@ public class MarketStockManager : MonoBehaviour
     [SerializeField, Range(0.4f, 1.8f)] private float maximumBuyMultiplier = 1.15f;
     [SerializeField] private List<ItemDataSO> purchasableItems = new List<ItemDataSO>();
     [SerializeField] private List<MarketStockEntry> stock = new List<MarketStockEntry>();
+    [SerializeField, Range(0, 6)] private int currentTownIndex = 2;
 
     public IReadOnlyList<MarketStockEntry> Stock => stock;
     public int CurrentDay => dayManager != null ? dayManager.CurrentDay : 1;
 
     public event Action StockChanged;
+
+    public void SetTownIndex(int townIndex, bool regenerate = true)
+    {
+        currentTownIndex = Mathf.Clamp(townIndex, 0, 6);
+        if (regenerate)
+        {
+            GenerateDailyStock();
+        }
+    }
 
     private void OnEnable()
     {
@@ -101,8 +111,10 @@ public class MarketStockManager : MonoBehaviour
     {
         PopulatePurchasableItemsIfNeeded();
         stock.Clear();
+        List<ItemDataSO> townItems =
+            purchasableItems.FindAll(IsAvailableInCurrentTown);
 
-        if (purchasableItems.Count == 0)
+        if (townItems.Count == 0)
         {
             ItemDataSO fallbackWeapon = CreateRuntimeFallbackItem();
             int fallbackPrice = Mathf.Max(
@@ -113,10 +125,10 @@ public class MarketStockManager : MonoBehaviour
             return;
         }
 
-        int slotCount = Mathf.Min(stockSlots, purchasableItems.Count);
+        int slotCount = Mathf.Min(stockSlots, townItems.Count);
         for (int i = 0; i < slotCount; i++)
         {
-            ItemDataSO item = purchasableItems[GetStableIndex(i)];
+            ItemDataSO item = townItems[GetStableIndex(i, townItems.Count)];
             int quantity = 1 + Mathf.Abs(GetStableHash(item, i, 23)) % 2;
             float merchantMultiplier = merchantData != null
                 ? merchantData.GetMarketBuyMultiplier()
@@ -145,13 +157,14 @@ public class MarketStockManager : MonoBehaviour
         return Mathf.Lerp(minimumBuyMultiplier, maximumBuyMultiplier, normalized);
     }
 
-    private int GetStableIndex(int slot)
+    private int GetStableIndex(int slot, int itemCount)
     {
         unchecked
         {
             int hash = CurrentDay * 73856093;
             hash ^= slot * 19349663;
-            return Mathf.Abs(hash) % purchasableItems.Count;
+            hash ^= currentTownIndex * 83492791;
+            return Mathf.Abs(hash) % Mathf.Max(1, itemCount);
         }
     }
 
@@ -161,6 +174,7 @@ public class MarketStockManager : MonoBehaviour
         {
             int hash = seed;
             hash = hash * 31 + CurrentDay;
+            hash = hash * 31 + currentTownIndex;
             hash = hash * 31 + salt;
             hash = hash * 31 + (int)item.itemType;
             hash = hash * 31 + (int)item.rarity;
@@ -231,6 +245,49 @@ public class MarketStockManager : MonoBehaviour
         return item != null &&
                (item.IsEquipment || item.itemType == ItemType.Consumable) &&
                item.acquisitionType == ItemAcquisitionType.Market;
+    }
+
+    private bool IsAvailableInCurrentTown(ItemDataSO item)
+    {
+        if (!IsPurchasableItem(item))
+        {
+            return false;
+        }
+        if (item.itemType == ItemType.Consumable)
+        {
+            return true;
+        }
+
+        MercenaryClass itemClass =
+            MercenaryClassProgression.GetBaseClass(item.requiredClass);
+        switch (currentTownIndex)
+        {
+            case 2:
+                return item.equipmentRank <= 1;
+            case 1:
+                return item.equipmentRank <= 1 ||
+                       itemClass == MercenaryClass.Archer ||
+                       itemClass == MercenaryClass.Rogue;
+            case 0:
+                return true;
+            case 3:
+                return itemClass == MercenaryClass.Archer ||
+                       itemClass == MercenaryClass.Mage ||
+                       itemClass == MercenaryClass.Priest ||
+                       item.equipmentSlot == EquipmentSlot.Accessory;
+            case 4:
+                return itemClass == MercenaryClass.Warrior ||
+                       itemClass == MercenaryClass.Lancer ||
+                       itemClass == MercenaryClass.Priest;
+            case 5:
+                return itemClass == MercenaryClass.Warrior ||
+                       itemClass == MercenaryClass.Mage ||
+                       itemClass == MercenaryClass.Lancer ||
+                       item.equipmentRank >= 2;
+            default:
+                return item.equipmentRank >= 2 ||
+                       item.equipmentSlot == EquipmentSlot.Accessory;
+        }
     }
 
     private ItemDataSO CreateRuntimeFallbackItem()

@@ -436,6 +436,26 @@ public class MercenaryInstance
         return levelsGained;
     }
 
+    public void PrepareAsRecruit(int targetLevel, float hireCostMultiplier)
+    {
+        int safeTargetLevel = Mathf.Clamp(
+            targetLevel,
+            1,
+            MercenaryClassProgression.GetLevelCap(mercenaryClass));
+        while (level < safeTargetLevel)
+        {
+            LevelUp();
+        }
+        currentExperience = 0;
+        currentHP = MaxHP;
+        hireCost = Mathf.Max(
+            1,
+            Mathf.RoundToInt(
+                hireCost *
+                Mathf.Max(1f, hireCostMultiplier) *
+                (1f + (level - 1) * 0.08f)));
+    }
+
     public static int CalculateExperienceToNextLevel(int targetLevel)
     {
         int safeLevel = Mathf.Max(1, targetLevel);
