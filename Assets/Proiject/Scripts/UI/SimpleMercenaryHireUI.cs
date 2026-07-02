@@ -25,6 +25,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     [SerializeField] private HealingManager healingManager;
     [SerializeField] private SaveManager saveManager;
     [SerializeField] private ProgressionManager progressionManager;
+    [SerializeField] private DebtManager debtManager;
 
     [Header("Hire Candidates")]
     [SerializeField] private List<MercenaryDataSO> candidates = new List<MercenaryDataSO>();
@@ -310,6 +311,10 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         {
             progressionManager.ProgressionChanged += HandleProgressionChanged;
         }
+        if (debtManager != null)
+        {
+            debtManager.DebtChanged += HandleProgressionChanged;
+        }
         CaptureDailySnapshot(dayManager.CurrentDay);
         ShowGlobalMap();
         RefreshUI();
@@ -466,6 +471,12 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         {
             progressionManager = GetComponent<ProgressionManager>() ??
                                  FindObjectOfType<ProgressionManager>();
+        }
+
+        if (debtManager == null)
+        {
+            debtManager = GetComponent<DebtManager>() ??
+                          FindObjectOfType<DebtManager>();
         }
     }
 
@@ -702,6 +713,10 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         if (progressionManager != null)
         {
             progressionManager.ProgressionChanged -= HandleProgressionChanged;
+        }
+        if (debtManager != null)
+        {
+            debtManager.DebtChanged -= HandleProgressionChanged;
         }
     }
 
@@ -2587,7 +2602,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         RectTransform row = CreateRow($"Merchant Skill {skill}", parent, top);
         CreateText(
             row,
-            $"{label}  Lv{rank}/10",
+            $"{label}  Lv{rank}/{MerchantData.MaxSkillRank}",
             18,
             FontStyle.Bold,
             TextAnchor.MiddleLeft,
@@ -2606,10 +2621,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
 
         Button increaseButton = CreateActionButton(
             row,
-            rank >= 10 ? "最大" : "+1",
+            rank >= MerchantData.MaxSkillRank ? "最大" : "+1",
             () => IncreaseMerchantSkill(skill));
         increaseButton.interactable =
-            merchantData.MerchantSkillPoints > 0 && rank < 10;
+            merchantData.MerchantSkillPoints > 0 &&
+            rank < MerchantData.MaxSkillRank;
     }
 
     private void RebuildPartyList()
@@ -3302,7 +3318,15 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         RebuildHealList();
         RebuildCompanyList();
         RefreshUI();
-        statusText.text = $"{currentDay}日目になりました。市場価格が更新されました。";
+        string debtNotice = debtManager != null &&
+                            (currentDay - 1) % DebtManager.DaysPerMonth == 0 &&
+                            currentDay > 1
+            ? debtManager.PaymentArrears > 0
+                ? $" 月次返済後の滞納額は{debtManager.PaymentArrears:N0}Gです。"
+                : $" 月次最低返済を完了しました。"
+            : string.Empty;
+        statusText.text =
+            $"{currentDay}日目になりました。市場価格が更新されました。{debtNotice}";
         ShowDailyResult(currentDay);
     }
 
@@ -3343,7 +3367,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             dailySnapshotMerchantExperience)
         {
             result.AppendLine(
-                $"経験値  +{merchantData.MerchantExperience - dailySnapshotMerchantExperience} " +
+                $"獲得G進行  +{merchantData.MerchantExperience - dailySnapshotMerchantExperience} " +
                 $"({merchantData.MerchantExperience}/" +
                 $"{merchantData.ExperienceToNextLevel})");
             hasMerchantChange = true;
@@ -3351,7 +3375,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         else if (merchantData.MerchantLevel > dailySnapshotMerchantLevel)
         {
             result.AppendLine(
-                $"現在EXP  {merchantData.MerchantExperience}/" +
+                $"現在の獲得G進行  {merchantData.MerchantExperience}/" +
                 $"{merchantData.ExperienceToNextLevel}");
         }
         if (merchantData.MerchantSkillPoints != dailySnapshotSkillPoints)
@@ -5346,7 +5370,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         RebuildCompanyList();
         statusText.text =
             $"商人Lv{merchantData.MerchantLevel} " +
-            $"EXP {merchantData.MerchantExperience}/{merchantData.ExperienceToNextLevel}  |  " +
+            $"獲得G進行 {merchantData.MerchantExperience:N0}/" +
+            $"{merchantData.ExperienceToNextLevel:N0}  |  " +
             $"技能ポイント {merchantData.MerchantSkillPoints}  |  " +
             $"傭兵 {hireManager.HiredMercenaries.Count}人  |  " +
             $"雇用成功率 {merchantData.GetHireSuccessRate() * 100f:0}%";
@@ -6370,7 +6395,9 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             $"商人Lv{merchantData.MerchantLevel}  所持金 {merchantData.Gold} G";
         if (dayText != null)
         {
-            dayText.text = $"{dayManager.CurrentDay}日目";
+            dayText.text = debtManager != null
+                ? $"{dayManager.CurrentDay}日目 / {debtManager.CurrentMonth}月目"
+                : $"{dayManager.CurrentDay}日目";
         }
 
         RefreshTownMapButtons();
@@ -6792,21 +6819,52 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
 
         RectTransform summaryRow =
             CreateRow("Merchant Summary", merchantSkillList, top);
+        string growthProgress = merchantData.MerchantLevel >=
+                                MerchantData.MaxMerchantLevel
+            ? "最高レベル"
+            : $"獲得G進行 {merchantData.MerchantExperience:N0}/" +
+              $"{merchantData.ExperienceToNextLevel:N0}";
+        string debtSummary = debtManager == null
+            ? "借金情報なし"
+            : debtManager.IsDebtCleared
+                ? "借金完済 - ゲームクリア"
+                : $"借金残高 {debtManager.RemainingDebt:N0}G  |  " +
+                  $"{debtManager.CurrentMonth}月目  |  " +
+                  $"次回最低返済 {debtManager.NextMinimumPayment:N0}G " +
+                  $"（あと{debtManager.DaysUntilPayment}日）";
         CreateText(
             summaryRow,
             $"商人Lv {merchantData.MerchantLevel}  " +
-            $"EXP {merchantData.MerchantExperience}/" +
-            $"{merchantData.ExperienceToNextLevel}  " +
+            $"{growthProgress}  " +
             $"所持金 {merchantData.Gold}G\n" +
             $"未使用技能ポイント {merchantData.MerchantSkillPoints}  |  " +
-            $"習得技能: {merchantData.GetUnlockedMerchantSkills()}",
+            $"累計獲得 {merchantData.LifetimeGoldEarned:N0}G\n" +
+            debtSummary,
             16,
             FontStyle.Bold,
             TextAnchor.MiddleLeft,
-            new Vector2(16f, -78f),
-            new Vector2(-16f, -12f),
+            new Vector2(16f, -100f),
+            new Vector2(-250f, -10f),
             Color.white);
-        top -= 112f;
+        if (debtManager != null && !debtManager.IsDebtCleared)
+        {
+            Button fixedPayment = CreateActionButton(
+                summaryRow,
+                "1万G返済",
+                () => RepayDebt(DebtManager.MonthlyMinimumPayment));
+            RectTransform fixedRect = fixedPayment.GetComponent<RectTransform>();
+            fixedRect.anchoredPosition = new Vector2(-80f, 24f);
+            fixedPayment.interactable = merchantData.Gold > 0;
+
+            Button fullPayment = CreateActionButton(
+                summaryRow,
+                "全額返済",
+                () => RepayDebt(debtManager.RemainingDebt));
+            RectTransform fullRect = fullPayment.GetComponent<RectTransform>();
+            fullRect.anchoredPosition = new Vector2(-80f, -24f);
+            fullPayment.interactable = merchantData.Gold > 0;
+        }
+        top -= 136f;
 
         CreateMerchantSkillRow(
             merchantSkillList,
@@ -6831,7 +6889,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             MerchantSkillType.Appraisal,
             "鑑定",
             $"依頼ゴールド {merchantData.GetQuestGoldMultiplier() * 100f:0}% / " +
-            $"依頼EXP {merchantData.GetQuestExperienceMultiplier() * 100f:0}%\n" +
+            "依頼収入は商人Lvへ反映\n" +
             "Lv3 目利き / Lv7 慧眼",
             top);
         top -= 112f;
@@ -6847,6 +6905,23 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
 
         merchantSkillList.sizeDelta =
             new Vector2(0f, Mathf.Max(470f, -top));
+    }
+
+    private void RepayDebt(int amount)
+    {
+        if (debtManager == null)
+        {
+            return;
+        }
+
+        int paid = debtManager.Repay(amount);
+        statusText.text = paid > 0
+            ? debtManager.IsDebtCleared
+                ? "借金1億Gを完済しました。ゲームクリアです！"
+                : $"{paid:N0}Gを返済しました。"
+            : "返済できる所持金がありません。";
+        RebuildMerchantStatus();
+        RefreshUI();
     }
 
     private void RebuildQuestList()
@@ -6894,8 +6969,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
                 row,
                 $"{target} {quest.currentAmount}/{quest.requiredAmount}  " +
                 $"期限 {quest.deadlineDay}日  報酬 " +
-                $"{progressionManager.GetQuestGoldReward(quest)}G / " +
-                $"商人EXP {progressionManager.GetQuestExperienceReward(quest)}",
+                $"{progressionManager.GetQuestGoldReward(quest)}G",
                 13,
                 FontStyle.Normal,
                 TextAnchor.MiddleLeft,

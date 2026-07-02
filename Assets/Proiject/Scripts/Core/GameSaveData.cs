@@ -4,16 +4,20 @@ using System.Collections.Generic;
 [Serializable]
 public class GameSaveData
 {
-    public int version = 15;
+    public int version = 16;
     public int gold = 500;
     public int merchantLevel = 1;
     public int merchantExperience;
+    public int lifetimeGoldEarned;
     public int merchantSkillPoints = 2;
     public int merchantNegotiation;
     public int merchantLeadership;
     public int merchantAppraisal;
     public int merchantLogistics;
     public int currentDay = 1;
+    public int remainingDebt = DebtManager.InitialDebt;
+    public int debtPaymentArrears;
+    public int processedDebtMonths;
     public int currentTownIndex = 2;
     public List<int> unlockedTownIndices = new List<int> { 2 };
     public int highestUnlockedDungeonGrade;

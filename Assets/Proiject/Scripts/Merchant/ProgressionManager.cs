@@ -12,6 +12,7 @@ public class ProgressionManager : MonoBehaviour
     [SerializeField] private MerchantInventory inventory;
     [SerializeField] private BattleManager battleManager;
     [SerializeField] private DungeonRunManager dungeonRunManager;
+    [SerializeField] private DebtManager debtManager;
     [SerializeField] private List<SpecialQuestSO> specialQuestDefinitions =
         new List<SpecialQuestSO>();
     [SerializeField] private List<QuestRecord> quests = new List<QuestRecord>();
@@ -33,7 +34,9 @@ public class ProgressionManager : MonoBehaviour
         ? 100 * (storageTier - 1)
         : 0;
     public int TotalDungeonClears => totalDungeonClears;
-    public int TotalGoldEarned => totalGoldEarned;
+    public int TotalGoldEarned => merchantData != null
+        ? merchantData.LifetimeGoldEarned
+        : totalGoldEarned;
     public int ProfitableDungeonClears => profitableDungeonClears;
     public string LastExplorationResult { get; private set; } = string.Empty;
 
@@ -162,7 +165,14 @@ public class ProgressionManager : MonoBehaviour
 
     public string GetAchievementSummary()
     {
+        string debtGoal = debtManager == null
+            ? "借金情報なし"
+            : debtManager.IsDebtCleared
+                ? "達成 借金1億Gを完済（ゲームクリア）"
+                : $"未達 借金残高 {debtManager.RemainingDebt:N0}G";
         return
+            $"{debtGoal}\n" +
+            $"累計獲得 {TotalGoldEarned:N0}G\n" +
             $"{(merchantData != null && merchantData.MerchantLevel >= 10 ? "達成" : "未達")} 商人Lv10\n" +
             $"{(profitableDungeonClears >= 10 ? "達成" : "未達")} 黒字探索10回\n" +
             $"{(merchantData != null && merchantData.Gold >= 50000 ? "達成" : "未達")} 資産50000G\n" +
@@ -212,7 +222,6 @@ public class ProgressionManager : MonoBehaviour
                 days * (100 + grade * 75) * expenseMultiplier));
         int goldBefore = merchantData != null ? merchantData.Gold : 0;
         merchantData?.TryPayGold(Mathf.Min(goldBefore, expense));
-        merchantData?.AddExperience(cleared ? 40 + grade * 20 : 10);
         dayManager?.AdvanceDays(days);
         if (cleared)
         {
@@ -279,7 +288,6 @@ public class ProgressionManager : MonoBehaviour
 
         quest.completed = true;
         merchantData?.AddGold(GetQuestGoldReward(quest));
-        merchantData?.AddExperience(GetQuestExperienceReward(quest));
     }
 
     private void HandleInventoryChanged()
@@ -459,6 +467,8 @@ public class ProgressionManager : MonoBehaviour
             FindObjectOfType<BattleManager>();
         dungeonRunManager = dungeonRunManager ?? GetComponent<DungeonRunManager>() ??
             FindObjectOfType<DungeonRunManager>();
+        debtManager = debtManager ?? GetComponent<DebtManager>() ??
+            FindObjectOfType<DebtManager>();
     }
 }
 

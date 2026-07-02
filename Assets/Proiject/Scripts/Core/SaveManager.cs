@@ -19,6 +19,7 @@ public class SaveManager : MonoBehaviour
     private BattleManager battleManager;
     private DungeonRunManager dungeonRunManager;
     private ProgressionManager progressionManager;
+    private DebtManager debtManager;
     private SimpleMercenaryHireUI simpleUI;
     private bool initialized;
     private bool isLoading;
@@ -134,6 +135,9 @@ public class SaveManager : MonoBehaviour
             merchantExperience = merchantData != null
                 ? merchantData.MerchantExperience
                 : 0,
+            lifetimeGoldEarned = merchantData != null
+                ? merchantData.LifetimeGoldEarned
+                : 0,
             merchantSkillPoints = merchantData != null
                 ? merchantData.MerchantSkillPoints
                 : 2,
@@ -150,6 +154,15 @@ public class SaveManager : MonoBehaviour
                 ? merchantData.Logistics
                 : 0,
             currentDay = dayManager != null ? dayManager.CurrentDay : 1,
+            remainingDebt = debtManager != null
+                ? debtManager.RemainingDebt
+                : DebtManager.InitialDebt,
+            debtPaymentArrears = debtManager != null
+                ? debtManager.PaymentArrears
+                : 0,
+            processedDebtMonths = debtManager != null
+                ? Mathf.Max(0, debtManager.CurrentMonth - 1)
+                : 0,
             currentTownIndex = simpleUI != null ? simpleUI.CurrentTownIndex : 2,
             highestUnlockedDungeonGrade = dungeonRunManager != null
                 ? (int)dungeonRunManager.HighestUnlockedGrade
@@ -281,7 +294,10 @@ public class SaveManager : MonoBehaviour
         merchantData?.SetGold(data.gold);
         merchantData?.RestoreProgression(
             Mathf.Max(1, data.merchantLevel),
-            data.merchantExperience);
+            data.merchantExperience,
+            data.version >= 16
+                ? data.lifetimeGoldEarned
+                : -1);
         int skillPoints = data.version >= 9
             ? data.merchantSkillPoints
             : Mathf.Max(2, data.merchantLevel + 1);
@@ -291,6 +307,15 @@ public class SaveManager : MonoBehaviour
             data.merchantLeadership,
             data.merchantAppraisal,
             data.merchantLogistics);
+        debtManager?.Restore(
+            data.version >= 16
+                ? data.remainingDebt
+                : DebtManager.InitialDebt,
+            data.version >= 16 ? data.debtPaymentArrears : 0,
+            data.version >= 16
+                ? data.processedDebtMonths
+                : (Mathf.Max(1, data.currentDay) - 1) /
+                  DebtManager.DaysPerMonth);
         dayManager?.SetCurrentDay(data.currentDay);
         simpleUI?.RestoreTownProgress(
             data.currentTownIndex,
@@ -527,6 +552,10 @@ public class SaveManager : MonoBehaviour
         {
             progressionManager.ProgressionChanged += HandleChanged;
         }
+        if (debtManager != null)
+        {
+            debtManager.DebtChanged += HandleChanged;
+        }
     }
 
     private void Unsubscribe()
@@ -547,6 +576,10 @@ public class SaveManager : MonoBehaviour
         if (progressionManager != null)
         {
             progressionManager.ProgressionChanged -= HandleChanged;
+        }
+        if (debtManager != null)
+        {
+            debtManager.DebtChanged -= HandleChanged;
         }
     }
 
@@ -635,6 +668,8 @@ public class SaveManager : MonoBehaviour
             GetComponent<DungeonRunManager>() ?? FindObjectOfType<DungeonRunManager>();
         progressionManager =
             GetComponent<ProgressionManager>() ?? FindObjectOfType<ProgressionManager>();
+        debtManager =
+            GetComponent<DebtManager>() ?? FindObjectOfType<DebtManager>();
         simpleUI =
             GetComponent<SimpleMercenaryHireUI>() ??
             FindObjectOfType<SimpleMercenaryHireUI>();
