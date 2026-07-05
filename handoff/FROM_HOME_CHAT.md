@@ -809,3 +809,171 @@
 - 変異核の護符はアビス辺境都市の鍛冶屋限定レシピとした。
 - 雇用・市場・鍛冶画面へ現在の町名と候補レベル帯・品揃え数を表示する。
 - ビルド確認は警告0件、エラー0件で成功。
+
+## 2026-07-04 ヴェルム・アビスの雇用制限
+
+- ヴェルム黒鉄都市とアビス辺境都市では傭兵を新規雇用できない仕様へ変更した。
+- 対象2町では町マップの「酒場／雇用」施設を非表示にする。
+- 対象2町へ到着した時点で量産型傭兵候補を消去し、日付更新時にも再抽選しない。
+- 別導線から雇用画面や雇用処理を呼んだ場合も拒否するガードを追加した。
+- 商会の傭兵一覧、編成、治療など既存傭兵を扱う機能は引き続き利用可能。
+- ビルド確認は警告0件、エラー0件で成功。
+
+## 2026-07-04 SimpleMercenaryHireUI責務分割
+
+- 約7,344行あった `SimpleMercenaryHireUI.cs` をpartialクラスで機能別に分割した。
+- 地域マップ・町移動・街道戦闘を `SimpleMercenaryHireUI.Map.cs` へ分離した。
+- 町・地域名と進行経路定義は既存の `SimpleMercenaryHireUI.MapData.cs` に維持した。
+- 一日のリザルト生成・スナップショット・入手品追跡を `SimpleMercenaryHireUI.DailyResult.cs` へ分離した。
+- 傭兵詳細・スキル一覧・装備操作・装備図鑑を `SimpleMercenaryHireUI.CharacterEquipment.cs` へ分離した。
+- 戦闘・ダンジョンを `SimpleMercenaryHireUI.BattleDungeon.cs`、市場・鍛冶屋・在庫を `SimpleMercenaryHireUI.Economy.cs` へ分離した。
+- 雇用・編成・治療を `SimpleMercenaryHireUI.HireParty.cs`、商人・依頼・借金を `SimpleMercenaryHireUI.MerchantQuest.cs` へ分離した。
+- メニューと共通UI生成処理を `SimpleMercenaryHireUI.UIFactory.cs` へ分離した。
+- 本体は約1,055行まで縮小した。
+- フィールドとイベント接続は本体へ残し、セーブ形式とUI挙動は変更していない。
+- `Assembly-CSharp.csproj`へ新しいpartialファイルを追加した。
+- ビルド確認は警告0件、エラー0件で成功。
+
+## 2026-07-05 画面切替処理の共通化
+
+- 通常画面の切替を `SwitchToPage` へ集約した。
+- 大陸・地域・町マップの切替を `SwitchToMapPage` へ集約した。
+- 雇用、傭兵一覧、編成、治療、戦闘、ダンジョン、市場、鍛冶屋、倉庫、転職、街道戦闘へ適用した。
+- ページの一括非表示、対象ページ表示、タブ選択解除、対象タブ選択の重複を削減した。
+- 画面ごとの再構築、説明表示、ボタン制御は各表示メソッドへ維持した。
+- ビルド確認は警告0件、エラー0件で成功。
+
+## 2026-07-05 UI Prefab化・第1段階
+
+- Canvasと羊皮紙のGuild Panelを保持する `SimpleMercenaryHireUIView` を追加した。
+- `SimpleMercenaryHireUI` は `Resources/UI/SimpleMercenaryHireUIView` を読み込み、配置済みCanvasとPanelを使用する構成へ変更した。
+- Prefabが存在しない場合は従来のコード生成へ戻るフォールバックを維持した。
+- Unityメニュー `Dungeon Merchant/UI/Rebuild Main UI Prefab` からPrefabを再生成できるEditorビルダーを追加した。
+- Prefabが未生成ならUnity Editor起動後に自動生成する。
+- この端末のバッチ版UnityはライセンスIPCのタイムアウト（終了コード199）で停止したため、Prefab実体の生成確認は通常起動後に行う。
+- ランタイムC#のビルド確認は警告0件、エラー0件で成功。
+
+## 2026-07-05 UI Prefab化・第2段階
+
+- 雇用、全体マップ、地域マップ、町マップ、傭兵一覧、編成、治療、戦闘、街道戦闘、ダンジョン、市場、鍛冶屋、倉庫、転職の14ページ領域をPrefab管理対象へ追加した。
+- `SimpleMercenaryHirePageSlot` とページ配列をViewへ追加し、UIロジックは列挙値から対応ページを取得する。
+- PrefabレイアウトVersionを2へ更新し、古いPrefabをUnity起動時に自動再生成する仕組みを追加した。
+- 古いPrefabやページ参照欠落時には該当ページだけ従来どおりコード生成する。
+- 現在UnityがPlay中のためPrefab実体のVersion 2更新はDomain Reload後に実行される。
+- ランタイム・Editorのビルド確認は警告0件、エラー0件で成功。
+
+## 2026-07-05 UI Prefab化・第3段階
+
+- 商会タイトル、全体マップ、町マップ、日付、商人情報、メニュー、下部ステータス表示をPrefab管理対象へ追加した。
+- `ChromeReferences` に共通表示部品の参照をまとめ、実行時にフォント・色・クリックイベントを設定する。
+- PrefabレイアウトVersionを3へ更新した。
+- Version 2以前のPrefabでは従来のコード生成ヘッダーへフォールバックする。
+- UnityがPlay中のためPrefab実体のVersion 3更新はPlay停止後のDomain Reloadで実行される。
+- ランタイム・Editorのビルド確認は警告0件、エラー0件で成功。
+
+## 2026-07-05 UI Prefab化・第4段階
+
+- モーダルUI専用の `Overlay Root` をView Prefabへ追加した。
+- 傭兵詳細、装備詳細、装備図鑑、商人情報、依頼、移動確認、全体メニュー、一日のリザルトをOverlay Root配下へ統一した。
+- 通常ページ・ヘッダーより後ろにOverlay Rootを配置し、モーダルの重なり順をPrefabで管理する。
+- PrefabレイアウトVersionを4へ更新した。
+- 旧PrefabではGuild PanelをOverlay Rootとして扱うフォールバックを維持した。
+- UnityがPlay中のためPrefab実体はVersion 2だが、Play停止後にVersion 4へ一括更新される。
+- ランタイム・Editorのビルド確認は警告0件、エラー0件で成功。
+- Unityの組み込みフォント変更に対応し、Prefabビルダーの `Arial.ttf` を `LegacyRuntime.ttf` へ修正した。
+
+## 2026-07-05 UI Prefab化・第5段階
+
+- Overlay Root配下へ8種類のモーダルスロットを追加した。
+- `SimpleMercenaryHireOverlaySlot` で傭兵詳細、装備詳細、装備図鑑、商人情報、依頼、移動確認、メニュー、日次結果を識別する。
+- 各モーダル生成処理はPrefab内の対応スロットを利用し、参照がなければ従来どおり動的生成する。
+- PrefabレイアウトVersionを5へ更新した。
+- 現在Prefab実体はVersion 4で、Unity再コンパイル後にVersion 5へ自動更新される。
+- ランタイム・Editorのビルド確認は警告0件、エラー0件で成功。
+
+## 2026-07-05 UI Prefab化・第6段階
+
+- 雇用画面と傭兵一覧画面の内部固定レイアウトをPrefab管理対象へ追加した。
+- 両画面のタイトル、操作ボタン、Viewport、ScrollRect、List配置を `HireCompanyReferences` にまとめた。
+- 傭兵候補行と雇用済み傭兵行の生成・更新は引き続き実行時コードで行う。
+- PrefabレイアウトVersionを6へ更新した。
+- Version 5以前では従来の画面内部生成へフォールバックする。
+- 現在Prefab実体はVersion 5で、Unity再コンパイル後にVersion 6へ自動更新される。
+- ランタイム・Editorのビルド確認は警告0件、エラー0件で成功。
+
+## 2026-07-05 UI Prefab化・最終段階
+
+- 共通リスト行、操作ボタン、ナビゲーションボタンを再利用Prefabへ分離した。
+- `CreateRow`、`CreateActionButton`、`CreateNavigationButton` は対応Prefabを複製し、データとイベントだけを実行時設定する。
+- Main View PrefabはCanvas、羊皮紙パネル、ヘッダー、14ページ、Overlay Root、8モーダル、雇用・傭兵一覧内部配置を管理する。
+- 商品数・傭兵数などで増減する行、表示文字、クリックイベント、戦闘ログは動的データのためコード管理を維持する。
+- Prefabレイアウト最終Versionを7へ更新した。
+- Unity再コンパイル後にMain View Version 7と `ListRow`、`ActionButton`、`NavigationButton` Prefabを自動生成する。
+- UI Prefab化の実装作業は完了。次は記録済みの街道戦闘敵数問題を修正する。
+- ランタイム・Editorのビルド確認は警告0件、エラー0件で成功。
+
+## 2026-07-05 UI責務分離・雇用画面
+
+- `HirePageUI` を追加し、雇用画面の固定参照、文字スタイル、契約ボタン接続、ScrollRect設定を移した。
+- `SimpleMercenaryHireUI` 側には傭兵候補データの生成とリスト更新を残した。
+- PrefabレイアウトVersionを8へ更新し、雇用ページへ `HirePageUI` を設定する。
+- 現在Prefab実体はVersion 7で、Unity再コンパイル後にVersion 8へ更新される。
+- ランタイム・Editorのビルド確認は警告0件、エラー0件で成功。
+
+## 2026-07-05 UI基底・ルーター・Service分離
+
+- `UIPageBase`、`SimpleUIPage`、`UIPageRouter` を追加した。
+- 14ページの表示・非表示をルーターへ集約し、従来のページ一括非表示メソッドを削除した。
+- `HirePageUI` を `UIPageBase` 継承へ変更し、表示時の候補一覧更新をページ側へ委譲した。
+- 町ごとの雇用可否判定を `TownServicePolicy` へ移した。
+- 街道敵編成を `RoadEncounterService` へ移し、UI内の敵抽選・レア敵差し替え処理を削除した。
+- 街道編成は一戦4～5体を上限とし、候補全件が先に追加されて20体以上になる問題を修正した。
+- PrefabレイアウトVersionを9へ更新し、各ページへページコンポーネントを設定する。
+- `SimpleMercenaryHireUI` は画面切替をルーターへ委譲した。各画面の表示データ生成は今後、画面コンポーネント化に合わせて順次移す。
+- ランタイム・Editorのビルド確認は警告0件、エラー0件で成功。
+
+## 2026-07-05 UI責務分離・傭兵管理3画面
+
+- `CompanyPageUI`、`PartyPageUI`、`HealPageUI` を追加し、すべて `UIPageBase` を継承した。
+- 傭兵一覧の依頼ボタン、スクロール参照、一覧更新を `CompanyPageUI` へ移した。
+- 編成一覧の表示時更新を `PartyPageUI`、治療一覧の表示時更新を `HealPageUI` へ移した。
+- `UIPageBase` に共通文字・ボタン設定を追加し、`HirePageUI` の重複処理も削減した。
+- `UIPageRouter` は専用ページコンポーネントを優先して登録し、表示時に各ページの `Refresh()` を呼ぶ。
+- 親UIの `ShowCompanyPage`、`ShowPartyPage`、`ShowHealPage` から重複する再構築呼び出しを削除した。
+- PrefabレイアウトVersionを10へ更新した。
+- ランタイム・Editorのビルド確認は警告0件、エラー0件で成功。
+
+## 2026-07-05 UI責務分離・経済3画面
+
+- `EconomyPageUI` 基底と `MarketPageUI`、`BlacksmithPageUI`、`InventoryPageUI` を追加した。
+- 市場・鍛冶屋・倉庫の表示時一覧更新を各ページの `Refresh()` へ移した。
+- 親UIの各 `Show...Page` から重複する一覧再構築を削除した。
+- フィルター変更、並替、制作、購入などデータ変更直後の明示更新は維持した。
+- PrefabレイアウトVersionを11へ更新した。
+- ランタイム・Editorのビルド確認は警告0件、エラー0件で成功。
+
+## 2026-07-05 UI責務分離・戦闘3画面
+
+- `BattlePageUI`、`RoadBattlePageUI`、`DungeonPageUI` を追加し、共通の `BattlePageUIBase` を継承した。
+- 通常戦闘の参加可否と開始ボタン状態を `BattlePageUI.Refresh()` 経由へ移した。
+- 街道の経路・接敵回数・レア敵表示・進行ボタン状態を `RoadBattlePageUI.Refresh()` 経由へ移した。
+- ダンジョン状態、報酬、イベント選択肢、近隣ダンジョン一覧更新を `DungeonPageUI.Refresh()` 経由へ移した。
+- 親UIの各 `Show...Page` はログ移動とページ切替を中心とする構成へ縮小した。
+- PrefabレイアウトVersionを12へ更新した。
+- ランタイム・Editorのビルド確認は警告0件、エラー0件で成功。
+
+## 2026-07-06 UI責務分離・マップ3画面
+
+- `GlobalMapPageUI`、`WorldMapPageUI`、`TownMapPageUI` と共通の `MapPageUIBase` を追加した。
+- 全体マップの現在地表示を `GlobalMapPageUI.Refresh()` へ移した。
+- 地域マップの表示地域切替、町ボタン更新、現在地表示を `WorldMapPageUI.Refresh()` へ移した。
+- 町マップの施設表示可否、雇用可否、現在地表示を `TownMapPageUI.Refresh()` へ移した。
+- 各 `Show...Map` は進入判定・選択状態設定・ページ切替を中心とする構成へ縮小した。
+- PrefabレイアウトVersionを13へ更新した。
+- ランタイム・Editorのビルド確認は警告0件、エラー0件で成功。
+
+## UI Prefab化完了後の次作業
+
+- 街道戦闘で、一度の戦闘に20体以上のモンスターが出現する問題を修正する。
+- UI Prefab化が完了するまでは街道戦闘ロジックを変更しない。
+- Prefab化完了後、敵編成数の算出元と重複追加を確認し、適正な上限へ調整する。

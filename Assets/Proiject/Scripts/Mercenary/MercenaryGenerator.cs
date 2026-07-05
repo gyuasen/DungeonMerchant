@@ -65,6 +65,16 @@ public class MercenaryGenerator : MonoBehaviour
         }
     }
 
+    public void ClearCandidates()
+    {
+        if (candidates.Count == 0)
+        {
+            return;
+        }
+        candidates.Clear();
+        CandidatesChanged?.Invoke();
+    }
+
     private void Awake()
     {
         if (generateOnAwake)
