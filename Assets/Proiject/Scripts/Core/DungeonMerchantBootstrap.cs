@@ -26,6 +26,7 @@ public static class DungeonMerchantBootstrap
         EnsureComponent<MercenaryGenerator>(root);
         EnsureComponent<BattleManager>(root);
         EnsureComponent<DungeonRunManager>(root);
+        EnsureComponent<RoadEncounterService>(root);
         EnsureComponent<ProgressionManager>(root);
         EnsureComponent<DebtManager>(root);
         EnsureComponent<SimpleMercenaryHireUI>(root);
