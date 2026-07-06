@@ -74,8 +74,20 @@ public class SaveManager : MonoBehaviour
                 return;
             }
 
+            bool requiresMigration =
+                data.version != GameSaveData.CurrentVersion;
+            data = SaveDataMigrator.Migrate(data);
             isLoading = true;
             ApplySaveData(data);
+            if (requiresMigration)
+            {
+                File.WriteAllText(
+                    SavePath,
+                    JsonUtility.ToJson(data, true));
+                Debug.Log(
+                    $"Save data migrated to version " +
+                    $"{GameSaveData.CurrentVersion}.");
+            }
             Debug.Log($"ゲームを読み込みました: {SavePath}");
         }
         catch (Exception exception)
@@ -189,8 +201,8 @@ public class SaveManager : MonoBehaviour
 
         if (merchantInventory != null)
         {
-            data.discoveredEquipmentAssetNames.AddRange(
-                merchantInventory.DiscoveredEquipmentAssetNames);
+            data.discoveredEquipmentPersistentIds.AddRange(
+                merchantInventory.DiscoveredEquipmentPersistentIds);
             foreach (InventoryItemStack stack in merchantInventory.Items)
             {
                 if (stack?.Item == null || stack.Amount <= 0)
@@ -316,31 +328,21 @@ public class SaveManager : MonoBehaviour
         merchantData?.RestoreProgression(
             Mathf.Max(1, data.merchantLevel),
             data.merchantExperience,
-            data.version >= 16
-                ? data.lifetimeGoldEarned
-                : -1);
-        int skillPoints = data.version >= 9
-            ? data.merchantSkillPoints
-            : Mathf.Max(2, data.merchantLevel + 1);
+            data.lifetimeGoldEarned);
         merchantData?.RestoreSkills(
-            skillPoints,
+            data.merchantSkillPoints,
             data.merchantNegotiation,
             data.merchantLeadership,
             data.merchantAppraisal,
             data.merchantLogistics);
         debtManager?.Restore(
-            data.version >= 16
-                ? data.remainingDebt
-                : DebtManager.InitialDebt,
-            data.version >= 16 ? data.debtPaymentArrears : 0,
-            data.version >= 16
-                ? data.processedDebtMonths
-                : (Mathf.Max(1, data.currentDay) - 1) /
-                  DebtManager.DaysPerMonth);
+            data.remainingDebt,
+            data.debtPaymentArrears,
+            data.processedDebtMonths);
         dayManager?.SetCurrentDay(data.currentDay);
         simpleUI?.RestoreTownProgress(
             data.currentTownIndex,
-            data.version >= 11 ? data.unlockedTownIndices : null);
+            data.unlockedTownIndices);
 
         List<InventoryItemStack> restoredItems = new List<InventoryItemStack>();
         if (data.inventory != null)
@@ -379,6 +381,7 @@ public class SaveManager : MonoBehaviour
         }
         merchantInventory?.RestoreEquipmentInstances(restoredEquipment);
         merchantInventory?.RestoreDiscoveredEquipment(
+            data.discoveredEquipmentPersistentIds,
             data.discoveredEquipmentAssetNames);
 
         List<MercenaryInstance> restoredMercenaries = new List<MercenaryInstance>();
@@ -435,7 +438,7 @@ public class SaveManager : MonoBehaviour
                 (int)DungeonGrade.Highest),
             data.selectedDungeonAssetName,
             data.selectedDungeonPersistentId,
-            data.version >= 12 ? data.dungeonFloorProgress : null);
+            data.dungeonFloorProgress);
     }
 
     private MercenaryInstance RestoreMercenary(SavedMercenary saved)

@@ -972,8 +972,46 @@
 - PrefabレイアウトVersionを13へ更新した。
 - ランタイム・Editorのビルド確認は警告0件、エラー0件で成功。
 
+## 2026-07-07 学校側更新取込後のエラー修正
+
+- 学校側の最新作業である `GameAssetRepository` 導入、ゲームデータの `Resources/GameData` 統合、永続ID対応を確認した。
+- `SaveManager` が `DungeonRunManager.RestoreProgress` へ永続IDを含む4引数を渡していた一方、受け側が旧3引数のままで `CS1501` が発生していた。
+- `DungeonRunManager.RestoreProgress` を永続ID対応の4引数へ更新した。
+- 選択中ダンジョンは永続IDを優先し、旧セーブでは従来のアセット名へフォールバックして復元する。
+- ダンジョンのフロア進行辞書をアセット名キーから永続IDキーへ変更した。
+- フロア進行保存時は永続IDと旧アセット名の両方を記録し、旧セーブの進行も永続IDへ変換して復元する。
+- ダンジョン10件すべてに一意の永続IDが設定されていることを確認した。
+- Unity Editor最新ログに追加の実行時例外はなし。
+- ランタイム・Editorとも警告0件、エラー0件でビルド成功。
+
+## 2026-07-07 改善優先度1・自動テスト基盤
+
+- Unity Test Framework 1.1.33が導入済みであることを確認した。
+- ゲームコードを `DungeonMerchant.Runtime.asmdef` にまとめ、EditModeテストから参照できる構成を追加した。
+- `DungeonMerchant.EditModeTests.asmdef` とEditModeテスト4ファイル・8ケースを追加した。
+- 商人の累計獲得Gによるレベル上昇と、支払いで累計獲得Gが増えないことをテストする。
+- 月次返済の所持金不足・滞納繰越と、任意返済の所持金上限をテストする。
+- 街道戦闘の敵数が経路ごとに4体または5体へ制限されることをテストする。
+- ダンジョン永続IDが空でなく重複せず、Repositoryから復元できることをテストする。
+- 通常ランタイム・Editorコードは警告0件、エラー0件でビルド成功。
+- 起動中Unity EditorのAuto Refreshが停止しているため、Test Runnerへの登録・実行はUnityのRefresh後に確認が必要。
+- 初回RefreshでRuntime asmdefのTextMeshPro参照不足により `TMPro` / `TMP_Text` の `CS0246` が発生したため、`Unity.TextMeshPro` Assembly参照を追加した。
+- asmdef移行後、1ファイルに複数配置していたPage用MonoBehaviourがPrefab上でMissing Scriptになったため、各Pageコンポーネントを1クラス1ファイルへ分離した。
+- PrefabレイアウトVersionを15へ更新し、Refresh後に正常なMonoScript参照で自動再生成する。
+- asmdef移行後のVisual Scripting警告54件は、Node Libraryが旧Assembly名 `Assembly-CSharp` を保持していたことが原因。
+- Visual Scriptingのグラフ・コンポーネント・API利用がプロジェクト内に0件だったため、未使用の `com.unity.visualscripting` パッケージを削除した。
+
 ## UI Prefab化完了後の次作業
 
 - 街道戦闘で、一度の戦闘に20体以上のモンスターが出現する問題を修正する。
 - UI Prefab化が完了するまでは街道戦闘ロジックを変更しない。
 - Prefab化完了後、敵編成数の算出元と重複追加を確認し、適正な上限へ調整する。
+
+## 2026-07-07 永続ID・セーブ移行処理の分離
+
+- セーブ形式をVersion 18へ更新した。
+- `SaveDataMigrator`を追加し、旧バージョンの商人成長、技能ポイント、借金、町開放、ダンジョン進行の互換処理を`SaveManager`から分離した。
+- アイテム、装備、傭兵、アーキタイプ、ダンジョン、装備図鑑の旧アセット名を読み込み時に永続IDへ変換する。
+- 移行成功後はVersion 18のJSONとして一度だけ保存ファイルへ書き戻す。
+- 新規保存の装備図鑑はアセット名ではなく永続IDを記録する。旧アセット名フィールドは読み込み互換専用として残す。
+- `SaveDataMigratorTests`へ旧Version 8の補完、旧アセット名からのID変換、再移行の安全性を確認する3テストを追加した。

@@ -189,7 +189,9 @@ public class DungeonRunManager : MonoBehaviour
     public int GetClearedFloors(DungeonDataSO data)
     {
         if (data == null ||
-            !clearedFloorsByDungeon.TryGetValue(data.name, out int clearedFloors))
+            !clearedFloorsByDungeon.TryGetValue(
+                GetDungeonProgressKey(data),
+                out int clearedFloors))
         {
             return 0;
         }
@@ -214,9 +216,13 @@ public class DungeonRunManager : MonoBehaviour
             new List<SavedDungeonFloorProgress>();
         foreach (KeyValuePair<string, int> pair in clearedFloorsByDungeon)
         {
+            DungeonDataSO dungeon = FindDungeonByProgressKey(pair.Key);
             result.Add(new SavedDungeonFloorProgress
             {
-                dungeonAssetName = pair.Key,
+                dungeonPersistentId =
+                    dungeon != null ? dungeon.PersistentId : pair.Key,
+                dungeonAssetName =
+                    dungeon != null ? dungeon.name : pair.Key,
                 clearedFloors = pair.Value
             });
         }
@@ -265,6 +271,7 @@ public class DungeonRunManager : MonoBehaviour
     public void RestoreProgress(
         DungeonGrade restoredHighestGrade,
         string selectedDungeonAssetName,
+        string selectedDungeonPersistentId,
         IReadOnlyList<SavedDungeonFloorProgress> savedFloorProgress = null)
     {
         highestUnlockedGrade = (DungeonGrade)Mathf.Clamp(
@@ -279,30 +286,87 @@ public class DungeonRunManager : MonoBehaviour
             foreach (SavedDungeonFloorProgress progress in savedFloorProgress)
             {
                 if (progress == null ||
-                    string.IsNullOrWhiteSpace(progress.dungeonAssetName))
+                    (string.IsNullOrWhiteSpace(progress.dungeonPersistentId) &&
+                     string.IsNullOrWhiteSpace(progress.dungeonAssetName)))
                 {
                     continue;
                 }
 
-                clearedFloorsByDungeon[progress.dungeonAssetName] =
+                DungeonDataSO restoredDungeon =
+                    FindDungeon(
+                        progress.dungeonPersistentId,
+                        progress.dungeonAssetName);
+                string progressKey = restoredDungeon != null
+                    ? GetDungeonProgressKey(restoredDungeon)
+                    : !string.IsNullOrWhiteSpace(progress.dungeonPersistentId)
+                        ? progress.dungeonPersistentId
+                        : progress.dungeonAssetName;
+                clearedFloorsByDungeon[progressKey] =
                     Mathf.Max(0, progress.clearedFloors);
             }
         }
 
-        DungeonDataSO restoredSelection = null;
-        foreach (DungeonDataSO data in availableDungeons)
+        DungeonDataSO restoredSelection = FindDungeon(
+            selectedDungeonPersistentId,
+            selectedDungeonAssetName);
+        if (restoredSelection != null &&
+            !IsDungeonUnlocked(restoredSelection))
         {
-            if (data != null &&
-                data.name == selectedDungeonAssetName &&
-                IsDungeonUnlocked(data))
-            {
-                restoredSelection = data;
-                break;
-            }
+            restoredSelection = null;
         }
 
         dungeonData = restoredSelection ?? FindFirstUnlockedDungeon();
         DungeonStateChanged?.Invoke();
+    }
+
+    private static string GetDungeonProgressKey(DungeonDataSO data)
+    {
+        return data != null ? data.PersistentId : string.Empty;
+    }
+
+    private DungeonDataSO FindDungeon(
+        string persistentId,
+        string legacyAssetName)
+    {
+        foreach (DungeonDataSO data in availableDungeons)
+        {
+            if (data == null)
+            {
+                continue;
+            }
+
+            if (!string.IsNullOrWhiteSpace(persistentId) &&
+                data.PersistentId == persistentId)
+            {
+                return data;
+            }
+
+            if (string.IsNullOrWhiteSpace(persistentId) &&
+                data.name == legacyAssetName)
+            {
+                return data;
+            }
+        }
+
+        return GameAssetRepository.FindByPersistentId<DungeonDataSO>(
+            persistentId,
+            legacyAssetName);
+    }
+
+    private DungeonDataSO FindDungeonByProgressKey(string progressKey)
+    {
+        foreach (DungeonDataSO data in availableDungeons)
+        {
+            if (data != null &&
+                (data.PersistentId == progressKey || data.name == progressKey))
+            {
+                return data;
+            }
+        }
+
+        return GameAssetRepository.FindByPersistentId<DungeonDataSO>(
+            progressKey,
+            progressKey);
     }
 
     [ContextMenu("ダンジョン開放状態を初期化")]
@@ -688,7 +752,7 @@ public class DungeonRunManager : MonoBehaviour
         int completedFloor = CurrentFloor;
         int totalFloors = TotalFloors;
         int previousClearedFloors = GetClearedFloors(dungeonData);
-        clearedFloorsByDungeon[dungeonData.name] =
+        clearedFloorsByDungeon[GetDungeonProgressKey(dungeonData)] =
             Mathf.Max(previousClearedFloors, completedFloor);
 
         int floorReward = Mathf.Max(0, dungeonData.floorClearGoldReward);
