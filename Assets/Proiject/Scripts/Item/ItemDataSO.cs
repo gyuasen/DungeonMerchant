@@ -3,9 +3,10 @@ using UnityEngine;
 [CreateAssetMenu(
     fileName = "ItemData",
     menuName = "DungeonMerchant/Item Data")]
-public class ItemDataSO : ScriptableObject
+public class ItemDataSO : ScriptableObject, IPersistentGameAsset
 {
     [Header("Basic Info")]
+    [SerializeField] private string persistentId;
     public string itemName = "Unknown Item";
     public ItemType itemType = ItemType.Material;
     public ItemRarity rarity = ItemRarity.Common;
@@ -32,6 +33,8 @@ public class ItemDataSO : ScriptableObject
     public ConsumableEffectType consumableEffect = ConsumableEffectType.None;
 
     public bool IsEquipment => itemType == ItemType.Equipment;
+    public string PersistentId =>
+        string.IsNullOrWhiteSpace(persistentId) ? name : persistentId;
 
     public bool CanEquip(MercenaryClass mercenaryClass)
     {

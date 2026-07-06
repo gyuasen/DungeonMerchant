@@ -544,3 +544,93 @@
 - `DebtManager`をBootstrapの自動生成対象と`Assembly-CSharp.csproj`のコンパイル対象へ追加。
 - `dotnet build DungeonMerchant.sln`は警告0件、エラー0件で成功。
 - 戻す場合は`DebtManager`と`.meta`を削除し、`MerchantData`、`ProgressionManager`、`GameSaveData`、`SaveManager`、`DungeonMerchantBootstrap`、`SimpleMercenaryHireUI`、`Assembly-CSharp.csproj`の今回分を戻す。
+
+## 2026-07-06
+
+### UI責務分離・転職画面
+
+- ユーザー要望により、家側で進めたUI責務分割の続きを実施。
+- 14通常画面のうち、専用ページコンポーネントが未実装だった転職画面を対象にした。
+- `JobChangePageUI`を追加し、`UIPageBase`を継承。
+- 転職画面のタイトル、`ScrollRect`、転職対象一覧ルートの参照を`JobChangePageUI`へ移した。
+- 転職画面を表示した際の一覧再構築を、親UIの直接呼び出しから`UIPageRouter`による`Refresh()`呼び出しへ変更。
+- 転職完了後の一覧更新も`JobChangePageUI.Refresh()`経由へ変更。
+- `SimpleMercenaryHireUIPrefabBuilder`が転職ページへ`JobChangePageUI`を追加するようにした。
+- PrefabレイアウトVersionを13から14へ更新。旧Prefabや参照不足時は実行時にコンポーネントを補う既存フォールバックを維持。
+- `Assembly-CSharp.csproj`へ`JobChangePageUI.cs`を追加。
+- `Assembly-CSharp.csproj`と`Assembly-CSharp-Editor.csproj`は、ともに警告0件、エラー0件でビルド成功。
+- Unity Editor起動・再コンパイル後、Main UI PrefabがVersion 14へ自動更新されるか実表示確認が必要。
+- 戻す場合は`JobChangePageUI.cs`と`.meta`を削除し、`SimpleMercenaryHireUI.HireParty.cs`、`SimpleMercenaryHireUIView.cs`、Prefabビルダー、`Assembly-CSharp.csproj`の今回分を戻す。
+
+### 失敗時の返金処理を削除
+
+- コード確認で、失敗時の返金に`MerchantData.AddGold`を使うことで累計獲得Gと商人レベルが不正に上昇する問題を確認。
+- ユーザー指定により返金専用処理は追加せず、返金自体を削除。
+- 傭兵の雇用判定に失敗した場合、支払った雇用費は返金されない。
+- 鍛冶で支払い後に素材消費へ失敗した場合、支払った制作費は返金されない。
+- 市場で支払い後に在庫数更新へ失敗した場合、支払った購入費は返金されない。
+- 装備強化で支払い後に強化素材消費へ失敗した場合、支払った強化費は返金されない。
+- `AddGold`の利用箇所を再確認し、戦闘・探索・売却・依頼など実際の収入だけに使用されていることを確認。
+- ランタイム・Editorプロジェクトはともに警告0件、エラー0件でビルド成功。
+- 戻す場合は`MercenaryHireManager.cs`、`BlacksmithManager.cs`、`MarketStockManager.cs`、`MerchantInventory.cs`の失敗分岐へ返金処理を戻す。
+
+### 長期目標の借金情報参照を修正
+
+- コード確認で、Bootstrapが`ProgressionManager`を`DebtManager`より先に生成するため、初期化時に借金管理を取得できない問題を確認。
+- `DungeonMerchantBootstrap`の生成順を変更し、`DebtManager`を`ProgressionManager`より先に生成するよう修正。
+- シーン配置や将来の構成変更で生成順が異なっても対応できるよう、`GetAchievementSummary()`の開始時に`ResolveReferences()`を呼び、借金管理を再取得するようにした。
+- 依頼画面の長期目標で、借金残高または完済状態が表示される。
+- ランタイム・Editorプロジェクトはともに警告0件、エラー0件でビルド成功。
+- 戻す場合は`DungeonMerchantBootstrap.cs`の生成順と`ProgressionManager.GetAchievementSummary()`の参照再解決を戻す。
+
+### UI責務分離・一覧更新の直接呼び出しを廃止
+
+- ユーザー要望により、家側から段階的に進めているUI責務分離の続きを実施。
+- `UIPageRouter`へ、指定ページの`UIPageBase.Refresh()`を呼ぶ`Refresh(RectTransform)`を追加。
+- 親UIへ`RefreshPage(RectTransform)`を追加し、画面更新要求をルーター経由へ統一。
+- 戦闘、装備、日次結果、依頼、雇用、治療、経済処理などから呼ばれていた`RebuildCompanyList`、`RebuildPartyList`、`RebuildHealList`、`RebuildHireList`、`RebuildInventoryList`、`RebuildMarketList`、`RebuildBlacksmithList`の直接呼び出しを廃止。
+- 各更新は対応する`CompanyPageUI`、`PartyPageUI`、`HealPageUI`、`HirePageUI`、各`EconomyPageUI`の`Refresh()`を経由する。
+- 転職後の更新も`JobChangePageUI`をルーター経由で更新するよう変更。
+- ダンジョン結果パネルを維持したまま一覧だけ更新できるよう、`DungeonPageUI`へ`RefreshSelection()`を追加。
+- Prefabが存在しないフォールバックUIでも、雇用画面と傭兵一覧画面へ専用ページコンポーネントを追加・設定するよう補完。
+- `BindPageLayout`での先行一括登録を削除し、各専用ページの設定完了後に登録するよう初期化順を整理。
+- 機械検索により、対象一覧更新の直接実行が残っていないことを確認。更新本体と`Configure`へ渡すコールバックのみ維持。
+- ランタイム・Editorプロジェクトはともに警告0件、エラー0件でビルド成功。
+- Unity再生上で、雇用・編成・治療・売買・鍛冶・装備変更・戦闘終了・ダンジョン結果後に各一覧が更新されることの実操作確認が必要。
+- 戻す場合は`UIPageRouter.cs`、`BattlePageUI.cs`、`SimpleMercenaryHireUI`各partialファイルの`RefreshPage`関連変更を戻す。
+
+### コード構成上の問題点を確認
+
+- ユーザー要望により、現在のコード構成について依存関係、初期化、保存、データ読込、UI責務、自動テストの観点から確認。
+- 最重要問題として、Editorと製品ビルドでゲームデータの検出範囲が異なることを確認。
+- Editorでは`AssetDatabase`で`Assets/Proiject/ScriptableObjects`も検索できるが、製品ビルドでは`Resources.LoadAll`のみとなる。
+- 現在、`ScriptableObjects/Items`に65件、`Resources/Items`に18件が分散しており、市場、鍛冶、図鑑、依頼、セーブ復元で製品版だけデータが見つからない可能性がある。
+- `SimpleMercenaryHireUI`はpartial化後も合計約8,600行あり、全partialが同じprivateフィールドへアクセスできるため、ファイル分割に対して責務境界はまだ弱い。
+- 各`PageUI`は更新経路を所有するようになったが、一覧生成と表示用データ作成は親UIに残っている。
+- `FindObjectOfType`が全体で約60か所あり、Bootstrapによる動的`AddComponent`と`OnEnable`の実行順に依存する初期化問題が再発しやすい。
+- セーブ復元が`asset.name`に依存しており、装備、傭兵、ダンジョンなどのアセット名変更で旧セーブを復元できなくなる可能性がある。
+- セーブ移行条件が`SaveManager`内の`version >= 9/11/12/16`として分散しており、今後のバージョン追加で複雑化する。
+- 町名、地域、進行順、隣接判定などのゲームルールが`SimpleMercenaryHireUI.MapData.cs`にあり、UIとゲーム進行ルールが分離されていない。
+- `BattleManager`は約1,500行、`DungeonRunManager`は約1,070行あり、戦闘計算、進行、報酬、状態異常、ログなど複数責務が同居している。
+- 自動テストが存在せず、借金返済、商人レベル、セーブ移行、装備復元、ダンジョン進行、街道敵数、転職条件に回帰リスクがある。
+- 推奨対応順は、1. データ読込方式の統一、2. 永続IDとセーブ移行処理の分離、3. UIから町・地域ルールを分離、4. 戦闘・ダンジョン責務の分割、5. 自動テスト追加。
+- 今回は調査と共有記録のみで、コード変更およびビルドは未実施。
+
+### 最優先対応・ゲームデータ読込方式を統一
+
+- ユーザー要望により、記録したコード構成問題を優先度順に解決開始。
+- 最優先だった「Editorと製品ビルドで検出されるゲームデータが異なる問題」へ対応。
+- 移動前に`ScriptableObjects`配下128アセットと既存`Resources`配下28アセットを監査し、同名アセット衝突がないことを確認。
+- `GameAssetRepository`を追加し、全環境で`Resources.LoadAll`を使う共通読込経路を実装。
+- 市場商品、鍛冶レシピ、ダンジョン、特殊依頼、依頼素材、強化素材、装備図鑑、固有傭兵、戦闘フォールバック、セーブ復元を共通リポジトリ経由へ変更。
+- ランタイムコードから`AssetDatabase.FindAssets`と`Assets/Proiject/ScriptableObjects`固定パスへの依存を削除。
+- `Assets/Proiject/ScriptableObjects`全体を`Assets/Proiject/Resources/GameData`へ移動。個別`.meta`も一緒に移動し、GUIDを維持。
+- 移動後、Resources配下のゲームアセットは合計156件。
+- 旧`Assets/Proiject/ScriptableObjects`ディレクトリが残っていないことを確認。
+- 全`.meta`を検査し、GUID重複0件を確認。
+- アセット、Prefab、SceneのYAML参照を検査。今回移動したプロジェクトアセットのGUID欠落はなし。
+- ランタイムコードに旧パス参照および`AssetDatabase`参照が残っていないことを確認。
+- ランタイム・Editorプロジェクトはともに警告0件、エラー0件でビルド成功。
+- Unity Editorでの再インポート後、市場、鍛冶、ダンジョン一覧、装備図鑑、既存セーブ読込の実表示確認が必要。
+- 次の優先課題は、アセット名依存のセーブ識別を永続IDへ置き換え、セーブ移行処理を専用クラスへ分離すること。
+- 戻す場合は`Resources/GameData`を元の`ScriptableObjects`へGUIDを維持して戻し、`GameAssetRepository`と各読込箇所の変更を戻す。

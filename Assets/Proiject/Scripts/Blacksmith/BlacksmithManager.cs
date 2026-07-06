@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 public class BlacksmithManager : MonoBehaviour
 {
@@ -80,7 +77,6 @@ public class BlacksmithManager : MonoBehaviour
 
         if (!merchantInventory.TryConsumeMaterials(recipe.materials))
         {
-            merchantData.AddGold(recipe.goldCost);
             return false;
         }
 
@@ -108,22 +104,10 @@ public class BlacksmithManager : MonoBehaviour
         recipes.RemoveAll(recipe => recipe == null);
 
         foreach (EquipmentRecipeSO recipe in
-                 Resources.LoadAll<EquipmentRecipeSO>(string.Empty))
+                 GameAssetRepository.LoadAll<EquipmentRecipeSO>())
         {
             AddRecipe(recipe);
         }
-
-#if UNITY_EDITOR
-        string[] guids = AssetDatabase.FindAssets(
-            "t:EquipmentRecipeSO",
-            new[] { "Assets/Proiject/ScriptableObjects/Blacksmith" });
-
-        foreach (string guid in guids)
-        {
-            string path = AssetDatabase.GUIDToAssetPath(guid);
-            AddRecipe(AssetDatabase.LoadAssetAtPath<EquipmentRecipeSO>(path));
-        }
-#endif
         RefreshAvailableRecipes();
     }
 

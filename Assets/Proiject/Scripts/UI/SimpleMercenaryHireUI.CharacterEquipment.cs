@@ -2,9 +2,6 @@
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 public partial class SimpleMercenaryHireUI
 {
@@ -832,8 +829,8 @@ public partial class SimpleMercenaryHireUI
             $"{selectedDetailMercenary.MercenaryName}の" +
             $"{JapaneseDisplayText.GetEquipmentSlot(slot)}を解除しました。";
         ShowCharacterDetails(selectedDetailMercenary);
-        RebuildCompanyList();
-        RebuildPartyList();
+        RefreshPage(companyPage);
+        RefreshPage(partyPage);
         SaveEquipmentChanges();
     }
 
@@ -1010,7 +1007,7 @@ public partial class SimpleMercenaryHireUI
                 statusText.text = "装備を強化できませんでした。";
                 break;
         }
-        RebuildInventoryList();
+        RefreshPage(inventoryPage);
         if (selectedDetailMercenary != null)
         {
             ShowCharacterDetails(selectedDetailMercenary);
@@ -1031,7 +1028,7 @@ public partial class SimpleMercenaryHireUI
         statusText.text = selectedEquipmentDetail.IsLocked
             ? "装備をロックしました。"
             : "装備のロックを解除しました。";
-        RebuildInventoryList();
+        RefreshPage(inventoryPage);
         ShowEquipmentDetails(selectedEquipmentDetail);
         SaveEquipmentChanges();
     }
@@ -1288,21 +1285,8 @@ public partial class SimpleMercenaryHireUI
     private static List<ItemDataSO> FindAllEquipmentAssets()
     {
         List<ItemDataSO> results =
-            new List<ItemDataSO>(Resources.LoadAll<ItemDataSO>(string.Empty));
-#if UNITY_EDITOR
-        string[] guids = AssetDatabase.FindAssets(
-            "t:ItemDataSO",
-            new[] { "Assets/Proiject/ScriptableObjects/Items" });
-        foreach (string guid in guids)
-        {
-            ItemDataSO item = AssetDatabase.LoadAssetAtPath<ItemDataSO>(
-                AssetDatabase.GUIDToAssetPath(guid));
-            if (item != null && !results.Contains(item))
-            {
-                results.Add(item);
-            }
-        }
-#endif
+            new List<ItemDataSO>(
+                GameAssetRepository.LoadAll<ItemDataSO>());
         results.RemoveAll(item => item == null || !item.IsEquipment);
         return results;
     }

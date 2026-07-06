@@ -164,6 +164,8 @@ public static class SimpleMercenaryHireUIPrefabBuilder
                     GetPageName(slot),
                     panel);
             }
+            pages[(int)SimpleMercenaryHirePageSlot.JobChange]
+                .gameObject.AddComponent<JobChangePageUI>();
 
             SimpleMercenaryHireUIView.HireCompanyReferences hireCompany =
                 CreateHireCompanyLayout(pages);

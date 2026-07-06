@@ -304,6 +304,11 @@ public partial class SimpleMercenaryHireUI
         SetTabActive(activeTab, true);
     }
 
+    private void RefreshPage(RectTransform pageRoot)
+    {
+        pageRouter?.Refresh(pageRoot);
+    }
+
     private void SwitchToMapPage(
         RectTransform targetPage,
         bool showTownMapButton)
@@ -500,20 +505,6 @@ public partial class SimpleMercenaryHireUI
             view.HireCompany.GetOrCreateHirePageUI();
             view.HireCompany.GetOrCreateCompanyPageUI();
         }
-        pageRouter.Register(hirePage);
-        pageRouter.Register(globalMapPage);
-        pageRouter.Register(worldMapPage);
-        pageRouter.Register(townMapPage);
-        pageRouter.Register(companyPage);
-        pageRouter.Register(partyPage);
-        pageRouter.Register(healPage);
-        pageRouter.Register(battlePage);
-        pageRouter.Register(roadBattlePage);
-        pageRouter.Register(dungeonPage);
-        pageRouter.Register(marketPage);
-        pageRouter.Register(blacksmithPage);
-        pageRouter.Register(inventoryPage);
-        pageRouter.Register(jobChangePage);
     }
 
     private RectTransform GetOrCreateOverlay(

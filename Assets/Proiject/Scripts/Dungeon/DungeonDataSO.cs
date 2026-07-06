@@ -3,9 +3,10 @@ using UnityEngine;
 [CreateAssetMenu(
     fileName = "DungeonData",
     menuName = "DungeonMerchant/Dungeon Data")]
-public class DungeonDataSO : ScriptableObject
+public class DungeonDataSO : ScriptableObject, IPersistentGameAsset
 {
     [Header("基本情報")]
+    [SerializeField] private string persistentId;
     public string dungeonName = "はじまりの洞窟";
     public DungeonGrade grade = DungeonGrade.Low;
     [Min(0)] public int worldMapIndex;
@@ -37,6 +38,8 @@ public class DungeonDataSO : ScriptableObject
     [Range(0f, 1f)] public float eventLimitedDropChance = 0.03f;
     [Range(0f, 1f)] public float bossLimitedDropChance = 0.08f;
     public ItemDataSO[] limitedEquipmentDrops;
+    public string PersistentId =>
+        string.IsNullOrWhiteSpace(persistentId) ? name : persistentId;
 }
 
 public enum DungeonGrade

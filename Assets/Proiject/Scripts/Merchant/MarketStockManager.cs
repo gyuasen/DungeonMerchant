@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 public class MarketStockManager : MonoBehaviour
 {
@@ -87,7 +84,6 @@ public class MarketStockManager : MonoBehaviour
 
         if (!entry.Remove(amount))
         {
-            merchantData.AddGold(totalPrice);
             return false;
         }
 
@@ -203,22 +199,10 @@ public class MarketStockManager : MonoBehaviour
     {
         RemoveInvalidItems();
 
-        foreach (ItemDataSO item in Resources.LoadAll<ItemDataSO>(string.Empty))
+        foreach (ItemDataSO item in GameAssetRepository.LoadAll<ItemDataSO>())
         {
             AddPurchasableItem(item);
         }
-
-#if UNITY_EDITOR
-        string[] guids = AssetDatabase.FindAssets(
-            "t:ItemDataSO",
-            new[] { "Assets/Proiject/ScriptableObjects/Items" });
-
-        foreach (string guid in guids)
-        {
-            string path = AssetDatabase.GUIDToAssetPath(guid);
-            AddPurchasableItem(AssetDatabase.LoadAssetAtPath<ItemDataSO>(path));
-        }
-#endif
     }
 
     private void AddPurchasableItem(ItemDataSO item)

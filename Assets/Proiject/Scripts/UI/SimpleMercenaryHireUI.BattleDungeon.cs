@@ -280,13 +280,14 @@ public partial class SimpleMercenaryHireUI
         dungeonResultPanel.gameObject.SetActive(false);
 
         UpdateDungeonEventUI();
-        RebuildDungeonSelectionList();
 
         DungeonPageUI pageUI =
             dungeonPage.GetComponent<DungeonPageUI>() ??
             dungeonPage.gameObject.AddComponent<DungeonPageUI>();
         pageUI.Configure(RefreshDungeonPage);
+        pageUI.ConfigureSelectionRefresh(RebuildDungeonSelectionList);
         pageRouter.Register(dungeonPage);
+        RefreshPage(dungeonPage);
     }
 
     private static void PositionDungeonEventButton(Button button, float x)
@@ -381,7 +382,6 @@ public partial class SimpleMercenaryHireUI
             return;
         }
 
-        RebuildDungeonSelectionList();
         ShowDungeonPage();
     }
 
@@ -552,9 +552,9 @@ public partial class SimpleMercenaryHireUI
             return;
         }
 
-        RebuildCompanyList();
-        RebuildPartyList();
-        RebuildHealList();
+        RefreshPage(companyPage);
+        RefreshPage(partyPage);
+        RefreshPage(healPage);
 
         if (dungeonRunManager.IsRunning && battleManager.IsBattling)
         {
@@ -648,9 +648,9 @@ public partial class SimpleMercenaryHireUI
     private void HandleBattleCompleted(bool victory)
     {
         startBattleButton.interactable = partyManager.Members.Count > 0;
-        RebuildCompanyList();
-        RebuildPartyList();
-        RebuildHealList();
+        RefreshPage(companyPage);
+        RefreshPage(partyPage);
+        RefreshPage(healPage);
         RefreshUI();
 
         if (pendingTravelTownIndex >= 0)
@@ -728,12 +728,13 @@ public partial class SimpleMercenaryHireUI
 
     private void HandleDungeonStateChanged()
     {
-        UpdateDungeonEventUI();
-        RebuildDungeonSelectionList();
-
         if (dungeonRunManager.IsAwaitingEventChoice)
         {
             ShowDungeonPage();
+        }
+        else
+        {
+            RefreshPage(dungeonPage);
         }
 
         RefreshUI();
@@ -768,7 +769,7 @@ public partial class SimpleMercenaryHireUI
         dungeonResultPanel.SetAsLastSibling();
         dungeonResultPanel.gameObject.SetActive(true);
         UpdateDungeonEventUI();
-        RebuildDungeonSelectionList();
+        dungeonPage.GetComponent<DungeonPageUI>()?.RefreshSelection();
         RefreshUI();
     }
 
@@ -901,8 +902,8 @@ public partial class SimpleMercenaryHireUI
         statusText.text =
             $"{JapaneseDisplayText.GetItemName(item)}を使用し、" +
             $"{target.MercenaryName}の状態異常を治療しました。";
-        RebuildInventoryList();
-        RebuildCompanyList();
+        RefreshPage(inventoryPage);
+        RefreshPage(companyPage);
         RefreshCharacterDetailText();
         saveManager?.SaveGame();
     }

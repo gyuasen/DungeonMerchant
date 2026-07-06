@@ -1,0 +1,30 @@
+﻿%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
+  m_Name: GuardianEyeCharm
+  m_EditorClassIdentifier:
+  persistentId: item.GuardianEyeCharm
+  itemName: Guardian Eye Charm
+  itemType: 1
+  rarity: 2
+  description: A charm modeled after the watchful eye of a ruin guardian.
+  basePrice: 820
+  acquisitionType: 2
+  equipmentSlot: 2
+  requiredClass: 0
+  allClassesCanEquip: 1
+  equipmentSet: 0
+  equipmentRank: 3
+  bonusMaxHP: 9
+  bonusAttack: 7
+  bonusDefense: 4
+  bonusAttackSpeed: 0.04

@@ -3,9 +3,10 @@ using UnityEngine;
 [CreateAssetMenu(
     fileName = "MercenaryData",
     menuName = "DungeonMerchant/Mercenary Data")]
-public class MercenaryDataSO : ScriptableObject
+public class MercenaryDataSO : ScriptableObject, IPersistentGameAsset
 {
     [Header("Basic Info")]
+    [SerializeField] private string persistentId;
     public string mercenaryName;
     public MercenaryClass mercenaryClass;
     public MercenaryContractType contractType;
@@ -28,4 +29,6 @@ public class MercenaryDataSO : ScriptableObject
     public int uniqueSkillBonusDefense;
     public int uniqueSkillBonusMaxMagicPower;
     public float uniqueSkillBonusAttackSpeed = 0.03f;
+    public string PersistentId =>
+        string.IsNullOrWhiteSpace(persistentId) ? name : persistentId;
 }

@@ -161,15 +161,15 @@ public partial class SimpleMercenaryHireUI
 
     private void HandleGoldChanged(int currentGold)
     {
-        RebuildHealList();
-        RebuildBlacksmithList();
+        RefreshPage(healPage);
+        RefreshPage(blacksmithPage);
         RefreshUI();
     }
 
     private void HandleProgressionChanged()
     {
-        RebuildCompanyList();
-        RebuildInventoryList();
+        RefreshPage(companyPage);
+        RefreshPage(inventoryPage);
         if (merchantStatusOverlay != null &&
             merchantStatusOverlay.gameObject.activeSelf)
         {
@@ -432,7 +432,7 @@ public partial class SimpleMercenaryHireUI
         {
             statusText.text = "契約を更新できませんでした。";
         }
-        RebuildCompanyList();
+        RefreshPage(companyPage);
         RefreshUI();
     }
 

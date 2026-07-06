@@ -2,9 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 public class BattleManager : MonoBehaviour
 {
@@ -173,28 +170,12 @@ public class BattleManager : MonoBehaviour
 
     private EnemyDataSO FindEnemyData()
     {
-        EnemyDataSO[] resourceEnemies = Resources.LoadAll<EnemyDataSO>(string.Empty);
-        if (resourceEnemies.Length > 0)
+        IReadOnlyList<EnemyDataSO> resourceEnemies =
+            GameAssetRepository.LoadAll<EnemyDataSO>();
+        if (resourceEnemies.Count > 0)
         {
             return resourceEnemies[0];
         }
-
-#if UNITY_EDITOR
-        string[] guids = AssetDatabase.FindAssets(
-            "t:EnemyDataSO",
-            new[] { "Assets/Proiject/ScriptableObjects/Enemies" });
-
-        if (guids.Length > 0)
-        {
-            string path = AssetDatabase.GUIDToAssetPath(guids[0]);
-            EnemyDataSO foundEnemy =
-                AssetDatabase.LoadAssetAtPath<EnemyDataSO>(path);
-            if (foundEnemy != null)
-            {
-                return foundEnemy;
-            }
-        }
-#endif
 
         return GetFallbackSlimeData();
     }
@@ -1467,28 +1448,13 @@ public class BattleManager : MonoBehaviour
             return fallbackDropItem;
         }
 
-        ItemDataSO[] resourceItems = Resources.LoadAll<ItemDataSO>(string.Empty);
-        if (resourceItems.Length > 0)
+        IReadOnlyList<ItemDataSO> resourceItems =
+            GameAssetRepository.LoadAll<ItemDataSO>();
+        if (resourceItems.Count > 0)
         {
             fallbackDropItem = resourceItems[0];
             return fallbackDropItem;
         }
-
-#if UNITY_EDITOR
-        string[] guids = AssetDatabase.FindAssets(
-            "t:ItemDataSO",
-            new[] { "Assets/Proiject/ScriptableObjects/Items" });
-
-        if (guids.Length > 0)
-        {
-            string path = AssetDatabase.GUIDToAssetPath(guids[0]);
-            fallbackDropItem = AssetDatabase.LoadAssetAtPath<ItemDataSO>(path);
-            if (fallbackDropItem != null)
-            {
-                return fallbackDropItem;
-            }
-        }
-#endif
 
         fallbackDropItem = ScriptableObject.CreateInstance<ItemDataSO>();
         fallbackDropItem.name = "Runtime Monster Fang";

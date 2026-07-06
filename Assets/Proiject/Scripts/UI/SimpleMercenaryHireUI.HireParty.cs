@@ -9,7 +9,8 @@ public partial class SimpleMercenaryHireUI
         if (activeView != null && activeView.HasHireCompanyLayout)
         {
             BindHirePageLayout(activeView.HireCompany);
-            RebuildHireList();
+            pageRouter.Register(hirePage);
+            RefreshPage(hirePage);
             return;
         }
 
@@ -52,7 +53,20 @@ public partial class SimpleMercenaryHireUI
         scrollRect.movementType = ScrollRect.MovementType.Clamped;
         scrollRect.scrollSensitivity = 28f;
 
-        RebuildHireList();
+        HirePageUI pageUI =
+            hirePage.GetComponent<HirePageUI>() ??
+            hirePage.gameObject.AddComponent<HirePageUI>();
+        Text title = hirePage.GetComponentInChildren<Text>();
+        pageUI.Initialize(title, contractSelectButton, scrollRect, hireList);
+        pageUI.Configure(
+            uiBodyFont,
+            uiFont,
+            ParchmentMutedColor,
+            ButtonTextColor,
+            CycleHireContract,
+            RebuildHireList);
+        pageRouter.Register(hirePage);
+        RefreshPage(hirePage);
     }
 
     private void RebuildHireList()
@@ -99,6 +113,7 @@ public partial class SimpleMercenaryHireUI
         if (activeView != null && activeView.HasHireCompanyLayout)
         {
             BindCompanyPageLayout(activeView.HireCompany);
+            pageRouter.Register(companyPage);
             return;
         }
 
@@ -139,6 +154,20 @@ public partial class SimpleMercenaryHireUI
         scrollRect.scrollSensitivity = 28f;
 
         companyList = companyScrollContent;
+        CompanyPageUI pageUI =
+            companyPage.GetComponent<CompanyPageUI>() ??
+            companyPage.gameObject.AddComponent<CompanyPageUI>();
+        Text title = companyPage.GetComponentInChildren<Text>();
+        pageUI.Initialize(
+            title, questButton, scrollRect, companyList);
+        pageUI.Configure(
+            uiBodyFont,
+            uiFont,
+            ParchmentMutedColor,
+            ButtonTextColor,
+            ShowQuestOverlay,
+            RebuildCompanyList);
+        pageRouter.Register(companyPage);
     }
 
     private void BindHirePageLayout(
@@ -247,7 +276,7 @@ public partial class SimpleMercenaryHireUI
 
     private void BuildJobChangePage()
     {
-        CreateText(
+        Text title = CreateText(
             jobChangePage,
             $"転職神殿（転職可能 Lv{MercenaryClassProgression.PromotionLevel}）",
             17,
@@ -280,6 +309,14 @@ public partial class SimpleMercenaryHireUI
         scroll.vertical = true;
         scroll.movementType = ScrollRect.MovementType.Clamped;
         scroll.scrollSensitivity = 28f;
+
+        JobChangePageUI pageUI =
+            jobChangePage.GetComponent<JobChangePageUI>() ??
+            jobChangePage.gameObject.AddComponent<JobChangePageUI>();
+        pageUI.Initialize(title, scroll, jobChangeList);
+        pageUI.Configure(
+            uiFont, ParchmentTextColor, RebuildJobChangeList);
+        pageRouter.Register(jobChangePage);
     }
 
     private void RebuildCompanyList()
@@ -522,7 +559,7 @@ public partial class SimpleMercenaryHireUI
 
         hiredCandidates.Add(candidate);
         statusText.text = $"{candidate.mercenaryName}が商会に加わりました。";
-        RebuildHireList();
+        RefreshPage(hirePage);
         RefreshUI();
     }
 
@@ -549,14 +586,14 @@ public partial class SimpleMercenaryHireUI
     private void HandleMercenaryHired(MercenaryInstance mercenary)
     {
         CaptureMercenarySnapshot(mercenary);
-        RebuildCompanyList();
+        RefreshPage(companyPage);
     }
 
     private void HandlePartyChanged()
     {
         RememberDailyPartyMembers();
-        RebuildCompanyList();
-        RebuildPartyList();
+        RefreshPage(companyPage);
+        RefreshPage(partyPage);
         if (startBattleButton != null && !battleManager.IsBattling)
         {
             startBattleButton.interactable = partyManager.Members.Count > 0;
@@ -566,15 +603,15 @@ public partial class SimpleMercenaryHireUI
 
     private void HandleCandidatesChanged()
     {
-        RebuildHireList();
+        RefreshPage(hirePage);
         RefreshUI();
     }
 
     private void HandleHealingChanged()
     {
-        RebuildCompanyList();
-        RebuildPartyList();
-        RebuildHealList();
+        RefreshPage(companyPage);
+        RefreshPage(partyPage);
+        RefreshPage(healPage);
         RefreshUI();
     }
 
@@ -613,9 +650,9 @@ public partial class SimpleMercenaryHireUI
         }
 
         statusText.text = $"{mercenary.MercenaryName}を{cost} Gで治療しました。";
-        RebuildCompanyList();
-        RebuildPartyList();
-        RebuildHealList();
+        RefreshPage(companyPage);
+        RefreshPage(partyPage);
+        RefreshPage(healPage);
         RefreshUI();
     }
 
@@ -682,7 +719,6 @@ public partial class SimpleMercenaryHireUI
         }
 
         SwitchToPage(jobChangePage);
-        RebuildJobChangeList();
         statusText.text =
             $"Lv{MercenaryClassProgression.PromotionLevel}以上の基本職が転職できます。";
     }
@@ -798,8 +834,8 @@ public partial class SimpleMercenaryHireUI
         statusText.text =
             $"{mercenary.MercenaryName}は" +
             $"{JapaneseDisplayText.GetMercenaryClass(target)}へ転職しました。";
-        RebuildJobChangeList();
-        RebuildCompanyList();
+        RefreshPage(jobChangePage);
+        RefreshPage(companyPage);
         saveManager?.SaveGame();
     }
 
@@ -826,7 +862,7 @@ public partial class SimpleMercenaryHireUI
             hireManager.CycleSelectedContract();
         contractSelectButton.GetComponentInChildren<Text>().text =
             $"契約: {JapaneseDisplayText.GetContractType(selected)}";
-        RebuildHireList();
+        RefreshPage(hirePage);
     }
 
 }

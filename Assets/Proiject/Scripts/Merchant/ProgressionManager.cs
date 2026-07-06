@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 public class ProgressionManager : MonoBehaviour
 {
@@ -165,6 +162,7 @@ public class ProgressionManager : MonoBehaviour
 
     public string GetAchievementSummary()
     {
+        ResolveReferences();
         string debtGoal = debtManager == null
             ? "借金情報なし"
             : debtManager.IsDebtCleared
@@ -384,28 +382,13 @@ public class ProgressionManager : MonoBehaviour
     private void PopulateSpecialQuests()
     {
         foreach (SpecialQuestSO definition in
-                 Resources.LoadAll<SpecialQuestSO>(string.Empty))
+                 GameAssetRepository.LoadAll<SpecialQuestSO>())
         {
             if (!specialQuestDefinitions.Contains(definition))
             {
                 specialQuestDefinitions.Add(definition);
             }
         }
-#if UNITY_EDITOR
-        foreach (string guid in AssetDatabase.FindAssets(
-                     "t:SpecialQuestSO",
-                     new[] { "Assets/Proiject/ScriptableObjects/Quests" }))
-        {
-            SpecialQuestSO definition =
-                AssetDatabase.LoadAssetAtPath<SpecialQuestSO>(
-                    AssetDatabase.GUIDToAssetPath(guid));
-            if (definition != null &&
-                !specialQuestDefinitions.Contains(definition))
-            {
-                specialQuestDefinitions.Add(definition);
-            }
-        }
-#endif
         foreach (SpecialQuestSO definition in specialQuestDefinitions)
         {
             if (definition == null ||
@@ -440,19 +423,8 @@ public class ProgressionManager : MonoBehaviour
 
     private List<ItemDataSO> FindAllItems()
     {
-        List<ItemDataSO> result =
-            new List<ItemDataSO>(Resources.LoadAll<ItemDataSO>(string.Empty));
-#if UNITY_EDITOR
-        foreach (string guid in AssetDatabase.FindAssets(
-                     "t:ItemDataSO",
-                     new[] { "Assets/Proiject/ScriptableObjects/Items" }))
-        {
-            ItemDataSO item = AssetDatabase.LoadAssetAtPath<ItemDataSO>(
-                AssetDatabase.GUIDToAssetPath(guid));
-            if (item != null && !result.Contains(item)) result.Add(item);
-        }
-#endif
-        return result;
+        return new List<ItemDataSO>(
+            GameAssetRepository.LoadAll<ItemDataSO>());
     }
 
     private void ResolveReferences()
