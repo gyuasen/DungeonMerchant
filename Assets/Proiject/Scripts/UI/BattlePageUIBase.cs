@@ -1,6 +1,6 @@
 using UnityEngine.Events;
 
-public abstract class MapPageUIBase : UIPageBase
+public abstract class BattlePageUIBase : UIPageBase
 {
     private UnityAction refreshAction;
 

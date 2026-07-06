@@ -275,6 +275,13 @@ public class MerchantData : MonoBehaviour
         return (int)Math.Min(int.MaxValue, total);
     }
 
+    public static int EstimateLifetimeEarningsForMigration(
+        int level,
+        int experience)
+    {
+        return EstimateLifetimeEarnings(level, experience);
+    }
+
     private void RecalculateLevelFromEarnings(bool grantSkillPoints = true)
     {
         int previousLevel = merchantLevel;

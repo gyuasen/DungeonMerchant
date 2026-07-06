@@ -62,7 +62,3 @@ public abstract class UIPageBase : MonoBehaviour
         button.colors = colors;
     }
 }
-
-public sealed class SimpleUIPage : UIPageBase
-{
-}

@@ -41,15 +41,3 @@ public abstract class EconomyPageUI : UIPageBase
         refreshAction?.Invoke();
     }
 }
-
-public sealed class MarketPageUI : EconomyPageUI
-{
-}
-
-public sealed class BlacksmithPageUI : EconomyPageUI
-{
-}
-
-public sealed class InventoryPageUI : EconomyPageUI
-{
-}

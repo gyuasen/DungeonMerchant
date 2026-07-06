@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class MerchantInventory : MonoBehaviour
 {
@@ -13,13 +14,14 @@ public class MerchantInventory : MonoBehaviour
         new List<InventoryItemStack>();
     [SerializeField] private List<EquipmentInstance> equipmentInstances =
         new List<EquipmentInstance>();
-    [SerializeField] private List<string> discoveredEquipmentAssetNames =
+    [FormerlySerializedAs("discoveredEquipmentAssetNames")]
+    [SerializeField] private List<string> discoveredEquipmentPersistentIds =
         new List<string>();
 
     public IReadOnlyList<InventoryItemStack> Items => items;
     public IReadOnlyList<EquipmentInstance> EquipmentInstances => equipmentInstances;
-    public IReadOnlyList<string> DiscoveredEquipmentAssetNames =>
-        discoveredEquipmentAssetNames;
+    public IReadOnlyList<string> DiscoveredEquipmentPersistentIds =>
+        discoveredEquipmentPersistentIds;
 
     public event Action InventoryChanged;
 
@@ -322,20 +324,13 @@ public class MerchantInventory : MonoBehaviour
         InventoryChanged?.Invoke();
     }
 
-    public void RestoreDiscoveredEquipment(IEnumerable<string> assetNames)
+    public void RestoreDiscoveredEquipment(
+        IEnumerable<string> persistentIds,
+        IEnumerable<string> legacyAssetNames)
     {
-        discoveredEquipmentAssetNames.Clear();
-        if (assetNames != null)
-        {
-            foreach (string assetName in assetNames)
-            {
-                if (!string.IsNullOrWhiteSpace(assetName) &&
-                    !discoveredEquipmentAssetNames.Contains(assetName))
-                {
-                    discoveredEquipmentAssetNames.Add(assetName);
-                }
-            }
-        }
+        discoveredEquipmentPersistentIds.Clear();
+        AddDiscoveredEquipmentIdentifiers(persistentIds, false);
+        AddDiscoveredEquipmentIdentifiers(legacyAssetNames, true);
 
         foreach (EquipmentInstance equipment in equipmentInstances)
         {
@@ -343,10 +338,42 @@ public class MerchantInventory : MonoBehaviour
         }
     }
 
+    private void AddDiscoveredEquipmentIdentifiers(
+        IEnumerable<string> identifiers,
+        bool resolveLegacyName)
+    {
+        if (identifiers == null)
+        {
+            return;
+        }
+
+        foreach (string identifier in identifiers)
+        {
+            if (string.IsNullOrWhiteSpace(identifier))
+            {
+                continue;
+            }
+
+            string persistentId = identifier;
+            if (resolveLegacyName)
+            {
+                ItemDataSO item =
+                    GameAssetRepository.FindByName<ItemDataSO>(identifier);
+                persistentId = item != null ? item.PersistentId : identifier;
+            }
+
+            if (!discoveredEquipmentPersistentIds.Contains(persistentId))
+            {
+                discoveredEquipmentPersistentIds.Add(persistentId);
+            }
+        }
+    }
+
     public bool HasDiscoveredEquipment(ItemDataSO item)
     {
         return item != null &&
-               discoveredEquipmentAssetNames.Contains(item.name);
+               (discoveredEquipmentPersistentIds.Contains(item.PersistentId) ||
+                discoveredEquipmentPersistentIds.Contains(item.name));
     }
 
     public void ToggleEquipmentLock(EquipmentInstance equipment)
@@ -433,12 +460,12 @@ public class MerchantInventory : MonoBehaviour
     {
         if (item == null ||
             !item.IsEquipment ||
-            discoveredEquipmentAssetNames.Contains(item.name))
+            HasDiscoveredEquipment(item))
         {
             return;
         }
 
-        discoveredEquipmentAssetNames.Add(item.name);
+        discoveredEquipmentPersistentIds.Add(item.PersistentId);
     }
 
     private void PopulateEnhancementMaterials()

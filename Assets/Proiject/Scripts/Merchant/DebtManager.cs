@@ -31,17 +31,25 @@ public class DebtManager : MonoBehaviour
     private void OnEnable()
     {
         ResolveReferences();
-        if (dayManager != null)
-        {
-            dayManager.DayChanged += HandleDayChanged;
-        }
+        SubscribeToDayChanges();
     }
 
     private void OnDisable()
     {
-        if (dayManager != null)
+        UnsubscribeFromDayChanges();
+    }
+
+    public void Initialize(
+        MerchantData targetMerchantData,
+        DayManager targetDayManager)
+    {
+        UnsubscribeFromDayChanges();
+        merchantData = targetMerchantData;
+        dayManager = targetDayManager;
+
+        if (isActiveAndEnabled)
         {
-            dayManager.DayChanged -= HandleDayChanged;
+            SubscribeToDayChanges();
         }
     }
 
@@ -98,5 +106,24 @@ public class DebtManager : MonoBehaviour
             FindObjectOfType<MerchantData>();
         dayManager = dayManager ?? GetComponent<DayManager>() ??
             FindObjectOfType<DayManager>();
+    }
+
+    private void SubscribeToDayChanges()
+    {
+        if (dayManager == null)
+        {
+            return;
+        }
+
+        dayManager.DayChanged -= HandleDayChanged;
+        dayManager.DayChanged += HandleDayChanged;
+    }
+
+    private void UnsubscribeFromDayChanges()
+    {
+        if (dayManager != null)
+        {
+            dayManager.DayChanged -= HandleDayChanged;
+        }
     }
 }

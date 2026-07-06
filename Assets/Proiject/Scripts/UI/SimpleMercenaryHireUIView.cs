@@ -116,7 +116,7 @@ public sealed class SimpleMercenaryHireUIView : MonoBehaviour
         }
     }
 
-    public const int CurrentLayoutVersion = 14;
+    public const int CurrentLayoutVersion = 15;
 
     [SerializeField] private Canvas canvas;
     [SerializeField] private RectTransform guildPanel;

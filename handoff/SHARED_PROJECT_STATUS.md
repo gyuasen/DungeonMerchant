@@ -203,6 +203,15 @@
 - 戦士の挑発中は敵のターゲット選択が変化する。
 - 傭兵詳細で最大魔力と戦闘スキル情報を確認できるようにした。
 - ビルド確認は警告0件、エラー0件で成功。
+
+## 2026-07-07 家側・永続IDとセーブ移行
+
+- `GameSaveData.CurrentVersion`を18に更新。
+- バージョン別補完処理を`SaveDataMigrator`へ集約し、`SaveManager`は現行形式の適用に専念する構成へ変更。
+- 旧アセット名で保存されたアイテム、装備、傭兵、アーキタイプ、ダンジョン、装備図鑑を永続IDへ移行する。
+- 正常に読み込めた旧セーブはVersion 18へ自動更新して書き戻す。
+- 装備図鑑の内部識別子も永続IDへ変更し、`FormerlySerializedAs`で既存Unityデータを維持する。
+- 旧セーブ移行用EditModeテストを3件追加。
 ## 2026-06-24 学校側更新
 
 - 傭兵とモンスターに最大魔力ステータスを追加。
@@ -548,6 +557,24 @@
 - 現在地、表示地域、町ボタン、施設表示の更新を各 `Refresh()` へ移管。
 - PrefabレイアウトVersion 13を導入。
 - ランタイム・Editorとも警告0件、エラー0件でビルド成功。
+
+## 2026-07-07 家側・学校更新後エラー修正
+
+- 学校側の `GameAssetRepository`・永続ID対応を取込確認。
+- `SaveManager` と `DungeonRunManager.RestoreProgress` の引数不一致による `CS1501` を修正。
+- ダンジョン選択とフロア進行を永続ID優先、旧アセット名フォールバックへ統一。
+- ダンジョン10件の永続ID設定を確認。
+- ランタイム・Editorとも警告0件、エラー0件でビルド成功。
+
+## 2026-07-07 家側・自動テスト基盤追加
+
+- Runtime asmdefとEditMode Test asmdefを追加。
+- 商人成長、借金返済、街道敵数、ダンジョン永続IDの8テストケースを追加。
+- 通常コードは警告0件、エラー0件でビルド成功。
+- UnityのAuto Refresh停止中のため、Test Runner実行はRefresh後に確認が必要。
+- Runtime asmdefへ `Unity.TextMeshPro` 参照を追加し、初回Refresh時の `TMPro` コンパイルエラーへ対応。
+- Page用MonoBehaviourを1クラス1ファイルへ分離し、PrefabのMissing Script警告へ対応。Prefab Version 15。
+- 未使用のVisual Scriptingパッケージを削除し、旧 `Assembly-CSharp` Node Library警告54件へ対応。
 
 ## UI Prefab化完了後の優先作業
 
