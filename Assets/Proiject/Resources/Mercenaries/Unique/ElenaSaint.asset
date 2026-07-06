@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de912b2128fc8ae41be1a8be596f5b30, type: 3}
   m_Name: ElenaSaint
   m_EditorClassIdentifier:
+  persistentId: mercenary.ElenaSaint
   mercenaryName: "エレナ"
   mercenaryClass: 3
   contractType: 0

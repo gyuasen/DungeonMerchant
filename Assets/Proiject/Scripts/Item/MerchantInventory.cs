@@ -122,7 +122,6 @@ public class MerchantInventory : MonoBehaviour
 
         if (!TryRemoveItem(enhancementMaterial, materialAmount))
         {
-            merchantData.AddGold(cost);
             return EquipmentEnhancementResult.NotEnoughMaterial;
         }
 
@@ -454,22 +453,8 @@ public class MerchantInventory : MonoBehaviour
         };
         enhancementMaterials.Clear();
         List<ItemDataSO> allItems =
-            new List<ItemDataSO>(Resources.LoadAll<ItemDataSO>(string.Empty));
-
-#if UNITY_EDITOR
-        string[] guids = UnityEditor.AssetDatabase.FindAssets(
-            "t:ItemDataSO",
-            new[] { "Assets/Proiject/ScriptableObjects/Items" });
-        foreach (string guid in guids)
-        {
-            ItemDataSO item = UnityEditor.AssetDatabase.LoadAssetAtPath<ItemDataSO>(
-                UnityEditor.AssetDatabase.GUIDToAssetPath(guid));
-            if (item != null && !allItems.Contains(item))
-            {
-                allItems.Add(item);
-            }
-        }
-#endif
+            new List<ItemDataSO>(
+                GameAssetRepository.LoadAll<ItemDataSO>());
 
         foreach (string itemName in names)
         {

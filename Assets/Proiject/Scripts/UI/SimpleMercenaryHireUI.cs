@@ -4,9 +4,6 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 public partial class SimpleMercenaryHireUI : MonoBehaviour
 {
@@ -617,24 +614,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     {
         RemoveMissingCandidates();
 
-        foreach (MercenaryDataSO candidate in Resources.LoadAll<MercenaryDataSO>(string.Empty))
+        foreach (MercenaryDataSO candidate in
+                 GameAssetRepository.LoadAll<MercenaryDataSO>())
         {
             AddUniqueCandidate(candidate);
         }
-
-#if UNITY_EDITOR
-        string[] guids = AssetDatabase.FindAssets(
-            "t:MercenaryDataSO",
-            new[] { "Assets/Proiject/ScriptableObjects/Mercenaries" });
-
-        foreach (string guid in guids)
-        {
-            string path = AssetDatabase.GUIDToAssetPath(guid);
-            MercenaryDataSO candidate =
-                AssetDatabase.LoadAssetAtPath<MercenaryDataSO>(path);
-            AddUniqueCandidate(candidate);
-        }
-#endif
 
         if (candidates.Count == 0)
         {
@@ -955,8 +939,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             $"{selectedDetailMercenary.MercenaryName}に" +
             $"{JapaneseDisplayText.GetItemName(equipment)}を装備しました。";
         ShowCharacterDetails(selectedDetailMercenary);
-        RebuildCompanyList();
-        RebuildPartyList();
+        RefreshPage(companyPage);
+        RefreshPage(partyPage);
         SaveEquipmentChanges();
     }
 
@@ -1005,8 +989,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             $"[{JapaneseDisplayText.GetEquipmentQuality(equipment.Quality)}] " +
             $"{JapaneseDisplayText.GetItemName(equipment.BaseItem)}を装備しました。";
         ShowCharacterDetails(selectedDetailMercenary);
-        RebuildCompanyList();
-        RebuildPartyList();
+        RefreshPage(companyPage);
+        RefreshPage(partyPage);
         SaveEquipmentChanges();
     }
 

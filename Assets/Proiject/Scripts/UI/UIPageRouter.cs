@@ -43,6 +43,15 @@ public sealed class UIPageRouter : MonoBehaviour
         }
     }
 
+    public void Refresh(RectTransform pageRoot)
+    {
+        if (pageRoot != null &&
+            pages.TryGetValue(pageRoot, out UIPageBase page))
+        {
+            page.Refresh();
+        }
+    }
+
     public void HideAll()
     {
         foreach (UIPageBase page in pages.Values)

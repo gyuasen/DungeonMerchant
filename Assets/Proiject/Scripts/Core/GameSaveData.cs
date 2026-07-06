@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public class GameSaveData
 {
-    public int version = 16;
+    public int version = 17;
     public int gold = 500;
     public int merchantLevel = 1;
     public int merchantExperience;
@@ -22,6 +22,7 @@ public class GameSaveData
     public List<int> unlockedTownIndices = new List<int> { 2 };
     public int highestUnlockedDungeonGrade;
     public string selectedDungeonAssetName;
+    public string selectedDungeonPersistentId;
     public List<SavedDungeonFloorProgress> dungeonFloorProgress =
         new List<SavedDungeonFloorProgress>();
     public List<SavedInventoryItem> inventory = new List<SavedInventoryItem>();
@@ -30,12 +31,15 @@ public class GameSaveData
     public List<SavedMercenary> hiredMercenaries = new List<SavedMercenary>();
     public List<string> partyMemberIds = new List<string>();
     public List<string> discoveredEquipmentAssetNames = new List<string>();
+    public List<string> discoveredEquipmentPersistentIds =
+        new List<string>();
     public ProgressionSaveData progression = new ProgressionSaveData();
 }
 
 [Serializable]
 public class SavedInventoryItem
 {
+    public string itemPersistentId;
     public string itemAssetName;
     public string itemName;
     public int amount;
@@ -46,7 +50,9 @@ public class SavedMercenary
 {
     public string instanceId;
     public string baseDataAssetName;
+    public string baseDataPersistentId;
     public string archetypeAssetName;
+    public string archetypePersistentId;
     public string mercenaryName;
     public MercenaryClass mercenaryClass;
     public MercenaryContractType contractType;
@@ -63,16 +69,20 @@ public class SavedMercenary
     public int contractEndDay;
     public bool contractNeedsRenewal;
     public string equippedWeaponAssetName;
+    public string equippedWeaponPersistentId;
     public SavedEquipmentInstance equippedWeaponInstance;
     public string equippedArmorAssetName;
+    public string equippedArmorPersistentId;
     public SavedEquipmentInstance equippedArmorInstance;
     public string equippedAccessoryAssetName;
+    public string equippedAccessoryPersistentId;
     public SavedEquipmentInstance equippedAccessoryInstance;
 }
 
 [Serializable]
 public class SavedDungeonFloorProgress
 {
+    public string dungeonPersistentId;
     public string dungeonAssetName;
     public int clearedFloors;
 }
@@ -82,6 +92,7 @@ public class SavedEquipmentInstance
 {
     public string instanceId;
     public string baseItemAssetName;
+    public string baseItemPersistentId;
     public EquipmentQuality quality;
     public int enhancementLevel;
     public bool isLocked;

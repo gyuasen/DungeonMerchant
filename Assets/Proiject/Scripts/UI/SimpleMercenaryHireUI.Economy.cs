@@ -495,27 +495,27 @@ public partial class SimpleMercenaryHireUI
     private void HandleInventoryChanged()
     {
         RecordDailyInventoryGains();
-        RebuildInventoryList();
-        RebuildBlacksmithList();
+        RefreshPage(inventoryPage);
+        RefreshPage(blacksmithPage);
         RefreshUI();
     }
 
     private void HandleMarketStockChanged()
     {
-        RebuildMarketList();
+        RefreshPage(marketPage);
         RefreshUI();
     }
 
     private void HandleCraftingChanged()
     {
-        RebuildInventoryList();
-        RebuildBlacksmithList();
+        RefreshPage(inventoryPage);
+        RefreshPage(blacksmithPage);
         RefreshUI();
     }
 
     private void HandlePricesChanged()
     {
-        RebuildInventoryList();
+        RefreshPage(inventoryPage);
         RefreshUI();
     }
 
@@ -549,7 +549,7 @@ public partial class SimpleMercenaryHireUI
         }
 
         statusText.text = $"{itemName}を{sellPrice} Gで売却しました。";
-        RebuildInventoryList();
+        RefreshPage(inventoryPage);
         RefreshUI();
     }
 
@@ -569,8 +569,8 @@ public partial class SimpleMercenaryHireUI
         }
 
         statusText.text = $"{JapaneseDisplayText.GetItemName(entry.Item)}を{buyPrice} Gで購入しました。";
-        RebuildMarketList();
-        RebuildInventoryList();
+        RefreshPage(marketPage);
+        RefreshPage(inventoryPage);
         RefreshUI();
     }
 
@@ -585,7 +585,7 @@ public partial class SimpleMercenaryHireUI
         if (!blacksmithManager.TryCraft(recipe))
         {
             statusText.text = $"{itemName}を制作できませんでした。";
-            RebuildBlacksmithList();
+            RefreshPage(blacksmithPage);
             RefreshUI();
             return;
         }
@@ -595,8 +595,8 @@ public partial class SimpleMercenaryHireUI
             ? $"[{JapaneseDisplayText.GetEquipmentQuality(crafted.Quality)}] " +
               $"{itemName}を制作しました。"
             : $"{itemName}を制作しました。";
-        RebuildBlacksmithList();
-        RebuildInventoryList();
+        RefreshPage(blacksmithPage);
+        RefreshPage(inventoryPage);
         RefreshUI();
     }
 
@@ -640,7 +640,7 @@ public partial class SimpleMercenaryHireUI
             System.Enum.GetValues(typeof(InventoryFilter)).Length);
         inventoryFilterButton.GetComponentInChildren<Text>().text =
             $"絞込: {GetInventoryFilterLabel(inventoryFilter)}";
-        RebuildInventoryList();
+        RefreshPage(inventoryPage);
     }
 
     private void CycleEquipmentSort()
@@ -650,7 +650,7 @@ public partial class SimpleMercenaryHireUI
             System.Enum.GetValues(typeof(EquipmentSort)).Length);
         equipmentSortButton.GetComponentInChildren<Text>().text =
             $"並替: {GetEquipmentSortLabel(equipmentSort)}";
-        RebuildInventoryList();
+        RefreshPage(inventoryPage);
     }
 
     private bool MatchesInventoryFilter(ItemDataSO item)

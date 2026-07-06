@@ -98,10 +98,10 @@ public partial class SimpleMercenaryHireUI
         {
             mercenaryGenerator.ClearCandidates();
         }
-        RebuildMarketList();
-        RebuildInventoryList();
-        RebuildHealList();
-        RebuildCompanyList();
+        RefreshPage(marketPage);
+        RefreshPage(inventoryPage);
+        RefreshPage(healPage);
+        RefreshPage(companyPage);
         RefreshUI();
         string debtNotice = debtManager != null &&
                             (currentDay - 1) % DebtManager.DaysPerMonth == 0 &&

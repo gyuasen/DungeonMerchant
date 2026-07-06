@@ -111,7 +111,6 @@ public class MercenaryHireManager : MonoBehaviour
             : MercenaryContractType.Local;
         if (UnityEngine.Random.value > merchantData.GetHireSuccessRate())
         {
-            merchantData.AddGold(mercenary.HireCost);
             return false;
         }
         mercenary.SetContract(

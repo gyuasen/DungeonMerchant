@@ -2,9 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 public class SaveManager : MonoBehaviour
 {
@@ -170,6 +167,11 @@ public class SaveManager : MonoBehaviour
             selectedDungeonAssetName =
                 dungeonRunManager != null && dungeonRunManager.SelectedDungeon != null
                     ? dungeonRunManager.SelectedDungeon.name
+                    : string.Empty,
+            selectedDungeonPersistentId =
+                dungeonRunManager != null &&
+                dungeonRunManager.SelectedDungeon != null
+                    ? dungeonRunManager.SelectedDungeon.PersistentId
                     : string.Empty
         };
 
@@ -198,6 +200,7 @@ public class SaveManager : MonoBehaviour
 
                 data.inventory.Add(new SavedInventoryItem
                 {
+                    itemPersistentId = stack.Item.PersistentId,
                     itemAssetName = stack.Item.name,
                     itemName = stack.Item.itemName,
                     amount = stack.Amount
@@ -228,8 +231,14 @@ public class SaveManager : MonoBehaviour
                     baseDataAssetName = mercenary.BaseData != null
                         ? mercenary.BaseData.name
                         : string.Empty,
+                    baseDataPersistentId = mercenary.BaseData != null
+                        ? mercenary.BaseData.PersistentId
+                        : string.Empty,
                     archetypeAssetName = mercenary.Archetype != null
                         ? mercenary.Archetype.name
+                        : string.Empty,
+                    archetypePersistentId = mercenary.Archetype != null
+                        ? mercenary.Archetype.PersistentId
                         : string.Empty,
                     mercenaryName = mercenary.MercenaryName,
                     mercenaryClass = mercenary.MercenaryClass,
@@ -249,18 +258,30 @@ public class SaveManager : MonoBehaviour
                     equippedWeaponAssetName = mercenary.EquippedWeapon != null
                         ? mercenary.EquippedWeapon.name
                         : string.Empty,
+                    equippedWeaponPersistentId =
+                        mercenary.EquippedWeapon != null
+                            ? mercenary.EquippedWeapon.PersistentId
+                            : string.Empty,
                     equippedWeaponInstance = mercenary.EquippedWeaponInstance != null
                         ? CreateSavedEquipment(mercenary.EquippedWeaponInstance)
                         : null,
                     equippedArmorAssetName = mercenary.EquippedArmor != null
                         ? mercenary.EquippedArmor.name
                         : string.Empty,
+                    equippedArmorPersistentId =
+                        mercenary.EquippedArmor != null
+                            ? mercenary.EquippedArmor.PersistentId
+                            : string.Empty,
                     equippedArmorInstance = mercenary.EquippedArmorInstance != null
                         ? CreateSavedEquipment(mercenary.EquippedArmorInstance)
                         : null,
                     equippedAccessoryAssetName = mercenary.EquippedAccessory != null
                         ? mercenary.EquippedAccessory.name
                         : string.Empty,
+                    equippedAccessoryPersistentId =
+                        mercenary.EquippedAccessory != null
+                            ? mercenary.EquippedAccessory.PersistentId
+                            : string.Empty,
                     equippedAccessoryInstance =
                         mercenary.EquippedAccessoryInstance != null
                             ? CreateSavedEquipment(
@@ -331,7 +352,10 @@ public class SaveManager : MonoBehaviour
                     continue;
                 }
 
-                ItemDataSO item = FindItem(savedItem.itemAssetName, savedItem.itemName);
+                ItemDataSO item = FindItem(
+                    savedItem.itemPersistentId,
+                    savedItem.itemAssetName,
+                    savedItem.itemName);
                 if (item != null && savedItem.amount > 0)
                 {
                     restoredItems.Add(new InventoryItemStack(item, savedItem.amount));
@@ -410,6 +434,7 @@ public class SaveManager : MonoBehaviour
                 (int)DungeonGrade.Low,
                 (int)DungeonGrade.Highest),
             data.selectedDungeonAssetName,
+            data.selectedDungeonPersistentId,
             data.version >= 12 ? data.dungeonFloorProgress : null);
     }
 
@@ -417,8 +442,12 @@ public class SaveManager : MonoBehaviour
     {
         MercenaryInstance mercenary = MercenaryInstance.CreateRestored(
             saved.instanceId,
-            FindMercenaryData(saved.baseDataAssetName),
-            FindArchetype(saved.archetypeAssetName),
+            FindMercenaryData(
+                saved.baseDataPersistentId,
+                saved.baseDataAssetName),
+            FindArchetype(
+                saved.archetypePersistentId,
+                saved.archetypeAssetName),
             saved.mercenaryName,
             saved.mercenaryClass,
             saved.contractType,
@@ -434,16 +463,19 @@ public class SaveManager : MonoBehaviour
         RestoreMercenaryEquipment(
             mercenary,
             EquipmentSlot.Weapon,
+            saved.equippedWeaponPersistentId,
             saved.equippedWeaponAssetName,
             saved.equippedWeaponInstance);
         RestoreMercenaryEquipment(
             mercenary,
             EquipmentSlot.Armor,
+            saved.equippedArmorPersistentId,
             saved.equippedArmorAssetName,
             saved.equippedArmorInstance);
         RestoreMercenaryEquipment(
             mercenary,
             EquipmentSlot.Accessory,
+            saved.equippedAccessoryPersistentId,
             saved.equippedAccessoryAssetName,
             saved.equippedAccessoryInstance);
         mercenary.SetCurrentHP(saved.currentHP);
@@ -460,6 +492,7 @@ public class SaveManager : MonoBehaviour
     private void RestoreMercenaryEquipment(
         MercenaryInstance mercenary,
         EquipmentSlot slot,
+        string itemPersistentId,
         string itemAssetName,
         SavedEquipmentInstance savedInstance)
     {
@@ -472,7 +505,7 @@ public class SaveManager : MonoBehaviour
 
         mercenary.RestoreEquippedEquipment(
             slot,
-            FindItem(itemAssetName, string.Empty));
+            FindItem(itemPersistentId, itemAssetName, string.Empty));
     }
 
     private static SavedEquipmentInstance CreateSavedEquipment(
@@ -482,6 +515,7 @@ public class SaveManager : MonoBehaviour
         {
             instanceId = equipment.InstanceId,
             baseItemAssetName = equipment.BaseItem.name,
+            baseItemPersistentId = equipment.BaseItem.PersistentId,
             quality = equipment.Quality,
             enhancementLevel = equipment.EnhancementLevel,
             isLocked = equipment.IsLocked
@@ -507,7 +541,10 @@ public class SaveManager : MonoBehaviour
             return null;
         }
 
-        ItemDataSO baseItem = FindItem(saved.baseItemAssetName, string.Empty);
+        ItemDataSO baseItem = FindItem(
+            saved.baseItemPersistentId,
+            saved.baseItemAssetName,
+            string.Empty);
         if (baseItem == null)
         {
             return null;
@@ -589,12 +626,24 @@ public class SaveManager : MonoBehaviour
     private void HandleBattleCompleted(bool victory) => SaveGame();
     private void HandleDungeonCompleted(bool cleared) => SaveGame();
 
-    private ItemDataSO FindItem(string assetName, string itemName)
+    private ItemDataSO FindItem(
+        string persistentId,
+        string assetName,
+        string itemName)
     {
-        foreach (ItemDataSO item in FindAssets<ItemDataSO>(
-            "Assets/Proiject/ScriptableObjects/Items"))
+        ItemDataSO persistentMatch =
+            GameAssetRepository.FindByPersistentId<ItemDataSO>(
+                persistentId,
+                assetName);
+        if (persistentMatch != null)
         {
-            if (item.name == assetName || item.itemName == itemName)
+            return persistentMatch;
+        }
+
+        foreach (ItemDataSO item in
+                 GameAssetRepository.LoadAll<ItemDataSO>())
+        {
+            if (item.itemName == itemName)
             {
                 return item;
             }
@@ -602,53 +651,22 @@ public class SaveManager : MonoBehaviour
         return null;
     }
 
-    private MercenaryDataSO FindMercenaryData(string assetName)
+    private MercenaryDataSO FindMercenaryData(
+        string persistentId,
+        string assetName)
     {
-        return FindAssetByName<MercenaryDataSO>(
-            assetName,
-            "Assets/Proiject/ScriptableObjects/Mercenaries");
+        return GameAssetRepository.FindByPersistentId<MercenaryDataSO>(
+            persistentId,
+            assetName);
     }
 
-    private MercenaryArchetypeSO FindArchetype(string assetName)
+    private MercenaryArchetypeSO FindArchetype(
+        string persistentId,
+        string assetName)
     {
-        return FindAssetByName<MercenaryArchetypeSO>(
-            assetName,
-            "Assets/Proiject/ScriptableObjects/Mercenaries");
-    }
-
-    private T FindAssetByName<T>(string assetName, string editorFolder)
-        where T : UnityEngine.Object
-    {
-        if (string.IsNullOrWhiteSpace(assetName))
-        {
-            return null;
-        }
-
-        foreach (T asset in FindAssets<T>(editorFolder))
-        {
-            if (asset.name == assetName)
-            {
-                return asset;
-            }
-        }
-        return null;
-    }
-
-    private List<T> FindAssets<T>(string editorFolder) where T : UnityEngine.Object
-    {
-        List<T> assets = new List<T>(Resources.LoadAll<T>(string.Empty));
-#if UNITY_EDITOR
-        string[] guids = AssetDatabase.FindAssets($"t:{typeof(T).Name}", new[] { editorFolder });
-        foreach (string guid in guids)
-        {
-            T asset = AssetDatabase.LoadAssetAtPath<T>(AssetDatabase.GUIDToAssetPath(guid));
-            if (asset != null && !assets.Contains(asset))
-            {
-                assets.Add(asset);
-            }
-        }
-#endif
-        return assets;
+        return GameAssetRepository.FindByPersistentId<MercenaryArchetypeSO>(
+            persistentId,
+            assetName);
     }
 
     private void ResolveReferences()

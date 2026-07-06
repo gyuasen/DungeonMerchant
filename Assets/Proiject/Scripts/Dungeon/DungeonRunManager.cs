@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 public class DungeonRunManager : MonoBehaviour
 {
@@ -905,24 +902,11 @@ public class DungeonRunManager : MonoBehaviour
     {
         RemoveMissingDungeons();
 
-        foreach (DungeonDataSO data in Resources.LoadAll<DungeonDataSO>(string.Empty))
+        foreach (DungeonDataSO data in
+                 GameAssetRepository.LoadAll<DungeonDataSO>())
         {
             AddDungeon(data);
         }
-
-#if UNITY_EDITOR
-        string[] guids = AssetDatabase.FindAssets(
-            "t:DungeonDataSO",
-            new[] { "Assets/Proiject/ScriptableObjects/Dungeons" });
-
-        foreach (string guid in guids)
-        {
-            string path = AssetDatabase.GUIDToAssetPath(guid);
-            DungeonDataSO data =
-                AssetDatabase.LoadAssetAtPath<DungeonDataSO>(path);
-            AddDungeon(data);
-        }
-#endif
 
         availableDungeons.Sort((left, right) =>
         {

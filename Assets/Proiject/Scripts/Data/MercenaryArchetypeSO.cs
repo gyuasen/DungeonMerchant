@@ -3,9 +3,10 @@ using UnityEngine;
 [CreateAssetMenu(
     fileName = "MercenaryArchetype",
     menuName = "DungeonMerchant/Mercenary Archetype")]
-public class MercenaryArchetypeSO : ScriptableObject
+public class MercenaryArchetypeSO : ScriptableObject, IPersistentGameAsset
 {
     [Header("Basic Info")]
+    [SerializeField] private string persistentId;
     public MercenaryClass mercenaryClass;
     public MercenaryContractType contractType = MercenaryContractType.Temporary;
 
@@ -20,4 +21,6 @@ public class MercenaryArchetypeSO : ScriptableObject
     [Header("Random Variation")]
     [Range(0f, 0.5f)] public float statVariation = 0.15f;
     [Range(0f, 0.5f)] public float hireCostVariation = 0.2f;
+    public string PersistentId =>
+        string.IsNullOrWhiteSpace(persistentId) ? name : persistentId;
 }
