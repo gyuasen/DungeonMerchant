@@ -63,6 +63,10 @@ public partial class SimpleMercenaryHireUI
             uiFont,
             ParchmentMutedColor,
             ButtonTextColor,
+            MutedTextColor,
+            RowColor,
+            WoodButtonColor,
+            FrameColor,
             CycleHireContract,
             null);
         ConfigureHireListPage(pageUI);
@@ -127,6 +131,10 @@ public partial class SimpleMercenaryHireUI
             uiFont,
             ParchmentMutedColor,
             ButtonTextColor,
+            MutedTextColor,
+            RowColor,
+            WoodButtonColor,
+            FrameColor,
             ShowQuestOverlay,
             null);
         ConfigureCompanyListPage(pageUI);
@@ -142,6 +150,10 @@ public partial class SimpleMercenaryHireUI
             uiFont,
             ParchmentMutedColor,
             ButtonTextColor,
+            MutedTextColor,
+            RowColor,
+            WoodButtonColor,
+            FrameColor,
             CycleHireContract,
             null);
         ConfigureHireListPage(pageUI);
@@ -158,6 +170,10 @@ public partial class SimpleMercenaryHireUI
             uiFont,
             ParchmentMutedColor,
             ButtonTextColor,
+            MutedTextColor,
+            RowColor,
+            WoodButtonColor,
+            FrameColor,
             ShowQuestOverlay,
             null);
         ConfigureCompanyListPage(pageUI);
@@ -182,7 +198,14 @@ public partial class SimpleMercenaryHireUI
             partyPage.gameObject.AddComponent<PartyPageUI>();
         pageUI.Initialize(title, partyList);
         pageUI.Configure(
-            uiBodyFont, ParchmentMutedColor, null);
+            uiBodyFont,
+            ParchmentMutedColor,
+            MutedTextColor,
+            ButtonTextColor,
+            RowColor,
+            WoodButtonColor,
+            FrameColor,
+            null);
         ConfigurePartyListPage(pageUI);
         pageRouter.Register(partyPage);
     }
@@ -236,7 +259,14 @@ public partial class SimpleMercenaryHireUI
             healPage.gameObject.AddComponent<HealPageUI>();
         pageUI.Initialize(title, description, healList);
         pageUI.Configure(
-            uiBodyFont, ParchmentMutedColor, null);
+            uiBodyFont,
+            ParchmentMutedColor,
+            MutedTextColor,
+            ButtonTextColor,
+            RowColor,
+            WoodButtonColor,
+            FrameColor,
+            null);
         ConfigureHealListPage(pageUI);
         pageRouter.Register(healPage);
     }
@@ -282,7 +312,18 @@ public partial class SimpleMercenaryHireUI
             jobChangePage.gameObject.AddComponent<JobChangePageUI>();
         pageUI.Initialize(title, scroll, jobChangeList);
         pageUI.Configure(
-            uiFont, ParchmentTextColor, RebuildJobChangeList);
+            uiFont,
+            ParchmentTextColor,
+            MutedTextColor,
+            ButtonTextColor,
+            RowColor,
+            WoodButtonColor,
+            FrameColor,
+            null);
+        pageUI.ConfigureJobChangeList(
+            () => hireManager.HiredMercenaries,
+            ShouldShowSpecialPromotion,
+            PromoteMercenary);
         pageRouter.Register(jobChangePage);
     }
 
@@ -292,18 +333,28 @@ public partial class SimpleMercenaryHireUI
             ResetHireListTracking,
             () => candidates,
             ShouldShowFixedHireCandidate,
-            CreateCandidateRow,
             () => mercenaryGenerator.Candidates,
             candidate => candidate != null,
-            CreateGeneratedCandidateRow);
+            GetUnlockedContractType,
+            () => merchantData.GetHireSuccessRate(),
+            candidate => !hiredCandidates.Contains(candidate) &&
+                         hireManager.CanAfford(candidate),
+            candidate => hireManager.CanAfford(candidate),
+            Hire,
+            HireGeneratedCandidate,
+            RegisterFixedHireButton,
+            RegisterGeneratedHireButton);
     }
 
     private void ConfigureCompanyListPage(CompanyPageUI pageUI)
     {
         pageUI.ConfigureCompanyList(
             () => hireManager.HiredMercenaries,
-            CreateCompanyRow,
-            CreateMercenaryListEmptyMessage);
+            mercenary => partyManager.Contains(mercenary),
+            mercenary => hireManager.GetRenewalCost(mercenary),
+            TogglePartyMember,
+            ShowCharacterDetails,
+            RenewContract);
     }
 
     private void ConfigurePartyListPage(PartyPageUI pageUI)
@@ -311,16 +362,17 @@ public partial class SimpleMercenaryHireUI
         pageUI.ConfigurePartyList(
             () => partyManager.MaxPartySize,
             () => partyManager.Members,
-            CreatePartyRow,
-            CreateEmptyPartyRow);
+            RemovePartyMember);
     }
 
     private void ConfigureHealListPage(HealPageUI pageUI)
     {
         pageUI.ConfigureHealList(
             () => hireManager.HiredMercenaries,
-            CreateHealRow,
-            CreateMercenaryListEmptyMessage);
+            mercenary => healingManager.GetMissingHP(mercenary),
+            mercenary => healingManager.GetFullHealCost(mercenary),
+            mercenary => healingManager.CanHeal(mercenary),
+            HealMercenary);
     }
 
     private void ResetHireListTracking()
@@ -351,162 +403,20 @@ public partial class SimpleMercenaryHireUI
             ParchmentMutedColor);
     }
 
-    private void CreateCandidateRow(RectTransform parent, MercenaryDataSO candidate, float top)
+    private void RegisterFixedHireButton(
+        Button hireButton,
+        MercenaryDataSO candidate)
     {
-        RectTransform row = CreateRow(candidate.mercenaryName, parent, top);
-
-        CreateText(row, candidate.mercenaryName, 22, FontStyle.Bold, TextAnchor.MiddleLeft,
-            new Vector2(18f, -42f), new Vector2(-160f, -12f), Color.white);
-
-        string details =
-            $"{JapaneseDisplayText.GetMercenaryClass(candidate.mercenaryClass)}  |  " +
-            $"{JapaneseDisplayText.GetContractType(GetUnlockedContractType())}  |  " +
-            $"成功率 {merchantData.GetHireSuccessRate() * 100f:0}%  |  " +
-            $"HP {candidate.maxHP}  攻撃 {candidate.attack}  防御 {candidate.defense}";
-
-        CreateText(row, details, 14, FontStyle.Normal, TextAnchor.MiddleLeft,
-            new Vector2(18f, -76f), new Vector2(-160f, -48f), MutedTextColor);
-
-        Button hireButton = CreateActionButton(
-            row,
-            $"{candidate.hireCost} G",
-            () => Hire(candidate));
-
         hireButtons.Add(hireButton);
         displayedCandidates.Add(candidate);
     }
 
-    private void CreateCompanyRow(RectTransform parent, MercenaryInstance mercenary, float top)
+    private void RegisterGeneratedHireButton(
+        Button hireButton,
+        MercenaryInstance candidate)
     {
-        RectTransform row = CreateRow(mercenary.MercenaryName, parent, top);
-        CreateText(row, mercenary.MercenaryName, 22, FontStyle.Bold, TextAnchor.MiddleLeft,
-            new Vector2(18f, -42f), new Vector2(-300f, -12f), Color.white);
-
-        string contractStatus = mercenary.ContractNeedsRenewal
-            ? "更新待ち"
-            : mercenary.ContractEndDay > 0
-                ? $"期限 {mercenary.ContractEndDay}日"
-                : "期限なし";
-        string details =
-            $"レベル {mercenary.Level}  経験値 " +
-            $"{mercenary.CurrentExperience}/{mercenary.ExperienceToNextLevel}  |  " +
-            $"{JapaneseDisplayText.GetMercenaryClass(mercenary.MercenaryClass)}  |  " +
-            $"HP {mercenary.CurrentHP}/{mercenary.MaxHP}  |  " +
-            $"{JapaneseDisplayText.GetContractType(mercenary.ContractType)} " +
-            contractStatus;
-
-        CreateText(row, details, 13, FontStyle.Normal, TextAnchor.MiddleLeft,
-            new Vector2(18f, -76f), new Vector2(-300f, -48f), MutedTextColor);
-
-        string shortId = mercenary.InstanceId.Substring(0, 8).ToUpperInvariant();
-        CreateText(row, $"ID {shortId}", 13, FontStyle.Normal, TextAnchor.MiddleRight,
-            new Vector2(18f, -64f), new Vector2(-300f, -30f), MutedTextColor);
-
-        string actionLabel = partyManager.Contains(mercenary) ? "外す" : "加える";
-        Button partyButton =
-            CreateActionButton(row, actionLabel, () => TogglePartyMember(mercenary));
-        partyButton.GetComponent<RectTransform>().sizeDelta = new Vector2(112f, 52f);
-
-        Button detailsButton =
-            CreateActionButton(row, "詳細", () => ShowCharacterDetails(mercenary));
-        RectTransform detailsRect = detailsButton.GetComponent<RectTransform>();
-        detailsRect.sizeDelta = new Vector2(112f, 52f);
-        detailsRect.anchoredPosition = new Vector2(-142f, 0f);
-
-        if (mercenary.ContractNeedsRenewal)
-        {
-            Button renewButton = CreateActionButton(
-                row,
-                $"更新 {hireManager.GetRenewalCost(mercenary)}G",
-                () => RenewContract(mercenary));
-            RectTransform renewRect = renewButton.GetComponent<RectTransform>();
-            renewRect.sizeDelta = new Vector2(112f, 52f);
-            renewRect.anchoredPosition = new Vector2(-266f, 0f);
-        }
-    }
-
-    private void CreateGeneratedCandidateRow(
-        RectTransform parent,
-        MercenaryInstance candidate,
-        float top)
-    {
-        RectTransform row = CreateRow(candidate.MercenaryName, parent, top);
-
-        CreateText(row, candidate.MercenaryName, 22, FontStyle.Bold, TextAnchor.MiddleLeft,
-            new Vector2(18f, -42f), new Vector2(-160f, -12f), Color.white);
-
-        string details =
-            $"{JapaneseDisplayText.GetMercenaryClass(candidate.MercenaryClass)}  |  " +
-            $"{JapaneseDisplayText.GetContractType(GetUnlockedContractType())}  |  " +
-            $"成功率 {merchantData.GetHireSuccessRate() * 100f:0}%  |  " +
-            $"HP {candidate.MaxHP}  攻撃 {candidate.Attack}  防御 {candidate.Defense}";
-
-        CreateText(row, details, 14, FontStyle.Normal, TextAnchor.MiddleLeft,
-            new Vector2(18f, -76f), new Vector2(-160f, -48f), MutedTextColor);
-
-        Button hireButton = CreateActionButton(
-            row,
-            $"{candidate.HireCost} G",
-            () => HireGeneratedCandidate(candidate));
-
         generatedHireButtons.Add(hireButton);
         displayedGeneratedCandidates.Add(candidate);
-    }
-
-    private void CreatePartyRow(
-        RectTransform parent,
-        MercenaryInstance mercenary,
-        int slotIndex,
-        float top)
-    {
-        RectTransform row = CreateRow($"Party Slot {slotIndex + 1}", parent, top);
-        CreateText(row, $"{slotIndex + 1}. {mercenary.MercenaryName}", 22, FontStyle.Bold,
-            TextAnchor.MiddleLeft, new Vector2(18f, -42f), new Vector2(-160f, -12f), Color.white);
-
-        string details =
-            $"レベル {mercenary.Level}  経験値 " +
-            $"{mercenary.CurrentExperience}/{mercenary.ExperienceToNextLevel}  |  " +
-            $"{JapaneseDisplayText.GetMercenaryClass(mercenary.MercenaryClass)}  |  " +
-            $"HP {mercenary.CurrentHP}/{mercenary.MaxHP}";
-
-        CreateText(row, details, 13, FontStyle.Normal, TextAnchor.MiddleLeft,
-            new Vector2(18f, -76f), new Vector2(-160f, -48f), MutedTextColor);
-
-        CreateActionButton(row, "外す", () => RemovePartyMember(mercenary));
-    }
-
-    private void CreateEmptyPartyRow(RectTransform parent, int slotIndex, float top)
-    {
-        RectTransform row = CreateRow($"Empty Party Slot {slotIndex + 1}", parent, top);
-
-        CreateText(row, $"{slotIndex + 1}. 空き枠", 20, FontStyle.Bold,
-            TextAnchor.MiddleLeft, new Vector2(18f, -58f), new Vector2(-18f, -28f),
-            MutedTextColor);
-    }
-
-    private void CreateHealRow(
-        RectTransform parent,
-        MercenaryInstance mercenary,
-        float top)
-    {
-        RectTransform row = CreateRow($"{mercenary.MercenaryName} Treatment", parent, top);
-
-        CreateText(row, mercenary.MercenaryName, 22, FontStyle.Bold,
-            TextAnchor.MiddleLeft, new Vector2(18f, -42f), new Vector2(-160f, -12f),
-            Color.white);
-
-        int missingHP = healingManager.GetMissingHP(mercenary);
-        int healCost = healingManager.GetFullHealCost(mercenary);
-        string condition = mercenary.IsIncapacitated ? "戦闘不能  |  " : string.Empty;
-        string details =
-            $"{condition}HP {mercenary.CurrentHP}/{mercenary.MaxHP}  |  " +
-            $"不足 {missingHP}  |  全回復 {healCost} G";
-
-        CreateText(row, details, 14, FontStyle.Normal, TextAnchor.MiddleLeft,
-            new Vector2(18f, -76f), new Vector2(-160f, -48f), MutedTextColor);
-
-        Button healButton = CreateActionButton(row, "治療", () => HealMercenary(mercenary));
-        healButton.interactable = healingManager.CanHeal(mercenary);
     }
 
     private void Hire(MercenaryDataSO candidate)
@@ -690,85 +600,10 @@ public partial class SimpleMercenaryHireUI
             $"Lv{MercenaryClassProgression.PromotionLevel}以上の基本職が転職できます。";
     }
 
-    private void RebuildJobChangeList()
+    private bool ShouldShowSpecialPromotion(MercenaryInstance mercenary)
     {
-        if (jobChangeList == null)
-        {
-            return;
-        }
-
-        ClearChildren(jobChangeList);
-        float top = 0f;
-        foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
-        {
-            RectTransform row =
-                CreateRow($"Job Change {mercenary.InstanceId}", jobChangeList, top);
-            CreateText(
-                row,
-                $"{mercenary.MercenaryName}  Lv{mercenary.Level}  " +
-                $"{JapaneseDisplayText.GetMercenaryClass(mercenary.MercenaryClass)}",
-                18,
-                FontStyle.Bold,
-                TextAnchor.MiddleLeft,
-                new Vector2(16f, -44f),
-                new Vector2(-370f, -8f),
-                Color.white);
-
-            if (mercenary.CanPromote)
-            {
-                MercenaryClass[] advanced =
-                    MercenaryClassProgression.GetAdvancedClasses(
-                        mercenary.MercenaryClass);
-                CreatePromotionButton(row, mercenary, advanced[0], -18f);
-                CreatePromotionButton(row, mercenary, advanced[1], -130f);
-
-                bool showSpecial =
-                    mercenary.IsUnique || HasSpecialJobCertificate();
-                if (showSpecial)
-                {
-                    CreatePromotionButton(
-                        row,
-                        mercenary,
-                        MercenaryClassProgression.GetSpecialClass(
-                            mercenary.MercenaryClass),
-                        -242f);
-                }
-            }
-            else
-            {
-                string message = MercenaryClassProgression.IsBaseClass(
-                    mercenary.MercenaryClass)
-                    ? $"Lv{MercenaryClassProgression.PromotionLevel}で転職可能"
-                    : "転職済み";
-                CreateText(
-                    row,
-                    message,
-                    14,
-                    FontStyle.Normal,
-                    TextAnchor.MiddleRight,
-                    new Vector2(16f, -72f),
-                    new Vector2(-18f, -42f),
-                    MutedTextColor);
-            }
-            top -= 112f;
-        }
-        jobChangeList.sizeDelta =
-            new Vector2(0f, Mathf.Max(430f, -top));
-    }
-
-    private void CreatePromotionButton(
-        RectTransform row,
-        MercenaryInstance mercenary,
-        MercenaryClass target,
-        float x)
-    {
-        Button button = CreateActionButton(
-            row,
-            JapaneseDisplayText.GetMercenaryClass(target),
-            () => PromoteMercenary(mercenary, target));
-        RectTransform rect = button.GetComponent<RectTransform>();
-        rect.sizeDelta = new Vector2(104f, 44f);
-        rect.anchoredPosition = new Vector2(x, 0f);
+        return mercenary != null &&
+               (mercenary.IsUnique || HasSpecialJobCertificate());
     }
 
     private void PromoteMercenary(

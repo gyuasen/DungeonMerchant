@@ -20,6 +20,7 @@
 ## 実装済み
 
 - 商人の所持金管理
+- ダンジョン報酬処理を `DungeonRewardService` に分離し、`DungeonRunManager` の責務を一部軽量化
 - 傭兵データのScriptableObject
 - 傭兵候補のランダム生成
 - 量産型傭兵は戦士・弓兵・魔法使いの3職から生成。候補3人以上なら各職最低1人を保証
@@ -693,3 +694,18 @@
 - 旧 `RebuildHireList`、`RebuildCompanyList`、`RebuildPartyList`、`RebuildHealList` は削除済み。
 - `dotnet build DungeonMerchant.sln` は警告0件、エラー0件で成功。Unity上の実表示は未確認。
 - 転職一覧 `RebuildJobChangeList` はまだ親UI側に残っている。
+## 2026-07-07 家側・責務整理継続と街道敵数ガード
+
+- `JobChangePageUI` が転職対象一覧の行ループとリスト高さ更新を担当するようにし、親UI側の `RebuildJobChangeList` を削除した。
+- その後、転職行の表示描画も `JobChangePageUI` 側へ移し、親UIには特殊転職表示判定と転職実行処理を残した。
+- `UIPageBase` に行、テキスト、アクションボタン生成の共通ヘルパーを追加した。
+- 商会一覧の行描画を `CompanyPageUI` 側へ移し、親UIには編成切替、詳細表示、契約更新の実行処理を残した。
+- 編成一覧の行描画を `PartyPageUI` 側へ移し、親UIにはパーティーから外す処理を残した。
+- 雇用候補の行描画を `HirePageUI` 側へ移し、親UIには雇用実行、候補表示判定、ボタン登録を残した。
+- 治療対象の行描画を `HealPageUI` 側へ移し、親UIには治療費・治療可否の判定と治療実行を残した。
+- 在庫・市場・鍛冶屋の行描画を `InventoryPageUI`、`MarketPageUI`、`BlacksmithPageUI` 側へ移し、親UIから該当行生成メソッドを削除した。
+- 旧雇用UI `MercenaryHireListUI` / `MercenaryHireListItemUI` はコード・Prefab・Scene・GUID参照なしを確認し、未使用として削除した。
+- 街道戦闘の敵数が大量になる問題への予防として、`RoadEncounterService` に街道ごとの敵数上限とフォールバック補充処理を明示した。
+- 街道戦闘開始時に敵リストが空の場合、通常戦闘設定へ落ちて大量敵が出ることを避けるガードを追加した。
+- `RoadEncounterServiceTests` を拡張し、フォールバック時も敵数上限を守ることを確認できるようにした。
+- `dotnet build DungeonMerchant.sln` は警告0件、エラー0件で成功。Unity Test Runnerと実表示は未確認。

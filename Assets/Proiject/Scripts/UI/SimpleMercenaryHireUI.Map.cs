@@ -671,7 +671,9 @@ public partial class SimpleMercenaryHireUI
                 destinationTownIndex,
                 out pendingRoadRareEncounter);
 
-        if (!battleManager.StartBattle(partyManager.Members, enemies))
+        if (enemies == null ||
+            enemies.Count == 0 ||
+            !battleManager.StartBattle(partyManager.Members, enemies))
         {
             pendingTravelTownIndex = -1;
             pendingTravelWasUnlock = false;
@@ -704,7 +706,9 @@ public partial class SimpleMercenaryHireUI
                 currentTownIndex,
                 destinationTownIndex,
                 out pendingRoadRareEncounter);
-        if (!battleManager.StartBattle(partyManager.Members, enemies))
+        if (enemies == null ||
+            enemies.Count == 0 ||
+            !battleManager.StartBattle(partyManager.Members, enemies))
         {
             pendingTravelTownIndex = -1;
             pendingTravelWasUnlock = false;

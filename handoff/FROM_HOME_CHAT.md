@@ -6,6 +6,24 @@
 
 - 
 
+## 家でやったこと 2026-07-08
+
+- `DungeonRunManager` の責務分離を継続。
+- ダンジョン報酬処理を `DungeonRewardService` に切り出し。
+  - 通常ゴールド獲得
+  - ダンジョン完全攻略報酬
+  - 限定装備ドロップ
+- `DungeonRunManager` は「いつ報酬を渡すか」を担当し、報酬付与の詳細は `DungeonRewardService` が担当する形に変更。
+- `dotnet build DungeonMerchant.sln` は警告0・エラー0で成功。
+
+## 変更したファイル 2026-07-08
+
+- `Assets/Proiject/Scripts/Dungeon/DungeonRunManager.cs`
+- `Assets/Proiject/Scripts/Dungeon/DungeonRewardService.cs`
+- `Assets/Proiject/Scripts/Dungeon/DungeonRewardService.cs.meta`
+- `DungeonMerchant.Runtime.csproj`
+- `Assembly-CSharp.csproj`
+
 ## 変更したファイル
 
 - 
@@ -1015,3 +1033,21 @@
 - 移行成功後はVersion 18のJSONとして一度だけ保存ファイルへ書き戻す。
 - 新規保存の装備図鑑はアセット名ではなく永続IDを記録する。旧アセット名フィールドは読み込み互換専用として残す。
 - `SaveDataMigratorTests`へ旧Version 8の補完、旧アセット名からのID変換、再移行の安全性を確認する3テストを追加した。
+## 2026-07-07 責務整理継続・転職一覧と街道敵数ガード
+
+- `JobChangePageUI` に転職対象一覧の再構築ループを移し、親UI側の `RebuildJobChangeList` を削除した。
+- `SimpleMercenaryHireUI.HireParty.cs` は、転職対象データの供給と1行描画、転職実行処理を担当する形に整理した。
+- 追加で、転職行の表示描画も `JobChangePageUI` 側へ移し、親UI側には特殊転職表示判定と転職実行処理だけを残した。
+- 今後のPageUI分離に使えるよう、`UIPageBase` へ行、テキスト、アクションボタン生成の小さな共通ヘルパーを追加した。
+- 続けて、商会一覧の行描画を `CompanyPageUI` 側へ移し、親UI側には編成切替、詳細表示、契約更新の実行処理だけを残した。
+- 編成一覧の行描画を `PartyPageUI` 側へ移し、親UI側にはパーティーから外す処理だけを残した。
+- 雇用候補の行描画を `HirePageUI` 側へ移し、親UI側には雇用実行、候補表示判定、ボタン登録のみを残した。
+- 治療対象の行描画を `HealPageUI` 側へ移し、親UI側には治療費・治療可否の判定と治療実行のみを残した。
+- 在庫・市場・鍛冶屋の行描画を `InventoryPageUI`、`MarketPageUI`、`BlacksmithPageUI` 側へ移した。
+- 親UIの `SimpleMercenaryHireUI.HireParty.cs` と `SimpleMercenaryHireUI.Economy.cs` から、雇用候補・治療・在庫・市場・鍛冶屋の行生成メソッドを削除した。
+- 旧雇用UI `MercenaryHireListUI` / `MercenaryHireListItemUI` はコード・Prefab・Scene・GUID参照がないことを確認し、未使用として削除した。
+- 街道戦闘で敵数が大量になる事故を防ぐため、`RoadEncounterService` に街道ごとの敵数上限を明示し、フォールバック敵も上限内で補充するようにした。
+- 街道戦闘開始時に敵リストが空の場合、通常戦闘設定へフォールバックして開始しないよう `SimpleMercenaryHireUI.Map.cs` 側にガードを追加した。
+- `RoadEncounterServiceTests` にフォールバック時も街道敵数上限を守るテストを追加した。
+- `dotnet build DungeonMerchant.sln` は警告0件、エラー0件で成功。
+- Unity Test Runnerでの追加テスト実行と、実機上の転職ページ・街道戦闘表示確認は未確認。

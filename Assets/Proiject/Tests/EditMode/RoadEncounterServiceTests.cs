@@ -48,6 +48,31 @@ public sealed class RoadEncounterServiceTests
         Assert.That(encounter.Count, Is.EqualTo(expectedCount));
     }
 
+    [TestCase(0, 1, 5)]
+    [TestCase(1, 2, 4)]
+    public void CreateEncounter_FallbackKeepsRouteLimit(
+        int originTown,
+        int destinationTown,
+        int expectedCount)
+    {
+        GameObject root = Track(new GameObject("Road Encounter Fallback Test"));
+        DungeonRunManager dungeonManager =
+            root.AddComponent<DungeonRunManager>();
+        BattleManager battleManager = root.AddComponent<BattleManager>();
+        RoadEncounterService service =
+            root.AddComponent<RoadEncounterService>();
+
+        SetEnemyData(battleManager, CreateEnemy("Fallback"));
+        service.Initialize(dungeonManager, battleManager);
+
+        List<EnemyDataSO> encounter = service.CreateEncounter(
+            originTown,
+            destinationTown,
+            out _);
+
+        Assert.That(encounter.Count, Is.EqualTo(expectedCount));
+    }
+
     private DungeonDataSO CreateDungeon(int townIndex, string prefix)
     {
         DungeonDataSO dungeon = Track(
@@ -65,6 +90,15 @@ public sealed class RoadEncounterServiceTests
         return dungeon;
     }
 
+    private EnemyDataSO CreateEnemy(string name)
+    {
+        EnemyDataSO enemy = Track(
+            ScriptableObject.CreateInstance<EnemyDataSO>());
+        enemy.name = name;
+        enemy.enemyName = name;
+        return enemy;
+    }
+
     private static List<DungeonDataSO> GetDungeonList(
         DungeonRunManager manager)
     {
@@ -72,6 +106,16 @@ public sealed class RoadEncounterServiceTests
             "availableDungeons",
             BindingFlags.Instance | BindingFlags.NonPublic);
         return (List<DungeonDataSO>)field.GetValue(manager);
+    }
+
+    private static void SetEnemyData(
+        BattleManager manager,
+        EnemyDataSO enemy)
+    {
+        FieldInfo field = typeof(BattleManager).GetField(
+            "enemyData",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        field.SetValue(manager, enemy);
     }
 
     private T Track<T>(T created) where T : Object

@@ -11,6 +11,16 @@ public abstract class EconomyPageUI : UIPageBase
     [SerializeField] private RectTransform listRoot;
     private UnityAction refreshAction;
     protected RectTransform ListRoot => listRoot;
+    protected Font RowFont { get; private set; }
+    protected Color RowTextColor { get; private set; } = Color.white;
+    protected Color MutedTextColor { get; private set; } = Color.gray;
+    protected Color ButtonTextColor { get; private set; } = Color.white;
+    protected Color RowColor { get; private set; } =
+        new Color(0.27f, 0.16f, 0.09f, 0.94f);
+    protected Color ButtonColor { get; private set; } =
+        new Color(0.35f, 0.22f, 0.13f, 1f);
+    protected Color FrameColor { get; private set; } =
+        new Color(0.72f, 0.52f, 0.27f, 0.9f);
 
     public void Initialize(
         Text title,
@@ -25,8 +35,20 @@ public abstract class EconomyPageUI : UIPageBase
     public void Configure(
         Font font,
         Color color,
+        Color mutedTextColor,
+        Color buttonTextColor,
+        Color rowColor,
+        Color buttonColor,
+        Color frameColor,
         UnityAction refresh)
     {
+        RowFont = font;
+        MutedTextColor = mutedTextColor;
+        ButtonTextColor = buttonTextColor;
+        RowColor = rowColor;
+        ButtonColor = buttonColor;
+        FrameColor = frameColor;
+
         ConfigureText(
             titleText, font, 15,
             TextAnchor.MiddleLeft, color);
@@ -83,4 +105,17 @@ public abstract class EconomyPageUI : UIPageBase
             new Vector2(0f, Mathf.Max(minimumHeight, -rowTop));
     }
 
+    protected void CreateEmptyMessage(string message)
+    {
+        CreateText(
+            ListRoot,
+            message,
+            RowFont,
+            18,
+            FontStyle.Normal,
+            TextAnchor.MiddleCenter,
+            new Vector2(0f, -180f),
+            new Vector2(0f, -80f),
+            MutedTextColor);
+    }
 }
