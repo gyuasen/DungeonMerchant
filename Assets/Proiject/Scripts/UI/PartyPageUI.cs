@@ -11,8 +11,14 @@ public sealed class PartyPageUI : UIPageBase
     private UnityAction refreshAction;
     private Func<int> maxSlotProvider;
     private Func<IReadOnlyList<MercenaryInstance>> memberProvider;
-    private Action<RectTransform, MercenaryInstance, int, float> createMemberRow;
-    private Action<RectTransform, int, float> createEmptyRow;
+    private Action<MercenaryInstance> removeMemberAction;
+    private Font rowFont;
+    private Color rowTextColor = Color.white;
+    private Color mutedTextColor = Color.gray;
+    private Color buttonTextColor = Color.white;
+    private Color rowColor = new Color(0.27f, 0.16f, 0.09f, 0.94f);
+    private Color buttonColor = new Color(0.35f, 0.22f, 0.13f, 1f);
+    private Color frameColor = new Color(0.72f, 0.52f, 0.27f, 0.9f);
 
     public void Initialize(Text title, RectTransform targetListRoot)
     {
@@ -23,8 +29,20 @@ public sealed class PartyPageUI : UIPageBase
     public void Configure(
         Font font,
         Color color,
+        Color targetMutedTextColor,
+        Color targetButtonTextColor,
+        Color targetRowColor,
+        Color targetButtonColor,
+        Color targetFrameColor,
         UnityAction refresh)
     {
+        rowFont = font;
+        mutedTextColor = targetMutedTextColor;
+        buttonTextColor = targetButtonTextColor;
+        rowColor = targetRowColor;
+        buttonColor = targetButtonColor;
+        frameColor = targetFrameColor;
+
         ConfigureText(
             titleText, font, 15,
             TextAnchor.MiddleLeft, color);
@@ -34,13 +52,11 @@ public sealed class PartyPageUI : UIPageBase
     public void ConfigurePartyList(
         Func<int> maxSlots,
         Func<IReadOnlyList<MercenaryInstance>> members,
-        Action<RectTransform, MercenaryInstance, int, float> memberRowFactory,
-        Action<RectTransform, int, float> emptyRowFactory)
+        Action<MercenaryInstance> targetRemoveMemberAction)
     {
         maxSlotProvider = maxSlots;
         memberProvider = members;
-        createMemberRow = memberRowFactory;
-        createEmptyRow = emptyRowFactory;
+        removeMemberAction = targetRemoveMemberAction;
     }
 
     public override void Refresh()
@@ -60,18 +76,89 @@ public sealed class PartyPageUI : UIPageBase
         {
             if (slotIndex < members.Count)
             {
-                createMemberRow?.Invoke(
-                    listRoot,
-                    members[slotIndex],
-                    slotIndex,
-                    rowTop);
+                CreatePartyRow(members[slotIndex], slotIndex, rowTop);
             }
             else
             {
-                createEmptyRow?.Invoke(listRoot, slotIndex, rowTop);
+                CreateEmptyPartyRow(slotIndex, rowTop);
             }
 
             rowTop -= 112f;
         }
+    }
+
+    private void CreatePartyRow(
+        MercenaryInstance mercenary,
+        int slotIndex,
+        float top)
+    {
+        RectTransform row =
+            CreateRow(
+                $"Party Slot {slotIndex + 1}",
+                listRoot,
+                top,
+                rowColor,
+                frameColor);
+        CreateText(
+            row,
+            $"{slotIndex + 1}. {mercenary.MercenaryName}",
+            rowFont,
+            22,
+            FontStyle.Bold,
+            TextAnchor.MiddleLeft,
+            new Vector2(18f, -42f),
+            new Vector2(-160f, -12f),
+            rowTextColor);
+
+        CreateText(
+            row,
+            BuildMercenaryDetails(mercenary),
+            rowFont,
+            13,
+            FontStyle.Normal,
+            TextAnchor.MiddleLeft,
+            new Vector2(18f, -76f),
+            new Vector2(-160f, -48f),
+            mutedTextColor);
+
+        CreateActionButton(
+            row,
+            "外す",
+            rowFont,
+            buttonColor,
+            frameColor,
+            buttonTextColor,
+            () => removeMemberAction?.Invoke(mercenary));
+    }
+
+    private void CreateEmptyPartyRow(int slotIndex, float top)
+    {
+        RectTransform row =
+            CreateRow(
+                $"Empty Party Slot {slotIndex + 1}",
+                listRoot,
+                top,
+                rowColor,
+                frameColor);
+
+        CreateText(
+            row,
+            $"{slotIndex + 1}. 空き枠",
+            rowFont,
+            20,
+            FontStyle.Bold,
+            TextAnchor.MiddleLeft,
+            new Vector2(18f, -58f),
+            new Vector2(-18f, -28f),
+            mutedTextColor);
+    }
+
+    private static string BuildMercenaryDetails(MercenaryInstance mercenary)
+    {
+        return
+            $"レベル {mercenary.Level}  経験値 " +
+            $"{mercenary.CurrentExperience}/{mercenary.ExperienceToNextLevel}  |  " +
+            $"{JapaneseDisplayText.GetMercenaryClass(mercenary.MercenaryClass)}  |  " +
+            $"HP {mercenary.CurrentHP}/{mercenary.MaxHP}";
     }
 }

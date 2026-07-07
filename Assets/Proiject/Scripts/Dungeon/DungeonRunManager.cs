@@ -20,6 +20,7 @@ public class DungeonRunManager : MonoBehaviour
     private readonly HashSet<int> unlockedTownIndices = new HashSet<int> { 2 };
     private readonly Dictionary<string, int> clearedFloorsByDungeon =
         new Dictionary<string, int>();
+    private DungeonRewardService rewardService;
     [SerializeField, Min(0)] private int currentWorldMapIndex;
 
     [Header("Run Settings")]
@@ -890,76 +891,22 @@ public class DungeonRunManager : MonoBehaviour
     private void GrantGold(int amount)
     {
         ResolveReferences();
-        merchantData?.AddGold(amount);
-        SendDungeonMessage($"{amount} Gを獲得しました。");
+        rewardService?.GrantGold(amount);
     }
 
     private void GrantClearRewards()
     {
         ResolveReferences();
-
-        if (dungeonData == null)
-        {
-            return;
-        }
-
-        int goldReward = Mathf.Max(0, dungeonData.clearGoldReward);
-        if (goldReward > 0)
-        {
-            merchantData?.AddGold(goldReward);
-            SendDungeonMessage($"踏破報酬: {goldReward} G");
-        }
-
-        if (merchantInventory == null || dungeonData.clearItemRewards == null)
-        {
-            return;
-        }
-
-        foreach (DungeonItemReward reward in dungeonData.clearItemRewards)
-        {
-            if (reward == null || reward.item == null || reward.amount <= 0)
-            {
-                continue;
-            }
-
-            merchantInventory.AddItem(reward.item, reward.amount);
-            SendDungeonMessage(
-                $"踏破報酬: {JapaneseDisplayText.GetItemName(reward.item)} x{reward.amount}");
-        }
+        rewardService?.GrantClearRewards(dungeonData);
     }
 
     private void TryGrantLimitedEquipment(float chance, string sourceLabel)
     {
         ResolveReferences();
-        if (merchantInventory == null ||
-            dungeonData?.limitedEquipmentDrops == null ||
-            dungeonData.limitedEquipmentDrops.Length == 0 ||
-            chance <= 0f ||
-            UnityEngine.Random.value > chance)
-        {
-            return;
-        }
-
-        List<ItemDataSO> validDrops = new List<ItemDataSO>();
-        foreach (ItemDataSO item in dungeonData.limitedEquipmentDrops)
-        {
-            if (item != null && item.IsEquipment)
-            {
-                validDrops.Add(item);
-            }
-        }
-
-        if (validDrops.Count == 0)
-        {
-            return;
-        }
-
-        ItemDataSO drop = validDrops[UnityEngine.Random.Range(0, validDrops.Count)];
-        EquipmentInstance equipment = EquipmentInstance.CreateRandom(drop);
-        merchantInventory.AddEquipmentInstance(equipment);
-        SendDungeonMessage(
-            $"{sourceLabel}: [{JapaneseDisplayText.GetEquipmentQuality(equipment.Quality)}] " +
-            $"{JapaneseDisplayText.GetItemName(drop)}");
+        rewardService?.TryGrantLimitedEquipment(
+            dungeonData,
+            chance,
+            sourceLabel);
     }
 
     private void PopulateDungeonDataIfNeeded()
@@ -1103,6 +1050,10 @@ public class DungeonRunManager : MonoBehaviour
         }
 
         PopulateDungeonDataIfNeeded();
+        rewardService = new DungeonRewardService(
+            merchantData,
+            merchantInventory,
+            SendDungeonMessage);
     }
 
     private void SendDungeonMessage(string message)
