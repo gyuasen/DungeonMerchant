@@ -634,3 +634,46 @@
 - Unity Editorでの再インポート後、市場、鍛冶、ダンジョン一覧、装備図鑑、既存セーブ読込の実表示確認が必要。
 - 次の優先課題は、アセット名依存のセーブ識別を永続IDへ置き換え、セーブ移行処理を専用クラスへ分離すること。
 - 戻す場合は`Resources/GameData`を元の`ScriptableObjects`へGUIDを維持して戻し、`GameAssetRepository`と各読込箇所の変更を戻す。
+
+## 2026-07-07
+
+### 町・地域進行ルールの責務分離を開始
+
+- 家側の最新作業を確認し、永続ID・セーブ移行・自動テスト基盤が反映済みであることを確認した。
+- 残っている優先作業として、町名、地域名、町の進行順、隣接判定、次に解放できる町、地域入場条件がUI側に残っている問題へ対応を開始した。
+- `TownMapService` を追加し、町・地域の進行ルールを `SimpleMercenaryHireUI` から分離した。
+- `SimpleMercenaryHireUI.MapData.cs` は既存コード互換の薄い呼び出しに変更し、実際の判定は `TownMapService` が担当するようにした。
+- 地域入場条件、解放済み地域判定、次解放町判定も `TownMapService` 経由へ移した。
+- `RestoreTownProgress` の旧進行順配列参照も `TownMapService` 経由へ変更した。
+- `TownMapServiceTests` を追加し、町の進行順、隣接判定、地域入場条件をEditModeテストで確認できるようにした。
+- `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj` は警告0件、エラー0件でビルド成功。
+- 並列ビルド時に一度だけDLLファイルロックが発生したが、単独再実行で成功した。
+- IDE補助用の旧 `Assembly-CSharp.csproj` に、家側のUI分割ファイルと今回追加した `TownMapService` の参照を補完した。
+- 旧 `Assembly-CSharp.csproj` もエラー0件でビルド成功。ただし未使用削除済みのVisual Scripting参照が残っているため、補助プロジェクト側のみ参照解決警告9件が出る。
+
+### 町移動中の状態管理をUIから分離
+
+- 次の作業として、町移動中の目的地、解放移動かどうか、ダンジョンを開く予定、接敵数、現在の接敵番号、レア接敵有無、継続選択待ち状態を `RoadTravelState` へ集約した。
+- `SimpleMercenaryHireUI` に散らばっていた `pendingTravel...` 系フィールドを削除し、街道移動の開始・継続・撤退・戦闘完了処理は `RoadTravelState` を参照するように変更した。
+- 街道戦闘の画面表示文言やボタン挙動は維持し、内部状態のリセット漏れを起こしにくい構造へ整理した。
+- `RoadTravelStateTests` を追加し、初期化、継続時の接敵番号進行、クリア処理をEditModeテストで確認できるようにした。
+- 古い `pendingRoadRareEncounter`、`pendingTravel...`、`isAwaitingRoadTravelChoice` 参照が残っていないことを検索で確認した。
+- `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj` は警告0件、エラー0件でビルド成功。
+- 旧 `Assembly-CSharp.csproj` もエラー0件でビルド成功。Visual Scripting削除後の古い参照警告9件のみ残る。
+
+### 古いVisual Scripting参照警告を整理
+
+- ユーザー要望により、旧 `Assembly-CSharp.csproj` に残っていたVisual Scripting関連参照を整理した。
+- 削除済みの `com.unity.visualscripting` を参照していた9件の `<Reference>` ブロックを削除した。
+- `Assembly-CSharp.csproj` 内に `VisualScripting` 参照が残っていないことを検索で確認した。
+- `Assembly-CSharp.csproj`、`DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj` はすべて警告0件、エラー0件でビルド成功。
+- 注意点として、`Assembly-CSharp.csproj` はUnityが再生成する補助ファイルのため、Unity側でプロジェクトファイル再生成が走ると今回の手動整理が上書きされる可能性がある。
+
+### 街道移動の開始可否判定をサービスへ移管
+
+- 次の分離作業として、街道移動を開始できるかどうかの判定を `TownMapService.ValidateTravelRequest` へ移した。
+- 隣接していない町への直接移動、未解放地域、解放順序違反、傭兵未編成の判定と失敗理由文を `TownMapService` 側で返すようにした。
+- `SimpleMercenaryHireUI.RequestTownTravel` は判定結果を受け取り、失敗時は理由表示、成功時は確認ダイアログ表示だけを担当する形へ縮小した。
+- `TownMapServiceTests` に、非隣接移動の拒否、傭兵未編成の拒否、次解放町への移動許可のテストを追加した。
+- `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj` は警告0件、エラー0件でビルド成功。
+- 旧 `Assembly-CSharp.csproj` もエラー0件でビルド成功。Visual Scripting削除後の古い参照警告9件のみ残る。

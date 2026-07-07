@@ -638,3 +638,41 @@
 - 限定共通素材「変異核」を追加し、通常特殊個体50%、特殊ボス100%でドロップ。
 - 変異核6個と800Gから制作する全職用ランク4アクセサリー「変異核の護符」を追加。
 - ビルド確認は警告0件、エラー0件で成功。
+
+## 2026-07-07 学校側・町地域ルール分離開始
+
+- 家側の永続ID・セーブ移行・自動テスト基盤の反映状況を確認した。
+- 次の優先作業として、UIに残っていた町・地域進行ルールの分離を開始した。
+- `TownMapService`を追加し、町名、地域名、町の進行順、隣接判定、次に解放できる町、地域入場条件を集約した。
+- `SimpleMercenaryHireUI`側は既存UI表示を維持しつつ、町・地域判定を`TownMapService`へ委譲する形に変更した。
+- `TownMapServiceTests`を追加し、進行順、隣接判定、地域入場条件をEditModeで確認できるようにした。
+- `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj`は警告0件、エラー0件でビルド成功。
+- 旧 `Assembly-CSharp.csproj` は不足していた分割ファイル参照を補完し、エラー0件でビルド成功。Visual Scripting削除後の古い参照警告9件のみ残る。
+- 次は、町移動中の状態管理や移動クエスト進行をUIからさらに分離する候補がある。
+
+## 2026-07-07 学校側・町移動状態の分離
+
+- `RoadTravelState`を追加し、町移動中の目的地、解放移動、ダンジョンを開く予定、接敵数、現在の接敵番号、レア接敵有無、継続選択待ち状態を集約した。
+- `SimpleMercenaryHireUI`の街道移動用の複数フィールドを削除し、開始・継続・撤退・戦闘完了処理を`RoadTravelState`参照へ変更した。
+- 表示文言とボタン挙動は維持し、内部状態のリセット漏れを起こしにくい構造にした。
+- `RoadTravelStateTests`を追加し、状態初期化、継続、クリアをEditModeで確認できるようにした。
+- `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj`は警告0件、エラー0件でビルド成功。
+- 旧`Assembly-CSharp.csproj`もエラー0件でビルド成功。Visual Scripting削除後の古い参照警告9件のみ残る。
+- 次は、街道移動の開始可否判定や到着時の町解放・日数経過処理をさらにサービスへ寄せる候補がある。
+
+## 2026-07-07 学校側・街道移動開始判定の分離
+
+- `TownMapService.ValidateTravelRequest`を追加し、街道移動を開始できるかどうかをUI外で判定するようにした。
+- 隣接していない町への直接移動、未解放地域、町の解放順序違反、傭兵未編成を判定し、失敗理由文もサービス側で返す。
+- `SimpleMercenaryHireUI.RequestTownTravel`は、判定結果に応じた表示と確認ダイアログ表示に専念する形へ縮小した。
+- `TownMapServiceTests`へ移動開始判定のテストを3件追加した。
+- `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj`は警告0件、エラー0件でビルド成功。
+- 旧`Assembly-CSharp.csproj`もエラー0件でビルド成功。Visual Scripting削除後の古い参照警告9件のみ残る。
+- 次は、街道移動勝利時の町解放、現在地更新、日数経過、保存の流れを小さな結果適用サービスへ寄せる候補がある。
+
+## 2026-07-07 学校側・Visual Scripting参照警告整理
+
+- 旧 `Assembly-CSharp.csproj` に残っていたVisual Scripting関連参照9件を削除した。
+- `Assembly-CSharp.csproj` 内に `VisualScripting` 参照が残っていないことを確認した。
+- `Assembly-CSharp.csproj`、`DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj` はすべて警告0件、エラー0件でビルド成功。
+- 注意点: `Assembly-CSharp.csproj` はUnityの自動生成補助ファイルのため、Unityのプロジェクトファイル再生成で今回の手動整理が上書きされる可能性がある。
