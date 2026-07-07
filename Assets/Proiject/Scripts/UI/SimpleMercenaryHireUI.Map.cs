@@ -502,31 +502,18 @@ public partial class SimpleMercenaryHireUI
 
     private bool CanEnterWorldRegion(int worldMapIndex)
     {
-        if (worldMapIndex <= 0 ||
-            GetWorldMapIndexForTown(currentTownIndex) == worldMapIndex ||
-            HasUnlockedTownInWorld(worldMapIndex))
-        {
-            return true;
-        }
-
-        int gateTownIndex = worldMapIndex == 1 ? 0 : 4;
-        DungeonDataSO gateDungeon =
-            dungeonRunManager.GetHighestGradeDungeonNearTown(gateTownIndex);
-        return gateDungeon != null &&
-               dungeonRunManager.GetClearedFloors(gateDungeon) >=
-               Mathf.Max(1, gateDungeon.totalFloors);
+        return TownMapService.CanEnterWorldRegion(
+            worldMapIndex,
+            currentTownIndex,
+            unlockedTownIndices,
+            dungeonRunManager);
     }
 
     private bool HasUnlockedTownInWorld(int worldMapIndex)
     {
-        foreach (int townIndex in unlockedTownIndices)
-        {
-            if (GetWorldMapIndexForTown(townIndex) == worldMapIndex)
-            {
-                return true;
-            }
-        }
-        return false;
+        return TownMapService.HasUnlockedTownInWorld(
+            worldMapIndex,
+            unlockedTownIndices);
     }
 
     private void ShowTownMap()
@@ -567,51 +554,24 @@ public partial class SimpleMercenaryHireUI
         int townIndex,
         bool openDungeonAfterTravel)
     {
-        if (!AreTownsAdjacent(townIndex, currentTownIndex))
+        TownMapService.TravelValidationResult validation =
+            TownMapService.ValidateTravelRequest(
+                currentTownIndex,
+                townIndex,
+                unlockedTownIndices,
+                partyManager.Members.Count > 0,
+                dungeonRunManager);
+        if (!validation.CanTravel)
         {
-            int nextTownIndex =
-                GetNextTownToward(currentTownIndex, townIndex);
-            statusText.text =
-                $"{TownNames[townIndex]}へ直接は移動できません。" +
-                (nextTownIndex >= 0
-                    ? $"先に{TownNames[nextTownIndex]}を経由してください。"
-                    : string.Empty);
-            return;
-        }
-
-        int destinationWorld = GetWorldMapIndexForTown(townIndex);
-        if (!CanEnterWorldRegion(destinationWorld))
-        {
-            statusText.text =
-                $"{WorldRegionNames[destinationWorld]}の解放条件を満たしていません。";
-            return;
-        }
-
-        bool isUnlocked = unlockedTownIndices.Contains(townIndex);
-        if (!isUnlocked)
-        {
-            int nextTownIndex = GetNextUnlockableTownIndex();
-            if (townIndex != nextTownIndex)
-            {
-                statusText.text = nextTownIndex >= 0
-                    ? $"先に{TownNames[nextTownIndex]}への移動クエストを攻略してください。"
-                    : "これ以上解放できる町はありません。";
-                return;
-            }
-        }
-
-        if (partyManager.Members.Count == 0)
-        {
-            statusText.text =
-                "町の移動には街道戦闘が発生するため、傭兵の編成が必要です。";
+            statusText.text = validation.FailureMessage;
             return;
         }
 
         confirmationTravelTownIndex = townIndex;
         confirmationOpenDungeonAfterTravel = openDungeonAfterTravel;
-        string unlockNotice = isUnlocked
-            ? string.Empty
-            : "\n勝利すると新しい町が解放されます。";
+        string unlockNotice = validation.IsUnlockTravel
+            ? "\n勝利すると新しい町が解放されます。"
+            : string.Empty;
         travelConfirmationText.text =
             $"{TownNames[currentTownIndex]} から\n" +
             $"{TownNames[townIndex]} へ移動します。\n\n" +
@@ -669,42 +629,36 @@ public partial class SimpleMercenaryHireUI
         }
 
         ResetBattleLog();
-        pendingTravelTownIndex = destinationTownIndex;
-        pendingTravelWasUnlock =
-            !unlockedTownIndices.Contains(destinationTownIndex);
-        pendingOpenDungeonAfterTravel = openDungeonAfterTravel;
-        pendingTravelEncounterCount = UnityEngine.Random.Range(3, 6);
-        pendingTravelEncounterIndex = 1;
-        isAwaitingRoadTravelChoice = false;
+        roadTravelState.Begin(
+            destinationTownIndex,
+            !unlockedTownIndices.Contains(destinationTownIndex),
+            openDungeonAfterTravel,
+            UnityEngine.Random.Range(3, 6));
         List<EnemyDataSO> enemies =
             roadEncounterService.CreateEncounter(
                 currentTownIndex,
                 destinationTownIndex,
-                out pendingRoadRareEncounter);
+                out bool containsRareEncounter);
+        roadTravelState.SetRareEncounter(containsRareEncounter);
 
         if (!battleManager.StartBattle(partyManager.Members, enemies))
         {
-            pendingTravelTownIndex = -1;
-            pendingTravelWasUnlock = false;
-            pendingOpenDungeonAfterTravel = false;
-            pendingTravelEncounterCount = 0;
-            pendingTravelEncounterIndex = 0;
-            isAwaitingRoadTravelChoice = false;
+            roadTravelState.Clear();
             statusText.text = "街道戦闘を開始できませんでした。";
             return;
         }
 
         ShowRoadBattlePage(currentTownIndex, destinationTownIndex);
         statusText.text =
-            $"町の移動: 街道戦闘 {pendingTravelEncounterIndex}/" +
-            $"{pendingTravelEncounterCount}";
+            $"町の移動: 街道戦闘 {roadTravelState.EncounterIndex}/" +
+            $"{roadTravelState.EncounterCount}";
     }
 
     private IEnumerator ContinueTownTravelBattleRoutine()
     {
         yield return null;
 
-        int destinationTownIndex = pendingTravelTownIndex;
+        int destinationTownIndex = roadTravelState.DestinationTownIndex;
         if (destinationTownIndex < 0)
         {
             yield break;
@@ -714,15 +668,11 @@ public partial class SimpleMercenaryHireUI
             roadEncounterService.CreateEncounter(
                 currentTownIndex,
                 destinationTownIndex,
-                out pendingRoadRareEncounter);
+                out bool containsRareEncounter);
+        roadTravelState.SetRareEncounter(containsRareEncounter);
         if (!battleManager.StartBattle(partyManager.Members, enemies))
         {
-            pendingTravelTownIndex = -1;
-            pendingTravelWasUnlock = false;
-            pendingOpenDungeonAfterTravel = false;
-            pendingTravelEncounterCount = 0;
-            pendingTravelEncounterIndex = 0;
-            isAwaitingRoadTravelChoice = false;
+            roadTravelState.Clear();
             ShowWorldMap();
             statusText.text = "次の街道戦闘を開始できませんでした。";
             yield break;
@@ -730,43 +680,40 @@ public partial class SimpleMercenaryHireUI
 
         ShowRoadBattlePage(currentTownIndex, destinationTownIndex);
         statusText.text =
-            $"町の移動: 街道戦闘 {pendingTravelEncounterIndex}/" +
-            $"{pendingTravelEncounterCount}";
+            $"町の移動: 街道戦闘 {roadTravelState.EncounterIndex}/" +
+            $"{roadTravelState.EncounterCount}";
     }
 
     private void ContinueTownTravel()
     {
-        if (!isAwaitingRoadTravelChoice ||
-            pendingTravelTownIndex < 0 ||
+        if (!roadTravelState.IsAwaitingChoice ||
+            !roadTravelState.IsActive ||
             battleManager.IsBattling)
         {
             return;
         }
 
-        isAwaitingRoadTravelChoice = false;
+        if (!roadTravelState.ContinueToNextEncounter())
+        {
+            return;
+        }
+
         roadContinueButton.gameObject.SetActive(false);
         roadRetreatButton.gameObject.SetActive(false);
-        pendingTravelEncounterIndex++;
         statusText.text =
-            $"街道戦闘 {pendingTravelEncounterIndex}/" +
-            $"{pendingTravelEncounterCount} の敵が接近しています。";
+            $"街道戦闘 {roadTravelState.EncounterIndex}/" +
+            $"{roadTravelState.EncounterCount} の敵が接近しています。";
         StartCoroutine(ContinueTownTravelBattleRoutine());
     }
 
     private void RetreatFromTownTravel()
     {
-        if (!isAwaitingRoadTravelChoice || battleManager.IsBattling)
+        if (!roadTravelState.IsAwaitingChoice || battleManager.IsBattling)
         {
             return;
         }
 
-        pendingTravelTownIndex = -1;
-        pendingTravelWasUnlock = false;
-        pendingOpenDungeonAfterTravel = false;
-        pendingTravelEncounterCount = 0;
-        pendingTravelEncounterIndex = 0;
-        isAwaitingRoadTravelChoice = false;
-        pendingRoadRareEncounter = false;
+        roadTravelState.Clear();
         roadContinueButton.gameObject.SetActive(false);
         roadRetreatButton.gameObject.SetActive(false);
         ShowTownMap();
@@ -864,14 +811,7 @@ public partial class SimpleMercenaryHireUI
 
     private int GetNextUnlockableTownIndex()
     {
-        foreach (int townIndex in TownProgressionOrder)
-        {
-            if (!unlockedTownIndices.Contains(townIndex))
-            {
-                return townIndex;
-            }
-        }
-        return -1;
+        return TownMapService.GetNextUnlockableTownIndex(unlockedTownIndices);
     }
 
     private void ApplyTownServiceSettings(

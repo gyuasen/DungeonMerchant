@@ -164,15 +164,9 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Coroutine battleLogScrollCoroutine;
     private int currentTownIndex = 2;
     private int viewedWorldMapIndex;
-    private int pendingTravelTownIndex = -1;
+    private readonly RoadTravelState roadTravelState = new RoadTravelState();
     private int confirmationTravelTownIndex = -1;
     private bool confirmationOpenDungeonAfterTravel;
-    private bool pendingTravelWasUnlock;
-    private bool pendingOpenDungeonAfterTravel;
-    private int pendingTravelEncounterCount;
-    private int pendingTravelEncounterIndex;
-    private bool pendingRoadRareEncounter;
-    private bool isAwaitingRoadTravelChoice;
     private int dailySnapshotDay;
     private int dailySnapshotGold;
     private int dailySnapshotMerchantLevel;
@@ -246,7 +240,12 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             int currentOrder = GetTownProgressionPosition(currentTownIndex);
             for (int i = 0; i <= currentOrder; i++)
             {
-                unlockedTownIndices.Add(TownProgressionOrder[i]);
+                int townAtPosition =
+                    TownMapService.GetTownAtProgressionPosition(i);
+                if (townAtPosition >= 0)
+                {
+                    unlockedTownIndices.Add(townAtPosition);
+                }
             }
         }
 

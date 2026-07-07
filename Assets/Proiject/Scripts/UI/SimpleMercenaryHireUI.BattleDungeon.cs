@@ -653,32 +653,27 @@ public partial class SimpleMercenaryHireUI
         RefreshPage(healPage);
         RefreshUI();
 
-        if (pendingTravelTownIndex >= 0)
+        if (roadTravelState.IsActive)
         {
-            int destinationTownIndex = pendingTravelTownIndex;
-            bool wasUnlock = pendingTravelWasUnlock;
-            bool openDungeonAfterTravel = pendingOpenDungeonAfterTravel;
+            int destinationTownIndex = roadTravelState.DestinationTownIndex;
+            bool wasUnlock = roadTravelState.WasUnlock;
+            bool openDungeonAfterTravel =
+                roadTravelState.OpenDungeonAfterTravel;
 
-            if (victory &&
-                pendingTravelEncounterIndex < pendingTravelEncounterCount)
+            if (victory && roadTravelState.ShouldAskToContinueAfterVictory())
             {
-                isAwaitingRoadTravelChoice = true;
+                roadTravelState.AwaitChoice();
                 roadContinueButton.gameObject.SetActive(true);
                 roadRetreatButton.gameObject.SetActive(true);
                 roadBattleRouteText.text =
-                    $"接敵 {pendingTravelEncounterIndex}/" +
-                    $"{pendingTravelEncounterCount} を突破しました。\n" +
+                    $"接敵 {roadTravelState.EncounterIndex}/" +
+                    $"{roadTravelState.EncounterCount} を突破しました。\n" +
                     "次の区間へ進むか、出発した町へ撤退してください。";
                 statusText.text = "街道戦闘を続行しますか？";
                 return;
             }
 
-            pendingTravelTownIndex = -1;
-            pendingTravelWasUnlock = false;
-            pendingOpenDungeonAfterTravel = false;
-            pendingTravelEncounterCount = 0;
-            pendingTravelEncounterIndex = 0;
-            isAwaitingRoadTravelChoice = false;
+            roadTravelState.Clear();
 
             if (victory)
             {
@@ -921,15 +916,15 @@ public partial class SimpleMercenaryHireUI
         mapButton?.gameObject.SetActive(false);
         townMapButton?.gameObject.SetActive(false);
         roadContinueButton.gameObject.SetActive(
-            isAwaitingRoadTravelChoice);
+            roadTravelState.IsAwaitingChoice);
         roadRetreatButton.gameObject.SetActive(
-            isAwaitingRoadTravelChoice);
+            roadTravelState.IsAwaitingChoice);
         roadBattleRouteText.text =
             $"{TownNames[currentTownIndex]} → " +
-            $"{TownNames[pendingTravelTownIndex]}\n" +
-            $"接敵 {pendingTravelEncounterIndex}/" +
-            $"{pendingTravelEncounterCount}  |  " +
-            (pendingRoadRareEncounter
+            $"{TownNames[roadTravelState.DestinationTownIndex]}\n" +
+            $"接敵 {roadTravelState.EncounterIndex}/" +
+            $"{roadTravelState.EncounterCount}  |  " +
+            (roadTravelState.ContainsRareEncounter
                 ? "幻獣の気配を確認！"
                 : "両地域の通常モンスターが街道を塞いでいます。");
     }
