@@ -502,31 +502,20 @@ public partial class SimpleMercenaryHireUI
 
     private bool CanEnterWorldRegion(int worldMapIndex)
     {
-        if (worldMapIndex <= 0 ||
-            GetWorldMapIndexForTown(currentTownIndex) == worldMapIndex ||
-            HasUnlockedTownInWorld(worldMapIndex))
-        {
-            return true;
-        }
+        return WorldMapService.CanEnterWorldRegion(
+            worldMapIndex,
+            currentTownIndex,
+            unlockedTownIndices,
+            IsGateTownFullyCleared);
+    }
 
-        int gateTownIndex = worldMapIndex == 1 ? 0 : 4;
+    private bool IsGateTownFullyCleared(int gateTownIndex)
+    {
         DungeonDataSO gateDungeon =
             dungeonRunManager.GetHighestGradeDungeonNearTown(gateTownIndex);
         return gateDungeon != null &&
                dungeonRunManager.GetClearedFloors(gateDungeon) >=
                Mathf.Max(1, gateDungeon.totalFloors);
-    }
-
-    private bool HasUnlockedTownInWorld(int worldMapIndex)
-    {
-        foreach (int townIndex in unlockedTownIndices)
-        {
-            if (GetWorldMapIndexForTown(townIndex) == worldMapIndex)
-            {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void ShowTownMap()
@@ -864,14 +853,8 @@ public partial class SimpleMercenaryHireUI
 
     private int GetNextUnlockableTownIndex()
     {
-        foreach (int townIndex in TownProgressionOrder)
-        {
-            if (!unlockedTownIndices.Contains(townIndex))
-            {
-                return townIndex;
-            }
-        }
-        return -1;
+        return WorldMapService.GetNextUnlockableTownIndex(
+            unlockedTownIndices);
     }
 
     private void ApplyTownServiceSettings(

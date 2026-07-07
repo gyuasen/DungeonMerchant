@@ -61,4 +61,17 @@ public abstract class UIPageBase : MonoBehaviour
         colors.fadeDuration = 0.08f;
         button.colors = colors;
     }
+
+    protected static void ClearChildren(RectTransform root)
+    {
+        if (root == null)
+        {
+            return;
+        }
+
+        for (int i = root.childCount - 1; i >= 0; i--)
+        {
+            Destroy(root.GetChild(i).gameObject);
+        }
+    }
 }
