@@ -64,48 +64,10 @@ public partial class SimpleMercenaryHireUI
             ParchmentMutedColor,
             ButtonTextColor,
             CycleHireContract,
-            RebuildHireList);
+            null);
+        ConfigureHireListPage(pageUI);
         pageRouter.Register(hirePage);
         RefreshPage(hirePage);
-    }
-
-    private void RebuildHireList()
-    {
-        ClearChildren(hireList);
-        hireButtons.Clear();
-        displayedCandidates.Clear();
-        generatedHireButtons.Clear();
-        displayedGeneratedCandidates.Clear();
-
-        float rowTop = 0f;
-        foreach (MercenaryDataSO candidate in candidates)
-        {
-            if (candidate == null)
-            {
-                continue;
-            }
-
-            if (hiredCandidates.Contains(candidate))
-            {
-                continue;
-            }
-
-            CreateCandidateRow(hireList, candidate, rowTop);
-            rowTop -= 112f;
-        }
-
-        foreach (MercenaryInstance candidate in mercenaryGenerator.Candidates)
-        {
-            if (candidate == null)
-            {
-                continue;
-            }
-
-            CreateGeneratedCandidateRow(hireList, candidate, rowTop);
-            rowTop -= 112f;
-        }
-
-        hireList.sizeDelta = new Vector2(0f, Mathf.Max(430f, -rowTop));
     }
 
     private void BuildCompanyPage()
@@ -166,7 +128,8 @@ public partial class SimpleMercenaryHireUI
             ParchmentMutedColor,
             ButtonTextColor,
             ShowQuestOverlay,
-            RebuildCompanyList);
+            null);
+        ConfigureCompanyListPage(pageUI);
         pageRouter.Register(companyPage);
     }
 
@@ -180,7 +143,8 @@ public partial class SimpleMercenaryHireUI
             ParchmentMutedColor,
             ButtonTextColor,
             CycleHireContract,
-            RebuildHireList);
+            null);
+        ConfigureHireListPage(pageUI);
         contractSelectButton = pageUI.ContractButton;
         hireList = pageUI.ListRoot;
     }
@@ -195,7 +159,8 @@ public partial class SimpleMercenaryHireUI
             ParchmentMutedColor,
             ButtonTextColor,
             ShowQuestOverlay,
-            RebuildCompanyList);
+            null);
+        ConfigureCompanyListPage(pageUI);
         companyScrollContent = pageUI.ListRoot;
         companyList = companyScrollContent;
     }
@@ -217,7 +182,8 @@ public partial class SimpleMercenaryHireUI
             partyPage.gameObject.AddComponent<PartyPageUI>();
         pageUI.Initialize(title, partyList);
         pageUI.Configure(
-            uiBodyFont, ParchmentMutedColor, RebuildPartyList);
+            uiBodyFont, ParchmentMutedColor, null);
+        ConfigurePartyListPage(pageUI);
         pageRouter.Register(partyPage);
     }
 
@@ -270,7 +236,8 @@ public partial class SimpleMercenaryHireUI
             healPage.gameObject.AddComponent<HealPageUI>();
         pageUI.Initialize(title, description, healList);
         pageUI.Configure(
-            uiBodyFont, ParchmentMutedColor, RebuildHealList);
+            uiBodyFont, ParchmentMutedColor, null);
+        ConfigureHealListPage(pageUI);
         pageRouter.Register(healPage);
     }
 
@@ -319,69 +286,69 @@ public partial class SimpleMercenaryHireUI
         pageRouter.Register(jobChangePage);
     }
 
-    private void RebuildCompanyList()
+    private void ConfigureHireListPage(HirePageUI pageUI)
     {
-        ClearChildren(companyList);
-
-        float rowTop = 0f;
-        if (hireManager.HiredMercenaries.Count == 0)
-        {
-            CreateText(companyList, "雇用済みの傭兵はいません。", 18, FontStyle.Normal,
-                TextAnchor.MiddleCenter, new Vector2(0f, -180f),
-                new Vector2(0f, -80f),
-                ParchmentMutedColor);
-            return;
-        }
-
-        foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
-        {
-            CreateCompanyRow(companyList, mercenary, rowTop);
-            rowTop -= 112f;
-        }
-
-        companyList.sizeDelta = new Vector2(0f, Mathf.Max(430f, -rowTop));
+        pageUI.ConfigureHireList(
+            ResetHireListTracking,
+            () => candidates,
+            ShouldShowFixedHireCandidate,
+            CreateCandidateRow,
+            () => mercenaryGenerator.Candidates,
+            candidate => candidate != null,
+            CreateGeneratedCandidateRow);
     }
 
-    private void RebuildPartyList()
+    private void ConfigureCompanyListPage(CompanyPageUI pageUI)
     {
-        ClearChildren(partyList);
-
-        float rowTop = 0f;
-        for (int slotIndex = 0; slotIndex < partyManager.MaxPartySize; slotIndex++)
-        {
-            if (slotIndex < partyManager.Members.Count)
-            {
-                CreatePartyRow(partyList, partyManager.Members[slotIndex], slotIndex, rowTop);
-            }
-            else
-            {
-                CreateEmptyPartyRow(partyList, slotIndex, rowTop);
-            }
-
-            rowTop -= 112f;
-        }
+        pageUI.ConfigureCompanyList(
+            () => hireManager.HiredMercenaries,
+            CreateCompanyRow,
+            CreateMercenaryListEmptyMessage);
     }
 
-    private void RebuildHealList()
+    private void ConfigurePartyListPage(PartyPageUI pageUI)
     {
-        ClearChildren(healList);
+        pageUI.ConfigurePartyList(
+            () => partyManager.MaxPartySize,
+            () => partyManager.Members,
+            CreatePartyRow,
+            CreateEmptyPartyRow);
+    }
 
-        if (hireManager.HiredMercenaries.Count == 0)
-        {
-            CreateText(healList, "治療できる傭兵はいません。", 18, FontStyle.Normal,
-                TextAnchor.MiddleCenter, new Vector2(0f, -180f), new Vector2(0f, -80f),
-                ParchmentMutedColor);
-            return;
-        }
+    private void ConfigureHealListPage(HealPageUI pageUI)
+    {
+        pageUI.ConfigureHealList(
+            () => hireManager.HiredMercenaries,
+            CreateHealRow,
+            CreateMercenaryListEmptyMessage);
+    }
 
-        float rowTop = 0f;
-        foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
-        {
-            CreateHealRow(healList, mercenary, rowTop);
-            rowTop -= 112f;
-        }
+    private void ResetHireListTracking()
+    {
+        hireButtons.Clear();
+        displayedCandidates.Clear();
+        generatedHireButtons.Clear();
+        displayedGeneratedCandidates.Clear();
+    }
 
-        healList.sizeDelta = new Vector2(0f, Mathf.Max(430f, -rowTop));
+    private bool ShouldShowFixedHireCandidate(MercenaryDataSO candidate)
+    {
+        return candidate != null && !hiredCandidates.Contains(candidate);
+    }
+
+    private void CreateMercenaryListEmptyMessage(
+        RectTransform root,
+        string message)
+    {
+        CreateText(
+            root,
+            message,
+            18,
+            FontStyle.Normal,
+            TextAnchor.MiddleCenter,
+            new Vector2(0f, -180f),
+            new Vector2(0f, -80f),
+            ParchmentMutedColor);
     }
 
     private void CreateCandidateRow(RectTransform parent, MercenaryDataSO candidate, float top)

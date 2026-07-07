@@ -638,3 +638,58 @@
 - 限定共通素材「変異核」を追加し、通常特殊個体50%、特殊ボス100%でドロップ。
 - 変異核6個と800Gから制作する全職用ランク4アクセサリー「変異核の護符」を追加。
 - ビルド確認は警告0件、エラー0件で成功。
+
+## 2026-07-07 教室側・コード構成整理
+
+- UI partialに残っていた町名、地域名、町の進行順、隣接判定を `WorldMapService` へ分離した。
+- `SimpleMercenaryHireUI.MapData.cs` は既存UI互換のラッパーとして残し、町移動・地域解放・マップ表示の挙動は変更していない。
+- 町/地域ルール用のEditModeテスト `WorldMapServiceTests` を追加した。
+- `dotnet build DungeonMerchant.sln` は警告0件、エラー0件で成功。Unity Test Runnerでの実行は未確認。
+
+## 2026-07-07 教室側・コード構成整理 続き
+
+- 次に解放できる町、旧セーブ用の町解放補完、地域内の解放済み町確認、地域解放ゲート町の判定を `WorldMapService` へ追加分離した。
+- `DungeonRunManager.SetUnlockedTownIndices` も同じ町定義を参照するようにした。
+- 地域解放の実条件は変えず、ゲート町の最高等級ダンジョン完全攻略確認だけUI側から関数として渡す構成にした。
+- `WorldMapServiceTests` を拡張し、`dotnet build DungeonMerchant.sln` は警告0件、エラー0件で成功。
+
+## 2026-07-07 現在残っている主な責務整理
+
+- `SimpleMercenaryHireUI` には、まだ各種一覧生成と行生成が多く残っている。
+  - 雇用候補、傭兵一覧、編成、治療、転職、在庫、市場、鍛冶、ダンジョン選択、装備候補、依頼一覧。
+  - 各 `PageUI` は存在するが、`Rebuild...List` や `Create...Row` の多くは親UI側に残っている。
+- `BattleManager` は戦闘開始/終了、行動順、通常攻撃、スキル、状態異常、報酬、ログ、ドロップ処理が集中している。
+  - 将来的な分離候補: `BattleTurnResolver`、`BattleRewardService`、`BattleSkillResolver`、`BattleStatusEffectService`、`BattleLogFormatter`。
+- `DungeonRunManager` はダンジョン選択、解放判定、フロア進行、戦闘開始、イベント、報酬、進行保存/復元、メッセージ生成が集中している。
+  - 切り出し候補: ダンジョン報酬処理、ダンジョンイベント処理、ダンジョン選択/解放判定。
+- `FindObjectOfType` 依存がまだ多い。
+  - 主な残存箇所: `BattleManager`、`DungeonRunManager`、`SaveManager`、`ProgressionManager`、`MarketStockManager`、`BlacksmithManager`、`MerchantInventory`、`HealingManager`、`SimpleMercenaryHireUI`。
+  - Bootstrapまたは専用の依存解決クラスへ段階的に寄せる。
+- `SaveManager` には、セーブデータ作成、適用、イベント購読、自動保存、参照解決、ファイルI/Oが残っている。
+  - 分離候補: `SaveDataFactory`、`SaveDataApplier`、`SaveFileStore`。
+- 町別仕様はまだ分散している。
+  - `TownServicePolicy`、`MercenaryGenerator.SetTownIndex`、`MarketStockManager.SetTownIndex`、`BlacksmithManager.SetTownIndex`、`SimpleMercenaryHireUI.ApplyTownServiceSettings`。
+  - 将来的に `TownServiceProfile` または `TownRuleService` へ統合する。
+- 推奨優先順:
+  1. 経済系ページの一覧生成を `MarketPageUI` / `BlacksmithPageUI` / `InventoryPageUI` 側へ移す。
+  2. 傭兵管理系の一覧生成を `HirePageUI` / `CompanyPageUI` / `PartyPageUI` / `HealPageUI` 側へ移す。
+  3. `DungeonRunManager` から報酬処理を分離する。
+  4. `BattleManager` から報酬処理・ログ生成を分離する。
+  5. `FindObjectOfType` 依存を段階的に整理する。
+
+## 2026-07-07 教室側・経済系ページ責務分離
+
+- 優先度1の一部として、在庫・市場・鍛冶屋ページの一覧再構築ループを各 `PageUI` 側へ移した。
+- `EconomyPageUI` に共通の行再構築処理を追加し、空表示、行ループ、スクロール内容高さ更新を担当させた。
+- `SimpleMercenaryHireUI.Economy.cs` にはデータ供給、フィルタ、行描画コールバック、売買/制作などの操作処理を残した。
+- 旧 `RebuildInventoryList`、`RebuildMarketList`、`RebuildBlacksmithList` は削除済み。
+- `dotnet build DungeonMerchant.sln` は警告0件、エラー0件で成功。Unity上の実表示は未確認。
+
+## 2026-07-07 教室側・傭兵管理系ページ責務分離
+
+- 優先度2の一部として、雇用・商会・編成・治療ページの一覧再構築ループを各 `PageUI` 側へ移した。
+- `HirePageUI`、`CompanyPageUI`、`PartyPageUI`、`HealPageUI` が行ループ、空表示、スクロール内容高さ更新を担当する。
+- `SimpleMercenaryHireUI.HireParty.cs` にはデータ供給、フィルタ、行描画コールバック、雇用/編成/治療操作を残した。
+- 旧 `RebuildHireList`、`RebuildCompanyList`、`RebuildPartyList`、`RebuildHealList` は削除済み。
+- `dotnet build DungeonMerchant.sln` は警告0件、エラー0件で成功。Unity上の実表示は未確認。
+- 転職一覧 `RebuildJobChangeList` はまだ親UI側に残っている。

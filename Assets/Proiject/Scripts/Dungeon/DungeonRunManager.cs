@@ -239,7 +239,7 @@ public class DungeonRunManager : MonoBehaviour
         {
             foreach (int townIndex in townIndices)
             {
-                if (townIndex >= 0)
+                if (WorldMapService.IsValidTownIndex(townIndex))
                 {
                     unlockedTownIndices.Add(townIndex);
                 }

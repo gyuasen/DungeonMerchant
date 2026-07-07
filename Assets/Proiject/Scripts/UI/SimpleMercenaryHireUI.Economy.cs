@@ -85,8 +85,16 @@ public partial class SimpleMercenaryHireUI
             inventoryPage.GetComponent<InventoryPageUI>() ??
             inventoryPage.gameObject.AddComponent<InventoryPageUI>();
         pageUI.Initialize(title, null, inventoryList);
-        pageUI.Configure(
-            uiBodyFont, ParchmentMutedColor, RebuildInventoryList);
+        pageUI.ConfigureInventory(
+            uiBodyFont,
+            ParchmentMutedColor,
+            () => merchantInventory.Items,
+            GetSortedInventoryEquipment,
+            ShouldShowInventoryItem,
+            ShouldShowInventoryEquipment,
+            CreateInventoryRow,
+            CreateEquipmentInventoryRow,
+            CreateEconomyEmptyMessage);
         pageRouter.Register(inventoryPage);
     }
 
@@ -125,8 +133,13 @@ public partial class SimpleMercenaryHireUI
             marketPage.GetComponent<MarketPageUI>() ??
             marketPage.gameObject.AddComponent<MarketPageUI>();
         pageUI.Initialize(title, null, marketList);
-        pageUI.Configure(
-            uiBodyFont, ParchmentMutedColor, RebuildMarketList);
+        pageUI.ConfigureMarket(
+            uiBodyFont,
+            ParchmentMutedColor,
+            GetMarketRows,
+            ShouldShowMarketEntry,
+            CreateMarketRow,
+            CreateEconomyEmptyMessage);
         pageRouter.Register(marketPage);
     }
 
@@ -175,130 +188,78 @@ public partial class SimpleMercenaryHireUI
             blacksmithPage.GetComponent<BlacksmithPageUI>() ??
             blacksmithPage.gameObject.AddComponent<BlacksmithPageUI>();
         pageUI.Initialize(title, description, blacksmithList);
-        pageUI.Configure(
-            uiBodyFont, ParchmentMutedColor, RebuildBlacksmithList);
+        pageUI.ConfigureBlacksmith(
+            uiBodyFont,
+            ParchmentMutedColor,
+            GetBlacksmithRows,
+            ShouldShowBlacksmithRecipe,
+            (root, recipe, rowTop) => CreateBlacksmithRow(recipe, rowTop),
+            CreateEconomyEmptyMessage);
         pageRouter.Register(blacksmithPage);
     }
 
-    private void RebuildInventoryList()
+    private IEnumerable<EquipmentInstance> GetSortedInventoryEquipment()
     {
-        ClearChildren(inventoryList);
-        inventoryList.sizeDelta = new Vector2(0f, 430f);
-
-        if (merchantInventory.Items.Count == 0 &&
-            merchantInventory.EquipmentInstances.Count == 0)
-        {
-            CreateText(inventoryList, "在庫はありません。", 18, FontStyle.Normal,
-                TextAnchor.MiddleCenter, new Vector2(0f, -180f), new Vector2(0f, -80f),
-                ParchmentMutedColor);
-            return;
-        }
-
-        float rowTop = 0f;
-        foreach (InventoryItemStack stack in merchantInventory.Items)
-        {
-            if (stack == null || stack.Item == null || stack.Amount <= 0)
-            {
-                continue;
-            }
-
-            if (!MatchesInventoryFilter(stack.Item))
-            {
-                continue;
-            }
-            if (inventoryFilter == InventoryFilter.Locked)
-            {
-                continue;
-            }
-
-            CreateInventoryRow(inventoryList, stack, rowTop);
-            rowTop -= 112f;
-        }
-
         List<EquipmentInstance> sortedEquipment =
             new List<EquipmentInstance>(merchantInventory.EquipmentInstances);
         sortedEquipment.Sort(CompareEquipment);
-        foreach (EquipmentInstance equipment in sortedEquipment)
-        {
-            if (equipment?.BaseItem == null)
-            {
-                continue;
-            }
-
-            if (!MatchesInventoryFilter(equipment.BaseItem))
-            {
-                continue;
-            }
-            if (inventoryFilter == InventoryFilter.Locked &&
-                !equipment.IsLocked)
-            {
-                continue;
-            }
-
-            CreateEquipmentInventoryRow(inventoryList, equipment, rowTop);
-            rowTop -= 112f;
-        }
-
-        inventoryList.sizeDelta = new Vector2(0f, Mathf.Max(430f, -rowTop));
+        return sortedEquipment;
     }
 
-    private void RebuildMarketList()
+    private bool ShouldShowInventoryItem(InventoryItemStack stack)
     {
-        ClearChildren(marketList);
-        marketList.sizeDelta = new Vector2(0f, 430f);
+        return stack != null &&
+               stack.Item != null &&
+               stack.Amount > 0 &&
+               MatchesInventoryFilter(stack.Item) &&
+               inventoryFilter != InventoryFilter.Locked;
+    }
+
+    private bool ShouldShowInventoryEquipment(EquipmentInstance equipment)
+    {
+        return equipment?.BaseItem != null &&
+               MatchesInventoryFilter(equipment.BaseItem) &&
+               (inventoryFilter != InventoryFilter.Locked ||
+                equipment.IsLocked);
+    }
+
+    private IEnumerable<MarketStockEntry> GetMarketRows()
+    {
         marketBuyButtons.Clear();
         displayedMarketEntries.Clear();
-
-        if (marketStockManager.Stock.Count == 0)
-        {
-            CreateText(marketList, "本日仕入れ可能な商品はありません。", 18, FontStyle.Normal,
-                TextAnchor.MiddleCenter, new Vector2(0f, -180f), new Vector2(0f, -80f),
-                ParchmentMutedColor);
-            return;
-        }
-
-        float rowTop = 0f;
-        foreach (MarketStockEntry entry in marketStockManager.Stock)
-        {
-            if (entry == null || entry.Item == null || entry.Quantity <= 0)
-            {
-                continue;
-            }
-
-            CreateMarketRow(marketList, entry, rowTop);
-            rowTop -= 112f;
-        }
-
-        marketList.sizeDelta = new Vector2(0f, Mathf.Max(430f, -rowTop));
+        return marketStockManager.Stock;
     }
 
-    private void RebuildBlacksmithList()
+    private static bool ShouldShowMarketEntry(MarketStockEntry entry)
     {
-        ClearChildren(blacksmithList);
+        return entry != null &&
+               entry.Item != null &&
+               entry.Quantity > 0;
+    }
+
+    private IEnumerable<EquipmentRecipeSO> GetBlacksmithRows()
+    {
         blacksmithCraftButtons.Clear();
         displayedBlacksmithRecipes.Clear();
+        return blacksmithManager.Recipes;
+    }
 
-        if (blacksmithManager.Recipes.Count == 0)
-        {
-            CreateText(blacksmithList, "制作可能なレシピはありません。", 18, FontStyle.Normal,
-                TextAnchor.MiddleCenter, new Vector2(0f, -180f), new Vector2(0f, -80f),
-                ParchmentMutedColor);
-            return;
-        }
+    private static bool ShouldShowBlacksmithRecipe(EquipmentRecipeSO recipe)
+    {
+        return recipe != null && recipe.resultItem != null;
+    }
 
-        float rowTop = 0f;
-        foreach (EquipmentRecipeSO recipe in blacksmithManager.Recipes)
-        {
-            if (recipe == null || recipe.resultItem == null)
-            {
-                continue;
-            }
-
-            CreateBlacksmithRow(recipe, rowTop);
-            rowTop -= 140f;
-        }
-
-        blacksmithList.sizeDelta = new Vector2(0f, Mathf.Max(430f, -rowTop));
+    private void CreateEconomyEmptyMessage(RectTransform root, string message)
+    {
+        CreateText(
+            root,
+            message,
+            18,
+            FontStyle.Normal,
+            TextAnchor.MiddleCenter,
+            new Vector2(0f, -180f),
+            new Vector2(0f, -80f),
+            ParchmentMutedColor);
     }
 
     private void CreateInventoryRow(
