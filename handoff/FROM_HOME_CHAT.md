@@ -24,6 +24,36 @@
 - `DungeonMerchant.Runtime.csproj`
 - `Assembly-CSharp.csproj`
 
+## 家でやったこと 2026-07-08
+
+- 街道戦闘の敵数上限を5体へ変更。
+- `RoadEncounterService` の後半ルート敵数を4体から5体へ調整。
+- `RoadEncounterServiceTests` の期待値も5体へ更新。
+- `dotnet build DungeonMerchant.sln` は警告0・エラー0で成功。
+
+## 家でやったこと 2026-07-08
+
+- 敵数上限の方針を整理。
+- 街道戦闘は街道側の段階別敵数を使い、最大5体までにする。
+- ダンジョン戦闘は `DungeonDataSO.maxEnemyCountPerEncounter` でダンジョンごとに1戦あたりの最大敵数を設定できるようにした。
+- 既存ダンジョンのデフォルト上限は5体。
+- `DungeonRunManager` は計算した敵数をダンジョンごとの上限で丸めてから戦闘を開始する。
+- `dotnet build DungeonMerchant.sln` は警告0・エラー0で成功。
+
+## 家でやったこと 2026-07-08
+
+- `DungeonRunManager` の責務分離を継続。
+- 特殊個体・特殊ボスの生成処理を `DungeonEnemyVariantService` へ分離した。
+- `DungeonRunManager` は特殊個体にするかどうかの判定と遭遇編成だけを担当し、変異個体のステータス補正、スキル抽選、接頭辞、変異核・秘伝の転職証ドロップ追加はサービス側が担当する。
+- `dotnet build DungeonMerchant.sln` は警告0・エラー0で成功。
+
+## 家でやったこと 2026-07-08
+
+- `DungeonRunManager` の責務分離を継続。
+- ダンジョンランダムイベントの表示文言生成と選択結果判定を `DungeonEventService` へ分離した。
+- `DungeonRunManager` はイベント発生、UI状態更新、HP回復・ダメージ・報酬付与などの副作用適用を担当する形に整理。
+- `dotnet build DungeonMerchant.sln` は警告0・エラー0で成功。
+
 ## 変更したファイル
 
 - 
