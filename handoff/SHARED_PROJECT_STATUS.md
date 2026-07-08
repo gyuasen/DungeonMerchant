@@ -677,6 +677,17 @@
 - `Assembly-CSharp.csproj` 内に `VisualScripting` 参照が残っていないことを確認した。
 - `Assembly-CSharp.csproj`、`DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj` はすべて警告0件、エラー0件でビルド成功。
 - 注意点: `Assembly-CSharp.csproj` はUnityの自動生成補助ファイルのため、Unityのプロジェクトファイル再生成で今回の手動整理が上書きされる可能性がある。
+
+## 2026-07-08 学校側・マージ競合後の統合対応
+
+- 家側・教室側の作業ログを確認し、マージ後の問題を調査した。
+- コード・プロジェクトファイル内にコンフリクトマーカーは残っていなかった。
+- 教室側の `WorldMapService` と学校側の `TownMapService` が町/地域ルールを重複して持っていたため、`WorldMapService` に統一した。
+- 学校側で追加していた街道移動開始判定 `ValidateTravelRequest` と `TravelValidationResult` は `WorldMapService` へ移した。
+- 重複していた `TownMapService` と `TownMapServiceTests` は削除し、テストは `WorldMapServiceTests` に統合した。
+- `RoadTravelState` と街道戦闘ガードの混在で残っていた古い `pendingRoadRareEncounter` 参照を修正した。
+- 旧雇用UI削除と `DungeonRewardService` / `WorldMapService` 追加に合わせ、補助用 `Assembly-CSharp.csproj` の参照を整理した。
+- `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj`、`Assembly-CSharp.csproj` はすべて警告0件、エラー0件でビルド成功。
 ## 2026-07-07 教室側・コード構成整理
 
 - UI partialに残っていた町名、地域名、町の進行順、隣接判定を `WorldMapService` へ分離した。
@@ -746,3 +757,28 @@
 - 街道戦闘開始時に敵リストが空の場合、通常戦闘設定へ落ちて大量敵が出ることを避けるガードを追加した。
 - `RoadEncounterServiceTests` を拡張し、フォールバック時も敵数上限を守ることを確認できるようにした。
 - `dotnet build DungeonMerchant.sln` は警告0件、エラー0件で成功。Unity Test Runnerと実表示は未確認。
+## 2026-07-08 学校側・Visual Scripting残骸と街道移動完了処理を整理
+
+- Visual Scriptingパッケージ削除後も残っていた `ProjectSettings/VisualScriptingSettings.asset` を削除した。
+- `ProjectSettings`、`Packages`、コード、テスト、各csprojに `VisualScripting` / `visualscripting` 参照が残っていないことを確認した。
+- 街道戦闘の勝利/敗北後に、町到着・町解放・日数経過・保存・表示メッセージを決める処理を `RoadTravelCompletionService` に分離した。
+- `SimpleMercenaryHireUI.BattleDungeon.cs` は、街道移動完了時の画面遷移とUI更新を担当する形に縮小した。
+- `RoadTravelCompletionServiceTests` を追加し、勝利・敗北・無効状態の結果をEditModeテストで確認できるようにした。
+- `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj`、`Assembly-CSharp.csproj` はすべて警告0件・エラー0件でビルド成功。
+- 次の候補は、残っているUIページ分離の続き、または街道敵数・地域別出現バランスの実プレイ調整。
+## 2026-07-08 学校側・ダンジョン選択UIをページ側へ分離
+
+- ダンジョン選択リストの行生成、空表示、選択中/未開放ボタン表示を `DungeonPageUI` 側へ移した。
+- `SimpleMercenaryHireUI.BattleDungeon.cs` は、ダンジョン選択処理とデータ提供だけを担当する形に整理した。
+- 親UI側で不要になった `dungeonSelectButtons` と `displayedDungeons` を削除した。
+- `RebuildDungeonSelectionList`、古いVisual Scripting参照、古い `TownMapService` 参照が残っていないことを確認した。
+- `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj`、`Assembly-CSharp.csproj` はすべて警告0件・エラー0件でビルド成功。
+- 次の候補は、街道敵数・地域別出現バランスの実プレイ調整。
+## 2026-07-08 学校側・街道戦闘の敵数を調整
+
+- 街道戦闘の1戦あたりの敵数を、序盤2体・中盤3体・後半4体へ変更した。
+- 連戦数はそのまま維持し、まずは1戦ごとの重さを下げる形で調整した。
+- `RoadEncounterServiceTests` を更新し、通常候補がある場合とフォールバック敵を使う場合の敵数上限を確認できるようにした。
+- 古い敵数定数、古いVisual Scripting参照、古い `TownMapService` 参照、古いダンジョン選択リスト用フィールドが残っていないことを確認した。
+- `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj`、`Assembly-CSharp.csproj` はすべて警告0件・エラー0件でビルド成功。
+- 次の候補は、Unity実行上で街道戦闘の体感確認、またはキャラクター詳細/装備詳細オーバーレイの責務分離。

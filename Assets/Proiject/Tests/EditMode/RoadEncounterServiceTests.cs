@@ -20,8 +20,9 @@ public sealed class RoadEncounterServiceTests
         createdObjects.Clear();
     }
 
-    [TestCase(0, 1, 5)]
-    [TestCase(1, 2, 4)]
+    [TestCase(0, 1, 2)]
+    [TestCase(1, 2, 3)]
+    [TestCase(2, 3, 3)]
     [TestCase(5, 6, 4)]
     public void CreateEncounter_UsesConfiguredRouteLimit(
         int originTown,
@@ -48,8 +49,9 @@ public sealed class RoadEncounterServiceTests
         Assert.That(encounter.Count, Is.EqualTo(expectedCount));
     }
 
-    [TestCase(0, 1, 5)]
-    [TestCase(1, 2, 4)]
+    [TestCase(0, 1, 2)]
+    [TestCase(1, 2, 3)]
+    [TestCase(5, 6, 4)]
     public void CreateEncounter_FallbackKeepsRouteLimit(
         int originTown,
         int destinationTown,

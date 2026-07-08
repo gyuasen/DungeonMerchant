@@ -556,13 +556,13 @@ public partial class SimpleMercenaryHireUI
         int townIndex,
         bool openDungeonAfterTravel)
     {
-        TownMapService.TravelValidationResult validation =
-            TownMapService.ValidateTravelRequest(
+        WorldMapService.TravelValidationResult validation =
+            WorldMapService.ValidateTravelRequest(
                 currentTownIndex,
                 townIndex,
                 unlockedTownIndices,
                 partyManager.Members.Count > 0,
-                dungeonRunManager);
+                IsGateTownFullyCleared);
         if (!validation.CanTravel)
         {
             statusText.text = validation.FailureMessage;
@@ -672,7 +672,8 @@ public partial class SimpleMercenaryHireUI
             roadEncounterService.CreateEncounter(
                 currentTownIndex,
                 destinationTownIndex,
-                out pendingRoadRareEncounter);
+                out bool containsRareEncounter);
+        roadTravelState.SetRareEncounter(containsRareEncounter);
         if (enemies == null ||
             enemies.Count == 0 ||
             !battleManager.StartBattle(partyManager.Members, enemies))
