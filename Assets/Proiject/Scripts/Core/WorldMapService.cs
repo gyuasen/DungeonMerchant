@@ -35,6 +35,23 @@ public static class WorldMapService
 
     public static int WorldRegionCount => WorldRegionNames.Length;
 
+    public readonly struct TravelValidationResult
+    {
+        public TravelValidationResult(
+            bool canTravel,
+            bool isUnlockTravel,
+            string failureMessage)
+        {
+            CanTravel = canTravel;
+            IsUnlockTravel = isUnlockTravel;
+            FailureMessage = failureMessage;
+        }
+
+        public bool CanTravel { get; }
+        public bool IsUnlockTravel { get; }
+        public string FailureMessage { get; }
+    }
+
     public static string GetTownName(int townIndex)
     {
         return townIndex >= 0 && townIndex < TownNames.Length
@@ -185,5 +202,77 @@ public static class WorldMapService
         return gateTownIndex >= 0 &&
                isGateTownFullyCleared != null &&
                isGateTownFullyCleared(gateTownIndex);
+    }
+
+    public static TravelValidationResult ValidateTravelRequest(
+        int currentTownIndex,
+        int destinationTownIndex,
+        IEnumerable<int> unlockedTownIndices,
+        bool hasPartyMembers,
+        Func<int, bool> isGateTownFullyCleared)
+    {
+        destinationTownIndex = ClampTownIndex(destinationTownIndex);
+
+        if (!AreTownsAdjacent(destinationTownIndex, currentTownIndex))
+        {
+            int nextTownIndex =
+                GetNextTownToward(currentTownIndex, destinationTownIndex);
+            string message =
+                $"{TownNames[destinationTownIndex]}へ直接は移動できません。" +
+                (nextTownIndex >= 0
+                    ? $"先に{TownNames[nextTownIndex]}を経由してください。"
+                    : string.Empty);
+            return new TravelValidationResult(false, false, message);
+        }
+
+        int destinationWorld = GetWorldMapIndexForTown(destinationTownIndex);
+        if (!CanEnterWorldRegion(
+                destinationWorld,
+                currentTownIndex,
+                unlockedTownIndices,
+                isGateTownFullyCleared))
+        {
+            return new TravelValidationResult(
+                false,
+                false,
+                $"{WorldRegionNames[destinationWorld]}の解放条件を満たしていません。");
+        }
+
+        HashSet<int> unlocked =
+            unlockedTownIndices as HashSet<int> ??
+            new HashSet<int>(unlockedTownIndices ?? Array.Empty<int>());
+        bool isUnlockTravel = !unlocked.Contains(destinationTownIndex);
+        if (isUnlockTravel)
+        {
+            int nextTownIndex = GetNextUnlockableTownIndex(unlocked);
+            if (destinationTownIndex != nextTownIndex)
+            {
+                string message = nextTownIndex >= 0
+                    ? $"先に{TownNames[nextTownIndex]}への移動クエストを攻略してください。"
+                    : "これ以上解放できる町はありません。";
+                return new TravelValidationResult(false, true, message);
+            }
+        }
+
+        if (!hasPartyMembers)
+        {
+            return new TravelValidationResult(
+                false,
+                isUnlockTravel,
+                "町の移動には街道戦闘が発生するため、傭兵の編成が必要です。");
+        }
+
+        return new TravelValidationResult(true, isUnlockTravel, string.Empty);
+    }
+
+    private static int ClampTownIndex(int townIndex)
+    {
+        if (townIndex < 0)
+        {
+            return 0;
+        }
+        return townIndex >= TownNames.Length
+            ? TownNames.Length - 1
+            : townIndex;
     }
 }

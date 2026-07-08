@@ -119,4 +119,51 @@ public sealed class WorldMapServiceTests
                 _ => false),
             Is.False);
     }
+
+    [Test]
+    public void ValidateTravelRequest_RejectsNonAdjacentDestination()
+    {
+        WorldMapService.TravelValidationResult result =
+            WorldMapService.ValidateTravelRequest(
+                2,
+                0,
+                new[] { 2 },
+                true,
+                _ => false);
+
+        Assert.That(result.CanTravel, Is.False);
+        Assert.That(result.FailureMessage, Does.Contain("直接は移動できません"));
+    }
+
+    [Test]
+    public void ValidateTravelRequest_RejectsEmptyParty()
+    {
+        WorldMapService.TravelValidationResult result =
+            WorldMapService.ValidateTravelRequest(
+                2,
+                1,
+                new[] { 2 },
+                false,
+                _ => false);
+
+        Assert.That(result.CanTravel, Is.False);
+        Assert.That(result.IsUnlockTravel, Is.True);
+        Assert.That(result.FailureMessage, Does.Contain("傭兵の編成が必要"));
+    }
+
+    [Test]
+    public void ValidateTravelRequest_AllowsNextUnlockTravel()
+    {
+        WorldMapService.TravelValidationResult result =
+            WorldMapService.ValidateTravelRequest(
+                2,
+                1,
+                new[] { 2 },
+                true,
+                _ => false);
+
+        Assert.That(result.CanTravel, Is.True);
+        Assert.That(result.IsUnlockTravel, Is.True);
+        Assert.That(result.FailureMessage, Is.Empty);
+    }
 }

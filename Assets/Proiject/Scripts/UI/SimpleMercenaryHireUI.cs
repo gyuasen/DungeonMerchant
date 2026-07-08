@@ -42,8 +42,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private readonly List<Button> blacksmithCraftButtons = new List<Button>();
     private readonly List<EquipmentRecipeSO> displayedBlacksmithRecipes =
         new List<EquipmentRecipeSO>();
-    private readonly List<Button> dungeonSelectButtons = new List<Button>();
-    private readonly List<DungeonDataSO> displayedDungeons = new List<DungeonDataSO>();
     private readonly HashSet<MercenaryDataSO> hiredCandidates = new HashSet<MercenaryDataSO>();
     private readonly List<string> battleLogLines = new List<string>();
     private readonly List<Button> townMapButtons = new List<Button>();

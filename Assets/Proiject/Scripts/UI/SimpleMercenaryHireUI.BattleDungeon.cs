@@ -285,7 +285,22 @@ public partial class SimpleMercenaryHireUI
             dungeonPage.GetComponent<DungeonPageUI>() ??
             dungeonPage.gameObject.AddComponent<DungeonPageUI>();
         pageUI.Configure(RefreshDungeonPage);
-        pageUI.ConfigureSelectionRefresh(RebuildDungeonSelectionList);
+        pageUI.ConfigureSelectionList(
+            dungeonSelectionList,
+            uiFont,
+            Color.white,
+            ParchmentTextColor,
+            RowColor,
+            WoodButtonColor,
+            FrameColor,
+            ButtonTextColor,
+            () => dungeonRunManager.AvailableDungeons,
+            () => currentTownIndex,
+            GetTownName,
+            dungeonRunManager.GetClearedFloors,
+            dungeonRunManager.IsDungeonUnlocked,
+            () => dungeonRunManager.SelectedDungeon,
+            SelectDungeon);
         pageRouter.Register(dungeonPage);
         RefreshPage(dungeonPage);
     }
@@ -383,106 +398,6 @@ public partial class SimpleMercenaryHireUI
         }
 
         ShowDungeonPage();
-    }
-
-    private void RebuildDungeonSelectionList()
-    {
-        if (dungeonSelectionList == null)
-        {
-            return;
-        }
-
-        ClearChildren(dungeonSelectionList);
-        dungeonSelectButtons.Clear();
-        displayedDungeons.Clear();
-
-        float rowTop = 0f;
-        foreach (DungeonDataSO data in dungeonRunManager.AvailableDungeons)
-        {
-            if (data == null || data.nearbyTownIndex != currentTownIndex)
-            {
-                continue;
-            }
-
-            CreateDungeonSelectionRow(data, rowTop);
-            rowTop -= 50f;
-        }
-
-        if (displayedDungeons.Count == 0)
-        {
-            CreateText(
-                dungeonSelectionList,
-                $"{TownNames[currentTownIndex]}近隣に探索可能なダンジョンはありません。",
-                16,
-                FontStyle.Normal,
-                TextAnchor.MiddleCenter,
-                new Vector2(0f, -110f),
-                new Vector2(0f, -40f),
-                ParchmentTextColor);
-        }
-    }
-
-    private void CreateDungeonSelectionRow(DungeonDataSO data, float top)
-    {
-        RectTransform row = CreateUIObject(data.dungeonName, dungeonSelectionList);
-        row.anchorMin = new Vector2(0f, 1f);
-        row.anchorMax = new Vector2(1f, 1f);
-        row.pivot = new Vector2(0.5f, 1f);
-        row.offsetMin = new Vector2(0f, top - 44f);
-        row.offsetMax = new Vector2(0f, top);
-
-        Image image = row.gameObject.AddComponent<Image>();
-        image.color = RowColor;
-
-        string grade = JapaneseDisplayText.GetDungeonGrade(data.grade);
-        string nearbyTown = data.nearbyTownIndex >= 0 &&
-                            data.nearbyTownIndex < TownNames.Length
-            ? TownNames[data.nearbyTownIndex]
-            : "町未設定";
-        int clearedFloors = dungeonRunManager.GetClearedFloors(data);
-        int totalFloors = Mathf.Max(1, data.totalFloors);
-        string floorProgress = clearedFloors >= totalFloors
-            ? $"完全攻略 {totalFloors}/{totalFloors}F"
-            : $"次回 {clearedFloors + 1}/{totalFloors}F";
-        string details =
-            $"{nearbyTown}近隣  |  {grade}  |  {data.dungeonName}  |  " +
-            $"{floorProgress}  |  {GetDungeonEnemyGradeSummary(data)}";
-        CreateText(row, details, 14, FontStyle.Bold, TextAnchor.MiddleLeft,
-            new Vector2(14f, -44f), new Vector2(-130f, -8f), Color.white);
-
-        bool unlocked = dungeonRunManager.IsDungeonUnlocked(data);
-        bool selected = dungeonRunManager.SelectedDungeon == data;
-        string label = selected ? "選択中" : unlocked ? "選択" : "未開放";
-        Button button = CreateActionButton(row, label, () => SelectDungeon(data));
-        RectTransform buttonRect = button.GetComponent<RectTransform>();
-        buttonRect.sizeDelta = new Vector2(108f, 34f);
-        button.interactable = unlocked && !selected;
-        dungeonSelectButtons.Add(button);
-        displayedDungeons.Add(data);
-    }
-
-    private static string GetDungeonEnemyGradeSummary(DungeonDataSO data)
-    {
-        List<int> grades = new List<int>();
-        if (data.normalEnemies != null)
-        {
-            foreach (EnemyDataSO enemy in data.normalEnemies)
-            {
-                if (enemy != null && !grades.Contains(enemy.monsterGrade))
-                {
-                    grades.Add(enemy.monsterGrade);
-                }
-            }
-        }
-
-        grades.Sort((left, right) => right.CompareTo(left));
-        string normalGrades = grades.Count > 0
-            ? string.Join("・", grades)
-            : "未設定";
-        string bossGrade = data.bossEnemy != null
-            ? data.bossEnemy.monsterGrade.ToString()
-            : "なし";
-        return $"通常{normalGrades}等級 / ボス{bossGrade}等級";
     }
 
     private static string BuildDungeonRewardPreview(DungeonDataSO data)
@@ -655,11 +570,6 @@ public partial class SimpleMercenaryHireUI
 
         if (roadTravelState.IsActive)
         {
-            int destinationTownIndex = roadTravelState.DestinationTownIndex;
-            bool wasUnlock = roadTravelState.WasUnlock;
-            bool openDungeonAfterTravel =
-                roadTravelState.OpenDungeonAfterTravel;
-
             if (victory && roadTravelState.ShouldAskToContinueAfterVictory())
             {
                 roadTravelState.AwaitChoice();
@@ -673,20 +583,35 @@ public partial class SimpleMercenaryHireUI
                 return;
             }
 
+            RoadTravelCompletionResult travelResult =
+                RoadTravelCompletionService.Complete(
+                    victory,
+                    currentTownIndex,
+                    roadTravelState);
             roadTravelState.Clear();
 
-            if (victory)
+            if (!travelResult.IsValid)
             {
-                unlockedTownIndices.Add(destinationTownIndex);
-                currentTownIndex = destinationTownIndex;
-                viewedWorldMapIndex = CurrentWorldMapIndex;
+                ShowWorldMap();
+                statusText.text = "街道戦闘の結果を処理できませんでした。";
+                return;
+            }
+
+            if (travelResult.Victory)
+            {
+                unlockedTownIndices.Add(travelResult.DestinationTownIndex);
+                currentTownIndex = travelResult.NewCurrentTownIndex;
+                viewedWorldMapIndex = travelResult.NewWorldMapIndex;
                 dungeonRunManager.SetCurrentWorldMapIndex(
                     viewedWorldMapIndex);
                 ApplyTownServiceSettings(false, false);
-                dayManager.AdvanceDay();
+                if (travelResult.ShouldAdvanceDay)
+                {
+                    dayManager.AdvanceDay();
+                }
                 SyncDungeonUnlocks();
                 RefreshTownMapButtons();
-                if (openDungeonAfterTravel)
+                if (travelResult.OpenDungeonAfterTravel)
                 {
                     OpenNearbyDungeon();
                 }
@@ -694,17 +619,16 @@ public partial class SimpleMercenaryHireUI
                 {
                     ShowTownMap();
                 }
-                statusText.text = wasUnlock
-                    ? $"街道戦闘に勝利し、{TownNames[destinationTownIndex]}を解放しました。"
-                    : $"街道戦闘に勝利し、{TownNames[destinationTownIndex]}へ到着しました。";
-                saveManager?.SaveGame();
+                statusText.text = travelResult.StatusMessage;
+                if (travelResult.ShouldSave)
+                {
+                    saveManager?.SaveGame();
+                }
             }
             else
             {
                 ShowWorldMap();
-                statusText.text = wasUnlock
-                    ? $"街道戦闘に敗北しました。{TownNames[destinationTownIndex]}は未解放のままです。"
-                    : $"街道戦闘に敗北したため、{TownNames[destinationTownIndex]}へ移動できませんでした。";
+                statusText.text = travelResult.StatusMessage;
             }
             return;
         }
@@ -978,9 +902,16 @@ public partial class SimpleMercenaryHireUI
         }
 
         UpdateDungeonEventUI();
-        RebuildDungeonSelectionList();
+        dungeonPage.GetComponent<DungeonPageUI>()?.RefreshSelection();
         statusText.text = $"探索パーティー: 傭兵{partyManager.Members.Count}人";
         RefreshUI();
+    }
+
+    private static string GetTownName(int townIndex)
+    {
+        return townIndex >= 0 && townIndex < TownNames.Length
+            ? TownNames[townIndex]
+            : string.Empty;
     }
 
     private void ContinueToNextDungeonFloor()

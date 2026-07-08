@@ -4,8 +4,9 @@ using UnityEngine;
 public sealed class RoadEncounterService : MonoBehaviour
 {
     private const float RareEncounterChance = 0.08f;
-    private const int FirstRouteEnemyCount = 5;
-    private const int DefaultRouteEnemyCount = 4;
+    private const int EarlyRouteEnemyCount = 2;
+    private const int MiddleRouteEnemyCount = 3;
+    private const int LateRouteEnemyCount = 4;
     private DungeonRunManager dungeonRunManager;
     private BattleManager battleManager;
 
@@ -47,9 +48,14 @@ public sealed class RoadEncounterService : MonoBehaviour
 
     private static int GetEnemyCountForRoute(int routeIndex)
     {
-        return routeIndex == 0
-            ? FirstRouteEnemyCount
-            : DefaultRouteEnemyCount;
+        if (routeIndex <= 0)
+        {
+            return EarlyRouteEnemyCount;
+        }
+
+        return routeIndex <= 2
+            ? MiddleRouteEnemyCount
+            : LateRouteEnemyCount;
     }
 
     private void FillFallbackEnemies(

@@ -669,6 +669,23 @@
 - `Assembly-CSharp.csproj`、`DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj` はすべて警告0件、エラー0件でビルド成功。
 - 注意点として、`Assembly-CSharp.csproj` はUnityが再生成する補助ファイルのため、Unity側でプロジェクトファイル再生成が走ると今回の手動整理が上書きされる可能性がある。
 
+## 2026-07-08
+
+### マージ競合後の町/地域ルール分離を統合
+
+- ユーザー報告により、家側・教室側の作業内容を確認し、マージ後の問題を調査した。
+- コンフリクトマーカーはコード・プロジェクトファイル内には残っていなかった。
+- 実際の問題は、教室側の `WorldMapService` と学校側の `TownMapService` が同じ町/地域ルール責務を重複して持っていたことだった。
+- 家側・教室側の内容を優先し、より広い責務を持つ `WorldMapService` へ学校側の `ValidateTravelRequest` と `TravelValidationResult` を統合した。
+- `SimpleMercenaryHireUI.Map.cs` の街道移動開始判定は `WorldMapService.ValidateTravelRequest` を使うように変更した。
+- 重複していた `TownMapService` と `TownMapServiceTests` を削除した。
+- `WorldMapServiceTests` へ、非隣接移動拒否、傭兵未編成拒否、次解放町への移動許可テストを統合した。
+- 以前の学校側作業で導入した `RoadTravelState` と、家側/教室側の街道戦闘ガードが混ざった結果、継続戦闘側に古い `pendingRoadRareEncounter` 参照が1件残っていたため、`roadTravelState.SetRareEncounter` へ修正した。
+- 家側で削除済みの旧雇用UI `MercenaryHireListUI` / `MercenaryHireListItemUI` 参照が `Assembly-CSharp.csproj` に残っていたため削除した。
+- 家側/教室側で追加済みの `DungeonRewardService` と `WorldMapService` が `Assembly-CSharp.csproj` に不足していたため追加した。
+- `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj`、`Assembly-CSharp.csproj` はすべて警告0件、エラー0件でビルド成功。
+- `git` コマンドはこの環境では利用できないため、`rg` とビルドで確認した。
+
 ### 街道移動の開始可否判定をサービスへ移管
 
 - 次の分離作業として、街道移動を開始できるかどうかの判定を `TownMapService.ValidateTravelRequest` へ移した。
@@ -677,3 +694,35 @@
 - `TownMapServiceTests` に、非隣接移動の拒否、傭兵未編成の拒否、次解放町への移動許可のテストを追加した。
 - `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj` は警告0件、エラー0件でビルド成功。
 - 旧 `Assembly-CSharp.csproj` もエラー0件でビルド成功。Visual Scripting削除後の古い参照警告9件のみ残る。
+## 2026-07-08 学校側・Visual Scripting残骸の再生成対策
+
+- `Packages/manifest.json` と `Packages/packages-lock.json` に `com.unity.visualscripting` が残っていないことを確認した。
+- `ProjectSettings/VisualScriptingSettings.asset` が古いVisual Scripting参照の設定ファイルとして残っていたため削除した。
+- `ProjectSettings`、`Packages`、`Assets/Proiject/Scripts`、`Assets/Proiject/Tests`、各csproj内に `VisualScripting` / `visualscripting` 参照が残っていないことを検索で確認した。
+- `Assembly-CSharp.csproj` は警告0件・エラー0件でビルド成功。
+- Unityがcsprojを再生成しても、Visual Scriptingパッケージと設定ファイルの両方が消えているため、古い参照警告が復活しにくい状態になった。
+
+## 2026-07-08 学校側・街道移動完了処理の分離
+
+- 街道戦闘勝利/敗北後の町到着、町解放、日数経過、保存要否、表示メッセージの判定を `RoadTravelCompletionService` に分離した。
+- `SimpleMercenaryHireUI.BattleDungeon.cs` は、街道戦闘完了時にサービスの結果を受け取り、画面遷移・保存・UI更新だけを行う形に整理した。
+- `RoadTravelCompletionServiceTests` を追加し、勝利時の町解放、勝利後ダンジョン表示、敗北時の現在地維持、無効状態の結果をEditModeテストで確認できるようにした。
+- 古い `VisualScripting`、`TownMapService`、`pendingRoadRareEncounter` 参照が残っていないことを検索で確認した。
+- `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj`、`Assembly-CSharp.csproj` はすべて警告0件・エラー0件でビルド成功。
+- 注意: 最初にビルドを並列実行した際、EditModeTestsだけ一時DLLのファイルロックで失敗したが、順番に再実行して警告0件・エラー0件で成功した。コード上のコンパイルエラーではない。
+## 2026-07-08 学校側・ダンジョン選択UIの責務分離
+
+- UIページ分離の続きとして、親UIに残っていたダンジョン選択リスト生成を `DungeonPageUI` 側へ移した。
+- `DungeonPageUI` が、現在の町、選択可能ダンジョン、攻略済みフロア、開放状態、選択中状態を受け取り、行生成・空表示・選択ボタン表示を担当する形にした。
+- `SimpleMercenaryHireUI.BattleDungeon.cs` は、ダンジョン選択時の処理とデータ提供だけを担当する形に縮小した。
+- 親UI側でしか使われていなかった `dungeonSelectButtons` と `displayedDungeons` を削除した。
+- `RebuildDungeonSelectionList`、古いダンジョン選択リスト用フィールド、古いVisual Scripting参照、古い `TownMapService` 参照が残っていないことを検索で確認した。
+- `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj`、`Assembly-CSharp.csproj` はすべて警告0件・エラー0件でビルド成功。
+## 2026-07-08 学校側・街道戦闘の敵数バランス調整
+
+- 街道戦闘の1戦あたりの敵数を、序盤2体・中盤3体・後半4体へ調整した。
+- 以前は最初の街道が5体、それ以外が4体だったため、連続戦闘時に序盤から負担が重くなりやすかった。
+- 街道の連戦数そのものは変更せず、まずは1戦ごとの重さを下げる調整にした。
+- `RoadEncounterServiceTests` の期待値を更新し、通常候補がある場合とフォールバック敵を使う場合の両方で敵数上限を確認できるようにした。
+- 古い敵数定数、古いVisual Scripting参照、古い `TownMapService` 参照、古いダンジョン選択リスト用フィールドが残っていないことを検索で確認した。
+- `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj`、`Assembly-CSharp.csproj` はすべて警告0件・エラー0件でビルド成功。
