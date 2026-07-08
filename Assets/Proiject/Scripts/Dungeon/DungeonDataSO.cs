@@ -21,6 +21,7 @@ public class DungeonDataSO : ScriptableObject, IPersistentGameAsset
     [Min(1)] public int firstEncounterEnemyCount = 2;
     [Min(0)] public int enemyCountIncreasePerEncounter = 1;
     [Min(0)] public int enemyCountIncreasePerFloor = 1;
+    [Min(1)] public int maxEnemyCountPerEncounter = 5;
     public EnemyDataSO[] normalEnemies;
     public EnemyDataSO bossEnemy;
 

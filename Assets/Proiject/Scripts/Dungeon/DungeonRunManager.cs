@@ -6,6 +6,7 @@ public class DungeonRunManager : MonoBehaviour
 {
     private const string UnlockedGradeSaveKey =
         "DungeonMerchant.Dungeon.HighestUnlockedGrade";
+    private const int DefaultMaxEnemyCountPerEncounter = 5;
 
     [Header("References")]
     [SerializeField] private BattleManager battleManager;
@@ -433,6 +434,7 @@ public class DungeonRunManager : MonoBehaviour
             firstEnemyCount +
             ((CurrentEncounter - 1) * enemyIncrease) +
             ((CurrentFloor - 1) * floorIncrease);
+        enemyCount = Mathf.Min(enemyCount, GetMaxEnemyCountPerEncounter());
         List<EnemyDataSO> enemies = CreateDungeonEncounter(enemyCount);
 
         SendDungeonMessage(
@@ -447,6 +449,13 @@ public class DungeonRunManager : MonoBehaviour
         }
 
         return started;
+    }
+
+    private int GetMaxEnemyCountPerEncounter()
+    {
+        return dungeonData != null
+            ? Mathf.Max(1, dungeonData.maxEnemyCountPerEncounter)
+            : DefaultMaxEnemyCountPerEncounter;
     }
 
     private List<EnemyDataSO> CreateDungeonEncounter(int enemyCount)
@@ -478,7 +487,11 @@ public class DungeonRunManager : MonoBehaviour
                     UnityEngine.Random.value <
                     dungeonData.specialVariantChance)
                 {
-                    enemy = CreateSpecialVariant(enemy, false);
+                    enemy = DungeonEnemyVariantService.CreateSpecialVariant(
+                        enemy,
+                        dungeonData.specialVariantSkillPool,
+                        dungeonData.grade,
+                        false);
                     specialVariantAdded = enemy != null &&
                                           enemy.isSpecialVariant;
                 }
@@ -494,7 +507,11 @@ public class DungeonRunManager : MonoBehaviour
             if (hasPreviouslyFullyCleared &&
                 UnityEngine.Random.value < dungeonData.specialBossChance)
             {
-                boss = CreateSpecialVariant(boss, true);
+                boss = DungeonEnemyVariantService.CreateSpecialVariant(
+                    boss,
+                    dungeonData.specialVariantSkillPool,
+                    dungeonData.grade,
+                    true);
             }
             enemies.Add(boss);
         }
@@ -502,188 +519,6 @@ public class DungeonRunManager : MonoBehaviour
         return enemies.Count > 0
             ? enemies
             : battleManager.CreateDefaultEnemyEncounter(enemyCount);
-    }
-
-    private EnemyDataSO CreateSpecialVariant(
-        EnemyDataSO source,
-        bool isBossVariant)
-    {
-        if (source == null ||
-            dungeonData?.specialVariantSkillPool == null ||
-            dungeonData.specialVariantSkillPool.Length == 0)
-        {
-            return source;
-        }
-
-        List<EnemySkillType> skills = new List<EnemySkillType>();
-        foreach (EnemySkillType skill in dungeonData.specialVariantSkillPool)
-        {
-            if (skill != EnemySkillType.None)
-            {
-                skills.Add(skill);
-            }
-        }
-        if (skills.Count == 0)
-        {
-            return source;
-        }
-
-        EnemyDataSO variant = Instantiate(source);
-        variant.name = $"{source.name} Special Variant";
-        variant.hideFlags = HideFlags.DontSave;
-        variant.isSpecialVariant = true;
-        variant.enemySkill =
-            skills[UnityEngine.Random.Range(0, skills.Count)];
-        variant.specialVariantTitle =
-            GetSpecialVariantTitle(variant.enemySkill, isBossVariant);
-        variant.maxHP = Mathf.RoundToInt(
-            source.maxHP * (isBossVariant ? 1.4f : 1.18f));
-        variant.attack = Mathf.RoundToInt(
-            source.attack * (isBossVariant ? 1.25f : 1.12f));
-        variant.defense = Mathf.RoundToInt(
-            source.defense * (isBossVariant ? 1.2f : 1.1f));
-        variant.goldReward = Mathf.RoundToInt(
-            source.goldReward * (isBossVariant ? 3f : 1.75f));
-        variant.experienceMultiplier =
-            Mathf.Max(1f, source.experienceMultiplier) *
-            (isBossVariant ? 2.5f : 2f);
-
-        ApplySpecialSkillStatBonus(variant);
-        AddSpecialVariantMaterialDrop(variant, isBossVariant);
-        if (isBossVariant)
-        {
-            AddSpecialJobCertificateDrop(variant);
-        }
-        return variant;
-    }
-
-    private static void AddSpecialVariantMaterialDrop(
-        EnemyDataSO variant,
-        bool isBossVariant)
-    {
-        ItemDataSO material = Resources.Load<ItemDataSO>(
-            "Items/Special/MutantCore");
-        if (variant == null || material == null)
-        {
-            return;
-        }
-
-        List<ItemDropEntry> drops = new List<ItemDropEntry>();
-        if (variant.itemDrops != null)
-        {
-            drops.AddRange(variant.itemDrops);
-        }
-        drops.Add(new ItemDropEntry
-        {
-            item = material,
-            amount = isBossVariant ? 2 : 1,
-            dropChance = isBossVariant ? 1f : 0.5f
-        });
-        variant.itemDrops = drops.ToArray();
-    }
-
-    private void AddSpecialJobCertificateDrop(EnemyDataSO variant)
-    {
-        ItemDataSO certificate = Resources.Load<ItemDataSO>(
-            "Items/JobChange/SecretJobCertificate");
-        if (certificate == null)
-        {
-            return;
-        }
-
-        List<ItemDropEntry> drops = new List<ItemDropEntry>();
-        if (variant.itemDrops != null)
-        {
-            drops.AddRange(variant.itemDrops);
-        }
-        float chance = Mathf.Clamp01(
-            0.5f + ((int)dungeonData.grade * 0.125f));
-        drops.Add(new ItemDropEntry
-        {
-            item = certificate,
-            amount = 1,
-            dropChance = chance
-        });
-        variant.itemDrops = drops.ToArray();
-    }
-
-    private static string GetSpecialVariantTitle(
-        EnemySkillType skill,
-        bool isBossVariant)
-    {
-        if (isBossVariant)
-        {
-            return "異形の";
-        }
-
-        switch (skill)
-        {
-            case EnemySkillType.PowerStrike: return "凶暴な";
-            case EnemySkillType.VenomStrike: return "猛毒の";
-            case EnemySkillType.ParalyzingRoar: return "震声の";
-            case EnemySkillType.CriticalFocus: return "鋭眼の";
-            case EnemySkillType.DoubleStrike: return "迅撃の";
-            case EnemySkillType.LifeDrain: return "吸命の";
-            case EnemySkillType.ArmorPierce: return "破甲の";
-            case EnemySkillType.FlameBreath: return "炎息の";
-            case EnemySkillType.FrostBite: return "氷牙の";
-            case EnemySkillType.TripleStrike: return "裂爪の";
-            case EnemySkillType.BattleHeal: return "再生する";
-            case EnemySkillType.SacrificialStrike: return "狂戦の";
-            case EnemySkillType.Execute: return "処刑者の";
-            case EnemySkillType.ToxicCloud: return "瘴気の";
-            default: return "変異した";
-        }
-    }
-
-    private static void ApplySpecialSkillStatBonus(EnemyDataSO variant)
-    {
-        switch (variant.enemySkill)
-        {
-            case EnemySkillType.PowerStrike:
-                variant.attack = Mathf.RoundToInt(variant.attack * 1.15f);
-                break;
-            case EnemySkillType.VenomStrike:
-                variant.attackSpeed *= 1.1f;
-                break;
-            case EnemySkillType.ParalyzingRoar:
-                variant.defense = Mathf.RoundToInt(variant.defense * 1.15f);
-                break;
-            case EnemySkillType.CriticalFocus:
-                variant.criticalRate += 0.2f;
-                break;
-            case EnemySkillType.DoubleStrike:
-                variant.attackSpeed *= 1.2f;
-                break;
-            case EnemySkillType.LifeDrain:
-                variant.maxHP = Mathf.RoundToInt(variant.maxHP * 1.2f);
-                break;
-            case EnemySkillType.ArmorPierce:
-                variant.attack = Mathf.RoundToInt(variant.attack * 1.1f);
-                break;
-            case EnemySkillType.FlameBreath:
-                variant.maxMagicPower += 25;
-                break;
-            case EnemySkillType.FrostBite:
-                variant.defense = Mathf.RoundToInt(variant.defense * 1.12f);
-                break;
-            case EnemySkillType.TripleStrike:
-                variant.attackSpeed *= 1.15f;
-                break;
-            case EnemySkillType.BattleHeal:
-                variant.maxHP = Mathf.RoundToInt(variant.maxHP * 1.25f);
-                break;
-            case EnemySkillType.SacrificialStrike:
-                variant.attack = Mathf.RoundToInt(variant.attack * 1.18f);
-                break;
-            case EnemySkillType.Execute:
-                variant.criticalRate += 0.12f;
-                break;
-            case EnemySkillType.ToxicCloud:
-                variant.maxMagicPower += 20;
-                variant.attackSpeed *= 1.08f;
-                break;
-        }
     }
 
     private EnemyDataSO GetRandomNormalEnemy()
@@ -784,87 +619,61 @@ public class DungeonRunManager : MonoBehaviour
 
     private void PresentRandomEvent()
     {
-        currentEventType = (DungeonEventType)UnityEngine.Random.Range(
-            (int)DungeonEventType.AbandonedCamp,
-            (int)DungeonEventType.CollapsedPassage + 1);
+        currentEventType = DungeonEventService.RollRandomEvent();
         IsAwaitingEventChoice = true;
 
-        switch (currentEventType)
-        {
-            case DungeonEventType.AbandonedCamp:
-                EventTitle = "放棄された野営地";
-                EventDescription =
-                    "静かな野営地を発見しました。休息は時間を使いますが、今回のフロア探索は合計1日として処理されます。";
-                FirstOptionLabel = $"休息 HP+{restHealAmount}（時間消費）";
-                SecondOptionLabel = $"物資探索 +{treasureGoldReward / 2} G";
-                break;
-            case DungeonEventType.TreasureCache:
-                EventTitle = "隠された宝箱";
-                EventDescription =
-                    "商人が隠したと思われる施錠された箱を発見しました。回収してもフロア探索日数は1日のままです。";
-                FirstOptionLabel = $"回収 +{treasureGoldReward} G";
-                SecondOptionLabel = $"休息 HP+{Mathf.Max(1, restHealAmount / 2)}（短時間）";
-                break;
-            case DungeonEventType.CollapsedPassage:
-                EventTitle = "崩れた通路";
-                EventDescription =
-                    "近道は崩れかけています。強行突破は時間を使いますが、今回のフロア探索は合計1日として処理されます。";
-                FirstOptionLabel = $"強行突破 HP-{hazardDamage}（時間消費）";
-                SecondOptionLabel = $"休息 HP+{Mathf.Max(1, restHealAmount / 2)}（短時間）";
-                break;
-        }
-
-        ThirdOptionLabel = "撤退";
+        DungeonEventPresentation presentation =
+            DungeonEventService.CreatePresentation(
+                currentEventType,
+                restHealAmount,
+                treasureGoldReward,
+                hazardDamage);
+        EventTitle = presentation.Title;
+        EventDescription = presentation.Description;
+        FirstOptionLabel = presentation.FirstOptionLabel;
+        SecondOptionLabel = presentation.SecondOptionLabel;
+        ThirdOptionLabel = presentation.ThirdOptionLabel;
         SendDungeonMessage($"ダンジョンイベント: {EventTitle}");
         DungeonStateChanged?.Invoke();
     }
 
     private void ResolveEventChoice(DungeonEventType eventType, int optionIndex)
     {
-        switch (eventType)
+        DungeonEventChoiceResult result =
+            DungeonEventService.ResolveChoice(
+                eventType,
+                optionIndex,
+                restHealAmount,
+                treasureGoldReward,
+                hazardDamage);
+
+        if (result.HealAmount > 0)
         {
-            case DungeonEventType.AbandonedCamp:
-                if (optionIndex == 0)
-                {
-                    HealParty(restHealAmount);
-                    progressionManager?.AddExplorationDelay(1);
-                }
-                else
-                {
-                    GrantGold(treasureGoldReward / 2);
-                    TryGrantLimitedEquipment(
-                        dungeonData != null
-                            ? dungeonData.eventLimitedDropChance
-                            : 0f,
-                        "探索イベント限定ドロップ");
-                }
-                break;
-            case DungeonEventType.TreasureCache:
-                if (optionIndex == 0)
-                {
-                    GrantGold(treasureGoldReward);
-                    TryGrantLimitedEquipment(
-                        dungeonData != null
-                            ? dungeonData.eventLimitedDropChance
-                            : 0f,
-                        "宝箱限定ドロップ");
-                }
-                else
-                {
-                    HealParty(Mathf.Max(1, restHealAmount / 2));
-                }
-                break;
-            case DungeonEventType.CollapsedPassage:
-                if (optionIndex == 0)
-                {
-                    DamageParty(hazardDamage);
-                    progressionManager?.AddExplorationDelay(1);
-                }
-                else
-                {
-                    HealParty(Mathf.Max(1, restHealAmount / 2));
-                }
-                break;
+            HealParty(result.HealAmount);
+        }
+
+        if (result.DamageAmount > 0)
+        {
+            DamageParty(result.DamageAmount);
+        }
+
+        if (result.GoldAmount > 0)
+        {
+            GrantGold(result.GoldAmount);
+        }
+
+        if (!string.IsNullOrEmpty(result.LimitedDropSourceLabel))
+        {
+            TryGrantLimitedEquipment(
+                dungeonData != null
+                    ? dungeonData.eventLimitedDropChance
+                    : 0f,
+                result.LimitedDropSourceLabel);
+        }
+
+        if (result.AddExplorationDelay)
+        {
+            progressionManager?.AddExplorationDelay(1);
         }
     }
 

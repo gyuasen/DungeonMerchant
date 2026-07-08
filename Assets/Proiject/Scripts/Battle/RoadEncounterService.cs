@@ -6,7 +6,7 @@ public sealed class RoadEncounterService : MonoBehaviour
     private const float RareEncounterChance = 0.08f;
     private const int EarlyRouteEnemyCount = 2;
     private const int MiddleRouteEnemyCount = 3;
-    private const int LateRouteEnemyCount = 4;
+    private const int LateRouteEnemyCount = 5;
     private DungeonRunManager dungeonRunManager;
     private BattleManager battleManager;
 

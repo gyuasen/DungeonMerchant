@@ -23,7 +23,7 @@ public sealed class RoadEncounterServiceTests
     [TestCase(0, 1, 2)]
     [TestCase(1, 2, 3)]
     [TestCase(2, 3, 3)]
-    [TestCase(5, 6, 4)]
+    [TestCase(5, 6, 5)]
     public void CreateEncounter_UsesConfiguredRouteLimit(
         int originTown,
         int destinationTown,
@@ -51,7 +51,7 @@ public sealed class RoadEncounterServiceTests
 
     [TestCase(0, 1, 2)]
     [TestCase(1, 2, 3)]
-    [TestCase(5, 6, 4)]
+    [TestCase(5, 6, 5)]
     public void CreateEncounter_FallbackKeepsRouteLimit(
         int originTown,
         int destinationTown,
