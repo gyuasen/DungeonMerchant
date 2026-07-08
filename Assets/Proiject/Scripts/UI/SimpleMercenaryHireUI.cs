@@ -219,34 +219,14 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         int townIndex,
         IReadOnlyList<int> savedUnlockedTownIndices)
     {
-        unlockedTownIndices.Clear();
-        unlockedTownIndices.Add(2);
-        if (savedUnlockedTownIndices != null)
-        {
-            foreach (int unlockedTownIndex in savedUnlockedTownIndices)
-            {
-                if (unlockedTownIndex >= 0 &&
-                    unlockedTownIndex < TownNames.Length)
-                {
-                    unlockedTownIndices.Add(unlockedTownIndex);
-                }
-            }
-        }
-
         currentTownIndex = Mathf.Clamp(townIndex, 0, TownNames.Length - 1);
-        unlockedTownIndices.Add(currentTownIndex);
-        if (savedUnlockedTownIndices == null)
+        unlockedTownIndices.Clear();
+        foreach (int unlockedTownIndex in
+                 WorldMapService.CreateRestoredUnlockedTownIndices(
+                     currentTownIndex,
+                     savedUnlockedTownIndices))
         {
-            int currentOrder = GetTownProgressionPosition(currentTownIndex);
-            for (int i = 0; i <= currentOrder; i++)
-            {
-                int townAtPosition =
-                    TownMapService.GetTownAtProgressionPosition(i);
-                if (townAtPosition >= 0)
-                {
-                    unlockedTownIndices.Add(townAtPosition);
-                }
-            }
+            unlockedTownIndices.Add(unlockedTownIndex);
         }
 
         viewedWorldMapIndex = CurrentWorldMapIndex;
@@ -999,7 +979,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             worldMapIndex, 0, WorldRegionNames.Length - 1);
         if (!CanEnterWorldRegion(worldMapIndex))
         {
-            int gateTownIndex = worldMapIndex == 1 ? 0 : 4;
+            int gateTownIndex =
+                WorldMapService.GetGateTownIndexForWorldRegion(worldMapIndex);
             DungeonDataSO gateDungeon =
                 dungeonRunManager.GetHighestGradeDungeonNearTown(
                     gateTownIndex);

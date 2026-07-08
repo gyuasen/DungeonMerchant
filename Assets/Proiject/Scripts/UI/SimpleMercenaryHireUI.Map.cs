@@ -502,18 +502,20 @@ public partial class SimpleMercenaryHireUI
 
     private bool CanEnterWorldRegion(int worldMapIndex)
     {
-        return TownMapService.CanEnterWorldRegion(
+        return WorldMapService.CanEnterWorldRegion(
             worldMapIndex,
             currentTownIndex,
             unlockedTownIndices,
-            dungeonRunManager);
+            IsGateTownFullyCleared);
     }
 
-    private bool HasUnlockedTownInWorld(int worldMapIndex)
+    private bool IsGateTownFullyCleared(int gateTownIndex)
     {
-        return TownMapService.HasUnlockedTownInWorld(
-            worldMapIndex,
-            unlockedTownIndices);
+        DungeonDataSO gateDungeon =
+            dungeonRunManager.GetHighestGradeDungeonNearTown(gateTownIndex);
+        return gateDungeon != null &&
+               dungeonRunManager.GetClearedFloors(gateDungeon) >=
+               Mathf.Max(1, gateDungeon.totalFloors);
     }
 
     private void ShowTownMap()
@@ -641,7 +643,9 @@ public partial class SimpleMercenaryHireUI
                 out bool containsRareEncounter);
         roadTravelState.SetRareEncounter(containsRareEncounter);
 
-        if (!battleManager.StartBattle(partyManager.Members, enemies))
+        if (enemies == null ||
+            enemies.Count == 0 ||
+            !battleManager.StartBattle(partyManager.Members, enemies))
         {
             roadTravelState.Clear();
             statusText.text = "街道戦闘を開始できませんでした。";
@@ -668,9 +672,10 @@ public partial class SimpleMercenaryHireUI
             roadEncounterService.CreateEncounter(
                 currentTownIndex,
                 destinationTownIndex,
-                out bool containsRareEncounter);
-        roadTravelState.SetRareEncounter(containsRareEncounter);
-        if (!battleManager.StartBattle(partyManager.Members, enemies))
+                out pendingRoadRareEncounter);
+        if (enemies == null ||
+            enemies.Count == 0 ||
+            !battleManager.StartBattle(partyManager.Members, enemies))
         {
             roadTravelState.Clear();
             ShowWorldMap();
@@ -811,7 +816,8 @@ public partial class SimpleMercenaryHireUI
 
     private int GetNextUnlockableTownIndex()
     {
-        return TownMapService.GetNextUnlockableTownIndex(unlockedTownIndices);
+        return WorldMapService.GetNextUnlockableTownIndex(
+            unlockedTownIndices);
     }
 
     private void ApplyTownServiceSettings(

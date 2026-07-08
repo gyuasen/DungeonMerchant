@@ -4,6 +4,8 @@ using UnityEngine;
 public sealed class RoadEncounterService : MonoBehaviour
 {
     private const float RareEncounterChance = 0.08f;
+    private const int FirstRouteEnemyCount = 5;
+    private const int DefaultRouteEnemyCount = 4;
     private DungeonRunManager dungeonRunManager;
     private BattleManager battleManager;
 
@@ -22,7 +24,7 @@ public sealed class RoadEncounterService : MonoBehaviour
     {
         containsRareEnemy = false;
         int routeIndex = Mathf.Min(originTownIndex, destinationTownIndex);
-        int enemyCount = routeIndex == 0 ? 5 : 4;
+        int enemyCount = GetEnemyCountForRoute(routeIndex);
 
         List<EnemyDataSO> candidates =
             GetEnemiesNearTown(originTownIndex);
@@ -36,20 +38,42 @@ public sealed class RoadEncounterService : MonoBehaviour
             encounter.Add(selected);
         }
 
-        if (encounter.Count == 0 && battleManager != null)
-        {
-            encounter.AddRange(
-                battleManager.CreateDefaultEnemyEncounter(enemyCount));
-        }
+        FillFallbackEnemies(encounter, enemyCount);
 
         TryReplaceWithRareEnemy(encounter, routeIndex, out containsRareEnemy);
-        if (encounter.Count > enemyCount)
-        {
-            encounter.RemoveRange(
-                enemyCount,
-                encounter.Count - enemyCount);
-        }
+        TrimToLimit(encounter, enemyCount);
         return encounter;
+    }
+
+    private static int GetEnemyCountForRoute(int routeIndex)
+    {
+        return routeIndex == 0
+            ? FirstRouteEnemyCount
+            : DefaultRouteEnemyCount;
+    }
+
+    private void FillFallbackEnemies(
+        List<EnemyDataSO> encounter,
+        int enemyCount)
+    {
+        if (encounter.Count >= enemyCount)
+        {
+            return;
+        }
+
+        List<EnemyDataSO> fallbackEnemies =
+            battleManager != null
+                ? battleManager.CreateDefaultEnemyEncounter(enemyCount)
+                : new List<EnemyDataSO>();
+        for (int i = 0;
+             i < fallbackEnemies.Count && encounter.Count < enemyCount;
+             i++)
+        {
+            if (fallbackEnemies[i] != null)
+            {
+                encounter.Add(fallbackEnemies[i]);
+            }
+        }
     }
 
     private List<EnemyDataSO> GetEnemiesNearTown(int townIndex)
@@ -111,5 +135,19 @@ public sealed class RoadEncounterService : MonoBehaviour
                 return;
             }
         }
+    }
+
+    private static void TrimToLimit(
+        List<EnemyDataSO> encounter,
+        int enemyCount)
+    {
+        if (encounter.Count <= enemyCount)
+        {
+            return;
+        }
+
+        encounter.RemoveRange(
+            enemyCount,
+            encounter.Count - enemyCount);
     }
 }
