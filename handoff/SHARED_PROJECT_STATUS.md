@@ -20,6 +20,7 @@
 ## 実装済み
 
 - 商人の所持金管理
+- ダンジョン報酬処理を `DungeonRewardService` に分離し、`DungeonRunManager` の責務を一部軽量化
 - 傭兵データのScriptableObject
 - 傭兵候補のランダム生成
 - 量産型傭兵は戦士・弓兵・魔法使いの3職から生成。候補3人以上なら各職最低1人を保証
@@ -676,3 +677,72 @@
 - `Assembly-CSharp.csproj` 内に `VisualScripting` 参照が残っていないことを確認した。
 - `Assembly-CSharp.csproj`、`DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj` はすべて警告0件、エラー0件でビルド成功。
 - 注意点: `Assembly-CSharp.csproj` はUnityの自動生成補助ファイルのため、Unityのプロジェクトファイル再生成で今回の手動整理が上書きされる可能性がある。
+## 2026-07-07 教室側・コード構成整理
+
+- UI partialに残っていた町名、地域名、町の進行順、隣接判定を `WorldMapService` へ分離した。
+- `SimpleMercenaryHireUI.MapData.cs` は既存UI互換のラッパーとして残し、町移動・地域解放・マップ表示の挙動は変更していない。
+- 町/地域ルール用のEditModeテスト `WorldMapServiceTests` を追加した。
+- `dotnet build DungeonMerchant.sln` は警告0件、エラー0件で成功。Unity Test Runnerでの実行は未確認。
+
+## 2026-07-07 教室側・コード構成整理 続き
+
+- 次に解放できる町、旧セーブ用の町解放補完、地域内の解放済み町確認、地域解放ゲート町の判定を `WorldMapService` へ追加分離した。
+- `DungeonRunManager.SetUnlockedTownIndices` も同じ町定義を参照するようにした。
+- 地域解放の実条件は変えず、ゲート町の最高等級ダンジョン完全攻略確認だけUI側から関数として渡す構成にした。
+- `WorldMapServiceTests` を拡張し、`dotnet build DungeonMerchant.sln` は警告0件、エラー0件で成功。
+
+## 2026-07-07 現在残っている主な責務整理
+
+- `SimpleMercenaryHireUI` には、まだ各種一覧生成と行生成が多く残っている。
+  - 雇用候補、傭兵一覧、編成、治療、転職、在庫、市場、鍛冶、ダンジョン選択、装備候補、依頼一覧。
+  - 各 `PageUI` は存在するが、`Rebuild...List` や `Create...Row` の多くは親UI側に残っている。
+- `BattleManager` は戦闘開始/終了、行動順、通常攻撃、スキル、状態異常、報酬、ログ、ドロップ処理が集中している。
+  - 将来的な分離候補: `BattleTurnResolver`、`BattleRewardService`、`BattleSkillResolver`、`BattleStatusEffectService`、`BattleLogFormatter`。
+- `DungeonRunManager` はダンジョン選択、解放判定、フロア進行、戦闘開始、イベント、報酬、進行保存/復元、メッセージ生成が集中している。
+  - 切り出し候補: ダンジョン報酬処理、ダンジョンイベント処理、ダンジョン選択/解放判定。
+- `FindObjectOfType` 依存がまだ多い。
+  - 主な残存箇所: `BattleManager`、`DungeonRunManager`、`SaveManager`、`ProgressionManager`、`MarketStockManager`、`BlacksmithManager`、`MerchantInventory`、`HealingManager`、`SimpleMercenaryHireUI`。
+  - Bootstrapまたは専用の依存解決クラスへ段階的に寄せる。
+- `SaveManager` には、セーブデータ作成、適用、イベント購読、自動保存、参照解決、ファイルI/Oが残っている。
+  - 分離候補: `SaveDataFactory`、`SaveDataApplier`、`SaveFileStore`。
+- 町別仕様はまだ分散している。
+  - `TownServicePolicy`、`MercenaryGenerator.SetTownIndex`、`MarketStockManager.SetTownIndex`、`BlacksmithManager.SetTownIndex`、`SimpleMercenaryHireUI.ApplyTownServiceSettings`。
+  - 将来的に `TownServiceProfile` または `TownRuleService` へ統合する。
+- 推奨優先順:
+  1. 経済系ページの一覧生成を `MarketPageUI` / `BlacksmithPageUI` / `InventoryPageUI` 側へ移す。
+  2. 傭兵管理系の一覧生成を `HirePageUI` / `CompanyPageUI` / `PartyPageUI` / `HealPageUI` 側へ移す。
+  3. `DungeonRunManager` から報酬処理を分離する。
+  4. `BattleManager` から報酬処理・ログ生成を分離する。
+  5. `FindObjectOfType` 依存を段階的に整理する。
+
+## 2026-07-07 教室側・経済系ページ責務分離
+
+- 優先度1の一部として、在庫・市場・鍛冶屋ページの一覧再構築ループを各 `PageUI` 側へ移した。
+- `EconomyPageUI` に共通の行再構築処理を追加し、空表示、行ループ、スクロール内容高さ更新を担当させた。
+- `SimpleMercenaryHireUI.Economy.cs` にはデータ供給、フィルタ、行描画コールバック、売買/制作などの操作処理を残した。
+- 旧 `RebuildInventoryList`、`RebuildMarketList`、`RebuildBlacksmithList` は削除済み。
+- `dotnet build DungeonMerchant.sln` は警告0件、エラー0件で成功。Unity上の実表示は未確認。
+
+## 2026-07-07 教室側・傭兵管理系ページ責務分離
+
+- 優先度2の一部として、雇用・商会・編成・治療ページの一覧再構築ループを各 `PageUI` 側へ移した。
+- `HirePageUI`、`CompanyPageUI`、`PartyPageUI`、`HealPageUI` が行ループ、空表示、スクロール内容高さ更新を担当する。
+- `SimpleMercenaryHireUI.HireParty.cs` にはデータ供給、フィルタ、行描画コールバック、雇用/編成/治療操作を残した。
+- 旧 `RebuildHireList`、`RebuildCompanyList`、`RebuildPartyList`、`RebuildHealList` は削除済み。
+- `dotnet build DungeonMerchant.sln` は警告0件、エラー0件で成功。Unity上の実表示は未確認。
+- 転職一覧 `RebuildJobChangeList` はまだ親UI側に残っている。
+## 2026-07-07 家側・責務整理継続と街道敵数ガード
+
+- `JobChangePageUI` が転職対象一覧の行ループとリスト高さ更新を担当するようにし、親UI側の `RebuildJobChangeList` を削除した。
+- その後、転職行の表示描画も `JobChangePageUI` 側へ移し、親UIには特殊転職表示判定と転職実行処理を残した。
+- `UIPageBase` に行、テキスト、アクションボタン生成の共通ヘルパーを追加した。
+- 商会一覧の行描画を `CompanyPageUI` 側へ移し、親UIには編成切替、詳細表示、契約更新の実行処理を残した。
+- 編成一覧の行描画を `PartyPageUI` 側へ移し、親UIにはパーティーから外す処理を残した。
+- 雇用候補の行描画を `HirePageUI` 側へ移し、親UIには雇用実行、候補表示判定、ボタン登録を残した。
+- 治療対象の行描画を `HealPageUI` 側へ移し、親UIには治療費・治療可否の判定と治療実行を残した。
+- 在庫・市場・鍛冶屋の行描画を `InventoryPageUI`、`MarketPageUI`、`BlacksmithPageUI` 側へ移し、親UIから該当行生成メソッドを削除した。
+- 旧雇用UI `MercenaryHireListUI` / `MercenaryHireListItemUI` はコード・Prefab・Scene・GUID参照なしを確認し、未使用として削除した。
+- 街道戦闘の敵数が大量になる問題への予防として、`RoadEncounterService` に街道ごとの敵数上限とフォールバック補充処理を明示した。
+- 街道戦闘開始時に敵リストが空の場合、通常戦闘設定へ落ちて大量敵が出ることを避けるガードを追加した。
+- `RoadEncounterServiceTests` を拡張し、フォールバック時も敵数上限を守ることを確認できるようにした。
+- `dotnet build DungeonMerchant.sln` は警告0件、エラー0件で成功。Unity Test Runnerと実表示は未確認。

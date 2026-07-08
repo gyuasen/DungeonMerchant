@@ -85,8 +85,25 @@ public partial class SimpleMercenaryHireUI
             inventoryPage.GetComponent<InventoryPageUI>() ??
             inventoryPage.gameObject.AddComponent<InventoryPageUI>();
         pageUI.Initialize(title, null, inventoryList);
-        pageUI.Configure(
-            uiBodyFont, ParchmentMutedColor, RebuildInventoryList);
+        pageUI.ConfigureInventory(
+            uiBodyFont,
+            ParchmentMutedColor,
+            MutedTextColor,
+            ButtonTextColor,
+            RowColor,
+            WoodButtonColor,
+            FrameColor,
+            () => merchantInventory.Items,
+            GetSortedInventoryEquipment,
+            ShouldShowInventoryItem,
+            ShouldShowInventoryEquipment,
+            item => merchantInventory.GetSellPrice(item),
+            item => marketPriceManager.GetEffectiveSellMultiplier(item),
+            GetEquipmentDisplayName,
+            GetEquipmentQualityColor,
+            SellItem,
+            UseConsumable,
+            ShowEquipmentDetails);
         pageRouter.Register(inventoryPage);
     }
 
@@ -125,8 +142,19 @@ public partial class SimpleMercenaryHireUI
             marketPage.GetComponent<MarketPageUI>() ??
             marketPage.gameObject.AddComponent<MarketPageUI>();
         pageUI.Initialize(title, null, marketList);
-        pageUI.Configure(
-            uiBodyFont, ParchmentMutedColor, RebuildMarketList);
+        pageUI.ConfigureMarket(
+            uiBodyFont,
+            ParchmentMutedColor,
+            MutedTextColor,
+            ButtonTextColor,
+            RowColor,
+            WoodButtonColor,
+            FrameColor,
+            GetMarketRows,
+            ShouldShowMarketEntry,
+            entry => marketStockManager.CanBuy(entry),
+            BuyMarketItem,
+            RegisterMarketBuyButton);
         pageRouter.Register(marketPage);
     }
 
@@ -175,321 +203,88 @@ public partial class SimpleMercenaryHireUI
             blacksmithPage.GetComponent<BlacksmithPageUI>() ??
             blacksmithPage.gameObject.AddComponent<BlacksmithPageUI>();
         pageUI.Initialize(title, description, blacksmithList);
-        pageUI.Configure(
-            uiBodyFont, ParchmentMutedColor, RebuildBlacksmithList);
+        pageUI.ConfigureBlacksmith(
+            uiBodyFont,
+            ParchmentMutedColor,
+            MutedTextColor,
+            ButtonTextColor,
+            RowColor,
+            WoodButtonColor,
+            FrameColor,
+            GetBlacksmithRows,
+            ShouldShowBlacksmithRecipe,
+            item => merchantInventory.GetItemAmount(item),
+            recipe => blacksmithManager.CanCraft(recipe),
+            CraftEquipment,
+            RegisterBlacksmithCraftButton);
         pageRouter.Register(blacksmithPage);
     }
 
-    private void RebuildInventoryList()
+    private IEnumerable<EquipmentInstance> GetSortedInventoryEquipment()
     {
-        ClearChildren(inventoryList);
-        inventoryList.sizeDelta = new Vector2(0f, 430f);
-
-        if (merchantInventory.Items.Count == 0 &&
-            merchantInventory.EquipmentInstances.Count == 0)
-        {
-            CreateText(inventoryList, "在庫はありません。", 18, FontStyle.Normal,
-                TextAnchor.MiddleCenter, new Vector2(0f, -180f), new Vector2(0f, -80f),
-                ParchmentMutedColor);
-            return;
-        }
-
-        float rowTop = 0f;
-        foreach (InventoryItemStack stack in merchantInventory.Items)
-        {
-            if (stack == null || stack.Item == null || stack.Amount <= 0)
-            {
-                continue;
-            }
-
-            if (!MatchesInventoryFilter(stack.Item))
-            {
-                continue;
-            }
-            if (inventoryFilter == InventoryFilter.Locked)
-            {
-                continue;
-            }
-
-            CreateInventoryRow(inventoryList, stack, rowTop);
-            rowTop -= 112f;
-        }
-
         List<EquipmentInstance> sortedEquipment =
             new List<EquipmentInstance>(merchantInventory.EquipmentInstances);
         sortedEquipment.Sort(CompareEquipment);
-        foreach (EquipmentInstance equipment in sortedEquipment)
-        {
-            if (equipment?.BaseItem == null)
-            {
-                continue;
-            }
-
-            if (!MatchesInventoryFilter(equipment.BaseItem))
-            {
-                continue;
-            }
-            if (inventoryFilter == InventoryFilter.Locked &&
-                !equipment.IsLocked)
-            {
-                continue;
-            }
-
-            CreateEquipmentInventoryRow(inventoryList, equipment, rowTop);
-            rowTop -= 112f;
-        }
-
-        inventoryList.sizeDelta = new Vector2(0f, Mathf.Max(430f, -rowTop));
+        return sortedEquipment;
     }
 
-    private void RebuildMarketList()
+    private bool ShouldShowInventoryItem(InventoryItemStack stack)
     {
-        ClearChildren(marketList);
-        marketList.sizeDelta = new Vector2(0f, 430f);
+        return stack != null &&
+               stack.Item != null &&
+               stack.Amount > 0 &&
+               MatchesInventoryFilter(stack.Item) &&
+               inventoryFilter != InventoryFilter.Locked;
+    }
+
+    private bool ShouldShowInventoryEquipment(EquipmentInstance equipment)
+    {
+        return equipment?.BaseItem != null &&
+               MatchesInventoryFilter(equipment.BaseItem) &&
+               (inventoryFilter != InventoryFilter.Locked ||
+                equipment.IsLocked);
+    }
+
+    private IEnumerable<MarketStockEntry> GetMarketRows()
+    {
         marketBuyButtons.Clear();
         displayedMarketEntries.Clear();
-
-        if (marketStockManager.Stock.Count == 0)
-        {
-            CreateText(marketList, "本日仕入れ可能な商品はありません。", 18, FontStyle.Normal,
-                TextAnchor.MiddleCenter, new Vector2(0f, -180f), new Vector2(0f, -80f),
-                ParchmentMutedColor);
-            return;
-        }
-
-        float rowTop = 0f;
-        foreach (MarketStockEntry entry in marketStockManager.Stock)
-        {
-            if (entry == null || entry.Item == null || entry.Quantity <= 0)
-            {
-                continue;
-            }
-
-            CreateMarketRow(marketList, entry, rowTop);
-            rowTop -= 112f;
-        }
-
-        marketList.sizeDelta = new Vector2(0f, Mathf.Max(430f, -rowTop));
+        return marketStockManager.Stock;
     }
 
-    private void RebuildBlacksmithList()
+    private static bool ShouldShowMarketEntry(MarketStockEntry entry)
     {
-        ClearChildren(blacksmithList);
+        return entry != null &&
+               entry.Item != null &&
+               entry.Quantity > 0;
+    }
+
+    private IEnumerable<EquipmentRecipeSO> GetBlacksmithRows()
+    {
         blacksmithCraftButtons.Clear();
         displayedBlacksmithRecipes.Clear();
-
-        if (blacksmithManager.Recipes.Count == 0)
-        {
-            CreateText(blacksmithList, "制作可能なレシピはありません。", 18, FontStyle.Normal,
-                TextAnchor.MiddleCenter, new Vector2(0f, -180f), new Vector2(0f, -80f),
-                ParchmentMutedColor);
-            return;
-        }
-
-        float rowTop = 0f;
-        foreach (EquipmentRecipeSO recipe in blacksmithManager.Recipes)
-        {
-            if (recipe == null || recipe.resultItem == null)
-            {
-                continue;
-            }
-
-            CreateBlacksmithRow(recipe, rowTop);
-            rowTop -= 140f;
-        }
-
-        blacksmithList.sizeDelta = new Vector2(0f, Mathf.Max(430f, -rowTop));
+        return blacksmithManager.Recipes;
     }
 
-    private void CreateInventoryRow(
-        RectTransform parent,
-        InventoryItemStack stack,
-        float top)
+    private static bool ShouldShowBlacksmithRecipe(EquipmentRecipeSO recipe)
     {
-        ItemDataSO item = stack.Item;
-        RectTransform row = CreateRow(item.itemName, parent, top);
-
-        CreateText(row, $"{JapaneseDisplayText.GetItemName(item)} x{stack.Amount}", 22, FontStyle.Bold,
-            TextAnchor.MiddleLeft, new Vector2(18f, -42f), new Vector2(-160f, -12f),
-            Color.white);
-
-        int sellPrice = merchantInventory.GetSellPrice(item);
-        int percent = Mathf.RoundToInt(
-            marketPriceManager.GetEffectiveSellMultiplier(item) * 100f);
-        string details =
-            $"{JapaneseDisplayText.GetItemRarity(item.rarity)}  |  " +
-            $"{JapaneseDisplayText.GetItemType(item.itemType)}  |  基準 {item.basePrice} G  |  " +
-            $"本日 {sellPrice} G ({percent}%)";
-
-        CreateText(row, details, 14, FontStyle.Normal, TextAnchor.MiddleLeft,
-            new Vector2(18f, -76f), new Vector2(-160f, -48f), MutedTextColor);
-
-        Button sellButton =
-            CreateActionButton(row, "売却", () => SellItem(item));
-        if (item.itemType == ItemType.Consumable)
-        {
-            RectTransform sellRect =
-                sellButton.GetComponent<RectTransform>();
-            sellRect.sizeDelta = new Vector2(100f, 44f);
-            sellRect.anchoredPosition = new Vector2(-18f, -22f);
-
-            Button useButton =
-                CreateActionButton(row, "使用", () => UseConsumable(item));
-            RectTransform useRect =
-                useButton.GetComponent<RectTransform>();
-            useRect.sizeDelta = new Vector2(100f, 44f);
-            useRect.anchoredPosition = new Vector2(-18f, 26f);
-        }
+        return recipe != null && recipe.resultItem != null;
     }
 
-    private void CreateMarketRow(
-        RectTransform parent,
-        MarketStockEntry entry,
-        float top)
+    private void RegisterMarketBuyButton(
+        Button buyButton,
+        MarketStockEntry entry)
     {
-        ItemDataSO item = entry.Item;
-        RectTransform row = CreateRow(item.itemName, parent, top);
-
-        CreateText(row, $"{JapaneseDisplayText.GetItemName(item)} x{entry.Quantity}", 22, FontStyle.Bold,
-            TextAnchor.MiddleLeft, new Vector2(18f, -42f), new Vector2(-160f, -12f),
-            Color.white);
-
-        string details =
-            $"{JapaneseDisplayText.GetMercenaryClass(item.requiredClass)}用  |  " +
-            $"{JapaneseDisplayText.GetEquipmentSlot(item.equipmentSlot)}ランク" +
-            $"{item.equipmentRank}  |  攻撃+{item.bonusAttack}  " +
-            $"防御+{item.bonusDefense}  HP+{item.bonusMaxHP}  |  " +
-            $"仕入れ {entry.BuyPrice} G";
-
-        CreateText(row, details, 13, FontStyle.Normal, TextAnchor.MiddleLeft,
-            new Vector2(18f, -76f), new Vector2(-160f, -48f), MutedTextColor);
-
-        Button buyButton = CreateActionButton(row, "購入", () => BuyMarketItem(entry));
         marketBuyButtons.Add(buyButton);
         displayedMarketEntries.Add(entry);
     }
 
-    private void CreateEquipmentInventoryRow(
-        RectTransform parent,
-        EquipmentInstance equipment,
-        float top)
+    private void RegisterBlacksmithCraftButton(
+        Button craftButton,
+        EquipmentRecipeSO recipe)
     {
-        ItemDataSO item = equipment.BaseItem;
-        RectTransform row = CreateRow(equipment.InstanceId, parent, top);
-        string quality = JapaneseDisplayText.GetEquipmentQuality(equipment.Quality);
-        Color qualityColor = GetEquipmentQualityColor(equipment.Quality);
-
-        CreateText(
-            row,
-            $"{(equipment.IsLocked ? "[LOCK] " : string.Empty)}" +
-            $"[{quality}] {GetEquipmentDisplayName(equipment)}",
-            20,
-            FontStyle.Bold,
-            TextAnchor.MiddleLeft,
-            new Vector2(18f, -42f),
-            new Vector2(-160f, -12f),
-            qualityColor);
-
-        string details =
-            $"HP {FormatSigned(equipment.BonusMaxHP)}  " +
-            $"攻撃 {FormatSigned(equipment.BonusAttack)}  " +
-            $"防御 {FormatSigned(equipment.BonusDefense)}  " +
-            $"速度 {FormatSigned(equipment.BonusAttackSpeed)}";
-        CreateText(
-            row,
-            details,
-            13,
-            FontStyle.Normal,
-            TextAnchor.MiddleLeft,
-            new Vector2(18f, -76f),
-            new Vector2(-160f, -48f),
-            MutedTextColor);
-
-        CreateActionButton(
-            row,
-            "詳細",
-            () => ShowEquipmentDetails(equipment));
-    }
-
-    private void CreateBlacksmithRow(EquipmentRecipeSO recipe, float top)
-    {
-        ItemDataSO item = recipe.resultItem;
-        RectTransform row = CreateUIObject(recipe.name, blacksmithList);
-        row.anchorMin = new Vector2(0f, 1f);
-        row.anchorMax = new Vector2(1f, 1f);
-        row.pivot = new Vector2(0.5f, 1f);
-        row.offsetMin = new Vector2(0f, top - 124f);
-        row.offsetMax = new Vector2(0f, top);
-
-        Image rowImage = row.gameObject.AddComponent<Image>();
-        rowImage.color = RowColor;
-
-        CreateText(
-            row,
-            JapaneseDisplayText.GetItemName(item),
-            21,
-            FontStyle.Bold,
-            TextAnchor.MiddleLeft,
-            new Vector2(18f, -38f),
-            new Vector2(-160f, -8f),
-            Color.white);
-
-        string stats =
-            $"{JapaneseDisplayText.GetMercenaryClass(item.requiredClass)}用  |  " +
-            $"ランク{item.equipmentRank}  |  攻撃+{item.bonusAttack}  " +
-            $"防御+{item.bonusDefense}  HP+{item.bonusMaxHP}";
-        CreateText(
-            row,
-            stats,
-            13,
-            FontStyle.Normal,
-            TextAnchor.MiddleLeft,
-            new Vector2(18f, -70f),
-            new Vector2(-160f, -42f),
-            MutedTextColor);
-
-        string materials = BuildRecipeMaterialText(recipe);
-        CreateText(
-            row,
-            $"{materials}  |  費用 {recipe.goldCost} G",
-            13,
-            FontStyle.Normal,
-            TextAnchor.MiddleLeft,
-            new Vector2(18f, -104f),
-            new Vector2(-160f, -76f),
-            MutedTextColor);
-
-        Button craftButton =
-            CreateActionButton(row, "制作", () => CraftEquipment(recipe));
-        craftButton.interactable = blacksmithManager.CanCraft(recipe);
         blacksmithCraftButtons.Add(craftButton);
         displayedBlacksmithRecipes.Add(recipe);
-    }
-
-    private string BuildRecipeMaterialText(EquipmentRecipeSO recipe)
-    {
-        if (recipe.materials == null || recipe.materials.Length == 0)
-        {
-            return "素材なし";
-        }
-
-        List<string> materialTexts = new List<string>();
-        foreach (CraftingMaterialRequirement requirement in recipe.materials)
-        {
-            if (requirement == null || requirement.item == null)
-            {
-                continue;
-            }
-
-            int owned = merchantInventory.GetItemAmount(requirement.item);
-            materialTexts.Add(
-                $"{JapaneseDisplayText.GetItemName(requirement.item)} " +
-                $"{owned}/{requirement.amount}");
-        }
-
-        return materialTexts.Count > 0
-            ? string.Join("、", materialTexts)
-            : "素材なし";
     }
 
     private void HandleInventoryChanged()
