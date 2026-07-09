@@ -837,3 +837,18 @@
 - 古い敵数定数、古いVisual Scripting参照、古い `TownMapService` 参照、古いダンジョン選択リスト用フィールドが残っていないことを確認した。
 - `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj`、`Assembly-CSharp.csproj` はすべて警告0件・エラー0件でビルド成功。
 - 次の候補は、Unity実行上で街道戦闘の体感確認、またはキャラクター詳細/装備詳細オーバーレイの責務分離。
+## 2026-07-09 学校側・家側作業確認とcsproj補完
+
+- 家側の作業内容を `FROM_HOME_CHAT.md` と共有状況から確認した。
+- 家側の主な反映内容は、永続ID/セーブ移行、UI責務分離、転職/雇用/経済ページ分離、街道敵数ガード、ダンジョンイベント/特殊個体処理の分離。
+- `Assembly-CSharp.csproj` に、家側で追加済みの `DungeonEnemyVariantService.cs` と `DungeonEventService.cs` の参照が不足していたため補完した。
+- `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj`、`Assembly-CSharp.csproj` はすべて警告0件・エラー0件でビルド成功。
+- 注意: 並列ビルド時は一時DLLのファイルロックが起きることがあるため、確認ビルドは順番に実行するのが安全。
+## 2026-07-09 学校側・初回チュートリアル追加
+
+- 初回起動時に表示される基本操作チュートリアルを追加した。
+- 内容は、商会の目的、最初にやること、町と施設、探索と戦闘、装備と成長、日数と借金の6ページ。
+- 完了状態は `PlayerPrefs` の `DungeonMerchant.Tutorial.Completed` で管理し、セーブデータ形式は変更していない。
+- グローバルメニューからチュートリアルを再表示できるようにした。
+- `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj`、`Assembly-CSharp.csproj` はすべて警告0件・エラー0件でビルド成功。
+- Unity上での表示位置、文字量、初回表示/完了後非表示の実動作確認は未確認。
