@@ -24,6 +24,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     [SerializeField] private ProgressionManager progressionManager;
     [SerializeField] private DebtManager debtManager;
     [SerializeField] private RoadEncounterService roadEncounterService;
+    [SerializeField] private TownProgressState townProgressState;
 
     [Header("UI Prefab")]
     [SerializeField] private SimpleMercenaryHireUIView uiViewPrefab;
@@ -47,7 +48,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private readonly List<Button> townMapButtons = new List<Button>();
     private readonly List<RectTransform> regionMapPages =
         new List<RectTransform>();
-    private readonly HashSet<int> unlockedTownIndices = new HashSet<int> { 2 };
 
     private RectTransform guildPanel;
     private RectTransform overlayRoot;
@@ -156,12 +156,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Text marketInfoText;
     private Font uiFont;
     private Font uiBodyFont;
+    private SimpleMercenaryHireUIFactory uiFactory;
     private RectTransform battleLogContent;
     private RectTransform battleLogViewport;
     private ScrollRect battleLogScrollRect;
     private Coroutine battleLogScrollCoroutine;
-    private int currentTownIndex = 2;
-    private int viewedWorldMapIndex;
     private readonly RoadTravelState roadTravelState = new RoadTravelState();
     private int confirmationTravelTownIndex = -1;
     private bool confirmationOpenDungeonAfterTravel;
@@ -202,38 +201,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         public bool WasInParty;
     }
 
-    public int CurrentTownIndex => currentTownIndex;
-    public int CurrentWorldMapIndex =>
-        GetWorldMapIndexForTown(currentTownIndex);
-
-    public List<int> GetUnlockedTownIndices()
-    {
-        List<int> result = new List<int>(unlockedTownIndices);
-        result.Sort();
-        return result;
-    }
-
-    public void RestoreTownProgress(
-        int townIndex,
-        IReadOnlyList<int> savedUnlockedTownIndices)
-    {
-        currentTownIndex = Mathf.Clamp(townIndex, 0, TownNames.Length - 1);
-        unlockedTownIndices.Clear();
-        foreach (int unlockedTownIndex in
-                 WorldMapService.CreateRestoredUnlockedTownIndices(
-                     currentTownIndex,
-                     savedUnlockedTownIndices))
-        {
-            unlockedTownIndices.Add(unlockedTownIndex);
-        }
-
-        viewedWorldMapIndex = CurrentWorldMapIndex;
-        dungeonRunManager?.SetCurrentWorldMapIndex(viewedWorldMapIndex);
-        ApplyTownServiceSettings(false, false);
-        SyncDungeonUnlocks();
-        RefreshTownMapButtons();
-    }
-
     private static readonly Color BackgroundColor = new Color(0.07f, 0.08f, 0.1f, 1f);
     private static readonly Color PanelColor = new Color(0.13f, 0.15f, 0.18f, 1f);
     private static readonly Color RowColor =
@@ -256,7 +223,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         Color.black;
     private static readonly Color ParchmentMutedColor =
         Color.black;
-    private static Sprite parchmentPanelSprite;
 
     private void Start()
     {
@@ -270,6 +236,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
 
         uiFont = LoadUIFont();
         uiBodyFont = LoadBodyFont();
+        uiFactory = new SimpleMercenaryHireUIFactory(uiFont, uiBodyFont);
         ApplyTownServiceSettings(true, true);
         PopulateUniqueCandidatesIfNeeded();
         CacheAlreadyHiredCandidates();
@@ -470,6 +437,13 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
                 gameObject.AddComponent<RoadEncounterService>();
         }
         roadEncounterService.Initialize(dungeonRunManager, battleManager);
+
+        if (townProgressState == null)
+        {
+            townProgressState =
+                GetComponent<TownProgressState>() ??
+                FindObjectOfType<TownProgressState>();
+        }
     }
 
     private bool HasRequiredReferences()
@@ -974,7 +948,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private void ShowWorldMap(int worldMapIndex)
     {
         worldMapIndex = Mathf.Clamp(
-            worldMapIndex, 0, WorldRegionNames.Length - 1);
+            worldMapIndex, 0, WorldMapService.WorldRegionNames.Length - 1);
         if (!CanEnterWorldRegion(worldMapIndex))
         {
             int gateTownIndex =
@@ -983,25 +957,25 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
                 dungeonRunManager.GetHighestGradeDungeonNearTown(
                     gateTownIndex);
             statusText.text = gateDungeon != null
-                ? $"{WorldRegionNames[worldMapIndex]}へ進むには、" +
+                ? $"{WorldMapService.WorldRegionNames[worldMapIndex]}へ進むには、" +
                   $"「{gateDungeon.dungeonName}」の完全攻略が必要です。"
-                : $"{WorldRegionNames[worldMapIndex]}はまだ解放されていません。";
+                : $"{WorldMapService.WorldRegionNames[worldMapIndex]}はまだ解放されていません。";
             return;
         }
 
-        viewedWorldMapIndex = worldMapIndex;
+        townProgressState.ViewedWorldMapIndex = worldMapIndex;
         dungeonRunManager.SetCurrentWorldMapIndex(worldMapIndex);
         SwitchToMapPage(worldMapPage, false);
     }
 
     private void RefreshWorldMapPage()
     {
-        int worldMapIndex = viewedWorldMapIndex;
+        int worldMapIndex = townProgressState.ViewedWorldMapIndex;
         SetVisibleRegionMap(worldMapIndex);
         RefreshTownMapButtons();
         statusText.text =
-            $"現在地: {TownNames[currentTownIndex]}  |  " +
-            $"{WorldRegionNames[worldMapIndex]}";
+            $"現在地: {WorldMapService.TownNames[townProgressState.CurrentTownIndex]}  |  " +
+            $"{WorldMapService.WorldRegionNames[worldMapIndex]}";
     }
 
     private class MercenarySkillInfo

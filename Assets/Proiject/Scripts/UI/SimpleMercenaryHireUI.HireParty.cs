@@ -421,10 +421,10 @@ public partial class SimpleMercenaryHireUI
 
     private void Hire(MercenaryDataSO candidate)
     {
-        if (!TownServicePolicy.IsHiringAvailable(currentTownIndex))
+        if (!TownServicePolicy.IsHiringAvailable(townProgressState.CurrentTownIndex))
         {
             statusText.text =
-                $"{TownNames[currentTownIndex]}では傭兵を雇用できません。";
+                $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}では傭兵を雇用できません。";
             return;
         }
         if (!hireManager.TryHireMercenary(candidate))
@@ -442,10 +442,10 @@ public partial class SimpleMercenaryHireUI
 
     private void HireGeneratedCandidate(MercenaryInstance candidate)
     {
-        if (!TownServicePolicy.IsHiringAvailable(currentTownIndex))
+        if (!TownServicePolicy.IsHiringAvailable(townProgressState.CurrentTownIndex))
         {
             statusText.text =
-                $"{TownNames[currentTownIndex]}では傭兵を雇用できません。";
+                $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}では傭兵を雇用できません。";
             return;
         }
         if (!hireManager.TryHireMercenary(candidate))
@@ -546,16 +546,16 @@ public partial class SimpleMercenaryHireUI
 
     private void ShowHirePage()
     {
-        if (!TownServicePolicy.IsHiringAvailable(currentTownIndex))
+        if (!TownServicePolicy.IsHiringAvailable(townProgressState.CurrentTownIndex))
         {
             ShowTownMap();
             statusText.text =
-                $"{TownNames[currentTownIndex]}には傭兵を雇用できる酒場がありません。";
+                $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}には傭兵を雇用できる酒場がありません。";
             return;
         }
         SwitchToPage(hirePage, hireTabButton);
         statusText.text =
-            $"{TownNames[currentTownIndex]}の雇用候補  |  " +
+            $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}の雇用候補  |  " +
             $"Lv{mercenaryGenerator.CurrentMinimumLevel}～" +
             $"Lv{mercenaryGenerator.CurrentMaximumLevel}  |  " +
             "雇用する傭兵を選択してください。";
@@ -588,7 +588,7 @@ public partial class SimpleMercenaryHireUI
 
     private void ShowJobChangePage()
     {
-        if (currentTownIndex != 0)
+        if (townProgressState.CurrentTownIndex != 0)
         {
             statusText.text =
                 "転職神殿はエルド交易都市でのみ利用できます。";

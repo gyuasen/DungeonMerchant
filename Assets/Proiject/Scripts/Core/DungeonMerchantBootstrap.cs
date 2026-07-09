@@ -16,6 +16,7 @@ public static class DungeonMerchantBootstrap
 
         EnsureComponent<MerchantData>(root);
         EnsureComponent<DayManager>(root);
+        EnsureComponent<TownProgressState>(root);
         EnsureComponent<MarketPriceManager>(root);
         EnsureComponent<MerchantInventory>(root);
         EnsureComponent<MarketStockManager>(root);

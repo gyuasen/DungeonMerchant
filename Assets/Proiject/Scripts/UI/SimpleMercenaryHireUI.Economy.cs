@@ -404,7 +404,7 @@ public partial class SimpleMercenaryHireUI
     {
         SwitchToPage(marketPage, marketTabButton);
         statusText.text =
-            $"{TownNames[currentTownIndex]}市場  |  " +
+            $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}市場  |  " +
             $"仕入れ商品: {marketStockManager.Stock.Count}種類 / " +
             marketPriceManager.GetMarketSummary();
     }
@@ -413,7 +413,7 @@ public partial class SimpleMercenaryHireUI
     {
         SwitchToPage(blacksmithPage, blacksmithTabButton);
         statusText.text =
-            $"{TownNames[currentTownIndex]}鍛冶屋  |  " +
+            $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}鍛冶屋  |  " +
             $"レシピ: {blacksmithManager.Recipes.Count}種類";
         RefreshUI();
     }
