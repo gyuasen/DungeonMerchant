@@ -157,6 +157,15 @@
 
 - 最新の作業優先順は上部の `次にやること（2026-07-08整理）` を参照。
 - 当面はUnity実行確認、ダンジョンごとの敵数上限設定、戦闘バランス確認、`BattleManager` / `DungeonRunManager` の責務分離を優先する。
+
+## 2026-07-09 家側・Claude Code着手（全体設計レビューと段階的改善）
+
+- 家側の作業をClaude Code（サブエージョン併用）で開始した。
+- 全体設計レビューを実施し、Core→UI逆依存（`SaveManager`/`Bootstrap`が`SimpleMercenaryHireUI`を直接参照）、`SimpleMercenaryHireUI`ほか複数の神クラス化、テストカバレッジとリスクの逆相関、複数箇所のロジック重複を確認した。
+- 4アクション・全20ステップの改善計画を承認済み。**Action 1（Core→UI依存の切断）は完了**。`TownProgressState`を新設し、町の現在地・解放状態・表示マップ番号の所有権をUIからCoreへ移した。セーブ形式はVersion 19。Unity上での動作確認済み。
+- **Action 2（神クラスへのキャラクタリゼーションテスト追加）も完了**。BattleManager/DungeonRunManager/MarketStockManager/ProgressionManager/MerchantInventoryへ計48件のEditModeテストを追加。**Unity Test Runnerで104件中104件成功を確認済み**（既存コードへの変更なし。テストコード側の3件の不具合はテストファイルのみ修正して解消）。
+- Action 3（`SimpleMercenaryHireUI`の段階分割）・Action 4（重複ロジック統合）は未着手。
+- 詳細な計画・進捗・技術的な発見事項は `handoff/CLAUDE_WORK_LOG.md` を参照。次にClaude Codeで再開する場合は、このファイルを読んでから続きに着手すること。
 ## 2026-06-19 School Update
 
 - Character detail now supports weapon equip, swap, and unequip.

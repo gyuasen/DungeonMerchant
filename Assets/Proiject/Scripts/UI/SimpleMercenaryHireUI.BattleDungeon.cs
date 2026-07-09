@@ -295,7 +295,7 @@ public partial class SimpleMercenaryHireUI
             FrameColor,
             ButtonTextColor,
             () => dungeonRunManager.AvailableDungeons,
-            () => currentTownIndex,
+            () => townProgressState.CurrentTownIndex,
             GetTownName,
             dungeonRunManager.GetClearedFloors,
             dungeonRunManager.IsDungeonUnlocked,
@@ -329,10 +329,10 @@ public partial class SimpleMercenaryHireUI
     private void StartDungeonRun()
     {
         DungeonDataSO selected = dungeonRunManager.SelectedDungeon;
-        if (selected == null || selected.nearbyTownIndex != currentTownIndex)
+        if (selected == null || selected.nearbyTownIndex != townProgressState.CurrentTownIndex)
         {
             statusText.text =
-                $"{TownNames[currentTownIndex]}近隣のダンジョンを選択してください。";
+                $"{TownNames[townProgressState.CurrentTownIndex]}近隣のダンジョンを選択してください。";
             ShowDungeonPage();
             return;
         }
@@ -384,10 +384,10 @@ public partial class SimpleMercenaryHireUI
 
     private void SelectDungeon(DungeonDataSO data)
     {
-        if (data == null || data.nearbyTownIndex != currentTownIndex)
+        if (data == null || data.nearbyTownIndex != townProgressState.CurrentTownIndex)
         {
             statusText.text =
-                $"{TownNames[currentTownIndex]}からはこのダンジョンへ入れません。";
+                $"{TownNames[townProgressState.CurrentTownIndex]}からはこのダンジョンへ入れません。";
             return;
         }
 
@@ -586,7 +586,7 @@ public partial class SimpleMercenaryHireUI
             RoadTravelCompletionResult travelResult =
                 RoadTravelCompletionService.Complete(
                     victory,
-                    currentTownIndex,
+                    townProgressState.CurrentTownIndex,
                     roadTravelState);
             roadTravelState.Clear();
 
@@ -599,11 +599,11 @@ public partial class SimpleMercenaryHireUI
 
             if (travelResult.Victory)
             {
-                unlockedTownIndices.Add(travelResult.DestinationTownIndex);
-                currentTownIndex = travelResult.NewCurrentTownIndex;
-                viewedWorldMapIndex = travelResult.NewWorldMapIndex;
+                townProgressState.UnlockTown(travelResult.DestinationTownIndex);
+                townProgressState.SetCurrentTown(travelResult.NewCurrentTownIndex);
+                townProgressState.ViewedWorldMapIndex = travelResult.NewWorldMapIndex;
                 dungeonRunManager.SetCurrentWorldMapIndex(
-                    viewedWorldMapIndex);
+                    townProgressState.ViewedWorldMapIndex);
                 ApplyTownServiceSettings(false, false);
                 if (travelResult.ShouldAdvanceDay)
                 {
@@ -844,7 +844,7 @@ public partial class SimpleMercenaryHireUI
         roadRetreatButton.gameObject.SetActive(
             roadTravelState.IsAwaitingChoice);
         roadBattleRouteText.text =
-            $"{TownNames[currentTownIndex]} → " +
+            $"{TownNames[townProgressState.CurrentTownIndex]} → " +
             $"{TownNames[roadTravelState.DestinationTownIndex]}\n" +
             $"接敵 {roadTravelState.EncounterIndex}/" +
             $"{roadTravelState.EncounterCount}  |  " +
@@ -924,7 +924,7 @@ public partial class SimpleMercenaryHireUI
     {
         dungeonResultPanel?.gameObject.SetActive(false);
         ShowTownMap();
-        statusText.text = $"{TownNames[currentTownIndex]}へ戻りました。";
+        statusText.text = $"{TownNames[townProgressState.CurrentTownIndex]}へ戻りました。";
     }
 
     private void EnsureNearbyDungeonSelected()
@@ -935,13 +935,13 @@ public partial class SimpleMercenaryHireUI
         }
 
         DungeonDataSO selected = dungeonRunManager.SelectedDungeon;
-        if (selected != null && selected.nearbyTownIndex == currentTownIndex)
+        if (selected != null && selected.nearbyTownIndex == townProgressState.CurrentTownIndex)
         {
             return;
         }
 
         DungeonDataSO nearby =
-            dungeonRunManager.GetDungeonNearTown(currentTownIndex);
+            dungeonRunManager.GetDungeonNearTown(townProgressState.CurrentTownIndex);
         if (nearby != null && dungeonRunManager.IsDungeonUnlocked(nearby))
         {
             dungeonRunManager.TrySelectDungeon(nearby);

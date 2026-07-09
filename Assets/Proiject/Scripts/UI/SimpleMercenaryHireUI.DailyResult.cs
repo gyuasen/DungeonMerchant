@@ -90,7 +90,7 @@ public partial class SimpleMercenaryHireUI
 
     private void HandleDayChanged(int currentDay)
     {
-        if (TownServicePolicy.IsHiringAvailable(currentTownIndex))
+        if (TownServicePolicy.IsHiringAvailable(townProgressState.CurrentTownIndex))
         {
             mercenaryGenerator.GenerateCandidates();
         }

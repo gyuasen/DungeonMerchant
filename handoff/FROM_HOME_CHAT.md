@@ -1081,3 +1081,44 @@
 - `RoadEncounterServiceTests` にフォールバック時も街道敵数上限を守るテストを追加した。
 - `dotnet build DungeonMerchant.sln` は警告0件、エラー0件で成功。
 - Unity Test Runnerでの追加テスト実行と、実機上の転職ページ・街道戦闘表示確認は未確認。
+
+## 2026-07-09 家側・Claude Codeによる全体設計レビューと改善着手
+
+- 今回から家側の作業をClaude Code（Claude Sonnet 5、サブエージェント併用）で実施。
+- `Assets/Proiject` 配下の全スクリプトを4領域（Core/Data、Merchant/Economy/Item、Battle/Dungeon/Mercenary、UI）に分けてサブエージェントで並行調査し、全体設計評価を実施した。
+- 主な指摘: `SaveManager`/`DungeonMerchantBootstrap`がUIクラス`SimpleMercenaryHireUI`を直接参照するCore→UI逆依存、`SimpleMercenaryHireUI`（partial11ファイル・約7,200行）や`BattleManager`・`DungeonRunManager`・`MarketStockManager`・`ProgressionManager`・`MerchantInventory`の神クラス化、テストカバレッジがリスクと逆相関（複雑なクラスほど未テスト）、価格ハッシュ・町availability判定・装備品質倍率テーブルなどの重複ロジック。
+- 上記を踏まえ、優先度順に4アクション（1: Core→UI依存の切断、2: 神クラスへのキャラクタリゼーションテスト追加、3: `SimpleMercenaryHireUI`の段階分割、4: 重複ロジック統合）からなる改善工程を計画し、承認を得た。
+- **Action 1（Core→UI依存の切断）を実施・完了**。
+  - `TownProgressState`（`Assets/Proiject/Scripts/Core/TownProgressState.cs`）を新設し、現在地・解放町・表示中マップ番号の状態を`SimpleMercenaryHireUI`から分離してCore層へ移動した。
+  - `DungeonMerchantBootstrap`へ`TownProgressState`の自動生成を追加した。
+  - `SaveManager`を`SimpleMercenaryHireUI`ではなく`TownProgressState`を参照する形に変更し、セーブ形式バージョンを18→19へ更新（DTO形状は不変のためマイグレーション処理の追加は不要と確認済み）。
+  - `SimpleMercenaryHireUI`側の`currentTownIndex`/`unlockedTownIndices`/`viewedWorldMapIndex`と関連アクセサを削除し、全partialファイル（`.BattleDungeon.cs`、`.Map.cs`、`.HireParty.cs`、`.Economy.cs`、`.DailyResult.cs`、`.UIFactory.cs`）を`townProgressState`参照へ置き換えた。
+  - 実装中に、`SaveManager`が`TownProgressState`を直接呼ぶようになったことで、ロード時に`dungeonRunManager.SetCurrentWorldMapIndex(...)`という副作用が呼ばれなくなる潜在バグを発見し、`SaveManager.ApplySaveData`へ明示的な呼び出しを追加して修正した。
+  - Unity Editor上でコンパイルエラーなし、Playモードでの町移動・街道戦闘・セーブ/ロードの一連動作を確認済み（ユーザー確認済み）。
+- **Action 2（神クラスへのキャラクタリゼーションテスト追加）を実施・完了**。`BattleManagerTests.cs`（11件）、`DungeonRunManagerTests.cs`（12件）、`MarketStockManagerTests.cs`（6件）、`ProgressionManagerTests.cs`（4件）、`MerchantInventoryTests.cs`（15件）を新規追加（計48テスト）。いずれもテスト追加のみで既存コードは無変更。
+  - `BattleManager.StartBattle`/`DungeonRunManager.StartRun`はコルーチンで戦闘を進行するため、PlayModeテスト基盤の無い本プロジェクトのEditModeテストでは戦闘進行そのものは検証不可。同期的に返るガード節・純粋関数のみをテスト対象とした（戦闘進行のテストは将来のPlayModeテスト整備待ち）。
+  - `DungeonRunManager.OnEnable()`が`PlayerPrefs`を即座に読み書きするため、テストの`[SetUp]`/`[TearDown]`両方で明示的にクリアするよう対応。
+  - `ProgressionManager.TotalGoldEarned`が`MerchantData`存在時に別ソースを優先する二重管理の癖（設計レビューで指摘済み）を、テストで意図的に固定した。
+  - `MerchantInventory.GetSellPrice(EquipmentInstance)`の品質倍率（Poor 0.65/Normal 1.0/Fine 1.2/Rare 1.55/Legendary 2.2）と強化値+0.12/lvを厳密な期待値でピン留め。
+  - ユーザーがUnity Test Runnerで実行し、**104件中104件成功（0失敗）を確認済み**。実行時に見つかった3件の不具合（`MerchantInventoryTests.cs`の`Object`型曖昧参照CS0104、`Does.Contain`のCS1503、`ProgressionManagerTests`の`TotalGoldEarned`テストがタイミング依存で失敗）はすべてテストコード側の修正で解消。本番コードの変更はなし。
+- Action 3（`SimpleMercenaryHireUI`の段階分割）・Action 4（重複ロジック統合）は未着手。詳細な全20ステップの計画と進捗は `handoff/CLAUDE_WORK_LOG.md` を参照。
+
+## 変更したファイル 2026-07-09
+
+- `Assets/Proiject/Scripts/Core/TownProgressState.cs`（新規）
+- `Assets/Proiject/Scripts/Core/TownProgressState.cs.meta`（新規、Unity生成想定）
+- `Assets/Proiject/Scripts/Core/DungeonMerchantBootstrap.cs`
+- `Assets/Proiject/Scripts/Core/SaveManager.cs`
+- `Assets/Proiject/Scripts/Core/GameSaveData.cs`
+- `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.cs`
+- `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.BattleDungeon.cs`
+- `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.Map.cs`
+- `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.HireParty.cs`
+- `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.Economy.cs`
+- `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.DailyResult.cs`
+- `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.UIFactory.cs`
+- `Assets/Proiject/Tests/EditMode/BattleManagerTests.cs`（新規）
+- `Assets/Proiject/Tests/EditMode/DungeonRunManagerTests.cs`（新規）
+- `Assets/Proiject/Tests/EditMode/MarketStockManagerTests.cs`（新規）
+- `Assets/Proiject/Tests/EditMode/ProgressionManagerTests.cs`（新規）
+- `Assets/Proiject/Tests/EditMode/MerchantInventoryTests.cs`（新規）

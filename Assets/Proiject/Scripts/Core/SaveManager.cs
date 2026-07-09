@@ -17,7 +17,7 @@ public class SaveManager : MonoBehaviour
     private DungeonRunManager dungeonRunManager;
     private ProgressionManager progressionManager;
     private DebtManager debtManager;
-    private SimpleMercenaryHireUI simpleUI;
+    private TownProgressState townProgressState;
     private bool initialized;
     private bool isLoading;
 
@@ -172,7 +172,9 @@ public class SaveManager : MonoBehaviour
             processedDebtMonths = debtManager != null
                 ? Mathf.Max(0, debtManager.CurrentMonth - 1)
                 : 0,
-            currentTownIndex = simpleUI != null ? simpleUI.CurrentTownIndex : 2,
+            currentTownIndex = townProgressState != null
+                ? townProgressState.CurrentTownIndex
+                : 2,
             highestUnlockedDungeonGrade = dungeonRunManager != null
                 ? (int)dungeonRunManager.HighestUnlockedGrade
                 : 0,
@@ -187,10 +189,10 @@ public class SaveManager : MonoBehaviour
                     : string.Empty
         };
 
-        if (simpleUI != null)
+        if (townProgressState != null)
         {
             data.unlockedTownIndices.Clear();
-            data.unlockedTownIndices.AddRange(simpleUI.GetUnlockedTownIndices());
+            data.unlockedTownIndices.AddRange(townProgressState.GetUnlockedTownIndices());
         }
 
         if (dungeonRunManager != null)
@@ -340,7 +342,7 @@ public class SaveManager : MonoBehaviour
             data.debtPaymentArrears,
             data.processedDebtMonths);
         dayManager?.SetCurrentDay(data.currentDay);
-        simpleUI?.RestoreTownProgress(
+        townProgressState?.RestoreTownProgress(
             data.currentTownIndex,
             data.unlockedTownIndices);
 
@@ -439,6 +441,7 @@ public class SaveManager : MonoBehaviour
             data.selectedDungeonAssetName,
             data.selectedDungeonPersistentId,
             data.dungeonFloorProgress);
+        dungeonRunManager?.SetCurrentWorldMapIndex(townProgressState.CurrentWorldMapIndex);
     }
 
     private MercenaryInstance RestoreMercenary(SavedMercenary saved)
@@ -691,8 +694,8 @@ public class SaveManager : MonoBehaviour
             GetComponent<ProgressionManager>() ?? FindObjectOfType<ProgressionManager>();
         debtManager =
             GetComponent<DebtManager>() ?? FindObjectOfType<DebtManager>();
-        simpleUI =
-            GetComponent<SimpleMercenaryHireUI>() ??
-            FindObjectOfType<SimpleMercenaryHireUI>();
+        townProgressState =
+            GetComponent<TownProgressState>() ??
+            FindObjectOfType<TownProgressState>();
     }
 }

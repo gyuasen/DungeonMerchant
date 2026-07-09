@@ -36,10 +36,21 @@
 handoff/FROM_HOME_CHAT.md を読んで、家での作業内容を反映してください
 ```
 
+### 家でのClaude Code作業
+
+家側でClaude Codeが作業する場合は、`FROM_HOME_CHAT.md`への要約に加えて、詳細な進捗・計画・技術的な発見事項を `CLAUDE_WORK_LOG.md` に記録してください。
+
+次にClaude Codeで作業を再開するときは、こう言えばOKです。
+
+```text
+handoff/CLAUDE_WORK_LOG.md と handoff/SHARED_PROJECT_STATUS.md を読んで、続きに着手してください
+```
+
 ## 追記ルール
 
 - 学校側でCodexが作業した内容は、作業ごとに `SCHOOL_WORK_LOG.md` へ追記してください。
 - 教室側でCodexが作業した内容は、作業ごとに `CLASSROOM_WORK_LOG.md` へ追記してください。
 - 家側でCodexが作業した内容や学校側へ共有したい内容は、作業ごとに `FROM_HOME_CHAT.md` へ追記してください。
+- 家側でClaude Codeが作業した内容は、`FROM_HOME_CHAT.md`への要約に加えて `CLAUDE_WORK_LOG.md` へ詳細を追記してください。
 - 家側・学校側・教室側の内容に食い違いがある場合は、家側の内容を優先してください。
 - 全体状況や次にやることは `SHARED_PROJECT_STATUS.md` に短くまとめてください。
