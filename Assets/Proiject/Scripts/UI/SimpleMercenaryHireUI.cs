@@ -85,6 +85,13 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform dailyResultOverlay;
     private RectTransform dailyResultContent;
     private Text dailyResultText;
+    private RectTransform tutorialOverlay;
+    private Text tutorialStepText;
+    private Text tutorialTitleText;
+    private Text tutorialBodyText;
+    private Button tutorialBackButton;
+    private Button tutorialNextButton;
+    private Button tutorialCloseButton;
     private Button globalMenuButton;
     private Text travelConfirmationText;
     private InventoryFilter inventoryFilter = InventoryFilter.All;
@@ -302,6 +309,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         CaptureDailySnapshot(dayManager.CurrentDay);
         ShowGlobalMap();
         RefreshUI();
+        ShowTutorialIfNeeded();
     }
 
     private void ResolveReferences()
@@ -835,6 +843,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         BuildTravelConfirmationOverlay();
         BuildGlobalMenuOverlay();
         BuildDailyResultOverlay();
+        BuildTutorialOverlay();
     }
 
     private static string FormatSigned(int value)

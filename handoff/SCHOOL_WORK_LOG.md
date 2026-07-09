@@ -726,3 +726,22 @@
 - `RoadEncounterServiceTests` の期待値を更新し、通常候補がある場合とフォールバック敵を使う場合の両方で敵数上限を確認できるようにした。
 - 古い敵数定数、古いVisual Scripting参照、古い `TownMapService` 参照、古いダンジョン選択リスト用フィールドが残っていないことを検索で確認した。
 - `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj`、`Assembly-CSharp.csproj` はすべて警告0件・エラー0件でビルド成功。
+## 2026-07-09 学校側・家側作業内容の確認
+
+- ユーザー要望により、家側の作業内容を `handoff/FROM_HOME_CHAT.md` と `handoff/SHARED_PROJECT_STATUS.md` から確認した。
+- 家側の最新主要作業は、永続IDとセーブ移行、UI責務分離、転職/雇用/経済ページ分離、街道敵数ガード、ダンジョンイベント/特殊個体処理の分離だった。
+- 共有ログの一部は文字化けして保存されているが、ファイル名とコード状況から主要内容は確認できた。
+- 現在のコードをビルド確認したところ、Runtime / Editor / EditModeTests は問題なかったが、IDE補助用の `Assembly-CSharp.csproj` だけ家側追加ファイルの参照漏れでエラーになっていた。
+- 参照漏れしていた `DungeonEnemyVariantService.cs` と `DungeonEventService.cs` を `Assembly-CSharp.csproj` に追加した。
+- 並列ビルド時に一時DLLのファイルロックが発生したため、順番に再実行して確認した。
+- `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj`、`Assembly-CSharp.csproj` はすべて警告0件・エラー0件でビルド成功。
+## 2026-07-09 学校側・初回チュートリアルを追加
+
+- チュートリアル制作の開始として、初回起動時に表示される基本操作チュートリアルを追加した。
+- `SimpleMercenaryHireUI.Tutorial.cs` を追加し、目的、最初にやること、町と施設、探索と戦闘、装備と成長、日数と借金の6ページ構成にした。
+- 初回表示済みフラグはセーブデータ形式を増やさず、`PlayerPrefs` の `DungeonMerchant.Tutorial.Completed` で管理する。
+- 「完了」まで進めた場合だけ次回以降の自動表示を止める。閉じただけの場合は次回起動時にも再表示される。
+- グローバルメニューに「チュートリアル」ボタンを追加し、完了後も見返せるようにした。
+- `DungeonMerchant.Runtime.csproj` と `Assembly-CSharp.csproj` に新規チュートリアルファイル参照を追加した。
+- `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj`、`Assembly-CSharp.csproj` はすべて警告0件・エラー0件でビルド成功。
+- Unity上での表示位置、文字量、初回表示/完了後非表示の実動作確認は未確認。
