@@ -32,19 +32,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     [Header("Hire Candidates")]
     [SerializeField] private List<MercenaryDataSO> candidates = new List<MercenaryDataSO>();
 
-    private readonly List<Button> hireButtons = new List<Button>();
-    private readonly List<MercenaryDataSO> displayedCandidates = new List<MercenaryDataSO>();
-    private readonly List<Button> generatedHireButtons = new List<Button>();
-    private readonly List<MercenaryInstance> displayedGeneratedCandidates =
-        new List<MercenaryInstance>();
-    private readonly List<Button> marketBuyButtons = new List<Button>();
-    private readonly List<MarketStockEntry> displayedMarketEntries =
-        new List<MarketStockEntry>();
-    private readonly List<Button> blacksmithCraftButtons = new List<Button>();
-    private readonly List<EquipmentRecipeSO> displayedBlacksmithRecipes =
-        new List<EquipmentRecipeSO>();
-    private readonly HashSet<MercenaryDataSO> hiredCandidates = new HashSet<MercenaryDataSO>();
-    private readonly List<string> battleLogLines = new List<string>();
     private readonly List<Button> townMapButtons = new List<Button>();
     private readonly List<RectTransform> regionMapPages =
         new List<RectTransform>();
@@ -64,7 +51,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Button characterEquipmentTabButton;
     private RectTransform characterEquipmentList;
     private ScrollRect characterEquipmentScrollRect;
-    private MercenaryInstance selectedDetailMercenary;
     private bool showingCharacterStatusPage = true;
     private RectTransform equipmentDetailOverlay;
     private Text equipmentDetailTitle;
@@ -72,7 +58,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Button equipmentEnhanceButton;
     private Button equipmentSellButton;
     private Button equipmentLockButton;
-    private EquipmentInstance selectedEquipmentDetail;
     private RectTransform questOverlay;
     private RectTransform questList;
     private RectTransform merchantStatusOverlay;
@@ -94,8 +79,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Button tutorialCloseButton;
     private Button globalMenuButton;
     private Text travelConfirmationText;
-    private InventoryFilter inventoryFilter = InventoryFilter.All;
-    private EquipmentSort equipmentSort = EquipmentSort.Name;
     private RectTransform hirePage;
     private RectTransform globalMapPage;
     private RectTransform worldMapPage;
@@ -168,45 +151,13 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform battleLogViewport;
     private ScrollRect battleLogScrollRect;
     private Coroutine battleLogScrollCoroutine;
-    private readonly RoadTravelState roadTravelState = new RoadTravelState();
-    private int confirmationTravelTownIndex = -1;
-    private bool confirmationOpenDungeonAfterTravel;
-    private int dailySnapshotDay;
-    private int dailySnapshotGold;
-    private int dailySnapshotMerchantLevel;
-    private int dailySnapshotMerchantExperience;
-    private int dailySnapshotSkillPoints;
-    private int dailySnapshotNegotiation;
-    private int dailySnapshotLeadership;
-    private int dailySnapshotAppraisal;
-    private int dailySnapshotLogistics;
-    private readonly Dictionary<string, DailyMercenarySnapshot>
-        dailyMercenarySnapshots =
-            new Dictionary<string, DailyMercenarySnapshot>();
-    private readonly Dictionary<string, int> dailyInventoryAmounts =
-        new Dictionary<string, int>();
-    private readonly Dictionary<string, string> dailyInventoryNames =
-        new Dictionary<string, string>();
-    private readonly Dictionary<string, int> dailyAcquiredItems =
-        new Dictionary<string, int>();
-    private readonly HashSet<string> knownEquipmentInstanceIds =
-        new HashSet<string>();
-    private readonly List<string> dailyAcquiredEquipment =
-        new List<string>();
-
-    private sealed class DailyMercenarySnapshot
-    {
-        public string Name;
-        public int Level;
-        public int Experience;
-        public int MaxHP;
-        public int Attack;
-        public int Defense;
-        public int MaxMagicPower;
-        public float AttackSpeed;
-        public bool ContractActive;
-        public bool WasInParty;
-    }
+    private DailyResultController dailyResultController;
+    private HireAndPartyController hireAndPartyController;
+    private EconomyController economyController;
+    private CharacterEquipmentController characterEquipmentController;
+    private MerchantStatusAndQuestController merchantStatusAndQuestController;
+    private TownTravelController townTravelController;
+    private DungeonBattleController dungeonBattleController;
 
     private static readonly Color BackgroundColor = new Color(0.07f, 0.08f, 0.1f, 1f);
     private static readonly Color PanelColor = new Color(0.13f, 0.15f, 0.18f, 1f);
@@ -244,9 +195,164 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         uiFont = LoadUIFont();
         uiBodyFont = LoadBodyFont();
         uiFactory = new SimpleMercenaryHireUIFactory(uiFont, uiBodyFont);
-        ApplyTownServiceSettings(true, true);
+        dailyResultController = new DailyResultController(
+            merchantData,
+            hireManager,
+            partyManager,
+            merchantInventory,
+            CharacterEquipmentController.GetEquipmentDisplayName);
+        hireAndPartyController = new HireAndPartyController(
+            hireManager,
+            partyManager,
+            mercenaryGenerator,
+            merchantInventory,
+            healingManager,
+            townProgressState,
+            saveManager,
+            message => statusText.text = message,
+            () => RefreshPage(hirePage),
+            () => RefreshPage(companyPage),
+            () => RefreshPage(partyPage),
+            () => RefreshPage(healPage),
+            () => RefreshPage(jobChangePage),
+            RefreshUI,
+            label => contractSelectButton.GetComponentInChildren<Text>().text = label);
+        economyController = new EconomyController(
+            merchantInventory,
+            marketStockManager,
+            blacksmithManager,
+            message => statusText.text = message,
+            () => RefreshPage(inventoryPage),
+            () => RefreshPage(marketPage),
+            () => RefreshPage(blacksmithPage),
+            RefreshUI,
+            label => inventoryFilterButton.GetComponentInChildren<Text>().text = label,
+            label => equipmentSortButton.GetComponentInChildren<Text>().text = label);
+        characterEquipmentController = new CharacterEquipmentController(
+            merchantData,
+            merchantInventory,
+            hireManager,
+            battleManager,
+            economyController,
+            message => statusText.text = message,
+            (title, body) =>
+            {
+                if (characterDetailText == null)
+                {
+                    return;
+                }
+                characterDetailTitle.text = title;
+                characterDetailText.text = body;
+            },
+            ShowCharacterDetails,
+            HideEquipmentDetails,
+            () => equipmentDetailOverlay != null,
+            (title, color) =>
+            {
+                equipmentDetailTitle.text = title;
+                equipmentDetailTitle.color = color;
+            },
+            body => equipmentDetailText.text = body,
+            (interactable, label) =>
+            {
+                equipmentEnhanceButton.interactable = interactable;
+                equipmentEnhanceButton.GetComponentInChildren<Text>().text = label;
+            },
+            (interactable, label) =>
+            {
+                equipmentSellButton.interactable = interactable;
+                equipmentSellButton.GetComponentInChildren<Text>().text = label;
+            },
+            label => equipmentLockButton.GetComponentInChildren<Text>().text = label,
+            () =>
+            {
+                equipmentDetailOverlay.SetAsLastSibling();
+                equipmentDetailOverlay.gameObject.SetActive(true);
+            },
+            () => RefreshPage(companyPage),
+            () => RefreshPage(partyPage),
+            () => RefreshPage(inventoryPage),
+            RefreshUI,
+            SaveEquipmentChanges,
+            () => saveManager?.SaveGame());
+        merchantStatusAndQuestController = new MerchantStatusAndQuestController(
+            merchantData,
+            progressionManager,
+            debtManager,
+            hireManager,
+            message => statusText.text = message,
+            RebuildMerchantStatus,
+            RebuildQuestList,
+            () => RefreshPage(companyPage),
+            RefreshUI);
+        dungeonBattleController = new DungeonBattleController(
+            battleManager,
+            dungeonRunManager,
+            partyManager,
+            townProgressState,
+            message => statusText.text = message,
+            ResetBattleLog,
+            ShowBattlePage,
+            ShowDungeonPage,
+            interactable => startBattleButton.interactable = interactable,
+            active => startBattleButton.gameObject.SetActive(active),
+            title => battlePageTitleText.text = title,
+            encounter => battleEncounterText.text = encounter,
+            () =>
+            {
+                RefreshPage(companyPage);
+                RefreshPage(partyPage);
+                RefreshPage(healPage);
+            },
+            UpdateDungeonEventUI,
+            label =>
+            {
+                if (battleSpeedButton != null)
+                {
+                    SetButtonLabel(battleSpeedButton, label);
+                }
+                if (roadSpeedButton != null)
+                {
+                    SetButtonLabel(roadSpeedButton, label);
+                }
+            },
+            RefreshUI);
+        townTravelController = new TownTravelController(
+            townProgressState,
+            partyManager,
+            battleManager,
+            roadEncounterService,
+            dungeonRunManager,
+            dayManager,
+            mercenaryGenerator,
+            marketStockManager,
+            blacksmithManager,
+            saveManager,
+            message => statusText.text = message,
+            ShowTownMap,
+            ShowWorldMap,
+            message =>
+            {
+                travelConfirmationText.text = message;
+                travelConfirmationOverlay.SetAsLastSibling();
+                travelConfirmationOverlay.gameObject.SetActive(true);
+            },
+            HideTravelConfirmation,
+            ResetBattleLog,
+            ShowRoadBattlePage,
+            active =>
+            {
+                roadContinueButton.gameObject.SetActive(active);
+                roadRetreatButton.gameObject.SetActive(active);
+            },
+            text => roadBattleRouteText.text = text,
+            () => StartCoroutine(ContinueTownTravelBattleRoutine()),
+            dungeonBattleController.OpenNearbyDungeon,
+            SyncDungeonUnlocks,
+            RefreshTownMapButtons);
+        townTravelController.ApplyTownServiceSettings(true, true);
         PopulateUniqueCandidatesIfNeeded();
-        CacheAlreadyHiredCandidates();
+        hireAndPartyController.CacheAlreadyHiredCandidates();
         EnsureEventSystem();
         BuildUI();
         merchantData.GoldChanged += HandleGoldChanged;
@@ -273,7 +379,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         {
             debtManager.DebtChanged += HandleProgressionChanged;
         }
-        CaptureDailySnapshot(dayManager.CurrentDay);
+        dailyResultController.CaptureDailySnapshot(dayManager.CurrentDay);
         ShowGlobalMap();
         RefreshUI();
         ShowTutorialIfNeeded();
@@ -820,145 +926,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         BuildTutorialOverlay();
     }
 
-    private static string FormatSigned(int value)
-    {
-        return value >= 0 ? $"+{value}" : value.ToString();
-    }
-
-    private static string FormatSigned(float value)
-    {
-        return value >= 0f ? $"+{value:0.00}" : value.ToString("0.00");
-    }
-
-    private static string FormatComparison(int difference)
-    {
-        return FormatComparison((float)difference, "0");
-    }
-
-    private static string FormatComparison(float difference)
-    {
-        return FormatComparison(difference, "0.00");
-    }
-
-    private static string FormatComparison(float difference, string format)
-    {
-        const string IncreaseColor = "#65D88A";
-        const string DecreaseColor = "#FF7474";
-        const string EqualColor = "#AEB6BE";
-        string color = difference > 0f
-            ? IncreaseColor
-            : difference < 0f
-                ? DecreaseColor
-                : EqualColor;
-        string sign = difference > 0f ? "+" : string.Empty;
-        return $"<color={color}>({sign}{difference.ToString(format)})</color>";
-    }
-
-    private void EquipSelectedEquipment(ItemDataSO equipment)
-    {
-        if (selectedDetailMercenary == null ||
-            equipment == null ||
-            !merchantInventory.HasItem(equipment))
-        {
-            return;
-        }
-
-        EquipmentSlot slot = equipment.equipmentSlot;
-        ItemDataSO previousItem =
-            selectedDetailMercenary.GetEquippedItem(slot);
-        EquipmentInstance previousInstance =
-            selectedDetailMercenary.GetEquippedInstance(slot);
-        if (!selectedDetailMercenary.EquipEquipment(equipment) ||
-            !merchantInventory.TryRemoveItem(equipment))
-        {
-            if (previousInstance != null)
-            {
-                selectedDetailMercenary.RestoreEquippedEquipment(
-                    slot,
-                    previousInstance);
-            }
-            else
-            {
-                selectedDetailMercenary.RestoreEquippedEquipment(
-                    slot,
-                    previousItem);
-            }
-            return;
-        }
-
-        if (previousInstance != null)
-        {
-            merchantInventory.AddEquipmentInstance(previousInstance);
-        }
-        else if (previousItem != null)
-        {
-            merchantInventory.AddItem(previousItem);
-        }
-
-        statusText.text =
-            $"{selectedDetailMercenary.MercenaryName}に" +
-            $"{JapaneseDisplayText.GetItemName(equipment)}を装備しました。";
-        ShowCharacterDetails(selectedDetailMercenary);
-        RefreshPage(companyPage);
-        RefreshPage(partyPage);
-        SaveEquipmentChanges();
-    }
-
-    private void EquipSelectedEquipment(EquipmentInstance equipment)
-    {
-        if (selectedDetailMercenary == null ||
-            equipment?.BaseItem == null)
-        {
-            return;
-        }
-
-        EquipmentSlot slot = equipment.BaseItem.equipmentSlot;
-        ItemDataSO previousItem =
-            selectedDetailMercenary.GetEquippedItem(slot);
-        EquipmentInstance previousInstance =
-            selectedDetailMercenary.GetEquippedInstance(slot);
-        if (!selectedDetailMercenary.EquipEquipment(equipment) ||
-            !merchantInventory.TryRemoveEquipmentInstance(equipment))
-        {
-            if (previousInstance != null)
-            {
-                selectedDetailMercenary.RestoreEquippedEquipment(
-                    slot,
-                    previousInstance);
-            }
-            else
-            {
-                selectedDetailMercenary.RestoreEquippedEquipment(
-                    slot,
-                    previousItem);
-            }
-            return;
-        }
-
-        if (previousInstance != null)
-        {
-            merchantInventory.AddEquipmentInstance(previousInstance);
-        }
-        else if (previousItem != null)
-        {
-            merchantInventory.AddItem(previousItem);
-        }
-
-        statusText.text =
-            $"{selectedDetailMercenary.MercenaryName}に" +
-            $"[{JapaneseDisplayText.GetEquipmentQuality(equipment.Quality)}] " +
-            $"{JapaneseDisplayText.GetItemName(equipment.BaseItem)}を装備しました。";
-        ShowCharacterDetails(selectedDetailMercenary);
-        RefreshPage(companyPage);
-        RefreshPage(partyPage);
-        SaveEquipmentChanges();
-    }
-
     private void ShowWorldMap(int worldMapIndex)
     {
         worldMapIndex = Mathf.Clamp(
             worldMapIndex, 0, WorldMapService.WorldRegionNames.Length - 1);
-        if (!CanEnterWorldRegion(worldMapIndex))
+        if (!townTravelController.CanEnterWorldRegion(worldMapIndex))
         {
             int gateTownIndex =
                 WorldMapService.GetGateTownIndexForWorldRegion(worldMapIndex);
@@ -985,14 +957,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         statusText.text =
             $"現在地: {WorldMapService.TownNames[townProgressState.CurrentTownIndex]}  |  " +
             $"{WorldMapService.WorldRegionNames[worldMapIndex]}";
-    }
-
-    private class MercenarySkillInfo
-    {
-        public string Name;
-        public string ShortDescription;
-        public string DetailDescription;
-        public bool Unlocked = true;
     }
 
 }

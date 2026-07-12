@@ -1,3 +1,3 @@
-public sealed class BattlePageUI : BattlePageUIBase
+public sealed class BattlePageUI : RefreshOnlyPageUIBase
 {
 }

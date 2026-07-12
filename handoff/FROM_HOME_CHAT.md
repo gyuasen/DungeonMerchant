@@ -1103,6 +1103,35 @@
   - ユーザーがUnity Test Runnerで実行し、**104件中104件成功（0失敗）を確認済み**。実行時に見つかった3件の不具合（`MerchantInventoryTests.cs`の`Object`型曖昧参照CS0104、`Does.Contain`のCS1503、`ProgressionManagerTests`の`TotalGoldEarned`テストがタイミング依存で失敗）はすべてテストコード側の修正で解消。本番コードの変更はなし。
 - Action 3（`SimpleMercenaryHireUI`の段階分割）・Action 4（重複ロジック統合）は未着手。詳細な全20ステップの計画と進捗は `handoff/CLAUDE_WORK_LOG.md` を参照。
 
+## 家でやったこと 2026-07-10〜2026-07-12（Claude Code）
+
+- **Action 3（`SimpleMercenaryHireUI`の段階分割、全10ステップ）を完了**。約7,200行の神クラスから実ロジック約3,300行を以下の独立クラスへ抽出した。
+  - `SimpleMercenaryHireUIFactory`（UI構築ヘルパー16メソッド）
+  - `DailyResultController`（日次リザルトのデータ/テキスト生成）
+  - `HireAndPartyController`（雇用/編成/治療/転職アクション）
+  - `EconomyController`（市場/鍛冶/在庫アクション+絞込/並替状態）
+  - `CharacterEquipmentController`（キャラ/装備詳細・装備/強化/売却/消費）
+  - `MerchantStatusAndQuestController`（商人ステータス/依頼/借金返済/倉庫拡張）
+  - `TownTravelController`+`DungeonBattleController`（町移動/街道戦闘フロー、ダンジョン/戦闘アクション、戦闘ログ）
+- 各コントローラーはプレーンC#クラスで、マネージャーをコンストラクタ注入、UI副作用（statusText更新・ページ更新等）はAction/Funcデリゲートで注入する統一パターン。UI構築（Build*）・ページ遷移（Show*）・イベント購読はpartial側に残存。
+- 併せて`SimpleMercenaryHireUI.MapData.cs`を削除（`WorldMapService`直接参照化）、実質同一だった`BattlePageUIBase`/`MapPageUIBase`を`RefreshOnlyPageUIBase`へ統合、`Company/Party/HealPageUI`の重複ボイラープレートを`ListPageUIBase`（旧`EconomyPageUI`をリネーム、GUID保持）へ共通化した。
+- Action 4.3も完了: `MerchantInventory.GetSellPrice(EquipmentInstance)`内の品質倍率switchを`EquipmentInstance.GetSellPriceQualityMultiplier()`へ移動（値は同一）。
+- 各ステップで`dotnet build DungeonMerchant.Runtime.csproj`エラー0を確認済み。
+- **未実施**: Unity上のPlayモード通し確認（開始→雇用→移動→戦闘→ダンジョン→セーブ/ロード）とTest Runner実行。次回Unity起動時に必須。
+- **Action 4.1/4.2も完了し、改善計画（全20ステップ）のコード作業はすべて完了**。
+  - 4.1: 重複していた価格ハッシュ関数を新規`MarketHashUtility.cs`へ統合（混合順序を逐語コピーしビット同一を保証）。
+  - 4.2: `MarketStockManager`/`BlacksmithManager`の町別availability switch文を`WorldMapService`のルールテーブルへ置換。"Mutant Core Charm"のアビス限定特例は原文のまま維持。旧switch文を逐語転記したオラクルと新テーブルを全810組合せ×2サービスで比較するパリティテスト`TownAvailabilityParityTests.cs`を追加。
+  - 残タスク: Unity上でのコンパイル確認・Test Runner全緑確認・Playモード通し確認（`handoff/CLAUDE_WORK_LOG.md`の「次回再開時にやること」参照）。
+
+## 変更した主なファイル 2026-07-10〜2026-07-12
+
+- `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUIFactory.cs`（新規）ほか新規コントローラー7ファイル
+- `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI*.cs`（全partial縮小、`MapData.cs`削除）
+- `Assets/Proiject/Scripts/UI/RefreshOnlyPageUIBase.cs`（新規、旧`BattlePageUIBase`/`MapPageUI.cs`削除）
+- `Assets/Proiject/Scripts/UI/ListPageUIBase.cs`（旧`EconomyPageUI.cs`をリネーム）
+- `Assets/Proiject/Scripts/UI/CompanyPageUI.cs`/`PartyPageUI.cs`/`HealPageUI.cs`（共通化で縮小）
+- `Assets/Proiject/Scripts/Item/EquipmentInstance.cs`/`MerchantInventory.cs`（Action 4.3）
+
 ## 変更したファイル 2026-07-09
 
 - `Assets/Proiject/Scripts/Core/TownProgressState.cs`（新規）

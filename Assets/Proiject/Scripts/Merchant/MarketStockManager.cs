@@ -155,34 +155,14 @@ public class MarketStockManager : MonoBehaviour
 
     private int GetStableIndex(int slot, int itemCount)
     {
-        unchecked
-        {
-            int hash = CurrentDay * 73856093;
-            hash ^= slot * 19349663;
-            hash ^= currentTownIndex * 83492791;
-            return Mathf.Abs(hash) % Mathf.Max(1, itemCount);
-        }
+        return MarketHashUtility.ComputeStableIndex(
+            CurrentDay, slot, currentTownIndex, itemCount);
     }
 
     private int GetStableHash(ItemDataSO item, int salt, int seed)
     {
-        unchecked
-        {
-            int hash = seed;
-            hash = hash * 31 + CurrentDay;
-            hash = hash * 31 + currentTownIndex;
-            hash = hash * 31 + salt;
-            hash = hash * 31 + (int)item.itemType;
-            hash = hash * 31 + (int)item.rarity;
-
-            string key = string.IsNullOrWhiteSpace(item.itemName) ? item.name : item.itemName;
-            foreach (char character in key)
-            {
-                hash = hash * 31 + character;
-            }
-
-            return hash;
-        }
+        return MarketHashUtility.ComputeItemHash(
+            seed, CurrentDay, currentTownIndex, salt, item);
     }
 
     private void HandleDayChanged(int day)
@@ -244,34 +224,11 @@ public class MarketStockManager : MonoBehaviour
 
         MercenaryClass itemClass =
             MercenaryClassProgression.GetBaseClass(item.requiredClass);
-        switch (currentTownIndex)
-        {
-            case 2:
-                return item.equipmentRank <= 1;
-            case 1:
-                return item.equipmentRank <= 1 ||
-                       itemClass == MercenaryClass.Archer ||
-                       itemClass == MercenaryClass.Rogue;
-            case 0:
-                return true;
-            case 3:
-                return itemClass == MercenaryClass.Archer ||
-                       itemClass == MercenaryClass.Mage ||
-                       itemClass == MercenaryClass.Priest ||
-                       item.equipmentSlot == EquipmentSlot.Accessory;
-            case 4:
-                return itemClass == MercenaryClass.Warrior ||
-                       itemClass == MercenaryClass.Lancer ||
-                       itemClass == MercenaryClass.Priest;
-            case 5:
-                return itemClass == MercenaryClass.Warrior ||
-                       itemClass == MercenaryClass.Mage ||
-                       itemClass == MercenaryClass.Lancer ||
-                       item.equipmentRank >= 2;
-            default:
-                return item.equipmentRank >= 2 ||
-                       item.equipmentSlot == EquipmentSlot.Accessory;
-        }
+        return WorldMapService.IsMarketEquipmentAllowedInTown(
+            currentTownIndex,
+            itemClass,
+            item.equipmentRank,
+            item.equipmentSlot);
     }
 
     private ItemDataSO CreateRuntimeFallbackItem()

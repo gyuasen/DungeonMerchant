@@ -275,4 +275,128 @@ public static class WorldMapService
             ? TownNames.Length - 1
             : townIndex;
     }
+
+    // --- 町別の装備販売/鍛冶レシピ許可ルール ---
+    // MarketStockManager.IsAvailableInCurrentTown / BlacksmithManager.
+    // IsRecipeAvailableInCurrentTown にあった switch 文をテーブル化したもの。
+    // 各行は「いずれかの条件を満たせば許可」の論理和として評価される。
+    // 行の内容は旧 switch の各 case を逐語転記しており、市場と鍛冶で
+    // ルールが異なるのは元仕様どおり（TownAvailabilityParityTests が
+    // 旧 switch のオラクルとの完全一致を検証している）。
+
+    private sealed class TownEquipmentRule
+    {
+        public bool AllowAll;
+        public int? MaxRank;
+        public int? MinRank;
+        public MercenaryClass[] Classes;
+        public EquipmentSlot[] Slots;
+    }
+
+    // index 0-5 = 町番号、index 6 = 旧 switch の default（町6と範囲外）
+    private static readonly TownEquipmentRule[] MarketEquipmentRules =
+    {
+        new TownEquipmentRule { AllowAll = true },                                     // 0
+        new TownEquipmentRule { MaxRank = 1, Classes = new[] {                         // 1
+            MercenaryClass.Archer, MercenaryClass.Rogue } },
+        new TownEquipmentRule { MaxRank = 1 },                                         // 2
+        new TownEquipmentRule { Classes = new[] {                                      // 3
+            MercenaryClass.Archer, MercenaryClass.Mage, MercenaryClass.Priest },
+            Slots = new[] { EquipmentSlot.Accessory } },
+        new TownEquipmentRule { Classes = new[] {                                      // 4
+            MercenaryClass.Warrior, MercenaryClass.Lancer, MercenaryClass.Priest } },
+        new TownEquipmentRule { MinRank = 2, Classes = new[] {                         // 5
+            MercenaryClass.Warrior, MercenaryClass.Mage, MercenaryClass.Lancer } },
+        new TownEquipmentRule { MinRank = 2,                                           // default
+            Slots = new[] { EquipmentSlot.Accessory } }
+    };
+
+    private static readonly TownEquipmentRule[] BlacksmithEquipmentRules =
+    {
+        new TownEquipmentRule { Classes = new[] {                                      // 0
+            MercenaryClass.Warrior, MercenaryClass.Priest, MercenaryClass.Lancer },
+            Slots = new[] { EquipmentSlot.Accessory } },
+        new TownEquipmentRule { Classes = new[] {                                      // 1
+            MercenaryClass.Archer, MercenaryClass.Rogue },
+            Slots = new[] { EquipmentSlot.Accessory } },
+        new TownEquipmentRule { Classes = new[] {                                      // 2
+            MercenaryClass.Warrior, MercenaryClass.Archer, MercenaryClass.Mage } },
+        new TownEquipmentRule { Classes = new[] {                                      // 3
+            MercenaryClass.Archer, MercenaryClass.Mage, MercenaryClass.Priest } },
+        new TownEquipmentRule { Classes = new[] {                                      // 4
+            MercenaryClass.Warrior, MercenaryClass.Lancer },
+            Slots = new[] { EquipmentSlot.Armor } },
+        new TownEquipmentRule { Classes = new[] {                                      // 5
+            MercenaryClass.Mage, MercenaryClass.Rogue, MercenaryClass.Lancer },
+            Slots = new[] { EquipmentSlot.Weapon } },
+        new TownEquipmentRule { MinRank = 3 }                                          // default
+    };
+
+    public static bool IsMarketEquipmentAllowedInTown(
+        int townIndex,
+        MercenaryClass baseClass,
+        int equipmentRank,
+        EquipmentSlot slot)
+    {
+        return EvaluateRule(
+            SelectRule(MarketEquipmentRules, townIndex),
+            baseClass,
+            equipmentRank,
+            slot);
+    }
+
+    public static bool IsBlacksmithEquipmentAllowedInTown(
+        int townIndex,
+        MercenaryClass baseClass,
+        int equipmentRank,
+        EquipmentSlot slot)
+    {
+        return EvaluateRule(
+            SelectRule(BlacksmithEquipmentRules, townIndex),
+            baseClass,
+            equipmentRank,
+            slot);
+    }
+
+    private static TownEquipmentRule SelectRule(
+        TownEquipmentRule[] rules,
+        int townIndex)
+    {
+        // 旧 switch は case 0-5 を明示し、それ以外（町6・範囲外）は
+        // default に落ちていた。その分岐を厳密に再現する。
+        return townIndex >= 0 && townIndex <= 5
+            ? rules[townIndex]
+            : rules[6];
+    }
+
+    private static bool EvaluateRule(
+        TownEquipmentRule rule,
+        MercenaryClass baseClass,
+        int equipmentRank,
+        EquipmentSlot slot)
+    {
+        if (rule.AllowAll)
+        {
+            return true;
+        }
+        if (rule.MaxRank.HasValue && equipmentRank <= rule.MaxRank.Value)
+        {
+            return true;
+        }
+        if (rule.MinRank.HasValue && equipmentRank >= rule.MinRank.Value)
+        {
+            return true;
+        }
+        if (rule.Classes != null &&
+            Array.IndexOf(rule.Classes, baseClass) >= 0)
+        {
+            return true;
+        }
+        if (rule.Slots != null &&
+            Array.IndexOf(rule.Slots, slot) >= 0)
+        {
+            return true;
+        }
+        return false;
+    }
 }

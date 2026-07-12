@@ -170,7 +170,10 @@ public partial class SimpleMercenaryHireUI
             ParchmentMutedColor);
 
         Button confirmButton =
-            CreateActionButton(window, "移動する", ConfirmTownTravel);
+            CreateActionButton(
+                window,
+                "移動する",
+                () => townTravelController.ConfirmTownTravel());
         RectTransform confirmRect = confirmButton.GetComponent<RectTransform>();
         confirmRect.anchorMin = confirmRect.anchorMax =
             confirmRect.pivot = new Vector2(0.5f, 0f);
@@ -275,13 +278,13 @@ public partial class SimpleMercenaryHireUI
                 regionPage,
                 WorldMapService.TownNames[townIndex],
                 townPositions[localIndex],
-                () => TravelToTown(townIndex)));
+                () => townTravelController.TravelToTown(townIndex)));
             CreateMapButton(
                 regionPage,
                 GetNearbyDungeonMapLabel(townIndex),
                 dungeonPositions[localIndex],
                 new Vector2(112f, 42f),
-                () => TravelToDungeon(townIndex));
+                () => townTravelController.TravelToDungeon(townIndex));
         }
 
         Button globalMapButton = CreateMapButton(
@@ -364,7 +367,8 @@ public partial class SimpleMercenaryHireUI
             new Vector2(100f, 48f), ShowHealPage);
         CreateMapButton(
             townMapPage, "近隣ダンジョン", new Vector2(0f, -172f),
-            new Vector2(150f, 52f), OpenNearbyDungeon);
+            new Vector2(150f, 52f),
+            () => dungeonBattleController.OpenNearbyDungeon());
         jobFacilityButton = CreateMapButton(
             townMapPage, "転職神殿", new Vector2(105f, -105f),
             new Vector2(110f, 48f), ShowJobChangePage);
@@ -478,12 +482,6 @@ public partial class SimpleMercenaryHireUI
             $"現在地: {WorldMapService.TownNames[townProgressState.CurrentTownIndex]}  |  大陸を選択";
     }
 
-    private void ShowUnavailableWorldMap(string worldName)
-    {
-        statusText.text =
-            $"{worldName}は今後のアップデートで解放されます。";
-    }
-
     private void ShowWorldMap()
     {
         ShowWorldMap(townProgressState.CurrentWorldMapIndex);
@@ -498,24 +496,6 @@ public partial class SimpleMercenaryHireUI
                 regionMapPages[i].gameObject.SetActive(i == worldMapIndex);
             }
         }
-    }
-
-    private bool CanEnterWorldRegion(int worldMapIndex)
-    {
-        return WorldMapService.CanEnterWorldRegion(
-            worldMapIndex,
-            townProgressState.CurrentTownIndex,
-            townProgressState.GetUnlockedTownIndices(),
-            IsGateTownFullyCleared);
-    }
-
-    private bool IsGateTownFullyCleared(int gateTownIndex)
-    {
-        DungeonDataSO gateDungeon =
-            dungeonRunManager.GetHighestGradeDungeonNearTown(gateTownIndex);
-        return gateDungeon != null &&
-               dungeonRunManager.GetClearedFloors(gateDungeon) >=
-               Mathf.Max(1, gateDungeon.totalFloors);
     }
 
     private void ShowTownMap()
@@ -540,222 +520,17 @@ public partial class SimpleMercenaryHireUI
         }
     }
 
-    private void TravelToTown(int townIndex)
-    {
-        townIndex = Mathf.Clamp(townIndex, 0, WorldMapService.TownNames.Length - 1);
-
-        if (townIndex == townProgressState.CurrentTownIndex)
-        {
-            ShowTownMap();
-            return;
-        }
-
-        RequestTownTravel(townIndex, false);
-    }
-
-    private void RequestTownTravel(
-        int townIndex,
-        bool openDungeonAfterTravel)
-    {
-        WorldMapService.TravelValidationResult validation =
-            WorldMapService.ValidateTravelRequest(
-                townProgressState.CurrentTownIndex,
-                townIndex,
-                townProgressState.GetUnlockedTownIndices(),
-                partyManager.Members.Count > 0,
-                IsGateTownFullyCleared);
-        if (!validation.CanTravel)
-        {
-            statusText.text = validation.FailureMessage;
-            return;
-        }
-
-        confirmationTravelTownIndex = townIndex;
-        confirmationOpenDungeonAfterTravel = openDungeonAfterTravel;
-        string unlockNotice = validation.IsUnlockTravel
-            ? "\n勝利すると新しい町が解放されます。"
-            : string.Empty;
-        travelConfirmationText.text =
-            $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]} から\n" +
-            $"{WorldMapService.TownNames[townIndex]} へ移動します。\n\n" +
-            $"・両地域の通常モンスターと3～5回接敵します\n" +
-            $"・勝利すると1日経過します" +
-            unlockNotice;
-        travelConfirmationOverlay.SetAsLastSibling();
-        travelConfirmationOverlay.gameObject.SetActive(true);
-    }
-
-    private void ConfirmTownTravel()
-    {
-        int destinationTownIndex = confirmationTravelTownIndex;
-        bool openDungeonAfterTravel = confirmationOpenDungeonAfterTravel;
-        HideTravelConfirmation();
-
-        if (destinationTownIndex < 0)
-        {
-            return;
-        }
-
-        StartTownTravelBattle(
-            destinationTownIndex,
-            openDungeonAfterTravel);
-    }
-
     private void HideTravelConfirmation()
     {
         travelConfirmationOverlay?.gameObject.SetActive(false);
-        confirmationTravelTownIndex = -1;
-        confirmationOpenDungeonAfterTravel = false;
-    }
-
-    private void StartTownTravelBattle(
-        int destinationTownIndex,
-        bool openDungeonAfterTravel)
-    {
-        if (battleManager.IsBattling)
-        {
-            statusText.text = "戦闘中は町を移動できません。";
-            return;
-        }
-
-        if (partyManager.Members.Count == 0)
-        {
-            statusText.text =
-                $"{WorldMapService.TownNames[destinationTownIndex]}への移動クエストには傭兵の編成が必要です。";
-            return;
-        }
-
-        if (!WorldMapService.AreTownsAdjacent(destinationTownIndex, townProgressState.CurrentTownIndex))
-        {
-            statusText.text = "街道で結ばれていない町へは移動できません。";
-            return;
-        }
-
-        ResetBattleLog();
-        roadTravelState.Begin(
-            destinationTownIndex,
-            !townProgressState.IsTownUnlocked(destinationTownIndex),
-            openDungeonAfterTravel,
-            UnityEngine.Random.Range(3, 6));
-        List<EnemyDataSO> enemies =
-            roadEncounterService.CreateEncounter(
-                townProgressState.CurrentTownIndex,
-                destinationTownIndex,
-                out bool containsRareEncounter);
-        roadTravelState.SetRareEncounter(containsRareEncounter);
-
-        if (enemies == null ||
-            enemies.Count == 0 ||
-            !battleManager.StartBattle(partyManager.Members, enemies))
-        {
-            roadTravelState.Clear();
-            statusText.text = "街道戦闘を開始できませんでした。";
-            return;
-        }
-
-        ShowRoadBattlePage(townProgressState.CurrentTownIndex, destinationTownIndex);
-        statusText.text =
-            $"町の移動: 街道戦闘 {roadTravelState.EncounterIndex}/" +
-            $"{roadTravelState.EncounterCount}";
+        townTravelController.ClearTravelConfirmation();
     }
 
     private IEnumerator ContinueTownTravelBattleRoutine()
     {
         yield return null;
 
-        int destinationTownIndex = roadTravelState.DestinationTownIndex;
-        if (destinationTownIndex < 0)
-        {
-            yield break;
-        }
-
-        List<EnemyDataSO> enemies =
-            roadEncounterService.CreateEncounter(
-                townProgressState.CurrentTownIndex,
-                destinationTownIndex,
-                out bool containsRareEncounter);
-        roadTravelState.SetRareEncounter(containsRareEncounter);
-        if (enemies == null ||
-            enemies.Count == 0 ||
-            !battleManager.StartBattle(partyManager.Members, enemies))
-        {
-            roadTravelState.Clear();
-            ShowWorldMap();
-            statusText.text = "次の街道戦闘を開始できませんでした。";
-            yield break;
-        }
-
-        ShowRoadBattlePage(townProgressState.CurrentTownIndex, destinationTownIndex);
-        statusText.text =
-            $"町の移動: 街道戦闘 {roadTravelState.EncounterIndex}/" +
-            $"{roadTravelState.EncounterCount}";
-    }
-
-    private void ContinueTownTravel()
-    {
-        if (!roadTravelState.IsAwaitingChoice ||
-            !roadTravelState.IsActive ||
-            battleManager.IsBattling)
-        {
-            return;
-        }
-
-        if (!roadTravelState.ContinueToNextEncounter())
-        {
-            return;
-        }
-
-        roadContinueButton.gameObject.SetActive(false);
-        roadRetreatButton.gameObject.SetActive(false);
-        statusText.text =
-            $"街道戦闘 {roadTravelState.EncounterIndex}/" +
-            $"{roadTravelState.EncounterCount} の敵が接近しています。";
-        StartCoroutine(ContinueTownTravelBattleRoutine());
-    }
-
-    private void RetreatFromTownTravel()
-    {
-        if (!roadTravelState.IsAwaitingChoice || battleManager.IsBattling)
-        {
-            return;
-        }
-
-        roadTravelState.Clear();
-        roadContinueButton.gameObject.SetActive(false);
-        roadRetreatButton.gameObject.SetActive(false);
-        ShowTownMap();
-        statusText.text =
-            "街道から撤退し、出発した町へ戻りました。";
-    }
-
-    private void OpenNearbyDungeon()
-    {
-        DungeonDataSO preferred =
-            dungeonRunManager.GetDungeonNearTown(townProgressState.CurrentTownIndex);
-        if (preferred == null)
-        {
-            statusText.text =
-                $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}近隣に探索可能なダンジョンはありません。";
-        }
-        else if (!dungeonRunManager.TrySelectDungeon(preferred))
-        {
-            statusText.text =
-                $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}近隣のダンジョンは未開放です。";
-        }
-        ShowDungeonPage();
-    }
-
-    private void TravelToDungeon(int townIndex)
-    {
-        townIndex = Mathf.Clamp(townIndex, 0, WorldMapService.TownNames.Length - 1);
-
-        if (townIndex == townProgressState.CurrentTownIndex)
-        {
-            OpenNearbyDungeon();
-            return;
-        }
-
-        RequestTownTravel(townIndex, true);
+        townTravelController.StartNextTravelEncounter();
     }
 
     private void SetMapHeaderButtons(bool showTownMapButton)
@@ -814,33 +589,6 @@ public partial class SimpleMercenaryHireUI
                     : new Color(0.035f, 0.035f, 0.04f, 1f);
             }
         }
-    }
-
-    private int GetNextUnlockableTownIndex()
-    {
-        return WorldMapService.GetNextUnlockableTownIndex(
-            townProgressState.GetUnlockedTownIndices());
-    }
-
-    private void ApplyTownServiceSettings(
-        bool regenerateCandidates,
-        bool regenerateMarket)
-    {
-        if (mercenaryGenerator != null)
-        {
-            mercenaryGenerator.SetTownIndex(townProgressState.CurrentTownIndex, false);
-            if (!TownServicePolicy.IsHiringAvailable(townProgressState.CurrentTownIndex))
-            {
-                mercenaryGenerator.ClearCandidates();
-            }
-            else if (regenerateCandidates)
-            {
-                mercenaryGenerator.GenerateCandidates();
-            }
-        }
-        marketStockManager?.SetTownIndex(
-            townProgressState.CurrentTownIndex, regenerateMarket);
-        blacksmithManager?.SetTownIndex(townProgressState.CurrentTownIndex);
     }
 
     private void SyncDungeonUnlocks()

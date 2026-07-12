@@ -1,52 +1,17 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
-public sealed class PartyPageUI : UIPageBase
+public sealed class PartyPageUI : ListPageUIBase
 {
-    [SerializeField] private Text titleText;
-    [SerializeField] private RectTransform listRoot;
-    private UnityAction refreshAction;
     private Func<int> maxSlotProvider;
     private Func<IReadOnlyList<MercenaryInstance>> memberProvider;
     private Action<MercenaryInstance> removeMemberAction;
-    private Font rowFont;
-    private Color rowTextColor = Color.white;
-    private Color mutedTextColor = Color.gray;
-    private Color buttonTextColor = Color.white;
-    private Color rowColor = new Color(0.27f, 0.16f, 0.09f, 0.94f);
-    private Color buttonColor = new Color(0.35f, 0.22f, 0.13f, 1f);
-    private Color frameColor = new Color(0.72f, 0.52f, 0.27f, 0.9f);
 
     public void Initialize(Text title, RectTransform targetListRoot)
     {
-        titleText = title;
-        listRoot = targetListRoot;
-    }
-
-    public void Configure(
-        Font font,
-        Color color,
-        Color targetMutedTextColor,
-        Color targetButtonTextColor,
-        Color targetRowColor,
-        Color targetButtonColor,
-        Color targetFrameColor,
-        UnityAction refresh)
-    {
-        rowFont = font;
-        mutedTextColor = targetMutedTextColor;
-        buttonTextColor = targetButtonTextColor;
-        rowColor = targetRowColor;
-        buttonColor = targetButtonColor;
-        frameColor = targetFrameColor;
-
-        ConfigureText(
-            titleText, font, 15,
-            TextAnchor.MiddleLeft, color);
-        refreshAction = refresh;
+        Initialize(title, null, targetListRoot);
     }
 
     public void ConfigurePartyList(
@@ -63,11 +28,13 @@ public sealed class PartyPageUI : UIPageBase
     {
         if (maxSlotProvider == null || memberProvider == null)
         {
-            refreshAction?.Invoke();
+            base.Refresh();
             return;
         }
 
-        ClearChildren(listRoot);
+        // Fixed-slot layout with placeholder rows: does not map onto
+        // RebuildRows, so the loop stays page-specific.
+        ClearChildren(ListRoot);
 
         IReadOnlyList<MercenaryInstance> members =
             memberProvider.Invoke() ?? Array.Empty<MercenaryInstance>();
@@ -95,39 +62,39 @@ public sealed class PartyPageUI : UIPageBase
         RectTransform row =
             CreateRow(
                 $"Party Slot {slotIndex + 1}",
-                listRoot,
+                ListRoot,
                 top,
-                rowColor,
-                frameColor);
+                RowColor,
+                FrameColor);
         CreateText(
             row,
             $"{slotIndex + 1}. {mercenary.MercenaryName}",
-            rowFont,
+            RowFont,
             22,
             FontStyle.Bold,
             TextAnchor.MiddleLeft,
             new Vector2(18f, -42f),
             new Vector2(-160f, -12f),
-            rowTextColor);
+            RowTextColor);
 
         CreateText(
             row,
             BuildMercenaryDetails(mercenary),
-            rowFont,
+            RowFont,
             13,
             FontStyle.Normal,
             TextAnchor.MiddleLeft,
             new Vector2(18f, -76f),
             new Vector2(-160f, -48f),
-            mutedTextColor);
+            MutedTextColor);
 
         CreateActionButton(
             row,
             "外す",
-            rowFont,
-            buttonColor,
-            frameColor,
-            buttonTextColor,
+            RowFont,
+            ButtonColor,
+            FrameColor,
+            ButtonTextColor,
             () => removeMemberAction?.Invoke(mercenary));
     }
 
@@ -136,21 +103,21 @@ public sealed class PartyPageUI : UIPageBase
         RectTransform row =
             CreateRow(
                 $"Empty Party Slot {slotIndex + 1}",
-                listRoot,
+                ListRoot,
                 top,
-                rowColor,
-                frameColor);
+                RowColor,
+                FrameColor);
 
         CreateText(
             row,
             $"{slotIndex + 1}. 空き枠",
-            rowFont,
+            RowFont,
             20,
             FontStyle.Bold,
             TextAnchor.MiddleLeft,
             new Vector2(18f, -58f),
             new Vector2(-18f, -28f),
-            mutedTextColor);
+            MutedTextColor);
     }
 
     private static string BuildMercenaryDetails(MercenaryInstance mercenary)

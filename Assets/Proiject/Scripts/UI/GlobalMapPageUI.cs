@@ -1,3 +1,3 @@
-public sealed class GlobalMapPageUI : MapPageUIBase
+public sealed class GlobalMapPageUI : RefreshOnlyPageUIBase
 {
 }

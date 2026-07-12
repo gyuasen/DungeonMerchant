@@ -164,7 +164,9 @@
 - 全体設計レビューを実施し、Core→UI逆依存（`SaveManager`/`Bootstrap`が`SimpleMercenaryHireUI`を直接参照）、`SimpleMercenaryHireUI`ほか複数の神クラス化、テストカバレッジとリスクの逆相関、複数箇所のロジック重複を確認した。
 - 4アクション・全20ステップの改善計画を承認済み。**Action 1（Core→UI依存の切断）は完了**。`TownProgressState`を新設し、町の現在地・解放状態・表示マップ番号の所有権をUIからCoreへ移した。セーブ形式はVersion 19。Unity上での動作確認済み。
 - **Action 2（神クラスへのキャラクタリゼーションテスト追加）も完了**。BattleManager/DungeonRunManager/MarketStockManager/ProgressionManager/MerchantInventoryへ計48件のEditModeテストを追加。**Unity Test Runnerで104件中104件成功を確認済み**（既存コードへの変更なし。テストコード側の3件の不具合はテストファイルのみ修正して解消）。
-- Action 3（`SimpleMercenaryHireUI`の段階分割）・Action 4（重複ロジック統合）は未着手。
+- **Action 3（`SimpleMercenaryHireUI`の段階分割、全10ステップ）も完了**（2026-07-12）。神クラス（約7,200行）から約3,300行分の実ロジックを7つの独立クラスへ抽出: `SimpleMercenaryHireUIFactory`（UI構築ヘルパー）、`DailyResultController`、`HireAndPartyController`、`EconomyController`、`CharacterEquipmentController`、`MerchantStatusAndQuestController`、`TownTravelController`+`DungeonBattleController`。partial残存分は5,278行（UI構築・ページ遷移・イベント購読のみ）。`MapData.cs`は`WorldMapService`直接参照化で削除、`BattlePageUIBase`/`MapPageUIBase`は`RefreshOnlyPageUIBase`へ統合、`Company/Party/HealPageUI`は`ListPageUIBase`（旧EconomyPageUI）基盤へ共通化。各ステップでdotnet buildエラー0を確認済み。**Unity上のPlayモード通し確認（開始→雇用→移動→戦闘→ダンジョン→セーブ/ロード）は未実施 — 次回Unity起動時に必要**。
+- **Action 4（重複ロジック統合）も完了**（2026-07-12）。4.1: 価格ハッシュを`MarketHashUtility`へ統合（ビット同一）。4.2: 町別販売/鍛冶ルールのswitch文を`WorldMapService`のテーブルへ置換し、旧switchをオラクルとする全810組合せ×2サービスのパリティテスト`TownAvailabilityParityTests`を追加。4.3: 装備品質倍率を`EquipmentInstance`へ移動。4.4/4.5はAction 3内で実施済み。
+- **これで改善計画（Action 1〜4、全20ステップ）はすべて完了。** Unity Test Runnerで106件中106件成功、コンパイル・動作確認もユーザーにより完了済み（2026-07-12）。今後の候補（BattleManager/DungeonRunManagerの分割、PlayModeテスト基盤等）は`handoff/CLAUDE_WORK_LOG.md`末尾を参照。
 - 詳細な計画・進捗・技術的な発見事項は `handoff/CLAUDE_WORK_LOG.md` を参照。次にClaude Codeで再開する場合は、このファイルを読んでから続きに着手すること。
 ## 2026-06-19 School Update
 

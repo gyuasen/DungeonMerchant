@@ -190,20 +190,11 @@ public class MerchantInventory : MonoBehaviour
             return 0;
         }
 
-        float qualityMultiplier;
-        switch (equipment.Quality)
-        {
-            case EquipmentQuality.Poor: qualityMultiplier = 0.65f; break;
-            case EquipmentQuality.Fine: qualityMultiplier = 1.2f; break;
-            case EquipmentQuality.Rare: qualityMultiplier = 1.55f; break;
-            case EquipmentQuality.Legendary: qualityMultiplier = 2.2f; break;
-            default: qualityMultiplier = 1f; break;
-        }
         return Mathf.Max(
             1,
             Mathf.RoundToInt(
                 GetSellPrice(equipment.BaseItem) *
-                qualityMultiplier *
+                equipment.GetSellPriceQualityMultiplier() *
                 (1f + equipment.EnhancementLevel * 0.12f)));
     }
 

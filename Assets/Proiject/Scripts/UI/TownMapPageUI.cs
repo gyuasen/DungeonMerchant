@@ -1,3 +1,3 @@
-public sealed class TownMapPageUI : MapPageUIBase
+public sealed class TownMapPageUI : RefreshOnlyPageUIBase
 {
 }

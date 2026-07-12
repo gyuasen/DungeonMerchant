@@ -23,7 +23,8 @@ public partial class SimpleMercenaryHireUI
         nextDayRect.anchoredPosition = new Vector2(0f, -34f);
 
         inventoryFilterButton =
-            CreateActionButton(inventoryPage, "絞込: 全て", CycleInventoryFilter);
+            CreateActionButton(inventoryPage, "絞込: 全て",
+                economyController.CycleInventoryFilter);
         inventoryFilterButton.name = "Inventory Filter Button";
         RectTransform filterRect = inventoryFilterButton.GetComponent<RectTransform>();
         filterRect.anchorMin = filterRect.anchorMax = new Vector2(0f, 1f);
@@ -32,7 +33,8 @@ public partial class SimpleMercenaryHireUI
         filterRect.anchoredPosition = new Vector2(0f, -78f);
 
         equipmentSortButton =
-            CreateActionButton(inventoryPage, "並替: 名前", CycleEquipmentSort);
+            CreateActionButton(inventoryPage, "並替: 名前",
+                economyController.CycleEquipmentSort);
         equipmentSortButton.name = "Equipment Sort Button";
         RectTransform sortRect = equipmentSortButton.GetComponent<RectTransform>();
         sortRect.anchorMin = sortRect.anchorMax = new Vector2(0f, 1f);
@@ -49,7 +51,10 @@ public partial class SimpleMercenaryHireUI
         collectionRect.anchoredPosition = new Vector2(332f, -78f);
 
         Button storageButton =
-            CreateActionButton(inventoryPage, "倉庫拡張", UpgradeStorage);
+            CreateActionButton(
+                inventoryPage,
+                "倉庫拡張",
+                merchantStatusAndQuestController.UpgradeStorage);
         RectTransform storageRect = storageButton.GetComponent<RectTransform>();
         storageRect.anchorMin = storageRect.anchorMax = new Vector2(0f, 1f);
         storageRect.pivot = new Vector2(0f, 1f);
@@ -94,16 +99,16 @@ public partial class SimpleMercenaryHireUI
             WoodButtonColor,
             FrameColor,
             () => merchantInventory.Items,
-            GetSortedInventoryEquipment,
-            ShouldShowInventoryItem,
-            ShouldShowInventoryEquipment,
+            economyController.GetSortedInventoryEquipment,
+            economyController.ShouldShowInventoryItem,
+            economyController.ShouldShowInventoryEquipment,
             item => merchantInventory.GetSellPrice(item),
             item => marketPriceManager.GetEffectiveSellMultiplier(item),
-            GetEquipmentDisplayName,
-            GetEquipmentQualityColor,
-            SellItem,
-            UseConsumable,
-            ShowEquipmentDetails);
+            CharacterEquipmentController.GetEquipmentDisplayName,
+            CharacterEquipmentController.GetEquipmentQualityColor,
+            economyController.SellItem,
+            characterEquipmentController.UseConsumable,
+            characterEquipmentController.ShowEquipmentDetails);
         pageRouter.Register(inventoryPage);
     }
 
@@ -150,11 +155,11 @@ public partial class SimpleMercenaryHireUI
             RowColor,
             WoodButtonColor,
             FrameColor,
-            GetMarketRows,
-            ShouldShowMarketEntry,
+            economyController.GetMarketRows,
+            EconomyController.ShouldShowMarketEntry,
             entry => marketStockManager.CanBuy(entry),
-            BuyMarketItem,
-            RegisterMarketBuyButton);
+            economyController.BuyMarketItem,
+            economyController.RegisterMarketBuyButton);
         pageRouter.Register(marketPage);
     }
 
@@ -211,85 +216,18 @@ public partial class SimpleMercenaryHireUI
             RowColor,
             WoodButtonColor,
             FrameColor,
-            GetBlacksmithRows,
-            ShouldShowBlacksmithRecipe,
+            economyController.GetBlacksmithRows,
+            EconomyController.ShouldShowBlacksmithRecipe,
             item => merchantInventory.GetItemAmount(item),
             recipe => blacksmithManager.CanCraft(recipe),
-            CraftEquipment,
-            RegisterBlacksmithCraftButton);
+            economyController.CraftEquipment,
+            economyController.RegisterBlacksmithCraftButton);
         pageRouter.Register(blacksmithPage);
-    }
-
-    private IEnumerable<EquipmentInstance> GetSortedInventoryEquipment()
-    {
-        List<EquipmentInstance> sortedEquipment =
-            new List<EquipmentInstance>(merchantInventory.EquipmentInstances);
-        sortedEquipment.Sort(CompareEquipment);
-        return sortedEquipment;
-    }
-
-    private bool ShouldShowInventoryItem(InventoryItemStack stack)
-    {
-        return stack != null &&
-               stack.Item != null &&
-               stack.Amount > 0 &&
-               MatchesInventoryFilter(stack.Item) &&
-               inventoryFilter != InventoryFilter.Locked;
-    }
-
-    private bool ShouldShowInventoryEquipment(EquipmentInstance equipment)
-    {
-        return equipment?.BaseItem != null &&
-               MatchesInventoryFilter(equipment.BaseItem) &&
-               (inventoryFilter != InventoryFilter.Locked ||
-                equipment.IsLocked);
-    }
-
-    private IEnumerable<MarketStockEntry> GetMarketRows()
-    {
-        marketBuyButtons.Clear();
-        displayedMarketEntries.Clear();
-        return marketStockManager.Stock;
-    }
-
-    private static bool ShouldShowMarketEntry(MarketStockEntry entry)
-    {
-        return entry != null &&
-               entry.Item != null &&
-               entry.Quantity > 0;
-    }
-
-    private IEnumerable<EquipmentRecipeSO> GetBlacksmithRows()
-    {
-        blacksmithCraftButtons.Clear();
-        displayedBlacksmithRecipes.Clear();
-        return blacksmithManager.Recipes;
-    }
-
-    private static bool ShouldShowBlacksmithRecipe(EquipmentRecipeSO recipe)
-    {
-        return recipe != null && recipe.resultItem != null;
-    }
-
-    private void RegisterMarketBuyButton(
-        Button buyButton,
-        MarketStockEntry entry)
-    {
-        marketBuyButtons.Add(buyButton);
-        displayedMarketEntries.Add(entry);
-    }
-
-    private void RegisterBlacksmithCraftButton(
-        Button craftButton,
-        EquipmentRecipeSO recipe)
-    {
-        blacksmithCraftButtons.Add(craftButton);
-        displayedBlacksmithRecipes.Add(recipe);
     }
 
     private void HandleInventoryChanged()
     {
-        RecordDailyInventoryGains();
+        dailyResultController.RecordDailyInventoryGains();
         RefreshPage(inventoryPage);
         RefreshPage(blacksmithPage);
         RefreshUI();
@@ -310,87 +248,6 @@ public partial class SimpleMercenaryHireUI
 
     private void HandlePricesChanged()
     {
-        RefreshPage(inventoryPage);
-        RefreshUI();
-    }
-
-    private void SellItem(ItemDataSO item)
-    {
-        int sellPrice = merchantInventory.GetSellPrice(item);
-        if (!merchantInventory.SellItem(item, 1))
-        {
-            statusText.text = $"{JapaneseDisplayText.GetItemName(item)}を売却できませんでした。";
-            RefreshUI();
-            return;
-        }
-
-        statusText.text = $"{JapaneseDisplayText.GetItemName(item)}を{sellPrice} Gで売却しました。";
-        RefreshUI();
-    }
-
-    private void SellEquipment(EquipmentInstance equipment)
-    {
-        if (equipment?.BaseItem == null)
-        {
-            return;
-        }
-
-        int sellPrice = merchantInventory.GetSellPrice(equipment);
-        string itemName = JapaneseDisplayText.GetItemName(equipment.BaseItem);
-        if (!merchantInventory.SellEquipmentInstance(equipment))
-        {
-            statusText.text = $"{itemName}を売却できませんでした。";
-            return;
-        }
-
-        statusText.text = $"{itemName}を{sellPrice} Gで売却しました。";
-        RefreshPage(inventoryPage);
-        RefreshUI();
-    }
-
-    private void BuyMarketItem(MarketStockEntry entry)
-    {
-        if (entry == null || entry.Item == null)
-        {
-            return;
-        }
-
-        int buyPrice = entry.BuyPrice;
-        if (!marketStockManager.TryBuy(entry, 1))
-        {
-            statusText.text = $"{JapaneseDisplayText.GetItemName(entry.Item)}を購入できませんでした。";
-            RefreshUI();
-            return;
-        }
-
-        statusText.text = $"{JapaneseDisplayText.GetItemName(entry.Item)}を{buyPrice} Gで購入しました。";
-        RefreshPage(marketPage);
-        RefreshPage(inventoryPage);
-        RefreshUI();
-    }
-
-    private void CraftEquipment(EquipmentRecipeSO recipe)
-    {
-        if (recipe == null || recipe.resultItem == null)
-        {
-            return;
-        }
-
-        string itemName = JapaneseDisplayText.GetItemName(recipe.resultItem);
-        if (!blacksmithManager.TryCraft(recipe))
-        {
-            statusText.text = $"{itemName}を制作できませんでした。";
-            RefreshPage(blacksmithPage);
-            RefreshUI();
-            return;
-        }
-
-        EquipmentInstance crafted = blacksmithManager.LastCraftedEquipment;
-        statusText.text = crafted != null
-            ? $"[{JapaneseDisplayText.GetEquipmentQuality(crafted.Quality)}] " +
-              $"{itemName}を制作しました。"
-            : $"{itemName}を制作しました。";
-        RefreshPage(blacksmithPage);
         RefreshPage(inventoryPage);
         RefreshUI();
     }
@@ -426,103 +283,6 @@ public partial class SimpleMercenaryHireUI
             $"{(progressionManager != null ? progressionManager.StorageCapacity : 0)}  |  " +
             $"{marketPriceManager.GetMarketSummary()}  |  " +
             $"維持費 {(progressionManager != null ? progressionManager.StorageMaintenanceCost : 0)}G/日";
-    }
-
-    private void CycleInventoryFilter()
-    {
-        inventoryFilter = (InventoryFilter)(
-            ((int)inventoryFilter + 1) %
-            System.Enum.GetValues(typeof(InventoryFilter)).Length);
-        inventoryFilterButton.GetComponentInChildren<Text>().text =
-            $"絞込: {GetInventoryFilterLabel(inventoryFilter)}";
-        RefreshPage(inventoryPage);
-    }
-
-    private void CycleEquipmentSort()
-    {
-        equipmentSort = (EquipmentSort)(
-            ((int)equipmentSort + 1) %
-            System.Enum.GetValues(typeof(EquipmentSort)).Length);
-        equipmentSortButton.GetComponentInChildren<Text>().text =
-            $"並替: {GetEquipmentSortLabel(equipmentSort)}";
-        RefreshPage(inventoryPage);
-    }
-
-    private bool MatchesInventoryFilter(ItemDataSO item)
-    {
-        if (item == null)
-        {
-            return false;
-        }
-
-        switch (inventoryFilter)
-        {
-            case InventoryFilter.Material:
-                return !item.IsEquipment;
-            case InventoryFilter.Weapon:
-                return item.IsEquipment &&
-                       item.equipmentSlot == EquipmentSlot.Weapon;
-            case InventoryFilter.Armor:
-                return item.IsEquipment &&
-                       item.equipmentSlot == EquipmentSlot.Armor;
-            case InventoryFilter.Accessory:
-                return item.IsEquipment &&
-                       item.equipmentSlot == EquipmentSlot.Accessory;
-            case InventoryFilter.SetEquipment:
-                return item.IsEquipment &&
-                       item.equipmentSet != EquipmentSetId.None;
-            default:
-                return true;
-        }
-    }
-
-    private int CompareEquipment(
-        EquipmentInstance left,
-        EquipmentInstance right)
-    {
-        if (left?.BaseItem == null) return 1;
-        if (right?.BaseItem == null) return -1;
-
-        switch (equipmentSort)
-        {
-            case EquipmentSort.Quality:
-                return right.Quality.CompareTo(left.Quality);
-            case EquipmentSort.Enhancement:
-                return right.EnhancementLevel.CompareTo(left.EnhancementLevel);
-            case EquipmentSort.Set:
-                return left.BaseItem.equipmentSet.CompareTo(
-                    right.BaseItem.equipmentSet);
-            default:
-                return string.Compare(
-                    JapaneseDisplayText.GetItemName(left.BaseItem),
-                    JapaneseDisplayText.GetItemName(right.BaseItem),
-                    System.StringComparison.Ordinal);
-        }
-    }
-
-    private static string GetInventoryFilterLabel(InventoryFilter filter)
-    {
-        switch (filter)
-        {
-            case InventoryFilter.Material: return "素材";
-            case InventoryFilter.Weapon: return "武器";
-            case InventoryFilter.Armor: return "防具";
-            case InventoryFilter.Accessory: return "装飾品";
-            case InventoryFilter.SetEquipment: return "セット";
-            case InventoryFilter.Locked: return "ロック";
-            default: return "全て";
-        }
-    }
-
-    private static string GetEquipmentSortLabel(EquipmentSort sort)
-    {
-        switch (sort)
-        {
-            case EquipmentSort.Quality: return "品質";
-            case EquipmentSort.Enhancement: return "強化";
-            case EquipmentSort.Set: return "セット";
-            default: return "名前";
-        }
     }
 
 }
