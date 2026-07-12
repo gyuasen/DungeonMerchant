@@ -146,37 +146,11 @@ public class BlacksmithManager : MonoBehaviour
 
         MercenaryClass itemClass =
             MercenaryClassProgression.GetBaseClass(item.requiredClass);
-        switch (currentTownIndex)
-        {
-            case 2:
-                return itemClass == MercenaryClass.Warrior ||
-                       itemClass == MercenaryClass.Archer ||
-                       itemClass == MercenaryClass.Mage;
-            case 1:
-                return itemClass == MercenaryClass.Archer ||
-                       itemClass == MercenaryClass.Rogue ||
-                       item.equipmentSlot == EquipmentSlot.Accessory;
-            case 0:
-                return itemClass == MercenaryClass.Warrior ||
-                       itemClass == MercenaryClass.Priest ||
-                       itemClass == MercenaryClass.Lancer ||
-                       item.equipmentSlot == EquipmentSlot.Accessory;
-            case 3:
-                return itemClass == MercenaryClass.Archer ||
-                       itemClass == MercenaryClass.Mage ||
-                       itemClass == MercenaryClass.Priest;
-            case 4:
-                return itemClass == MercenaryClass.Warrior ||
-                       itemClass == MercenaryClass.Lancer ||
-                       item.equipmentSlot == EquipmentSlot.Armor;
-            case 5:
-                return itemClass == MercenaryClass.Mage ||
-                       itemClass == MercenaryClass.Rogue ||
-                       itemClass == MercenaryClass.Lancer ||
-                       item.equipmentSlot == EquipmentSlot.Weapon;
-            default:
-                return item.equipmentRank >= 3;
-        }
+        return WorldMapService.IsBlacksmithEquipmentAllowedInTown(
+            currentTownIndex,
+            itemClass,
+            item.equipmentRank,
+            item.equipmentSlot);
     }
 
     private void ResolveReferences()

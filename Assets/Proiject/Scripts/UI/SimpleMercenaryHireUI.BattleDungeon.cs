@@ -20,7 +20,7 @@ public partial class SimpleMercenaryHireUI
         startBattleButton = CreateActionButton(
             battlePage,
             "開始",
-            StartPartyBattle);
+            () => dungeonBattleController.StartPartyBattle());
         RectTransform startRect = startBattleButton.GetComponent<RectTransform>();
         startRect.anchorMin = new Vector2(1f, 1f);
         startRect.anchorMax = new Vector2(1f, 1f);
@@ -29,7 +29,10 @@ public partial class SimpleMercenaryHireUI
         startBattleButton.gameObject.SetActive(false);
 
         battleSpeedButton =
-            CreateActionButton(battlePage, "速度 x1", CycleBattleSpeed);
+            CreateActionButton(
+                battlePage,
+                "速度 x1",
+                () => dungeonBattleController.CycleBattleSpeed());
         RectTransform battleSpeedRect =
             battleSpeedButton.GetComponent<RectTransform>();
         battleSpeedRect.anchorMin = battleSpeedRect.anchorMax =
@@ -114,7 +117,10 @@ public partial class SimpleMercenaryHireUI
             ParchmentTextColor);
 
         roadSpeedButton =
-            CreateActionButton(roadBattlePage, "速度 x1", CycleBattleSpeed);
+            CreateActionButton(
+                roadBattlePage,
+                "速度 x1",
+                () => dungeonBattleController.CycleBattleSpeed());
         RectTransform roadSpeedRect =
             roadSpeedButton.GetComponent<RectTransform>();
         roadSpeedRect.anchorMin = roadSpeedRect.anchorMax =
@@ -127,7 +133,7 @@ public partial class SimpleMercenaryHireUI
             CreateActionButton(
                 roadBattlePage,
                 "次へ進む",
-                ContinueTownTravel);
+                () => townTravelController.ContinueTownTravel());
         RectTransform continueRect =
             roadContinueButton.GetComponent<RectTransform>();
         continueRect.anchorMin = continueRect.anchorMax =
@@ -140,7 +146,7 @@ public partial class SimpleMercenaryHireUI
             CreateActionButton(
                 roadBattlePage,
                 "撤退する",
-                RetreatFromTownTravel);
+                () => townTravelController.RetreatFromTownTravel());
         RectTransform retreatRect =
             roadRetreatButton.GetComponent<RectTransform>();
         retreatRect.anchorMin = retreatRect.anchorMax =
@@ -179,7 +185,7 @@ public partial class SimpleMercenaryHireUI
         startDungeonButton = CreateActionButton(
             dungeonPage,
             "探索開始",
-            StartDungeonRun);
+            () => dungeonBattleController.StartDungeonRun());
         RectTransform startRect = startDungeonButton.GetComponent<RectTransform>();
         startRect.anchorMin = new Vector2(1f, 1f);
         startRect.anchorMax = new Vector2(1f, 1f);
@@ -215,19 +221,19 @@ public partial class SimpleMercenaryHireUI
         firstDungeonEventButton = CreateActionButton(
             dungeonPage,
             "選択肢1",
-            () => ChooseDungeonEventOption(0));
+            () => dungeonBattleController.ChooseDungeonEventOption(0));
         PositionDungeonEventButton(firstDungeonEventButton, 0f);
 
         secondDungeonEventButton = CreateActionButton(
             dungeonPage,
             "選択肢2",
-            () => ChooseDungeonEventOption(1));
+            () => dungeonBattleController.ChooseDungeonEventOption(1));
         PositionDungeonEventButton(secondDungeonEventButton, 248f);
 
         thirdDungeonEventButton = CreateActionButton(
             dungeonPage,
             "撤退",
-            () => ChooseDungeonEventOption(2));
+            () => dungeonBattleController.ChooseDungeonEventOption(2));
         PositionDungeonEventButton(thirdDungeonEventButton, 496f);
 
         dungeonResultPanel =
@@ -296,11 +302,11 @@ public partial class SimpleMercenaryHireUI
             ButtonTextColor,
             () => dungeonRunManager.AvailableDungeons,
             () => townProgressState.CurrentTownIndex,
-            GetTownName,
+            WorldMapService.GetTownName,
             dungeonRunManager.GetClearedFloors,
             dungeonRunManager.IsDungeonUnlocked,
             () => dungeonRunManager.SelectedDungeon,
-            SelectDungeon);
+            dungeonBattleController.SelectDungeon);
         pageRouter.Register(dungeonPage);
         RefreshPage(dungeonPage);
     }
@@ -315,51 +321,9 @@ public partial class SimpleMercenaryHireUI
         rect.anchoredPosition = new Vector2(x, 18f);
     }
 
-    private void StartPartyBattle()
-    {
-        ResetBattleLog();
-        startBattleButton.interactable = false;
-
-        if (!battleManager.StartBattle(partyManager.Members))
-        {
-            startBattleButton.interactable = true;
-        }
-    }
-
-    private void StartDungeonRun()
-    {
-        DungeonDataSO selected = dungeonRunManager.SelectedDungeon;
-        if (selected == null || selected.nearbyTownIndex != townProgressState.CurrentTownIndex)
-        {
-            statusText.text =
-                $"{TownNames[townProgressState.CurrentTownIndex]}近隣のダンジョンを選択してください。";
-            ShowDungeonPage();
-            return;
-        }
-
-        ShowBattlePage();
-        ResetBattleLog();
-
-        if (!dungeonRunManager.StartRun())
-        {
-            ShowDungeonPage();
-        }
-        else
-        {
-            startBattleButton.gameObject.SetActive(false);
-            battlePageTitleText.text = "ダンジョン戦闘";
-            battleEncounterText.text =
-                $"{dungeonRunManager.DungeonName}  |  " +
-                $"第{dungeonRunManager.CurrentFloor}/" +
-                $"{dungeonRunManager.TotalFloors}フロア";
-        }
-
-        RefreshUI();
-    }
-
     private void ResetBattleLog()
     {
-        battleLogLines.Clear();
+        dungeonBattleController.ClearBattleLog();
         battleLogText.text = string.Empty;
 
         if (battleLogScrollCoroutine != null)
@@ -382,112 +346,10 @@ public partial class SimpleMercenaryHireUI
         }
     }
 
-    private void SelectDungeon(DungeonDataSO data)
-    {
-        if (data == null || data.nearbyTownIndex != townProgressState.CurrentTownIndex)
-        {
-            statusText.text =
-                $"{TownNames[townProgressState.CurrentTownIndex]}からはこのダンジョンへ入れません。";
-            return;
-        }
-
-        if (!dungeonRunManager.TrySelectDungeon(data))
-        {
-            statusText.text = "このダンジョンはまだ選択できません。";
-            return;
-        }
-
-        ShowDungeonPage();
-    }
-
-    private static string BuildDungeonRewardPreview(DungeonDataSO data)
-    {
-        if (data == null)
-        {
-            return "報酬情報なし";
-        }
-
-        List<string> guaranteed = new List<string>();
-        if (data.clearItemRewards != null)
-        {
-            foreach (DungeonItemReward reward in data.clearItemRewards)
-            {
-                if (reward?.item != null && reward.amount > 0)
-                {
-                    guaranteed.Add(
-                        $"{JapaneseDisplayText.GetItemName(reward.item)}×{reward.amount}");
-                }
-            }
-        }
-
-        List<string> limited = new List<string>();
-        Dictionary<EquipmentSetId, int> setCounts =
-            new Dictionary<EquipmentSetId, int>();
-        if (data.limitedEquipmentDrops != null)
-        {
-            foreach (ItemDataSO item in data.limitedEquipmentDrops)
-            {
-                if (item != null)
-                {
-                    if (item.equipmentSet != EquipmentSetId.None)
-                    {
-                        if (!setCounts.ContainsKey(item.equipmentSet))
-                        {
-                            setCounts[item.equipmentSet] = 0;
-                        }
-                        setCounts[item.equipmentSet]++;
-                    }
-                    else
-                    {
-                        limited.Add(JapaneseDisplayText.GetItemName(item));
-                    }
-                }
-            }
-        }
-
-        foreach (KeyValuePair<EquipmentSetId, int> entry in setCounts)
-        {
-            limited.Add(
-                $"{JapaneseDisplayText.GetEquipmentSet(entry.Key)}セット" +
-                $"（{entry.Value}種）");
-        }
-
-        return $"確定: {(guaranteed.Count > 0 ? string.Join("、", guaranteed) : "なし")}\n" +
-               $"限定: {(limited.Count > 0 ? string.Join("、", limited) : "なし")} / " +
-               $"イベント{data.eventLimitedDropChance * 100f:0.#}%・" +
-               $"ボス{data.bossLimitedDropChance * 100f:0.#}%";
-    }
-
-    private void ChooseDungeonEventOption(int optionIndex)
-    {
-        if (!dungeonRunManager.ChooseEventOption(optionIndex))
-        {
-            statusText.text = "その選択肢は現在選べません。";
-            UpdateDungeonEventUI();
-            return;
-        }
-
-        RefreshPage(companyPage);
-        RefreshPage(partyPage);
-        RefreshPage(healPage);
-
-        if (dungeonRunManager.IsRunning && battleManager.IsBattling)
-        {
-            ShowBattlePage();
-        }
-        else
-        {
-            ShowDungeonPage();
-        }
-
-        RefreshUI();
-    }
-
     private void HandleBattleMessage(string message, BattleLogType logType)
     {
-        string coloredMessage = ColorizeBattleMessage(message, logType);
-        battleLogLines.Add(coloredMessage);
-        battleLogText.text = string.Join("\n", battleLogLines);
+        battleLogText.text =
+            dungeonBattleController.AppendBattleMessage(message, logType);
 
         if (battleLogContent != null)
         {
@@ -536,30 +398,6 @@ public partial class SimpleMercenaryHireUI
         battleLogScrollCoroutine = null;
     }
 
-    private static string ColorizeBattleMessage(string message, BattleLogType logType)
-    {
-        string escapedMessage = EscapeRichText(message);
-        switch (logType)
-        {
-            case BattleLogType.Player:
-                return $"<color=#5CA8FF>{escapedMessage}</color>";
-            case BattleLogType.Enemy:
-                return $"<color=#FF6B6B>{escapedMessage}</color>";
-            case BattleLogType.Reward:
-                return $"<color=#6FE3A0>{escapedMessage}</color>";
-            default:
-                return escapedMessage;
-        }
-    }
-
-    private static string EscapeRichText(string value)
-    {
-        return value
-            .Replace("&", "&amp;")
-            .Replace("<", "&lt;")
-            .Replace(">", "&gt;");
-    }
-
     private void HandleBattleCompleted(bool victory)
     {
         startBattleButton.interactable = partyManager.Members.Count > 0;
@@ -568,68 +406,8 @@ public partial class SimpleMercenaryHireUI
         RefreshPage(healPage);
         RefreshUI();
 
-        if (roadTravelState.IsActive)
+        if (townTravelController.HandleRoadBattleOutcome(victory))
         {
-            if (victory && roadTravelState.ShouldAskToContinueAfterVictory())
-            {
-                roadTravelState.AwaitChoice();
-                roadContinueButton.gameObject.SetActive(true);
-                roadRetreatButton.gameObject.SetActive(true);
-                roadBattleRouteText.text =
-                    $"接敵 {roadTravelState.EncounterIndex}/" +
-                    $"{roadTravelState.EncounterCount} を突破しました。\n" +
-                    "次の区間へ進むか、出発した町へ撤退してください。";
-                statusText.text = "街道戦闘を続行しますか？";
-                return;
-            }
-
-            RoadTravelCompletionResult travelResult =
-                RoadTravelCompletionService.Complete(
-                    victory,
-                    townProgressState.CurrentTownIndex,
-                    roadTravelState);
-            roadTravelState.Clear();
-
-            if (!travelResult.IsValid)
-            {
-                ShowWorldMap();
-                statusText.text = "街道戦闘の結果を処理できませんでした。";
-                return;
-            }
-
-            if (travelResult.Victory)
-            {
-                townProgressState.UnlockTown(travelResult.DestinationTownIndex);
-                townProgressState.SetCurrentTown(travelResult.NewCurrentTownIndex);
-                townProgressState.ViewedWorldMapIndex = travelResult.NewWorldMapIndex;
-                dungeonRunManager.SetCurrentWorldMapIndex(
-                    townProgressState.ViewedWorldMapIndex);
-                ApplyTownServiceSettings(false, false);
-                if (travelResult.ShouldAdvanceDay)
-                {
-                    dayManager.AdvanceDay();
-                }
-                SyncDungeonUnlocks();
-                RefreshTownMapButtons();
-                if (travelResult.OpenDungeonAfterTravel)
-                {
-                    OpenNearbyDungeon();
-                }
-                else
-                {
-                    ShowTownMap();
-                }
-                statusText.text = travelResult.StatusMessage;
-                if (travelResult.ShouldSave)
-                {
-                    saveManager?.SaveGame();
-                }
-            }
-            else
-            {
-                ShowWorldMap();
-                statusText.text = travelResult.StatusMessage;
-            }
             return;
         }
 
@@ -736,21 +514,6 @@ public partial class SimpleMercenaryHireUI
         }
     }
 
-    private void CycleBattleSpeed()
-    {
-        float speed = battleManager.CycleBattleSpeed();
-        string label = $"速度 x{speed:0}";
-        if (battleSpeedButton != null)
-        {
-            SetButtonLabel(battleSpeedButton, label);
-        }
-        if (roadSpeedButton != null)
-        {
-            SetButtonLabel(roadSpeedButton, label);
-        }
-        statusText.text = $"戦闘速度を{speed:0}倍に変更しました。";
-    }
-
     private void ShowBattlePage()
     {
         MoveBattleLogTo(battlePage);
@@ -765,68 +528,6 @@ public partial class SimpleMercenaryHireUI
         statusText.text = $"戦闘参加: 傭兵{partyManager.Members.Count}人";
     }
 
-    private void UseConsumable(ItemDataSO item)
-    {
-        if (item == null ||
-            item.itemType != ItemType.Consumable ||
-            battleManager.IsBattling)
-        {
-            statusText.text = "現在はこの消費アイテムを使用できません。";
-            return;
-        }
-
-        BattleStatusEffect targetStatus;
-        switch (item.consumableEffect)
-        {
-            case ConsumableEffectType.CurePoison:
-                targetStatus = BattleStatusEffect.Poison;
-                break;
-            case ConsumableEffectType.CureParalysis:
-                targetStatus = BattleStatusEffect.Paralysis;
-                break;
-            case ConsumableEffectType.CureAllStatus:
-                targetStatus = BattleStatusEffect.None;
-                break;
-            default:
-                statusText.text = "この消費アイテムには使用効果がありません。";
-                return;
-        }
-
-        MercenaryInstance target = null;
-        foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
-        {
-            if (mercenary != null &&
-                mercenary.HasStatusEffect &&
-                (targetStatus == BattleStatusEffect.None ||
-                 mercenary.StatusEffect == targetStatus))
-            {
-                target = mercenary;
-                break;
-            }
-        }
-
-        if (target == null)
-        {
-            statusText.text = "治療対象となる傭兵がいません。";
-            return;
-        }
-
-        if (!merchantInventory.TryRemoveItem(item) ||
-            !target.CureStatusEffect(targetStatus))
-        {
-            statusText.text = "消費アイテムを使用できませんでした。";
-            return;
-        }
-
-        statusText.text =
-            $"{JapaneseDisplayText.GetItemName(item)}を使用し、" +
-            $"{target.MercenaryName}の状態異常を治療しました。";
-        RefreshPage(inventoryPage);
-        RefreshPage(companyPage);
-        RefreshCharacterDetailText();
-        saveManager?.SaveGame();
-    }
-
     private void ShowRoadBattlePage(
         int originTownIndex,
         int destinationTownIndex)
@@ -837,6 +538,7 @@ public partial class SimpleMercenaryHireUI
 
     private void RefreshRoadBattlePage()
     {
+        RoadTravelState roadTravelState = townTravelController.RoadTravelState;
         mapButton?.gameObject.SetActive(false);
         townMapButton?.gameObject.SetActive(false);
         roadContinueButton.gameObject.SetActive(
@@ -844,8 +546,8 @@ public partial class SimpleMercenaryHireUI
         roadRetreatButton.gameObject.SetActive(
             roadTravelState.IsAwaitingChoice);
         roadBattleRouteText.text =
-            $"{TownNames[townProgressState.CurrentTownIndex]} → " +
-            $"{TownNames[roadTravelState.DestinationTownIndex]}\n" +
+            $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]} → " +
+            $"{WorldMapService.TownNames[roadTravelState.DestinationTownIndex]}\n" +
             $"接敵 {roadTravelState.EncounterIndex}/" +
             $"{roadTravelState.EncounterCount}  |  " +
             (roadTravelState.ContainsRareEncounter
@@ -875,7 +577,7 @@ public partial class SimpleMercenaryHireUI
     private void RefreshDungeonPage()
     {
         dungeonResultPanel?.gameObject.SetActive(false);
-        EnsureNearbyDungeonSelected();
+        dungeonBattleController.EnsureNearbyDungeonSelected();
 
         if (dungeonRunManager.IsAwaitingEventChoice)
         {
@@ -897,7 +599,7 @@ public partial class SimpleMercenaryHireUI
                   $"フロア報酬 " +
                   $"{Mathf.Max(0, dungeonRunManager.SelectedDungeon != null ? dungeonRunManager.SelectedDungeon.floorClearGoldReward : 0)} G  |  " +
                   $"完全攻略報酬 {dungeonRunManager.ClearGoldReward} G\n" +
-                  BuildDungeonRewardPreview(
+                  DungeonBattleController.BuildDungeonRewardPreview(
                       dungeonRunManager.SelectedDungeon);
         }
 
@@ -907,45 +609,17 @@ public partial class SimpleMercenaryHireUI
         RefreshUI();
     }
 
-    private static string GetTownName(int townIndex)
-    {
-        return townIndex >= 0 && townIndex < TownNames.Length
-            ? TownNames[townIndex]
-            : string.Empty;
-    }
-
     private void ContinueToNextDungeonFloor()
     {
         dungeonResultPanel?.gameObject.SetActive(false);
-        StartDungeonRun();
+        dungeonBattleController.StartDungeonRun();
     }
 
     private void ReturnToTownAfterDungeon()
     {
         dungeonResultPanel?.gameObject.SetActive(false);
         ShowTownMap();
-        statusText.text = $"{TownNames[townProgressState.CurrentTownIndex]}へ戻りました。";
-    }
-
-    private void EnsureNearbyDungeonSelected()
-    {
-        if (dungeonRunManager.IsRunning)
-        {
-            return;
-        }
-
-        DungeonDataSO selected = dungeonRunManager.SelectedDungeon;
-        if (selected != null && selected.nearbyTownIndex == townProgressState.CurrentTownIndex)
-        {
-            return;
-        }
-
-        DungeonDataSO nearby =
-            dungeonRunManager.GetDungeonNearTown(townProgressState.CurrentTownIndex);
-        if (nearby != null && dungeonRunManager.IsDungeonUnlocked(nearby))
-        {
-            dungeonRunManager.TrySelectDungeon(nearby);
-        }
+        statusText.text = $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}へ戻りました。";
     }
 
 }

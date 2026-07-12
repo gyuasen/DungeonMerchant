@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public sealed class MarketPageUI : EconomyPageUI
+public sealed class MarketPageUI : ListPageUIBase
 {
     private Func<IEnumerable<MarketStockEntry>> stockProvider;
     private Func<MarketStockEntry, bool> shouldShowEntry;

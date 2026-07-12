@@ -1,6 +1,7 @@
 using UnityEngine.Events;
 
-public abstract class MapPageUIBase : UIPageBase
+// Merged base class replacing the former identical duplicates BattlePageUIBase and MapPageUIBase.
+public abstract class RefreshOnlyPageUIBase : UIPageBase
 {
     private UnityAction refreshAction;
 

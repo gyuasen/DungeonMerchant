@@ -106,6 +106,18 @@ public class EquipmentInstance
             Mathf.RoundToInt(baseItem.basePrice * (0.35f + enhancementLevel * 0.15f)));
     }
 
+    public float GetSellPriceQualityMultiplier()
+    {
+        switch (quality)
+        {
+            case EquipmentQuality.Poor: return 0.65f;
+            case EquipmentQuality.Fine: return 1.2f;
+            case EquipmentQuality.Rare: return 1.55f;
+            case EquipmentQuality.Legendary: return 2.2f;
+            default: return 1f;
+        }
+    }
+
     public static EquipmentInstance CreateRandom(ItemDataSO baseItem)
     {
         EquipmentQuality quality = RollQuality();

@@ -58,7 +58,7 @@ public class MarketPriceManager : MonoBehaviour
             return 1f;
         }
 
-        int hash = CalculateStableHash(item);
+        int hash = MarketHashUtility.ComputeItemHash(17, CurrentDay, item);
         float normalized = (hash & 0x7fffffff) / (float)int.MaxValue;
         return Mathf.Lerp(minimumSellMultiplier, maximumSellMultiplier, normalized);
     }
@@ -74,28 +74,6 @@ public class MarketPriceManager : MonoBehaviour
     public string GetMarketSummary()
     {
         return $"{CurrentDay}日目";
-    }
-
-    private int CalculateStableHash(ItemDataSO item)
-    {
-        unchecked
-        {
-            int hash = 17;
-            hash = hash * 31 + CurrentDay;
-            hash = hash * 31 + (int)item.itemType;
-            hash = hash * 31 + (int)item.rarity;
-
-            string key = string.IsNullOrWhiteSpace(item.itemName)
-                ? item.name
-                : item.itemName;
-
-            foreach (char character in key)
-            {
-                hash = hash * 31 + character;
-            }
-
-            return hash;
-        }
     }
 
     private void HandleDayChanged(int day)

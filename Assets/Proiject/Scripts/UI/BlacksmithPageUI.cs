@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public sealed class BlacksmithPageUI : EconomyPageUI
+public sealed class BlacksmithPageUI : ListPageUIBase
 {
     private Func<IEnumerable<EquipmentRecipeSO>> recipeProvider;
     private Func<EquipmentRecipeSO, bool> shouldShowRecipe;

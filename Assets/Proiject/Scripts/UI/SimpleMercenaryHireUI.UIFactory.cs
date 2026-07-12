@@ -198,30 +198,9 @@ public partial class SimpleMercenaryHireUI
 
         RefreshTownMapButtons();
 
-        for (int i = 0; i < hireButtons.Count; i++)
-        {
-            MercenaryDataSO candidate = displayedCandidates[i];
-            hireButtons[i].interactable =
-                !hiredCandidates.Contains(candidate) && hireManager.CanAfford(candidate);
-        }
+        hireAndPartyController.UpdateHireButtonInteractability();
 
-        for (int i = 0; i < generatedHireButtons.Count; i++)
-        {
-            generatedHireButtons[i].interactable =
-                hireManager.CanAfford(displayedGeneratedCandidates[i]);
-        }
-
-        for (int i = 0; i < marketBuyButtons.Count; i++)
-        {
-            marketBuyButtons[i].interactable =
-                marketStockManager.CanBuy(displayedMarketEntries[i]);
-        }
-
-        for (int i = 0; i < blacksmithCraftButtons.Count; i++)
-        {
-            blacksmithCraftButtons[i].interactable =
-                blacksmithManager.CanCraft(displayedBlacksmithRecipes[i]);
-        }
+        economyController.UpdateEconomyButtonInteractability();
 
         if (marketInfoText != null)
         {

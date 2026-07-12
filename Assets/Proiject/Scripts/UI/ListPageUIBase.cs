@@ -4,13 +4,13 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-public abstract class EconomyPageUI : UIPageBase
+public abstract class ListPageUIBase : UIPageBase
 {
     [SerializeField] private Text titleText;
     [SerializeField] private Text descriptionText;
     [SerializeField] private RectTransform listRoot;
     private UnityAction refreshAction;
-    protected RectTransform ListRoot => listRoot;
+    public RectTransform ListRoot => listRoot;
     protected Font RowFont { get; private set; }
     protected Color RowTextColor { get; private set; } = Color.white;
     protected Color MutedTextColor { get; private set; } = Color.gray;

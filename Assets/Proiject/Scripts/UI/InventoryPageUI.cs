@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public sealed class InventoryPageUI : EconomyPageUI
+public sealed class InventoryPageUI : ListPageUIBase
 {
     private Func<IEnumerable<InventoryItemStack>> itemProvider;
     private Func<IEnumerable<EquipmentInstance>> equipmentProvider;

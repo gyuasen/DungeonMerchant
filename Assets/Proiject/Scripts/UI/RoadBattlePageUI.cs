@@ -1,3 +1,3 @@
-public sealed class RoadBattlePageUI : BattlePageUIBase
+public sealed class RoadBattlePageUI : RefreshOnlyPageUIBase
 {
 }

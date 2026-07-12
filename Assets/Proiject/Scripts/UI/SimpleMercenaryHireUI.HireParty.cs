@@ -20,7 +20,7 @@ public partial class SimpleMercenaryHireUI
         contractSelectButton = CreateActionButton(
             hirePage,
             "契約: 日雇い",
-            CycleHireContract);
+            hireAndPartyController.CycleHireContract);
         RectTransform contractRect =
             contractSelectButton.GetComponent<RectTransform>();
         contractRect.anchorMin = contractRect.anchorMax = new Vector2(1f, 1f);
@@ -67,7 +67,7 @@ public partial class SimpleMercenaryHireUI
             RowColor,
             WoodButtonColor,
             FrameColor,
-            CycleHireContract,
+            hireAndPartyController.CycleHireContract,
             null);
         ConfigureHireListPage(pageUI);
         pageRouter.Register(hirePage);
@@ -154,7 +154,7 @@ public partial class SimpleMercenaryHireUI
             RowColor,
             WoodButtonColor,
             FrameColor,
-            CycleHireContract,
+            hireAndPartyController.CycleHireContract,
             null);
         ConfigureHireListPage(pageUI);
         contractSelectButton = pageUI.ContractButton;
@@ -322,28 +322,27 @@ public partial class SimpleMercenaryHireUI
             null);
         pageUI.ConfigureJobChangeList(
             () => hireManager.HiredMercenaries,
-            ShouldShowSpecialPromotion,
-            PromoteMercenary);
+            hireAndPartyController.ShouldShowSpecialPromotion,
+            hireAndPartyController.PromoteMercenary);
         pageRouter.Register(jobChangePage);
     }
 
     private void ConfigureHireListPage(HirePageUI pageUI)
     {
         pageUI.ConfigureHireList(
-            ResetHireListTracking,
+            hireAndPartyController.ResetHireListTracking,
             () => candidates,
-            ShouldShowFixedHireCandidate,
+            hireAndPartyController.ShouldShowFixedHireCandidate,
             () => mercenaryGenerator.Candidates,
             candidate => candidate != null,
-            GetUnlockedContractType,
+            hireAndPartyController.GetUnlockedContractType,
             () => merchantData.GetHireSuccessRate(),
-            candidate => !hiredCandidates.Contains(candidate) &&
-                         hireManager.CanAfford(candidate),
+            hireAndPartyController.CanHireFixedCandidate,
             candidate => hireManager.CanAfford(candidate),
-            Hire,
-            HireGeneratedCandidate,
-            RegisterFixedHireButton,
-            RegisterGeneratedHireButton);
+            hireAndPartyController.Hire,
+            hireAndPartyController.HireGeneratedCandidate,
+            hireAndPartyController.RegisterFixedHireButton,
+            hireAndPartyController.RegisterGeneratedHireButton);
     }
 
     private void ConfigureCompanyListPage(CompanyPageUI pageUI)
@@ -352,9 +351,9 @@ public partial class SimpleMercenaryHireUI
             () => hireManager.HiredMercenaries,
             mercenary => partyManager.Contains(mercenary),
             mercenary => hireManager.GetRenewalCost(mercenary),
-            TogglePartyMember,
+            hireAndPartyController.TogglePartyMember,
             ShowCharacterDetails,
-            RenewContract);
+            merchantStatusAndQuestController.RenewContract);
     }
 
     private void ConfigurePartyListPage(PartyPageUI pageUI)
@@ -362,7 +361,7 @@ public partial class SimpleMercenaryHireUI
         pageUI.ConfigurePartyList(
             () => partyManager.MaxPartySize,
             () => partyManager.Members,
-            RemovePartyMember);
+            hireAndPartyController.RemovePartyMember);
     }
 
     private void ConfigureHealListPage(HealPageUI pageUI)
@@ -372,103 +371,18 @@ public partial class SimpleMercenaryHireUI
             mercenary => healingManager.GetMissingHP(mercenary),
             mercenary => healingManager.GetFullHealCost(mercenary),
             mercenary => healingManager.CanHeal(mercenary),
-            HealMercenary);
-    }
-
-    private void ResetHireListTracking()
-    {
-        hireButtons.Clear();
-        displayedCandidates.Clear();
-        generatedHireButtons.Clear();
-        displayedGeneratedCandidates.Clear();
-    }
-
-    private bool ShouldShowFixedHireCandidate(MercenaryDataSO candidate)
-    {
-        return candidate != null && !hiredCandidates.Contains(candidate);
-    }
-
-    private void CreateMercenaryListEmptyMessage(
-        RectTransform root,
-        string message)
-    {
-        CreateText(
-            root,
-            message,
-            18,
-            FontStyle.Normal,
-            TextAnchor.MiddleCenter,
-            new Vector2(0f, -180f),
-            new Vector2(0f, -80f),
-            ParchmentMutedColor);
-    }
-
-    private void RegisterFixedHireButton(
-        Button hireButton,
-        MercenaryDataSO candidate)
-    {
-        hireButtons.Add(hireButton);
-        displayedCandidates.Add(candidate);
-    }
-
-    private void RegisterGeneratedHireButton(
-        Button hireButton,
-        MercenaryInstance candidate)
-    {
-        generatedHireButtons.Add(hireButton);
-        displayedGeneratedCandidates.Add(candidate);
-    }
-
-    private void Hire(MercenaryDataSO candidate)
-    {
-        if (!TownServicePolicy.IsHiringAvailable(townProgressState.CurrentTownIndex))
-        {
-            statusText.text =
-                $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}では傭兵を雇用できません。";
-            return;
-        }
-        if (!hireManager.TryHireMercenary(candidate))
-        {
-            statusText.text = $"{candidate.mercenaryName}を雇用できませんでした。";
-            RefreshUI();
-            return;
-        }
-
-        hiredCandidates.Add(candidate);
-        statusText.text = $"{candidate.mercenaryName}が商会に加わりました。";
-        RefreshPage(hirePage);
-        RefreshUI();
-    }
-
-    private void HireGeneratedCandidate(MercenaryInstance candidate)
-    {
-        if (!TownServicePolicy.IsHiringAvailable(townProgressState.CurrentTownIndex))
-        {
-            statusText.text =
-                $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}では傭兵を雇用できません。";
-            return;
-        }
-        if (!hireManager.TryHireMercenary(candidate))
-        {
-            statusText.text = $"{candidate.MercenaryName}を雇用できませんでした。";
-            RefreshUI();
-            return;
-        }
-
-        statusText.text = $"{candidate.MercenaryName}が商会に加わりました。";
-        mercenaryGenerator.RemoveCandidate(candidate);
-        RefreshUI();
+            hireAndPartyController.HealMercenary);
     }
 
     private void HandleMercenaryHired(MercenaryInstance mercenary)
     {
-        CaptureMercenarySnapshot(mercenary);
+        dailyResultController.CaptureMercenarySnapshot(mercenary);
         RefreshPage(companyPage);
     }
 
     private void HandlePartyChanged()
     {
-        RememberDailyPartyMembers();
+        dailyResultController.RememberDailyPartyMembers();
         RefreshPage(companyPage);
         RefreshPage(partyPage);
         if (startBattleButton != null && !battleManager.IsBattling)
@@ -490,58 +404,6 @@ public partial class SimpleMercenaryHireUI
         RefreshPage(partyPage);
         RefreshPage(healPage);
         RefreshUI();
-    }
-
-    private void TogglePartyMember(MercenaryInstance mercenary)
-    {
-        if (partyManager.Contains(mercenary))
-        {
-            RemovePartyMember(mercenary);
-            return;
-        }
-
-        if (!partyManager.TryAdd(mercenary))
-        {
-            statusText.text = "パーティーは満員です。";
-        }
-    }
-
-    private void RemovePartyMember(MercenaryInstance mercenary)
-    {
-        partyManager.Remove(mercenary);
-    }
-
-    private void HealMercenary(MercenaryInstance mercenary)
-    {
-        if (mercenary == null)
-        {
-            return;
-        }
-
-        int cost = healingManager.GetFullHealCost(mercenary);
-        if (!healingManager.TryHealFull(mercenary))
-        {
-            statusText.text = $"{mercenary.MercenaryName}を治療できませんでした。";
-            RefreshUI();
-            return;
-        }
-
-        statusText.text = $"{mercenary.MercenaryName}を{cost} Gで治療しました。";
-        RefreshPage(companyPage);
-        RefreshPage(partyPage);
-        RefreshPage(healPage);
-        RefreshUI();
-    }
-
-    private void CacheAlreadyHiredCandidates()
-    {
-        foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
-        {
-            if (mercenary.BaseData != null)
-            {
-                hiredCandidates.Add(mercenary.BaseData);
-            }
-        }
     }
 
     private void ShowHirePage()
@@ -598,73 +460,6 @@ public partial class SimpleMercenaryHireUI
         SwitchToPage(jobChangePage);
         statusText.text =
             $"Lv{MercenaryClassProgression.PromotionLevel}以上の基本職が転職できます。";
-    }
-
-    private bool ShouldShowSpecialPromotion(MercenaryInstance mercenary)
-    {
-        return mercenary != null &&
-               (mercenary.IsUnique || HasSpecialJobCertificate());
-    }
-
-    private void PromoteMercenary(
-        MercenaryInstance mercenary,
-        MercenaryClass target)
-    {
-        bool isSpecial =
-            target == MercenaryClassProgression.GetSpecialClass(
-                mercenary.MercenaryClass);
-        ItemDataSO certificate = GetSpecialJobCertificate();
-        if (isSpecial &&
-            !mercenary.IsUnique &&
-            (certificate == null ||
-             !merchantInventory.TryRemoveItem(certificate)))
-        {
-            statusText.text = "特殊転職に必要な秘伝の転職証がありません。";
-            return;
-        }
-
-        if (!mercenary.PromoteTo(target))
-        {
-            if (isSpecial && !mercenary.IsUnique && certificate != null)
-            {
-                merchantInventory.AddItem(certificate);
-            }
-            statusText.text = "転職条件を満たしていません。";
-            return;
-        }
-
-        statusText.text =
-            $"{mercenary.MercenaryName}は" +
-            $"{JapaneseDisplayText.GetMercenaryClass(target)}へ転職しました。";
-        RefreshPage(jobChangePage);
-        RefreshPage(companyPage);
-        saveManager?.SaveGame();
-    }
-
-    private ItemDataSO GetSpecialJobCertificate()
-    {
-        return Resources.Load<ItemDataSO>(
-            "Items/JobChange/SecretJobCertificate");
-    }
-
-    private bool HasSpecialJobCertificate()
-    {
-        ItemDataSO item = GetSpecialJobCertificate();
-        return item != null && merchantInventory.HasItem(item);
-    }
-
-    private MercenaryContractType GetUnlockedContractType()
-    {
-        return hireManager.SelectedContract;
-    }
-
-    private void CycleHireContract()
-    {
-        MercenaryContractType selected =
-            hireManager.CycleSelectedContract();
-        contractSelectButton.GetComponentInChildren<Text>().text =
-            $"契約: {JapaneseDisplayText.GetContractType(selected)}";
-        RefreshPage(hirePage);
     }
 
 }

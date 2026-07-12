@@ -1,5 +1,3 @@
-﻿using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -126,14 +124,12 @@ public partial class SimpleMercenaryHireUI
         RectTransform parent,
         MerchantSkillType skill,
         string label,
-        string description,
         float top)
     {
-        int rank = merchantData.GetSkillRank(skill);
         RectTransform row = CreateRow($"Merchant Skill {skill}", parent, top);
         CreateText(
             row,
-            $"{label}  Lv{rank}/{MerchantData.MaxSkillRank}",
+            merchantStatusAndQuestController.BuildSkillRowTitle(skill, label),
             18,
             FontStyle.Bold,
             TextAnchor.MiddleLeft,
@@ -142,7 +138,7 @@ public partial class SimpleMercenaryHireUI
             Color.white);
         CreateText(
             row,
-            description,
+            merchantStatusAndQuestController.BuildSkillDescription(skill),
             13,
             FontStyle.Normal,
             TextAnchor.MiddleLeft,
@@ -152,11 +148,10 @@ public partial class SimpleMercenaryHireUI
 
         Button increaseButton = CreateActionButton(
             row,
-            rank >= MerchantData.MaxSkillRank ? "最大" : "+1",
-            () => IncreaseMerchantSkill(skill));
+            merchantStatusAndQuestController.GetSkillButtonLabel(skill),
+            () => merchantStatusAndQuestController.IncreaseMerchantSkill(skill));
         increaseButton.interactable =
-            merchantData.MerchantSkillPoints > 0 &&
-            rank < MerchantData.MaxSkillRank;
+            merchantStatusAndQuestController.CanIncreaseSkill(skill);
     }
 
     private void HandleGoldChanged(int currentGold)
@@ -179,18 +174,6 @@ public partial class SimpleMercenaryHireUI
         {
             RebuildQuestList();
         }
-        RefreshUI();
-    }
-
-    private void IncreaseMerchantSkill(MerchantSkillType skill)
-    {
-        if (merchantData.TryIncreaseSkill(skill))
-        {
-            statusText.text =
-                $"商人技能を強化しました。残りポイント " +
-                $"{merchantData.MerchantSkillPoints}";
-        }
-        RebuildMerchantStatus();
         RefreshUI();
     }
 
@@ -230,50 +213,36 @@ public partial class SimpleMercenaryHireUI
 
         RectTransform summaryRow =
             CreateRow("Merchant Summary", merchantSkillList, top);
-        string growthProgress = merchantData.MerchantLevel >=
-                                MerchantData.MaxMerchantLevel
-            ? "最高レベル"
-            : $"獲得G進行 {merchantData.MerchantExperience:N0}/" +
-              $"{merchantData.ExperienceToNextLevel:N0}";
-        string debtSummary = debtManager == null
-            ? "借金情報なし"
-            : debtManager.IsDebtCleared
-                ? "借金完済 - ゲームクリア"
-                : $"借金残高 {debtManager.RemainingDebt:N0}G  |  " +
-                  $"{debtManager.CurrentMonth}月目  |  " +
-                  $"次回最低返済 {debtManager.NextMinimumPayment:N0}G " +
-                  $"（あと{debtManager.DaysUntilPayment}日）";
         CreateText(
             summaryRow,
-            $"商人Lv {merchantData.MerchantLevel}  " +
-            $"{growthProgress}  " +
-            $"所持金 {merchantData.Gold}G\n" +
-            $"未使用技能ポイント {merchantData.MerchantSkillPoints}  |  " +
-            $"累計獲得 {merchantData.LifetimeGoldEarned:N0}G\n" +
-            debtSummary,
+            merchantStatusAndQuestController.BuildMerchantSummaryText(),
             16,
             FontStyle.Bold,
             TextAnchor.MiddleLeft,
             new Vector2(16f, -100f),
             new Vector2(-250f, -10f),
             Color.white);
-        if (debtManager != null && !debtManager.IsDebtCleared)
+        if (merchantStatusAndQuestController.ShouldShowRepayButtons())
         {
             Button fixedPayment = CreateActionButton(
                 summaryRow,
                 "1万G返済",
-                () => RepayDebt(DebtManager.MonthlyMinimumPayment));
+                () => merchantStatusAndQuestController.RepayDebt(
+                    DebtManager.MonthlyMinimumPayment));
             RectTransform fixedRect = fixedPayment.GetComponent<RectTransform>();
             fixedRect.anchoredPosition = new Vector2(-80f, 24f);
-            fixedPayment.interactable = merchantData.Gold > 0;
+            fixedPayment.interactable =
+                merchantStatusAndQuestController.CanRepay();
 
             Button fullPayment = CreateActionButton(
                 summaryRow,
                 "全額返済",
-                () => RepayDebt(debtManager.RemainingDebt));
+                () => merchantStatusAndQuestController.RepayDebt(
+                    debtManager.RemainingDebt));
             RectTransform fullRect = fullPayment.GetComponent<RectTransform>();
             fullRect.anchoredPosition = new Vector2(-80f, -24f);
-            fullPayment.interactable = merchantData.Gold > 0;
+            fullPayment.interactable =
+                merchantStatusAndQuestController.CanRepay();
         }
         top -= 136f;
 
@@ -281,58 +250,29 @@ public partial class SimpleMercenaryHireUI
             merchantSkillList,
             MerchantSkillType.Negotiation,
             "交渉",
-            $"仕入れ {merchantData.GetMarketBuyMultiplier() * 100f:0}% / " +
-            $"売却 {merchantData.GetMarketSellMultiplier() * 100f:0}%\n" +
-            "Lv3 値切り術 / Lv7 商談の達人",
             top);
         top -= 112f;
         CreateMerchantSkillRow(
             merchantSkillList,
             MerchantSkillType.Leadership,
             "統率",
-            $"雇用成功率 {merchantData.GetHireSuccessRate() * 100f:0}% / " +
-            $"契約更新費 {merchantData.GetRenewalCostMultiplier() * 100f:0}%\n" +
-            "Lv3 人を見る目 / Lv7 契約管理",
             top);
         top -= 112f;
         CreateMerchantSkillRow(
             merchantSkillList,
             MerchantSkillType.Appraisal,
             "鑑定",
-            $"依頼ゴールド {merchantData.GetQuestGoldMultiplier() * 100f:0}% / " +
-            "依頼収入は商人Lvへ反映\n" +
-            "Lv3 目利き / Lv7 慧眼",
             top);
         top -= 112f;
         CreateMerchantSkillRow(
             merchantSkillList,
             MerchantSkillType.Logistics,
             "兵站",
-            $"倉庫容量 +{merchantData.GetStorageCapacityBonus()} / " +
-            $"探索費用 {merchantData.GetExplorationExpenseMultiplier() * 100f:0}%\n" +
-            "Lv3 荷役整理 / Lv7 遠征計画",
             top);
         top -= 112f;
 
         merchantSkillList.sizeDelta =
             new Vector2(0f, Mathf.Max(470f, -top));
-    }
-
-    private void RepayDebt(int amount)
-    {
-        if (debtManager == null)
-        {
-            return;
-        }
-
-        int paid = debtManager.Repay(amount);
-        statusText.text = paid > 0
-            ? debtManager.IsDebtCleared
-                ? "借金1億Gを完済しました。ゲームクリアです！"
-                : $"{paid:N0}Gを返済しました。"
-            : "返済できる所持金がありません。";
-        RebuildMerchantStatus();
-        RefreshUI();
     }
 
     private void RebuildQuestList()
@@ -345,7 +285,7 @@ public partial class SimpleMercenaryHireUI
         ClearChildren(questList);
         CreateText(
             questList,
-            "長期目標\n" + progressionManager.GetAchievementSummary(),
+            merchantStatusAndQuestController.BuildLongTermGoalText(),
             14,
             FontStyle.Normal,
             TextAnchor.UpperLeft,
@@ -358,29 +298,18 @@ public partial class SimpleMercenaryHireUI
             int index = i;
             QuestRecord quest = progressionManager.Quests[i];
             RectTransform row = CreateRow($"Quest {i}", questList, top);
-            string type = quest.isSpecial ? "特殊" : "通常";
-            string state = quest.completed
-                ? "達成済み"
-                : quest.expired
-                    ? "期限切れ"
-                    : quest.accepted ? "進行中" : "未受注";
             CreateText(
                 row,
-                $"[{type}] {quest.title}  {state}",
+                merchantStatusAndQuestController.BuildQuestTitle(quest),
                 18,
                 FontStyle.Bold,
                 TextAnchor.MiddleLeft,
                 new Vector2(16f, -40f),
                 new Vector2(-150f, -10f),
                 Color.white);
-            string target = quest.questType == QuestType.ItemDelivery
-                ? JapaneseDisplayText.GetItemNameByRawName(quest.targetName)
-                : JapaneseDisplayText.GetEnemyName(quest.targetName);
             CreateText(
                 row,
-                $"{target} {quest.currentAmount}/{quest.requiredAmount}  " +
-                $"期限 {quest.deadlineDay}日  報酬 " +
-                $"{progressionManager.GetQuestGoldReward(quest)}G",
+                merchantStatusAndQuestController.BuildQuestDetail(quest),
                 13,
                 FontStyle.Normal,
                 TextAnchor.MiddleLeft,
@@ -389,51 +318,13 @@ public partial class SimpleMercenaryHireUI
                 MutedTextColor);
             Button button = CreateActionButton(
                 row,
-                quest.accepted ? state : "受注",
-                () => AcceptQuest(index));
+                merchantStatusAndQuestController.GetQuestButtonLabel(quest),
+                () => merchantStatusAndQuestController.AcceptQuest(index));
             button.interactable =
-                !quest.accepted && !quest.completed && !quest.expired;
+                MerchantStatusAndQuestController.CanAcceptQuest(quest);
             top -= 112f;
         }
         questList.sizeDelta = new Vector2(0f, Mathf.Max(430f, -top));
-    }
-
-    private void AcceptQuest(int index)
-    {
-        if (progressionManager.AcceptQuest(index))
-        {
-            statusText.text = "依頼を受注しました。";
-        }
-        RebuildQuestList();
-        RefreshUI();
-    }
-
-    private void UpgradeStorage()
-    {
-        if (progressionManager != null &&
-            progressionManager.TryUpgradeStorage())
-        {
-            statusText.text = "倉庫を拡張しました。";
-        }
-        else
-        {
-            statusText.text = "商人レベルまたはゴールドが不足しています。";
-        }
-        RefreshUI();
-    }
-
-    private void RenewContract(MercenaryInstance mercenary)
-    {
-        if (hireManager.TryRenewContract(mercenary))
-        {
-            statusText.text = $"{mercenary.MercenaryName}の契約を更新しました。";
-        }
-        else
-        {
-            statusText.text = "契約を更新できませんでした。";
-        }
-        RefreshPage(companyPage);
-        RefreshUI();
     }
 
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-public sealed class DungeonPageUI : BattlePageUIBase
+public sealed class DungeonPageUI : RefreshOnlyPageUIBase
 {
     private RectTransform selectionListRoot;
     private Font rowFont;
