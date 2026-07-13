@@ -291,6 +291,11 @@ public static class JapaneseDisplayText
             case EquipmentSetId.Windstalker: return "風狩り";
             case EquipmentSetId.ArcaneSage: return "秘術賢者";
             case EquipmentSetId.OniHunter: return "鬼狩り";
+            case EquipmentSetId.NornCanopy: return "ノルン樹冠";
+            case EquipmentSetId.GlaadSkyFortress: return "グラード天嶺";
+            case EquipmentSetId.VelmBlackIron: return "ヴェルム黒鉄";
+            case EquipmentSetId.AbyssThrone: return "アビス玉座";
+            case EquipmentSetId.AstralDepths: return "星幽深層";
             default: return "セットなし";
         }
     }

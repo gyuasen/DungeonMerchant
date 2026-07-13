@@ -59,6 +59,10 @@ public sealed class InventoryPageUI : ListPageUIBase
         showEquipmentDetailsAction = targetShowEquipmentDetailsAction;
     }
 
+    // 通常アイテムと装備という2種類のコレクションを1本のrowTopで連続配置する
+    // ため、共通テンプレートのRebuildRows<T>（1コレクション前提でClearChildren
+    // する）には素直に収まらない。HirePageUIと同じ理由で、装飾（色/フォント/
+    // Configure）のみ基底へ委譲し、Refresh()は独自実装のまま残す。
     public override void Refresh()
     {
         ClearChildren(ListRoot);
@@ -202,6 +206,7 @@ public sealed class InventoryPageUI : ListPageUIBase
             qualityColor);
 
         string details =
+            EquipmentRankPresentation.GetRichText(equipment.BaseItem) + "  |  " +
             $"HP {FormatSigned(equipment.BonusMaxHP)}  " +
             $"攻撃 {FormatSigned(equipment.BonusAttack)}  " +
             $"防御 {FormatSigned(equipment.BonusDefense)}  " +

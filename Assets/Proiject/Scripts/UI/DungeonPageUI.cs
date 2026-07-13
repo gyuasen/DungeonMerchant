@@ -10,9 +10,9 @@ public sealed class DungeonPageUI : RefreshOnlyPageUIBase
     private Font rowFont;
     private Color rowTextColor = Color.white;
     private Color mutedTextColor = Color.gray;
-    private Color rowColor = new Color(0.27f, 0.16f, 0.09f, 0.94f);
-    private Color buttonColor = new Color(0.35f, 0.22f, 0.13f, 1f);
-    private Color frameColor = new Color(0.72f, 0.52f, 0.27f, 0.9f);
+    private Color rowColor = UITheme.RowColor;
+    private Color buttonColor = UITheme.WoodButtonColor;
+    private Color frameColor = UITheme.FrameColor;
     private Color buttonTextColor = Color.white;
     private UnityAction selectionRefreshAction;
     private Func<IEnumerable<DungeonDataSO>> dungeonProvider;

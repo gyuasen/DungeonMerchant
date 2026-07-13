@@ -78,6 +78,44 @@ public sealed class SaveDataMigratorTests
         Assert.That(data.partyMemberIds, Is.Not.Null);
     }
 
+    [Test]
+    public void Migrate_PreStorySave_InfersCompletedMilestones()
+    {
+        GameSaveData data = new GameSaveData
+        {
+            version = 20,
+            remainingDebt = 0
+        };
+        data.hiredMercenaries.Add(new SavedMercenary());
+        data.dungeonFloorProgress.Add(new SavedDungeonFloorProgress
+        {
+            clearedFloors = 1
+        });
+        data.unlockedTownIndices.Add(1);
+        data.unlockedTownIndices.Add(3);
+        data.unlockedTownIndices.Add(6);
+        data.unlockedTownIndices.Add(WorldMapService.HiddenIslandTownIndex);
+
+        SaveDataMigrator.Migrate(data);
+
+        Assert.That(data.completedStoryMilestones,
+            Does.Contain(StoryMilestone.OpeningDebtNotice));
+        Assert.That(data.completedStoryMilestones,
+            Does.Contain(StoryMilestone.FirstMercenary));
+        Assert.That(data.completedStoryMilestones,
+            Does.Contain(StoryMilestone.FirstDungeonClear));
+        Assert.That(data.completedStoryMilestones,
+            Does.Contain(StoryMilestone.LeafUnlocked));
+        Assert.That(data.completedStoryMilestones,
+            Does.Contain(StoryMilestone.RegionGateCleared));
+        Assert.That(data.completedStoryMilestones,
+            Does.Contain(StoryMilestone.AbyssReached));
+        Assert.That(data.completedStoryMilestones,
+            Does.Contain(StoryMilestone.HiddenIslandReached));
+        Assert.That(data.completedStoryMilestones,
+            Does.Contain(StoryMilestone.DebtCleared));
+    }
+
     private static T FirstAsset<T>()
         where T : UnityEngine.Object
     {

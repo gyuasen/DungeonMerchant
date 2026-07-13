@@ -23,6 +23,7 @@ MonoBehaviour:
   firstEncounterEnemyCount: 4
   enemyCountIncreasePerEncounter: 2
   enemyCountIncreasePerFloor: 1
+  maxEnemyCountPerEncounter: 5
   normalEnemies:
   - {fileID: 11400000, guid: f8cc8e9386e84dbd87ad119e3a14e07d, type: 2}
   - {fileID: 11400000, guid: d5b504215a634161b572384055626995, type: 2}
@@ -37,9 +38,9 @@ MonoBehaviour:
   eventLimitedDropChance: 0.04
   bossLimitedDropChance: 0.1
   limitedEquipmentDrops:
-  - {fileID: 11400000, guid: 92bc698b548640b09a80678db14b5054, type: 2}
-  - {fileID: 11400000, guid: 49d671b1e1474d7a8ed92fd7c4736391, type: 2}
-  - {fileID: 11400000, guid: fbfea5b05f1044edb80a7f0eda0a47c9, type: 2}
+  - {fileID: 11400000, guid: 5a06eb100fcd4f52da59a1c7b5c8d265, type: 2}
+  - {fileID: 11400000, guid: 6b17fc2110de4053eb6ab2d8c6d9e376, type: 2}
+  - {fileID: 11400000, guid: 7c280d3221ef4164fc7bc3e9d7eaf487, type: 2}
   specialVariantChance: 0.09
   specialBossChance: 0.045
   specialVariantSkillPool: 02000000040000000500000007000000080000000a0000000c0000000d000000

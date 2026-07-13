@@ -25,6 +25,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     [SerializeField] private DebtManager debtManager;
     [SerializeField] private RoadEncounterService roadEncounterService;
     [SerializeField] private TownProgressState townProgressState;
+    [SerializeField] private StoryProgressManager storyProgressManager;
 
     [Header("UI Prefab")]
     [SerializeField] private SimpleMercenaryHireUIView uiViewPrefab;
@@ -35,6 +36,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private readonly List<Button> townMapButtons = new List<Button>();
     private readonly List<RectTransform> regionMapPages =
         new List<RectTransform>();
+    private readonly List<Button> standardTownFacilityButtons =
+        new List<Button>();
 
     private RectTransform guildPanel;
     private RectTransform overlayRoot;
@@ -120,9 +123,12 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Button blacksmithTabButton = null;
     private Button inventoryTabButton = null;
     private Button hireFacilityButton;
+    private Button hiddenIslandRegionButton;
     private Button startBattleButton;
     private Button battleSpeedButton;
+    private Button battleSkipButton;
     private Button roadSpeedButton;
+    private Button roadSkipButton;
     private Button startDungeonButton;
     private Button firstDungeonEventButton;
     private Button secondDungeonEventButton;
@@ -158,29 +164,23 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private MerchantStatusAndQuestController merchantStatusAndQuestController;
     private TownTravelController townTravelController;
     private DungeonBattleController dungeonBattleController;
+    private TutorialController tutorialController;
+    private AudioFeedbackService audioFeedbackService;
 
-    private static readonly Color BackgroundColor = new Color(0.07f, 0.08f, 0.1f, 1f);
-    private static readonly Color PanelColor = new Color(0.13f, 0.15f, 0.18f, 1f);
-    private static readonly Color RowColor =
-        new Color(0.27f, 0.16f, 0.09f, 0.94f);
-    private static readonly Color AccentColor =
-        new Color(0.18f, 0.36f, 0.24f, 1f);
-    private static readonly Color InactiveColor =
-        new Color(0.24f, 0.14f, 0.08f, 0.96f);
-    private static readonly Color WoodButtonColor =
-        new Color(0.35f, 0.22f, 0.13f, 1f);
-    private static readonly Color ImportantButtonColor =
-        new Color(0.43f, 0.15f, 0.12f, 1f);
-    private static readonly Color FrameColor =
-        new Color(0.72f, 0.52f, 0.27f, 0.9f);
-    private static readonly Color ButtonTextColor =
-        new Color(1f, 0.94f, 0.79f, 1f);
-    private static readonly Color MutedTextColor =
-        new Color(0.82f, 0.73f, 0.59f, 1f);
-    private static readonly Color ParchmentTextColor =
-        Color.black;
-    private static readonly Color ParchmentMutedColor =
-        Color.black;
+    // Aliases into the shared palette (UITheme) so the many partial files
+    // of this class can keep their existing short references.
+    private static readonly Color BackgroundColor = UITheme.BackgroundColor;
+    private static readonly Color PanelColor = UITheme.PanelColor;
+    private static readonly Color RowColor = UITheme.RowColor;
+    private static readonly Color AccentColor = UITheme.AccentColor;
+    private static readonly Color InactiveColor = UITheme.InactiveColor;
+    private static readonly Color WoodButtonColor = UITheme.WoodButtonColor;
+    private static readonly Color ImportantButtonColor = UITheme.ImportantButtonColor;
+    private static readonly Color FrameColor = UITheme.FrameColor;
+    private static readonly Color ButtonTextColor = UITheme.ButtonTextColor;
+    private static readonly Color MutedTextColor = UITheme.MutedTextColor;
+    private static readonly Color ParchmentTextColor = UITheme.ParchmentTextColor;
+    private static readonly Color ParchmentMutedColor = UITheme.ParchmentMutedColor;
 
     private void Start()
     {
@@ -234,6 +234,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             hireManager,
             battleManager,
             economyController,
+            this,
             message => statusText.text = message,
             (title, body) =>
             {
@@ -245,30 +246,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
                 characterDetailText.text = body;
             },
             ShowCharacterDetails,
-            HideEquipmentDetails,
-            () => equipmentDetailOverlay != null,
-            (title, color) =>
-            {
-                equipmentDetailTitle.text = title;
-                equipmentDetailTitle.color = color;
-            },
-            body => equipmentDetailText.text = body,
-            (interactable, label) =>
-            {
-                equipmentEnhanceButton.interactable = interactable;
-                equipmentEnhanceButton.GetComponentInChildren<Text>().text = label;
-            },
-            (interactable, label) =>
-            {
-                equipmentSellButton.interactable = interactable;
-                equipmentSellButton.GetComponentInChildren<Text>().text = label;
-            },
-            label => equipmentLockButton.GetComponentInChildren<Text>().text = label,
-            () =>
-            {
-                equipmentDetailOverlay.SetAsLastSibling();
-                equipmentDetailOverlay.gameObject.SetActive(true);
-            },
             () => RefreshPage(companyPage),
             () => RefreshPage(partyPage),
             () => RefreshPage(inventoryPage),
@@ -350,14 +327,43 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             dungeonBattleController.OpenNearbyDungeon,
             SyncDungeonUnlocks,
             RefreshTownMapButtons);
+        tutorialController = new TutorialController(
+            message => statusText.text = message,
+            () =>
+            {
+                tutorialOverlay.SetAsLastSibling();
+                tutorialOverlay.gameObject.SetActive(true);
+            },
+            HideTutorialOverlay,
+            text => tutorialStepText.text = text,
+            text => tutorialTitleText.text = text,
+            text => tutorialBodyText.text = text,
+            interactable => tutorialBackButton.interactable = interactable,
+            label => SetButtonLabel(tutorialNextButton, label),
+            () => tutorialTitleText != null &&
+                  tutorialBodyText != null &&
+                  tutorialStepText != null &&
+                  tutorialBackButton != null &&
+                  tutorialNextButton != null);
         townTravelController.ApplyTownServiceSettings(true, true);
         PopulateUniqueCandidatesIfNeeded();
         hireAndPartyController.CacheAlreadyHiredCandidates();
         EnsureEventSystem();
         BuildUI();
+        audioFeedbackService = GetComponent<AudioFeedbackService>() ??
+                               FindObjectOfType<AudioFeedbackService>();
+        audioFeedbackService?.RegisterButtonsUnder(activeView.transform);
+        storyProgressManager = storyProgressManager ??
+                               GetComponent<StoryProgressManager>() ??
+                               FindObjectOfType<StoryProgressManager>();
+        if (storyProgressManager != null)
+        {
+            storyProgressManager.MilestoneCompleted += HandleStoryMilestoneCompleted;
+        }
         merchantData.GoldChanged += HandleGoldChanged;
         merchantData.ProgressionChanged += HandleProgressionChanged;
         hireManager.MercenaryHired += HandleMercenaryHired;
+        hireManager.MercenaryDismissed += HandleMercenaryDismissed;
         partyManager.PartyChanged += HandlePartyChanged;
         mercenaryGenerator.CandidatesChanged += HandleCandidatesChanged;
         battleManager.BattleMessageTyped += HandleBattleMessage;
@@ -382,7 +388,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         dailyResultController.CaptureDailySnapshot(dayManager.CurrentDay);
         ShowGlobalMap();
         RefreshUI();
-        ShowTutorialIfNeeded();
+        BuildAndShowTitleOverlay();
     }
 
     private void ResolveReferences()
@@ -723,6 +729,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         if (hireManager != null)
         {
             hireManager.MercenaryHired -= HandleMercenaryHired;
+            hireManager.MercenaryDismissed -= HandleMercenaryDismissed;
         }
 
         if (partyManager != null)
@@ -784,6 +791,10 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         if (debtManager != null)
         {
             debtManager.DebtChanged -= HandleProgressionChanged;
+        }
+        if (storyProgressManager != null)
+        {
+            storyProgressManager.MilestoneCompleted -= HandleStoryMilestoneCompleted;
         }
     }
 

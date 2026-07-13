@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
+  m_Name: GlaadWardenPlate
+  persistentId: item.dungeon.glaad_warden_plate
+  itemName: グラード城塞鎧
+  itemType: 1
+  rarity: 3
+  description: 山塞の守備隊が用いた黒鋼板金を修復した、全職用の重厚な鎧。
+  basePrice: 2380
+  acquisitionType: 2
+  equipmentSlot: 1
+  requiredClass: 0
+  allClassesCanEquip: 1
+  equipmentSet: 7
+  equipmentRank: 7
+  bonusMaxHP: 62
+  bonusAttack: 3
+  bonusDefense: 16
+  bonusAttackSpeed: 0.01
+  consumableEffect: 0

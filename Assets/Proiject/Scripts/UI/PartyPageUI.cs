@@ -11,7 +11,7 @@ public sealed class PartyPageUI : ListPageUIBase
 
     public void Initialize(Text title, RectTransform targetListRoot)
     {
-        Initialize(title, null, targetListRoot);
+        base.Initialize(title, null, targetListRoot);
     }
 
     public void ConfigurePartyList(

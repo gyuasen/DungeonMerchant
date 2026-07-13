@@ -1123,6 +1123,12 @@
   - 4.2: `MarketStockManager`/`BlacksmithManager`の町別availability switch文を`WorldMapService`のルールテーブルへ置換。"Mutant Core Charm"のアビス限定特例は原文のまま維持。旧switch文を逐語転記したオラクルと新テーブルを全810組合せ×2サービスで比較するパリティテスト`TownAvailabilityParityTests.cs`を追加。
   - 残タスク: Unity上でのコンパイル確認・Test Runner全緑確認・Playモード通し確認（`handoff/CLAUDE_WORK_LOG.md`の「次回再開時にやること」参照）。
 
+## 家でやったこと 2026-07-12（続き）
+
+- Unity Test Runnerで**106件中106件成功**をユーザーが確認し、第1次改善計画（全20ステップ）を完了とした。
+- 完了後の再評価を実施（UI層再調査+定量比較）。主な残課題: `CharacterEquipmentController`のコンストラクタ引数過多（22個）、チュートリアル機能が抽出規約に反してMonoBehaviour直持ち、色定数の8箇所重複、`BattleManager`/`DungeonRunManager`の神クラス（未着手のまま）。
+- **第2次改善計画（フェーズA〜D）を`handoff/CLAUDE_WORK_LOG.md`へ策定した。次に作業する際はそちらの表が正本。** フェーズA（小規模6件）は各項目独立で着手可能。学校/教室側で着手する場合も同ファイルの「作業規約」（コントローラー抽出パターン・テスト規約・禁止事項）を先に読むこと。
+
 ## 変更した主なファイル 2026-07-10〜2026-07-12
 
 - `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUIFactory.cs`（新規）ほか新規コントローラー7ファイル
@@ -1151,3 +1157,64 @@
 - `Assets/Proiject/Tests/EditMode/MarketStockManagerTests.cs`（新規）
 - `Assets/Proiject/Tests/EditMode/ProgressionManagerTests.cs`（新規）
 - `Assets/Proiject/Tests/EditMode/MerchantInventoryTests.cs`（新規）
+# 2026-07-13 フェーズC-1 PlayModeテスト基盤
+
+- `Assets/Proiject/Tests/PlayMode/DungeonMerchant.PlayModeTests.asmdef` を追加した。
+- `BattleManagerPlayModeTests.StartBattle_OneHpEnemy_CompletesWithVictory` を追加し、1HP敵との戦闘開始から `BattleCompleted(true)` までを `[UnityTest]` で検証する形にした。
+- `dotnet build DungeonMerchant.sln` は警告0・エラー0。
+- Unityがプロジェクトを開いているため、Test RunnerのPlayModeタブでの実行確認は未完了。C-2/C-3着手前に緑を確認する。
+- 2026-07-13、ユーザーがUnity Test RunnerでPlayMode 1/1成功を確認。EditModeも106/106成功。C-1完了としてC-2へ移行した。
+
+# 2026-07-13 フェーズC-2(1) BattleRewardService
+
+- `BattleManager`から戦闘後HP・状態異常反映、Gold、経験値、ドロップ、フォールバックドロップを`BattleRewardService`へ抽出した。
+- `BattleManager`には勝敗確定、サービス呼び出し、`EnemiesDefeated`と`BattleCompleted`の発火を残した。
+- 既存の副作用・ログ・イベント順を維持した。
+- `BattleRewardServiceTests`を追加し、Gold合計、経験値計算、人数配分を固定した。
+- `BattleManager.cs`は1480行から1323行へ縮小。`dotnet build DungeonMerchant.sln`は警告0・エラー0。
+- Unity Test RunnerでのEditMode/PlayMode再実行はC-2各段階の統合後に確認する。
+
+# 2026-07-13 フェーズC-2(2) BattleLogFormatter
+
+- 戦闘開始、通常攻撃、毒・麻痺、敵スキル、味方職スキル、勝敗、経験値、ドロップなどの動的ログ文字列生成を静的`BattleLogFormatter`へ抽出した。
+- ダメージ計算、乱数判定、魔力消費、状態付与、ログ種別と発火順には変更を加えていない。
+- `BattleLogFormatterTests`で空白・全角記号を含む代表文言の逐語一致を固定した。
+- `dotnet build DungeonMerchant.sln`はPlayModeテストアセンブリを含め警告0・エラー0。
+
+# 2026-07-13 フェーズC-2(3)(4) 戦闘責務分離
+
+- 敵14種・味方6職のスキル選択と解決を`BattleSkillResolver`へ抽出した。
+- 毒・麻痺・状態ターン更新を`BattleStatusEffectService`へ抽出し、死亡・行動スキップを結果DTOで`BattleManager`へ返す形にした。
+- `BattleManager`にはターン進行コルーチン、通常攻撃、勝敗判定、参照解決、イベント送信を残した。
+- `BattleSkillResolverTests`と`BattleStatusEffectServiceTests`を追加した。
+- レビュー中に通常攻撃等のログが直接文字列へ戻る回帰を検出し、`BattleLogFormatter`利用へ修正済み。
+- `BattleManager.cs`は1480行から602行へ縮小。全ソリューションbuildは警告0・エラー0。
+
+# 2026-07-13 フェーズC-3 DungeonRunManager責務分離
+
+- フロア進行辞書、最高解放等級のPlayerPrefs、保存DTO生成、永続ID/旧アセット名の復元を`DungeonProgressStore`へ抽出した。
+- イベント種別とタイトル・説明・3選択肢ラベルを不変`DungeonEventState`へ統合した。
+- `DungeonRunManager`の既存公開API、セーブ形式、イベント通知順は維持した。
+- `DungeonProgressStoreTests`と`DungeonEventStateTests`を追加した。
+- 最終レビューでスキル計算の丸めAPI差異を検出し、旧実装と同じ`Mathf.RoundToInt`へ統一した。
+- 全ソリューションbuildは警告0・エラー0。Unity Test RunnerでEditMode全件とPlayMode 1件の最終再実行が必要。
+
+# 2026-07-13 装備・スキル・雇用画面の拡張
+
+- 通常装備ランクを10段階化し、町の進行順に市場/鍛冶屋をセイル1/2、リーフ2/3、エルド3/4、ノルン4/5、グラード5/6、ヴェルム6/7、アビス7/8へ設定した。
+- ダンジョン固有装備は市場より2段階上のセイル3、リーフ4、エルド5、ノルン6、グラード7、ヴェルム8、アビス9とした。Rank 10は通常の特殊ドロップから除外し、隠し入手経路専用として保持する。
+- 各ランクに武器・防具・装飾品を用意し、通常装備を合計30種へ拡張した。ランクは市場・鍛冶屋・在庫・詳細画面で色分け表示される。
+- 基本6職へ各2個のスキルを追加し、全12スキルが固有IDを持つよう修正した。
+- 日雇い・継続契約は成功率100%、永続契約だけ商人の雇用成功率を参照する。
+- 雇用画面を羊皮紙の履歴書型・横スライド式に変更し、内部IDと量産型表記を削除した。
+- 6職業の生成ポートレートを `Assets/Proiject/Resources/UI/MercenaryPortraitSheet.png` に配置し、職業ごとに表示する処理を追加した。
+- 全ソリューションbuildは警告0・エラー0。Unityで画像表示・カード移動・町別装備帯・契約別成功率の実動作確認が必要。
+
+# 2026-07-14 中央島のRank 10隠しコンテンツ
+
+- 隠し町「アステラ秘匿都市」を全体マップ中央へ追加。条件達成前はボタンを生成後非表示にし、解放済みセーブまたは条件達成時だけ表示する。
+- 解放条件は、アビス「深淵王座」の完全攻略、中央島以外の全ダンジョン固有装備発見、特殊ジョブLv50傭兵3名以上。
+- 解放判定は `HiddenIslandUnlockService` に分離。装備は発見履歴を参照するため売却後も条件を維持する。
+- 中央島は鍛冶屋と「星環深層」のみの特殊町マップ。航路移動では街道戦闘と日数経過なし。
+- Rank 10鍛冶レシピ3種、Rank 10ダンジョン固有装備3種、Rank 9アビス固有装備3種を追加した。
+- ビルドは警告0・エラー0。Unity Test Runnerと実画面での最終確認が必要。

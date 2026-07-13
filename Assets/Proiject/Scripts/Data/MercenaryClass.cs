@@ -35,7 +35,25 @@ public enum MercenarySkillId
     Fireball,
     Heal,
     PoisonBlade,
-    PiercingThrust
+    PiercingThrust,
+    ShieldBash,
+    Volley,
+    FrostNova,
+    Smite,
+    ShadowFlurry,
+    SweepingThrust,
+    GuardCounter,
+    AimedShot,
+    ManaBolt,
+    PrayerLight,
+    VitalStrike,
+    GuardianThrust,
+    WarlordCommand,
+    BeastPack,
+    TimeLock,
+    SaintsGrace,
+    ShadowRend,
+    DragonBreath
 }
 
 public class MercenarySkillDefinition
@@ -179,6 +197,87 @@ public static class MercenaryClassProgression
         }
     }
 
+    public static List<MercenarySkillDefinition> GetCombatSkills(
+        MercenaryClass value)
+    {
+        List<MercenarySkillDefinition> skills =
+            new List<MercenarySkillDefinition> { GetPrimarySkill(value) };
+        switch (GetBaseClass(value))
+        {
+            case MercenaryClass.Warrior:
+                skills.Add(Skill(MercenarySkillId.ShieldBash, "盾撃", 30, 0.9f,
+                    "防御的な打撃で敵を短時間ひるませる。"));
+                skills.Add(Skill(MercenarySkillId.GuardCounter, "守勢反撃", 25, 1.1f,
+                    "守りを崩さず反撃する。"));
+                break;
+            case MercenaryClass.Archer:
+                skills.Add(Skill(MercenarySkillId.Volley, "斉射", 45, 0.65f,
+                    "敵全体へ矢を降らせる。"));
+                skills.Add(Skill(MercenarySkillId.AimedShot, "狙い撃ち", 30, 1.15f,
+                    "単体へ精密な一射を放つ。"));
+                break;
+            case MercenaryClass.Mage:
+                skills.Add(Skill(MercenarySkillId.FrostNova, "氷結波", 45, 0.7f,
+                    "敵全体を攻撃し、行動を妨げる。"));
+                skills.Add(Skill(MercenarySkillId.ManaBolt, "魔力弾", 30, 1.2f,
+                    "低燃費の単体魔法を放つ。"));
+                break;
+            case MercenaryClass.Priest:
+                skills.Add(Skill(MercenarySkillId.Smite, "聖撃", 35, 1.25f,
+                    "敵1体へ聖なる攻撃を行う。"));
+                skills.Add(Skill(MercenarySkillId.PrayerLight, "祈りの光", 25, 0.55f,
+                    "傷ついた味方全員を小回復する。"));
+                break;
+            case MercenaryClass.Rogue:
+                skills.Add(Skill(MercenarySkillId.ShadowFlurry, "影連撃", 40, 0.62f,
+                    "素早い2連撃を放つ。"));
+                skills.Add(Skill(MercenarySkillId.VitalStrike, "急所狙い", 30, 1.2f,
+                    "隙を突く単体攻撃を放つ。"));
+                break;
+            default:
+                skills.Add(Skill(MercenarySkillId.SweepingThrust, "薙ぎ突き", 40, 0.62f,
+                    "敵全体へ槍の一閃を放つ。"));
+                skills.Add(Skill(MercenarySkillId.GuardianThrust, "守護突き", 30, 1.1f,
+                    "隊列を守る堅実な突きを放つ。"));
+                break;
+        }
+
+        MercenarySkillDefinition specialSkill = GetSpecialCombatSkill(value);
+        if (specialSkill != null)
+        {
+            skills.Add(specialSkill);
+        }
+        return skills;
+    }
+
+    private static MercenarySkillDefinition GetSpecialCombatSkill(
+        MercenaryClass value)
+    {
+        switch (value)
+        {
+            case MercenaryClass.Warlord:
+                return Skill(MercenarySkillId.WarlordCommand, "戦陣号令", 55,
+                    1.55f, "敵一体を指揮官の一撃で打ち崩す。", 20);
+            case MercenaryClass.Beastmaster:
+                return Skill(MercenarySkillId.BeastPack, "獣群急襲", 50,
+                    0.72f, "使役獣の群れで敵全体を攻撃する。", 24);
+            case MercenaryClass.Chronomancer:
+                return Skill(MercenarySkillId.TimeLock, "時縛り", 50,
+                    0.95f, "敵一体にダメージを与え、麻痺させる。", 28);
+            case MercenaryClass.Saint:
+                return Skill(MercenarySkillId.SaintsGrace, "聖者の恩寵", 55,
+                    1.05f, "味方全体を癒やす祝福を授ける。", 32);
+            case MercenaryClass.Shadow:
+                return Skill(MercenarySkillId.ShadowRend, "影裂き", 55,
+                    0.55f, "影から三連撃を繰り出す。", 36);
+            case MercenaryClass.DragonKnight:
+                return Skill(MercenarySkillId.DragonBreath, "竜炎の息吹", 60,
+                    0.82f, "竜の炎で敵全体を焼き払う。", 40);
+            default:
+                return null;
+        }
+    }
+
     public static List<MercenarySkillDefinition> GetSkillProgression(
         MercenaryClass value)
     {
@@ -187,6 +286,8 @@ public static class MercenaryClassProgression
             {
                 GetPrimarySkill(value)
             };
+        List<MercenarySkillDefinition> combatSkills = GetCombatSkills(value);
+        result.AddRange(combatSkills.GetRange(1, combatSkills.Count - 1));
         MercenaryClass baseClass = GetBaseClass(value);
         switch (baseClass)
         {
@@ -337,12 +438,13 @@ public static class MercenaryClassProgression
     }
 
     private static MercenarySkillDefinition Skill(
-        MercenarySkillId id, string name, int cost, float power, string description)
+        MercenarySkillId id, string name, int cost, float power,
+        string description, int unlockLevel = 1)
     {
         return new MercenarySkillDefinition
         {
             Id = id, Name = name, MagicCost = cost,
-            Power = power, Description = description
+            Power = power, Description = description, UnlockLevel = unlockLevel
         };
     }
 }

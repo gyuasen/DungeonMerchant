@@ -76,9 +76,10 @@ public sealed class MarketPageUI : ListPageUIBase
             RowTextColor);
 
         string details =
+            EquipmentRankPresentation.GetRichText(item) + "  |  " +
             $"{JapaneseDisplayText.GetMercenaryClass(item.requiredClass)}用  |  " +
-            $"{JapaneseDisplayText.GetEquipmentSlot(item.equipmentSlot)}ランク" +
-            $"{item.equipmentRank}  |  攻撃+{item.bonusAttack}  " +
+            $"{JapaneseDisplayText.GetEquipmentSlot(item.equipmentSlot)}  |  " +
+            $"攻撃+{item.bonusAttack}  " +
             $"防御+{item.bonusDefense}  HP+{item.bonusMaxHP}  |  " +
             $"仕入れ {entry.BuyPrice} G";
         CreateText(

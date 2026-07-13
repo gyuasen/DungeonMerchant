@@ -23,6 +23,7 @@ MonoBehaviour:
   firstEncounterEnemyCount: 4
   enemyCountIncreasePerEncounter: 2
   enemyCountIncreasePerFloor: 1
+  maxEnemyCountPerEncounter: 5
   normalEnemies:
   - {fileID: 11400000, guid: f8cc8e9386e84dbd87ad119e3a14e07d, type: 2}
   - {fileID: 11400000, guid: d5b504215a634161b572384055626995, type: 2}
@@ -37,4 +38,7 @@ MonoBehaviour:
     amount: 10
   eventLimitedDropChance: 0.045
   bossLimitedDropChance: 0.11
-  limitedEquipmentDrops: []
+  limitedEquipmentDrops:
+  - {fileID: 11400000, guid: 9e3a1e5443f04285ad8cd4fae8fbc698, type: 2}
+  - {fileID: 11400000, guid: af4b2f6554014386be9de50bf9fcd7a9, type: 2}
+  - {fileID: 11400000, guid: b05c307766124497cfafe61c0a0de8ba, type: 2}

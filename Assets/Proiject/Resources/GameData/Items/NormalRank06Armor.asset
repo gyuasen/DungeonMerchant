@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
+  m_Name: NormalRank06Armor
+  persistentId: item.normal.rank06.armor
+  itemName: 魔鋼の防具
+  itemType: 1
+  rarity: 0
+  description: 町の市場で流通する、扱いやすい標準装備。
+  basePrice: 665
+  acquisitionType: 0
+  equipmentSlot: 1
+  requiredClass: 0
+  allClassesCanEquip: 1
+  equipmentSet: 0
+  equipmentRank: 6
+  bonusMaxHP: 54
+  bonusAttack: 0
+  bonusDefense: 13
+  bonusAttackSpeed: 0
+  consumableEffect: 0

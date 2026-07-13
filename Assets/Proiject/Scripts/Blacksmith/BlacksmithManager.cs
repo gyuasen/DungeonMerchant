@@ -10,7 +10,8 @@ public class BlacksmithManager : MonoBehaviour
         new List<EquipmentRecipeSO>();
     [SerializeField] private List<EquipmentRecipeSO> availableRecipes =
         new List<EquipmentRecipeSO>();
-    [SerializeField, Range(0, 6)] private int currentTownIndex = 2;
+    [SerializeField, Range(0, WorldMapService.HiddenIslandTownIndex)]
+    private int currentTownIndex = 2;
 
     public IReadOnlyList<EquipmentRecipeSO> Recipes => availableRecipes;
     public EquipmentInstance LastCraftedEquipment { get; private set; }
@@ -19,7 +20,10 @@ public class BlacksmithManager : MonoBehaviour
 
     public void SetTownIndex(int townIndex)
     {
-        currentTownIndex = Mathf.Clamp(townIndex, 0, 6);
+        currentTownIndex = Mathf.Clamp(
+            townIndex,
+            0,
+            WorldMapService.HiddenIslandTownIndex);
         RefreshAvailableRecipes();
         CraftingChanged?.Invoke();
     }
@@ -85,7 +89,7 @@ public class BlacksmithManager : MonoBehaviour
             if (recipe.resultItem.IsEquipment)
             {
                 EquipmentInstance equipment =
-                    EquipmentInstance.CreateRandom(recipe.resultItem);
+                    EquipmentInstance.CreateFixed(recipe.resultItem);
                 merchantInventory.AddEquipmentInstance(equipment);
                 LastCraftedEquipment = equipment;
             }

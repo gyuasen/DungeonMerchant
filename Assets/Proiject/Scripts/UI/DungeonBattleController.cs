@@ -11,6 +11,12 @@ using System.Collections.Generic;
 /// </summary>
 public sealed class DungeonBattleController
 {
+    private const int MaxBattleLogLines = 250;
+    private const string SpecialEnemyColorOpen = "<color=#D86BFF>";
+    private const string ColorClose = "</color>";
+    private const string SpecialColorOpenToken = "__SPECIAL_ENEMY_COLOR_OPEN__";
+    private const string ColorCloseToken = "__SPECIAL_ENEMY_COLOR_CLOSE__";
+
     private readonly BattleManager battleManager;
     private readonly DungeonRunManager dungeonRunManager;
     private readonly MercenaryPartyManager partyManager;
@@ -215,6 +221,17 @@ public sealed class DungeonBattleController
         setStatus($"戦闘速度を{speed:0}倍に変更しました。");
     }
 
+    public void SkipBattleToEnd()
+    {
+        if (!battleManager.RequestSkipToBattleEnd())
+        {
+            setStatus("早送りできる戦闘がありません。");
+            return;
+        }
+
+        setStatus("現在の戦闘を結果まで早送りします。");
+    }
+
     public void OpenNearbyDungeon()
     {
         DungeonDataSO preferred =
@@ -266,6 +283,12 @@ public sealed class DungeonBattleController
     {
         string coloredMessage = ColorizeBattleMessage(message, logType);
         battleLogLines.Add(coloredMessage);
+        if (battleLogLines.Count > MaxBattleLogLines)
+        {
+            battleLogLines.RemoveRange(
+                0,
+                battleLogLines.Count - MaxBattleLogLines);
+        }
         return string.Join("\n", battleLogLines);
     }
 
@@ -287,9 +310,14 @@ public sealed class DungeonBattleController
 
     private static string EscapeRichText(string value)
     {
-        return value
+        string protectedValue = (value ?? string.Empty)
+            .Replace(SpecialEnemyColorOpen, SpecialColorOpenToken)
+            .Replace(ColorClose, ColorCloseToken);
+        return protectedValue
             .Replace("&", "&amp;")
             .Replace("<", "&lt;")
-            .Replace(">", "&gt;");
+            .Replace(">", "&gt;")
+            .Replace(SpecialColorOpenToken, SpecialEnemyColorOpen)
+            .Replace(ColorCloseToken, ColorClose);
     }
 }

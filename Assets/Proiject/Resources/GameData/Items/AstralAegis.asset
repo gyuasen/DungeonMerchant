@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
+  m_Name: AstralAegis
+  persistentId: item.hidden.astral_aegis
+  itemName: 星界の守護衣
+  itemType: 1
+  rarity: 3
+  description: 中央島を守った古代守護者の外装を再構成した防具。
+  basePrice: 4400
+  acquisitionType: 2
+  equipmentSlot: 1
+  requiredClass: 0
+  allClassesCanEquip: 1
+  equipmentSet: 10
+  equipmentRank: 10
+  bonusMaxHP: 110
+  bonusAttack: 0
+  bonusDefense: 25
+  bonusAttackSpeed: 0
+  consumableEffect: 0

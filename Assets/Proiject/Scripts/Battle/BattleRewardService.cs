@@ -1,0 +1,275 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+/// <summary>
+/// Applies battle rewards and persists each participant's post-battle state.
+/// This is deliberately a plain C# service; BattleManager owns battle flow and events.
+/// </summary>
+public sealed class BattleRewardService
+{
+    // Keep low-grade encounters meaningful while flattening high-grade rewards.
+    // strengthOffset is 0 for grade 10 and 9 for grade 1.
+    private const int BaseExperienceReward = 50;
+    private const int LinearExperienceGrowth = 20;
+    private const int QuadraticExperienceGrowth = 5;
+
+    private readonly MerchantData merchantData;
+    private readonly MerchantInventory merchantInventory;
+    private readonly Action<string, BattleLogType> messageHandler;
+    private readonly Func<float> randomValueProvider;
+    private ItemDataSO fallbackDropItem;
+
+    public BattleRewardService(
+        MerchantData targetMerchantData,
+        MerchantInventory targetMerchantInventory,
+        Action<string, BattleLogType> targetMessageHandler,
+        Func<float> targetRandomValueProvider)
+    {
+        merchantData = targetMerchantData;
+        merchantInventory = targetMerchantInventory;
+        messageHandler = targetMessageHandler;
+        randomValueProvider = targetRandomValueProvider ?? (() => UnityEngine.Random.value);
+    }
+
+    public bool MatchesDependencies(
+        MerchantData targetMerchantData,
+        MerchantInventory targetMerchantInventory)
+    {
+        return merchantData == targetMerchantData &&
+               merchantInventory == targetMerchantInventory;
+    }
+
+    public void ApplyBattleResultsToMercenaries(
+        IReadOnlyList<MercenaryInstance> battleMercenaries,
+        IReadOnlyList<BattleUnit> playerUnits)
+    {
+        if (battleMercenaries == null || playerUnits == null)
+        {
+            return;
+        }
+
+        int count = Mathf.Min(battleMercenaries.Count, playerUnits.Count);
+        for (int i = 0; i < count; i++)
+        {
+            MercenaryInstance mercenary = battleMercenaries[i];
+            BattleUnit unit = playerUnits[i];
+            mercenary.SetCurrentHP(unit.CurrentHP);
+            mercenary.RestoreStatusEffect(unit.StatusEffect);
+            SendMessage(
+                BattleLogFormatter.FormatPostBattleHp(
+                    mercenary.MercenaryName,
+                    mercenary.CurrentHP,
+                    mercenary.MaxHP,
+                    unit.StatusSummary),
+                BattleLogType.System);
+        }
+    }
+
+    public void GrantVictoryRewards(
+        IReadOnlyList<EnemyDataSO> defeatedEnemies,
+        IReadOnlyList<MercenaryInstance> battleMercenaries)
+    {
+        int totalGoldReward = CalculateGoldReward(defeatedEnemies);
+        merchantData?.AddGold(totalGoldReward);
+        SendMessage(
+            BattleLogFormatter.FormatVictoryGold(totalGoldReward),
+            BattleLogType.Reward);
+        GrantExperienceRewards(defeatedEnemies, battleMercenaries);
+        GrantItemRewards(defeatedEnemies);
+    }
+
+    public static int CalculateGoldReward(IReadOnlyList<EnemyDataSO> defeatedEnemies)
+    {
+        if (defeatedEnemies == null)
+        {
+            return 0;
+        }
+
+        int totalGoldReward = 0;
+        foreach (EnemyDataSO enemy in defeatedEnemies)
+        {
+            if (enemy != null)
+            {
+                totalGoldReward += enemy.goldReward;
+            }
+        }
+
+        return totalGoldReward;
+    }
+
+    public static int CalculateExperienceReward(
+        IReadOnlyList<EnemyDataSO> defeatedEnemies)
+    {
+        if (defeatedEnemies == null)
+        {
+            return 1;
+        }
+
+        int totalExperience = 0;
+        foreach (EnemyDataSO enemy in defeatedEnemies)
+        {
+            if (enemy == null)
+            {
+                continue;
+            }
+
+            int enemyExperience = CalculateBaseExperienceReward(
+                enemy.monsterGrade);
+            if (enemy.isBoss)
+            {
+                enemyExperience *= 2;
+            }
+
+            enemyExperience = Mathf.RoundToInt(
+                enemyExperience * Mathf.Max(1f, enemy.experienceMultiplier));
+            totalExperience += enemyExperience;
+        }
+
+        return Mathf.Max(1, totalExperience);
+    }
+
+    public static int CalculateBaseExperienceReward(int monsterGrade)
+    {
+        int grade = Mathf.Clamp(monsterGrade, 1, 10);
+        int strengthOffset = 10 - grade;
+        return BaseExperienceReward +
+               (LinearExperienceGrowth * strengthOffset) +
+               (QuadraticExperienceGrowth * strengthOffset * strengthOffset);
+    }
+
+    public static int CalculateExperiencePerMercenary(
+        int totalExperience,
+        int mercenaryCount)
+    {
+        return mercenaryCount <= 0
+            ? 0
+            : Mathf.Max(1, totalExperience / mercenaryCount);
+    }
+
+    private void GrantExperienceRewards(
+        IReadOnlyList<EnemyDataSO> defeatedEnemies,
+        IReadOnlyList<MercenaryInstance> battleMercenaries)
+    {
+        if (battleMercenaries == null || battleMercenaries.Count == 0)
+        {
+            return;
+        }
+
+        int experiencePerMercenary = CalculateExperiencePerMercenary(
+            CalculateExperienceReward(defeatedEnemies),
+            battleMercenaries.Count);
+
+        foreach (MercenaryInstance mercenary in battleMercenaries)
+        {
+            if (mercenary.IsAtLevelCap)
+            {
+                SendMessage(
+                    BattleLogFormatter.FormatLevelCap(
+                        mercenary.MercenaryName,
+                        mercenary.LevelCap),
+                    BattleLogType.Reward);
+                continue;
+            }
+
+            int previousLevel = mercenary.Level;
+            int levelsGained = mercenary.AddExperience(experiencePerMercenary);
+            SendMessage(
+                BattleLogFormatter.FormatExperience(
+                    mercenary.MercenaryName,
+                    experiencePerMercenary,
+                    mercenary.CurrentExperience,
+                    mercenary.ExperienceToNextLevel),
+                BattleLogType.Reward);
+
+            if (levelsGained > 0)
+            {
+                SendMessage(
+                    BattleLogFormatter.FormatLevelUp(
+                        mercenary.MercenaryName,
+                        previousLevel,
+                        mercenary.Level),
+                    BattleLogType.Reward);
+            }
+        }
+    }
+
+    private void GrantItemRewards(IReadOnlyList<EnemyDataSO> defeatedEnemies)
+    {
+        if (merchantInventory == null)
+        {
+            SendMessage("商人在庫が設定されていません。", BattleLogType.System);
+            return;
+        }
+
+        bool droppedAnyItem = false;
+        if (defeatedEnemies != null)
+        {
+            foreach (EnemyDataSO defeatedEnemy in defeatedEnemies)
+            {
+                if (defeatedEnemy == null || defeatedEnemy.itemDrops == null)
+                {
+                    continue;
+                }
+
+                foreach (ItemDropEntry drop in defeatedEnemy.itemDrops)
+                {
+                    if (drop == null || drop.item == null || drop.amount <= 0 ||
+                        randomValueProvider() > drop.dropChance)
+                    {
+                        continue;
+                    }
+
+                    merchantInventory.AddItem(drop.item, drop.amount);
+                    SendMessage(
+                        BattleLogFormatter.FormatItemDrop(
+                            JapaneseDisplayText.GetItemName(drop.item),
+                            drop.amount),
+                        BattleLogType.Reward);
+                    droppedAnyItem = true;
+                }
+            }
+        }
+
+        if (!droppedAnyItem)
+        {
+            ItemDataSO fallbackItem = GetFallbackDropItem();
+            merchantInventory.AddItem(fallbackItem, 1);
+            SendMessage(
+                BattleLogFormatter.FormatItemDrop(
+                    JapaneseDisplayText.GetItemName(fallbackItem),
+                    1),
+                BattleLogType.Reward);
+        }
+    }
+
+    private ItemDataSO GetFallbackDropItem()
+    {
+        if (fallbackDropItem != null)
+        {
+            return fallbackDropItem;
+        }
+
+        IReadOnlyList<ItemDataSO> resourceItems =
+            GameAssetRepository.LoadAll<ItemDataSO>();
+        if (resourceItems.Count > 0)
+        {
+            fallbackDropItem = resourceItems[0];
+            return fallbackDropItem;
+        }
+
+        fallbackDropItem = ScriptableObject.CreateInstance<ItemDataSO>();
+        fallbackDropItem.name = "Runtime Monster Fang";
+        fallbackDropItem.itemName = "Monster Fang";
+        fallbackDropItem.itemType = ItemType.Material;
+        fallbackDropItem.rarity = ItemRarity.Common;
+        fallbackDropItem.description = "A common monster material for testing trade flow.";
+        fallbackDropItem.basePrice = 25;
+        return fallbackDropItem;
+    }
+
+    private void SendMessage(string message, BattleLogType logType)
+    {
+        messageHandler?.Invoke(message, logType);
+    }
+}

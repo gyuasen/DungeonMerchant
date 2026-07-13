@@ -31,8 +31,6 @@ public sealed class DailyResultController
             new Dictionary<string, DailyMercenarySnapshot>();
     private readonly Dictionary<string, int> dailyInventoryAmounts =
         new Dictionary<string, int>();
-    private readonly Dictionary<string, string> dailyInventoryNames =
-        new Dictionary<string, string>();
     private readonly Dictionary<string, int> dailyAcquiredItems =
         new Dictionary<string, int>();
     private readonly HashSet<string> knownEquipmentInstanceIds =
@@ -347,7 +345,6 @@ public sealed class DailyResultController
         dailyAcquiredItems.Clear();
         dailyAcquiredEquipment.Clear();
         dailyInventoryAmounts.Clear();
-        dailyInventoryNames.Clear();
         if (merchantInventory == null)
         {
             return;
@@ -361,8 +358,6 @@ public sealed class DailyResultController
             }
             string key = stack.Item.name;
             dailyInventoryAmounts[key] = stack.Amount;
-            dailyInventoryNames[key] =
-                JapaneseDisplayText.GetItemName(stack.Item);
         }
         foreach (EquipmentInstance equipment in
                  merchantInventory.EquipmentInstances)
@@ -400,7 +395,6 @@ public sealed class DailyResultController
             currentAmounts[key] = stack.Amount;
             string displayName =
                 JapaneseDisplayText.GetItemName(stack.Item);
-            dailyInventoryNames[key] = displayName;
             dailyInventoryAmounts.TryGetValue(key, out int previousAmount);
             int gained = stack.Amount - previousAmount;
             if (gained > 0)

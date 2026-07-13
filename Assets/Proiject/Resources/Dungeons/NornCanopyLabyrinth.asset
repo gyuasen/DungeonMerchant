@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   persistentId: dungeon.NornCanopyLabyrinth
   dungeonName: "ノルン樹冠迷宮"
-  grade: 2
+  grade: 3
   worldMapIndex: 1
   nearbyTownIndex: 3
   totalFloors: 5
@@ -23,6 +23,7 @@ MonoBehaviour:
   firstEncounterEnemyCount: 3
   enemyCountIncreasePerEncounter: 1
   enemyCountIncreasePerFloor: 1
+  maxEnemyCountPerEncounter: 5
   normalEnemies:
   - {fileID: 11400000, guid: 289c8ba70b8d4085be1dfe7dba2211a4, type: 2}
   - {fileID: 11400000, guid: 6b47467ab1154d68b9c6c1b102d275da, type: 2}
@@ -41,4 +42,7 @@ MonoBehaviour:
     amount: 6
   eventLimitedDropChance: 0.035
   bossLimitedDropChance: 0.09
-  limitedEquipmentDrops: []
+  limitedEquipmentDrops:
+  - {fileID: 11400000, guid: 1f62a7dcbd894b1eb6156d83d1849e21, type: 2}
+  - {fileID: 11400000, guid: 2c73b8edce9a4c2fa7267e94e295af32, type: 2}
+  - {fileID: 11400000, guid: 3d84c9feedab4d30b8378fa5f3a6b043, type: 2}

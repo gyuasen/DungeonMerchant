@@ -15,12 +15,9 @@ public abstract class ListPageUIBase : UIPageBase
     protected Color RowTextColor { get; private set; } = Color.white;
     protected Color MutedTextColor { get; private set; } = Color.gray;
     protected Color ButtonTextColor { get; private set; } = Color.white;
-    protected Color RowColor { get; private set; } =
-        new Color(0.27f, 0.16f, 0.09f, 0.94f);
-    protected Color ButtonColor { get; private set; } =
-        new Color(0.35f, 0.22f, 0.13f, 1f);
-    protected Color FrameColor { get; private set; } =
-        new Color(0.72f, 0.52f, 0.27f, 0.9f);
+    protected Color RowColor { get; private set; } = UITheme.RowColor;
+    protected Color ButtonColor { get; private set; } = UITheme.WoodButtonColor;
+    protected Color FrameColor { get; private set; } = UITheme.FrameColor;
 
     public void Initialize(
         Text title,
@@ -40,7 +37,8 @@ public abstract class ListPageUIBase : UIPageBase
         Color rowColor,
         Color buttonColor,
         Color frameColor,
-        UnityAction refresh)
+        UnityAction refresh,
+        int titleFontSize = 15)
     {
         RowFont = font;
         MutedTextColor = mutedTextColor;
@@ -50,7 +48,7 @@ public abstract class ListPageUIBase : UIPageBase
         FrameColor = frameColor;
 
         ConfigureText(
-            titleText, font, 15,
+            titleText, font, titleFontSize,
             TextAnchor.MiddleLeft, color);
         if (descriptionText != null)
         {

@@ -20,6 +20,7 @@ public class MercenaryPartyManager : MonoBehaviour
         if (hireManager != null)
         {
             hireManager.ContractsChanged += RemoveInactiveContracts;
+            hireManager.MercenaryDismissed += RemoveReleasedMercenary;
         }
     }
 
@@ -28,6 +29,7 @@ public class MercenaryPartyManager : MonoBehaviour
         if (hireManager != null)
         {
             hireManager.ContractsChanged -= RemoveInactiveContracts;
+            hireManager.MercenaryDismissed -= RemoveReleasedMercenary;
         }
     }
 
@@ -110,6 +112,11 @@ public class MercenaryPartyManager : MonoBehaviour
         {
             PartyChanged?.Invoke();
         }
+    }
+
+    private void RemoveReleasedMercenary(MercenaryInstance mercenary)
+    {
+        Remove(mercenary);
     }
 
     private void ResolveReferences()

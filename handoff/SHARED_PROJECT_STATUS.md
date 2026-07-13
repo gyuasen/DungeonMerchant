@@ -166,7 +166,24 @@
 - **Action 2（神クラスへのキャラクタリゼーションテスト追加）も完了**。BattleManager/DungeonRunManager/MarketStockManager/ProgressionManager/MerchantInventoryへ計48件のEditModeテストを追加。**Unity Test Runnerで104件中104件成功を確認済み**（既存コードへの変更なし。テストコード側の3件の不具合はテストファイルのみ修正して解消）。
 - **Action 3（`SimpleMercenaryHireUI`の段階分割、全10ステップ）も完了**（2026-07-12）。神クラス（約7,200行）から約3,300行分の実ロジックを7つの独立クラスへ抽出: `SimpleMercenaryHireUIFactory`（UI構築ヘルパー）、`DailyResultController`、`HireAndPartyController`、`EconomyController`、`CharacterEquipmentController`、`MerchantStatusAndQuestController`、`TownTravelController`+`DungeonBattleController`。partial残存分は5,278行（UI構築・ページ遷移・イベント購読のみ）。`MapData.cs`は`WorldMapService`直接参照化で削除、`BattlePageUIBase`/`MapPageUIBase`は`RefreshOnlyPageUIBase`へ統合、`Company/Party/HealPageUI`は`ListPageUIBase`（旧EconomyPageUI）基盤へ共通化。各ステップでdotnet buildエラー0を確認済み。**Unity上のPlayモード通し確認（開始→雇用→移動→戦闘→ダンジョン→セーブ/ロード）は未実施 — 次回Unity起動時に必要**。
 - **Action 4（重複ロジック統合）も完了**（2026-07-12）。4.1: 価格ハッシュを`MarketHashUtility`へ統合（ビット同一）。4.2: 町別販売/鍛冶ルールのswitch文を`WorldMapService`のテーブルへ置換し、旧switchをオラクルとする全810組合せ×2サービスのパリティテスト`TownAvailabilityParityTests`を追加。4.3: 装備品質倍率を`EquipmentInstance`へ移動。4.4/4.5はAction 3内で実施済み。
-- **これで改善計画（Action 1〜4、全20ステップ）はすべて完了。** Unity Test Runnerで106件中106件成功、コンパイル・動作確認もユーザーにより完了済み（2026-07-12）。今後の候補（BattleManager/DungeonRunManagerの分割、PlayModeテスト基盤等）は`handoff/CLAUDE_WORK_LOG.md`末尾を参照。
+- **これで改善計画（Action 1〜4、全20ステップ）はすべて完了。** Unity Test Runnerで106件中106件成功、コンパイル・動作確認もユーザーにより完了済み（2026-07-12）。
+
+## 2026-07-12 第2次改善計画（ロードマップ）を策定
+
+- 第1次計画完了後の再評価（定量比較・UI層再調査）を実施し、**第2次改善計画を`handoff/CLAUDE_WORK_LOG.md`に策定した。こちらが次の作業計画の正本。** どの環境（家Claude Code/学校Codex/教室Codex）が着手する場合も、同ファイルの「第2次改善計画」セクションのフェーズ表と「作業規約」に従い、完了時に表の状態を更新すること。
+- 概要: **フェーズA**（衛生・小規模: TutorialController抽出、死にコード削除、totalGoldEarned二重管理解消、ファイル名タイポ修正、ダンジョンタブUI崩れ修正 等6件）→ **フェーズB**（UI仕上げ: 共有色パレット、CharacterEquipmentControllerのデリゲート整理、ページUI準拠統一）→ **フェーズC**（最大の残負債: PlayModeテスト基盤→BattleManager分割→DungeonRunManager分割）→ **フェーズD**（長期候補、着手前にユーザー相談）。
+- 注意: チュートリアル機能（`SimpleMercenaryHireUI.Tutorial.cs`）は今後コントローラー抽出規約（CLAUDE_WORK_LOG.mdの「作業規約」参照）に沿って実装すること。新機能をMonoBehaviour直持ちで追加すると神クラスが再成長するため。
+
+## 2026-07-12 就活ポートフォリオ提出前評価とフェーズS追加
+
+- 本作が就活用ポートフォリオであることを踏まえた提出前リスク評価を実施。権利面の結論: 画像はChatGPT生成（ユーザー帰属・商用可・問題なし）、フォント同梱はZen Kurenaido（OFL、ライセンス文同梱済み）のみで問題なし。
+- **`CLAUDE_WORK_LOG.md`の第2次計画に「フェーズS（提出前仕上げ）」を追加**: S-1 README更新（完了: AI活用の実態明記+アセット出所セクション追加）、S-2 ダンジョンUIバグ修正、S-3 タイポ/文字化け/companyName、S-4 審査者向け導線+サンプルセーブ、S-5 ビルドのライセンス表記、S-6 面接想定問答。提出前はフェーズSを最優先とする。
+
+## 2026-07-13 フェーズA・B完了、フェーズC着手前
+
+- **フェーズA（衛生・小規模6件）・フェーズS（提出前仕上げ）は全項目完了し、ユーザーがUnity上で動作確認済み**（残るユーザー作業はS-4サンプルセーブ配置とS-6面接想定問答のみ）。
+- **フェーズB（UI層の仕上げ、B-1共有色パレット/B-2デリゲート整理/B-3ページUI準拠統一）も全項目完了**。Runtime/EditModeTests両build 0エラー。**Playモードでの見た目確認は未実施（雇用/転職/在庫/装備詳細画面）**。
+- 次は**フェーズC（Battle/Dungeon層の分割、最大の残負債）に着手予定**。C-1（PlayModeテスト基盤整備）が前提。詳細は`handoff/CLAUDE_WORK_LOG.md`の「第2次改善計画」フェーズC表を参照。
 - 詳細な計画・進捗・技術的な発見事項は `handoff/CLAUDE_WORK_LOG.md` を参照。次にClaude Codeで再開する場合は、このファイルを読んでから続きに着手すること。
 ## 2026-06-19 School Update
 
@@ -854,3 +871,65 @@
 - グローバルメニューからチュートリアルを再表示できるようにした。
 - `DungeonMerchant.Runtime.csproj`、`Assembly-CSharp-Editor.csproj`、`DungeonMerchant.EditModeTests.csproj`、`Assembly-CSharp.csproj` はすべて警告0件・エラー0件でビルド成功。
 - Unity上での表示位置、文字量、初回表示/完了後非表示の実動作確認は未確認。
+# 2026-07-13 フェーズC実装完了・Unity最終確認待ち
+
+- C-1: PlayModeテスト基盤を追加し、ユーザーが1/1成功を確認済み。
+- C-2: `BattleManager`から`BattleRewardService`、`BattleLogFormatter`、`BattleSkillResolver`、`BattleStatusEffectService`を抽出。1480行から602行へ縮小。
+- C-3: `DungeonRunManager`から`DungeonProgressStore`を抽出し、イベント表示状態を`DungeonEventState`へ統合。
+- 新規テスト追加後の期待件数はEditMode 133件、PlayMode 1件。
+- `dotnet build DungeonMerchant.sln`は警告0・エラー0。Unity Test RunnerでEditMode全133件とPlayMode 1件を再実行後、C-2/C-3を最終完了とする。
+
+# 2026-07-13 装備・スキル拡張と雇用UI刷新
+
+- 町の進行順に、市場/鍛冶屋の通常装備ランクをセイル1/2、リーフ2/3、エルド3/4、ノルン4/5、グラード5/6、ヴェルム6/7、アビス7/8へ設定した。
+- ダンジョン固有装備は各町の市場より2段階上とし、セイル3、リーフ4、エルド5、ノルン6、グラード7、ヴェルム8、アビス9へ設定した。Rank 10は通常の特殊ドロップ抽選から除外し、隠し要素専用として保持する。
+- 通常装備を各ランク3種（武器・防具・装飾品）、合計30種へ拡張した。全基本職が装備でき、特定職だけが有利にならない共通入門装備としている。
+- 装備ランクを文字色で識別する `EquipmentRankPresentation` を追加し、市場・鍛冶屋・在庫・装備詳細へ反映した。
+- 基本6職へ各2個、合計12個の固有スキルを追加した。スキルIDの重複を解消し、範囲攻撃全回避時の通常攻撃二重実行と祈光の挙動を修正した。
+- 日雇い・継続契約の雇用成功率を100%とし、永続契約のみ商人の雇用成功率を参照するよう変更した。
+- 雇用候補UIを羊皮紙の履歴書カードへ変更し、横スクロール、前後移動、候補番号、職業・役割・能力・略歴・契約条件を表示する形にした。内部IDと量産型表記は非表示。
+- 6基本職（戦士・弓使い・魔術師・僧侶・盗賊・槍使い）のポートレートシートを生成し、`MercenaryPortraitProvider` から職業別に中央トリミングして表示するようにした。
+- `dotnet build DungeonMerchant.sln --no-restore` は警告0・エラー0。
+- Unity実行で、画像再インポート後のポートレート表示、横スライド、各町の市場ランク帯、雇用成功率表示を確認する必要がある。
+
+# 2026-07-14 Rank 10隠し町・中央島アステラ
+
+- 全体マップ中央の隠し地域として、町index 7「アステラ秘匿都市」と地域index 3「中央島アステラ」を追加した。
+- 解放条件は、アビスの最高位ダンジョン完全攻略、通常ダンジョン全固有装備の発見、特殊ジョブLv50傭兵3名以上。`HiddenIslandUnlockService` が判定し、条件達成時に町解放状態へ保存する。
+- 装備条件は現在所持数ではなく図鑑の発見履歴で判定するため、売却済み装備も有効。中央島自身のRank 10装備は解放条件から除外して循環を防ぐ。
+- 解放前は全体マップの中央島ボタンを非表示とし、解放後だけ表示する。中央島航路は街道戦闘・日数経過なしで既に解放済みの町と往来できる。
+- アステラの町マップでは鍛冶屋と近隣ダンジョンだけを表示する。
+- Rank 10鍛冶レシピ3種と、7階層ダンジョン「星環深層」、Rank 10固有装備「星界断ち」「星界の守護衣」「星環の核」を追加した。
+- 解放条件を達成可能にするため、アビスの6階層ダンジョン「深淵王座」とRank 9固有装備3種も追加した。
+- 新規meta GUIDの重複は0件。`dotnet build DungeonMerchant.sln --no-restore` は警告0・エラー0。
+- Unity上で、条件未達時の完全非表示、条件達成通知、中央島航路、施設2種限定、Rank 9/10ドロップと鍛冶レシピ表示を確認する必要がある。
+# 2026-07-14 自動統合作業
+
+## 完了
+
+- ノルン、グラード、ヴェルム、アビス、星幽島のダンジョンとRank 6～10固有装備を追加・接続。
+- 隠し島は「アビス最高位踏破」「通常ダンジョン固有装備の全発見」「Lv上限の特殊職3名」で解放。解放前は非表示。
+- 町の市場Rankと鍛冶Rank、装備Rank色、固有セット効果を統一。
+- ダンジョンイベントを回復／時間／損害／報酬の明確な選択へ変更。
+- 特殊個体・特殊ボスの紫色表示、専用スキル、共通素材、特殊転職証ドロップを接続。
+- 日雇い契約は毎日の更新費支払い方式へ変更。専属契約のみ成立率を参照。
+- 戦闘速度1x／2x／4x、結果までスキップ、街道最大5体、ダンジョン別敵数上限を実装。
+- 序盤経験値を底上げし、上位等級の過剰成長を抑える中央計算式へ変更。
+- タイトル画面、新規ゲーム確認、効果音設定、8段階の物語表示、初回導線チュートリアルを追加。
+- UIクリック・戦闘・報酬のランタイム効果音基盤を追加。
+- 特殊職6種の専用肖像シートを生成し、履歴書型雇用カードへ接続。
+- 治療費を軽傷1G／HP、中傷2G／HP、重傷3G／HP、蘇生+50Gの段階式へ変更。
+- セーブデータVersion 21、物語進行保存、旧セーブ移行を追加。
+- `dotnet build DungeonMerchant.sln --no-restore` は警告0・エラー0。
+- 独立コピーでUnity Test Runnerを実行し、EditMode 252/252、PlayMode 2/2成功。
+- `-runTests` 実行中は `SaveManager` が実セーブを書き換えないよう自動保存を抑止。
+
+## Unityで最終確認する項目
+
+- タイトルから「続きから」「新しく始める」「設定」が正しく遷移すること。
+- 新規ゲーム後に第一章とチュートリアルが順番に一度だけ表示されること。
+- 町マップから雇用、編成、近隣ダンジョンまで迷わず進めること。
+- 戦闘スキップ時も経験値、G、ドロップ、状態異常、イベントが通常速度と一致すること。
+- 特殊個体名が紫で表示され、ログの文字列が欠けないこと。
+- 隠し島の3条件とRank 10鍛冶・ダンジョンが実プレイで接続されること。
+- 10分間の手動通しプレイで、各画面の文字切れ・操作感・実際の難易度を最終確認すること。

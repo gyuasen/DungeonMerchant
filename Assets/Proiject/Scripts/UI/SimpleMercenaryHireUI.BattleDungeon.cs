@@ -41,6 +41,18 @@ public partial class SimpleMercenaryHireUI
         battleSpeedRect.sizeDelta = new Vector2(100f, 38f);
         battleSpeedRect.anchoredPosition = new Vector2(-140f, -36f);
 
+        battleSkipButton = CreateActionButton(
+            battlePage,
+            "結果まで",
+            () => dungeonBattleController.SkipBattleToEnd());
+        RectTransform battleSkipRect =
+            battleSkipButton.GetComponent<RectTransform>();
+        battleSkipRect.anchorMin = battleSkipRect.anchorMax =
+            new Vector2(1f, 1f);
+        battleSkipRect.pivot = new Vector2(1f, 1f);
+        battleSkipRect.sizeDelta = new Vector2(110f, 38f);
+        battleSkipRect.anchoredPosition = new Vector2(-20f, -36f);
+
         battleLogPanel = CreateUIObject("Battle Log", battlePage);
         battleLogPanel.anchorMin = new Vector2(0f, 0f);
         battleLogPanel.anchorMax = new Vector2(1f, 1f);
@@ -129,6 +141,18 @@ public partial class SimpleMercenaryHireUI
         roadSpeedRect.sizeDelta = new Vector2(100f, 38f);
         roadSpeedRect.anchoredPosition = new Vector2(-270f, -4f);
 
+        roadSkipButton = CreateActionButton(
+            roadBattlePage,
+            "結果まで",
+            () => dungeonBattleController.SkipBattleToEnd());
+        RectTransform roadSkipRect =
+            roadSkipButton.GetComponent<RectTransform>();
+        roadSkipRect.anchorMin = roadSkipRect.anchorMax =
+            new Vector2(1f, 1f);
+        roadSkipRect.pivot = new Vector2(1f, 1f);
+        roadSkipRect.sizeDelta = new Vector2(100f, 38f);
+        roadSkipRect.anchoredPosition = new Vector2(-380f, -4f);
+
         roadContinueButton =
             CreateActionButton(
                 roadBattlePage,
@@ -192,11 +216,16 @@ public partial class SimpleMercenaryHireUI
         startRect.pivot = new Vector2(1f, 1f);
         startRect.anchoredPosition = new Vector2(0f, -36f);
 
+        // 上端アンカー型で作る。DungeonPageUI.RefreshSelection が
+        // sizeDelta.y を「リストの高さ」として設定するため、ストレッチ型
+        // (anchorMin.y=0) にすると矩形が上方向へ拡張されてヘッダーに
+        // 重なる（旧UI崩れの原因）。他のスクロールリストと同じ規約に合わせる。
         dungeonSelectionList = CreateUIObject("Dungeon Selection List", dungeonPage);
-        dungeonSelectionList.anchorMin = new Vector2(0f, 0f);
+        dungeonSelectionList.anchorMin = new Vector2(0f, 1f);
         dungeonSelectionList.anchorMax = new Vector2(1f, 1f);
-        dungeonSelectionList.offsetMin = Vector2.zero;
-        dungeonSelectionList.offsetMax = new Vector2(0f, -174f);
+        dungeonSelectionList.pivot = new Vector2(0.5f, 1f);
+        dungeonSelectionList.anchoredPosition = new Vector2(0f, -174f);
+        dungeonSelectionList.sizeDelta = new Vector2(0f, 150f);
 
         dungeonEventTitleText = CreateText(
             dungeonPage,
@@ -348,6 +377,16 @@ public partial class SimpleMercenaryHireUI
 
     private void HandleBattleMessage(string message, BattleLogType logType)
     {
+        if (logType == BattleLogType.Reward)
+        {
+            audioFeedbackService?.Play(UISoundCue.Reward);
+        }
+        else if (logType == BattleLogType.Player ||
+                 logType == BattleLogType.Enemy)
+        {
+            audioFeedbackService?.Play(UISoundCue.BattleAttack);
+        }
+
         battleLogText.text =
             dungeonBattleController.AppendBattleMessage(message, logType);
 
@@ -439,6 +478,7 @@ public partial class SimpleMercenaryHireUI
 
     private void HandleDungeonCompleted(bool cleared)
     {
+        bool hiddenIslandUnlocked = TryUnlockHiddenIsland();
         string result = progressionManager != null
             ? progressionManager.LastExplorationResult
             : string.Empty;
@@ -450,6 +490,11 @@ public partial class SimpleMercenaryHireUI
         if (!string.IsNullOrEmpty(result))
         {
             statusText.text += $" {result}";
+        }
+        if (hiddenIslandUnlocked)
+        {
+            statusText.text =
+                "全条件を達成しました。全体マップ中央に新たな島が出現しました。";
         }
         ShowDungeonPage();
         bool fullyCleared =
@@ -525,6 +570,9 @@ public partial class SimpleMercenaryHireUI
         startBattleButton.interactable =
             partyManager.Members.Count > 0 && !battleManager.IsBattling;
         startBattleButton.gameObject.SetActive(false);
+        battleSkipButton.interactable =
+            battleManager.IsBattling &&
+            !battleManager.IsSkippingToBattleEnd;
         statusText.text = $"戦闘参加: 傭兵{partyManager.Members.Count}人";
     }
 
@@ -545,6 +593,9 @@ public partial class SimpleMercenaryHireUI
             roadTravelState.IsAwaitingChoice);
         roadRetreatButton.gameObject.SetActive(
             roadTravelState.IsAwaitingChoice);
+        roadSkipButton.interactable =
+            battleManager.IsBattling &&
+            !battleManager.IsSkippingToBattleEnd;
         roadBattleRouteText.text =
             $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]} → " +
             $"{WorldMapService.TownNames[roadTravelState.DestinationTownIndex]}\n" +

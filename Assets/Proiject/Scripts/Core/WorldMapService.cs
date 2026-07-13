@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 public static class WorldMapService
 {
+    public const int HiddenIslandTownIndex = 7;
+    public const int HiddenIslandWorldMapIndex = 3;
+
     public static readonly string[] TownNames =
     {
         "エルド交易都市",
@@ -11,12 +14,13 @@ public static class WorldMapService
         "ノルン樹冠都市",
         "グラード山塞都市",
         "ヴェルム黒鉄都市",
-        "アビス辺境都市"
+        "アビス辺境都市",
+        "アステラ秘匿都市"
     };
 
     public static readonly int[] TownWorldMapIndices =
     {
-        0, 0, 0, 1, 1, 2, 2
+        0, 0, 0, 1, 1, 2, 2, HiddenIslandWorldMapIndex
     };
 
     public static readonly int[] TownProgressionOrder =
@@ -28,7 +32,8 @@ public static class WorldMapService
     {
         "東方平原地域",
         "北西山岳森林地域",
-        "南西黒土地域"
+        "南西黒土地域",
+        "中央島アステラ"
     };
 
     public static int TownCount => TownNames.Length;
@@ -85,6 +90,14 @@ public static class WorldMapService
 
     public static bool AreTownsAdjacent(int leftTown, int rightTown)
     {
+        if (leftTown == HiddenIslandTownIndex ||
+            rightTown == HiddenIslandTownIndex)
+        {
+            return IsValidTownIndex(leftTown) &&
+                   IsValidTownIndex(rightTown) &&
+                   leftTown != rightTown;
+        }
+
         int leftPosition = GetTownProgressionPosition(leftTown);
         int rightPosition = GetTownProgressionPosition(rightTown);
         return leftPosition >= 0 &&
@@ -191,6 +204,13 @@ public static class WorldMapService
         IEnumerable<int> unlockedTownIndices,
         Func<int, bool> isGateTownFullyCleared)
     {
+        if (worldMapIndex == HiddenIslandWorldMapIndex)
+        {
+            return HasUnlockedTownInWorld(
+                unlockedTownIndices,
+                HiddenIslandWorldMapIndex);
+        }
+
         if (worldMapIndex <= 0 ||
             GetWorldMapIndexForTown(currentTownIndex) == worldMapIndex ||
             HasUnlockedTownInWorld(unlockedTownIndices, worldMapIndex))
@@ -212,6 +232,31 @@ public static class WorldMapService
         Func<int, bool> isGateTownFullyCleared)
     {
         destinationTownIndex = ClampTownIndex(destinationTownIndex);
+
+        HashSet<int> unlocked =
+            unlockedTownIndices as HashSet<int> ??
+            new HashSet<int>(unlockedTownIndices ?? Array.Empty<int>());
+        if (destinationTownIndex == HiddenIslandTownIndex ||
+            currentTownIndex == HiddenIslandTownIndex)
+        {
+            if (!unlocked.Contains(HiddenIslandTownIndex))
+            {
+                return new TravelValidationResult(
+                    false,
+                    false,
+                    "中央島へ至る航路はまだ発見されていません。");
+            }
+
+            if (!unlocked.Contains(destinationTownIndex))
+            {
+                return new TravelValidationResult(
+                    false,
+                    false,
+                    "未解放の町へ中央島航路から移動することはできません。");
+            }
+
+            return new TravelValidationResult(true, false, string.Empty);
+        }
 
         if (!AreTownsAdjacent(destinationTownIndex, currentTownIndex))
         {
@@ -238,9 +283,6 @@ public static class WorldMapService
                 $"{WorldRegionNames[destinationWorld]}の解放条件を満たしていません。");
         }
 
-        HashSet<int> unlocked =
-            unlockedTownIndices as HashSet<int> ??
-            new HashSet<int>(unlockedTownIndices ?? Array.Empty<int>());
         bool isUnlockTravel = !unlocked.Contains(destinationTownIndex);
         if (isUnlockTravel)
         {
@@ -276,61 +318,66 @@ public static class WorldMapService
             : townIndex;
     }
 
-    // --- 町別の装備販売/鍛冶レシピ許可ルール ---
-    // MarketStockManager.IsAvailableInCurrentTown / BlacksmithManager.
-    // IsRecipeAvailableInCurrentTown にあった switch 文をテーブル化したもの。
-    // 各行は「いずれかの条件を満たせば許可」の論理和として評価される。
-    // 行の内容は旧 switch の各 case を逐語転記しており、市場と鍛冶で
-    // ルールが異なるのは元仕様どおり（TownAvailabilityParityTests が
-    // 旧 switch のオラクルとの完全一致を検証している）。
-
-    private sealed class TownEquipmentRule
+    public readonly struct EquipmentRankRange
     {
-        public bool AllowAll;
-        public int? MaxRank;
-        public int? MinRank;
-        public MercenaryClass[] Classes;
-        public EquipmentSlot[] Slots;
+        public EquipmentRankRange(int minimum, int maximum)
+        {
+            Minimum = minimum;
+            Maximum = maximum;
+        }
+
+        public int Minimum { get; }
+        public int Maximum { get; }
+        public bool Contains(int rank) => rank >= Minimum && rank <= Maximum;
     }
 
-    // index 0-5 = 町番号、index 6 = 旧 switch の default（町6と範囲外）
-    private static readonly TownEquipmentRule[] MarketEquipmentRules =
+    public static EquipmentRankRange GetMarketEquipmentRankRange(int townIndex)
     {
-        new TownEquipmentRule { AllowAll = true },                                     // 0
-        new TownEquipmentRule { MaxRank = 1, Classes = new[] {                         // 1
-            MercenaryClass.Archer, MercenaryClass.Rogue } },
-        new TownEquipmentRule { MaxRank = 1 },                                         // 2
-        new TownEquipmentRule { Classes = new[] {                                      // 3
-            MercenaryClass.Archer, MercenaryClass.Mage, MercenaryClass.Priest },
-            Slots = new[] { EquipmentSlot.Accessory } },
-        new TownEquipmentRule { Classes = new[] {                                      // 4
-            MercenaryClass.Warrior, MercenaryClass.Lancer, MercenaryClass.Priest } },
-        new TownEquipmentRule { MinRank = 2, Classes = new[] {                         // 5
-            MercenaryClass.Warrior, MercenaryClass.Mage, MercenaryClass.Lancer } },
-        new TownEquipmentRule { MinRank = 2,                                           // default
-            Slots = new[] { EquipmentSlot.Accessory } }
-    };
+        int rank = GetTownEquipmentRank(townIndex);
+        return new EquipmentRankRange(rank, rank);
+    }
 
-    private static readonly TownEquipmentRule[] BlacksmithEquipmentRules =
+    public static EquipmentRankRange GetBlacksmithEquipmentRankRange(int townIndex)
     {
-        new TownEquipmentRule { Classes = new[] {                                      // 0
-            MercenaryClass.Warrior, MercenaryClass.Priest, MercenaryClass.Lancer },
-            Slots = new[] { EquipmentSlot.Accessory } },
-        new TownEquipmentRule { Classes = new[] {                                      // 1
-            MercenaryClass.Archer, MercenaryClass.Rogue },
-            Slots = new[] { EquipmentSlot.Accessory } },
-        new TownEquipmentRule { Classes = new[] {                                      // 2
-            MercenaryClass.Warrior, MercenaryClass.Archer, MercenaryClass.Mage } },
-        new TownEquipmentRule { Classes = new[] {                                      // 3
-            MercenaryClass.Archer, MercenaryClass.Mage, MercenaryClass.Priest } },
-        new TownEquipmentRule { Classes = new[] {                                      // 4
-            MercenaryClass.Warrior, MercenaryClass.Lancer },
-            Slots = new[] { EquipmentSlot.Armor } },
-        new TownEquipmentRule { Classes = new[] {                                      // 5
-            MercenaryClass.Mage, MercenaryClass.Rogue, MercenaryClass.Lancer },
-            Slots = new[] { EquipmentSlot.Weapon } },
-        new TownEquipmentRule { MinRank = 3 }                                          // default
-    };
+        int rank = Math.Min(GetTownEquipmentRank(townIndex) + 1, 10);
+        return new EquipmentRankRange(rank, rank);
+    }
+
+    public static int GetDungeonEquipmentRank(int townIndex)
+    {
+        if (townIndex == HiddenIslandTownIndex)
+        {
+            return 10;
+        }
+
+        // Standard dungeon equipment is two ranks above the local market.
+        // Rank 10 is deliberately excluded and reserved for hidden rewards.
+        return Math.Min(GetTownEquipmentRank(townIndex) + 2, 9);
+    }
+
+    public static bool IsStandardDungeonEquipmentRank(
+        int townIndex,
+        int equipmentRank)
+    {
+        return equipmentRank == GetDungeonEquipmentRank(townIndex) &&
+               equipmentRank < 10;
+    }
+
+    public static bool IsDungeonEquipmentRankAllowed(
+        int townIndex,
+        int equipmentRank)
+    {
+        return equipmentRank == GetDungeonEquipmentRank(townIndex) &&
+               (equipmentRank < 10 || townIndex == HiddenIslandTownIndex);
+    }
+
+    public static int GetNextTownInProgression(int townIndex)
+    {
+        int position = GetTownProgressionPosition(townIndex);
+        return position >= 0 && position < TownProgressionOrder.Length - 1
+            ? TownProgressionOrder[position + 1]
+            : townIndex;
+    }
 
     public static bool IsMarketEquipmentAllowedInTown(
         int townIndex,
@@ -338,11 +385,7 @@ public static class WorldMapService
         int equipmentRank,
         EquipmentSlot slot)
     {
-        return EvaluateRule(
-            SelectRule(MarketEquipmentRules, townIndex),
-            baseClass,
-            equipmentRank,
-            slot);
+        return GetMarketEquipmentRankRange(townIndex).Contains(equipmentRank);
     }
 
     public static bool IsBlacksmithEquipmentAllowedInTown(
@@ -351,52 +394,18 @@ public static class WorldMapService
         int equipmentRank,
         EquipmentSlot slot)
     {
-        return EvaluateRule(
-            SelectRule(BlacksmithEquipmentRules, townIndex),
-            baseClass,
-            equipmentRank,
-            slot);
+        return GetBlacksmithEquipmentRankRange(townIndex).Contains(equipmentRank);
     }
 
-    private static TownEquipmentRule SelectRule(
-        TownEquipmentRule[] rules,
-        int townIndex)
+    private static int GetTownEquipmentRank(int townIndex)
     {
-        // 旧 switch は case 0-5 を明示し、それ以外（町6・範囲外）は
-        // default に落ちていた。その分岐を厳密に再現する。
-        return townIndex >= 0 && townIndex <= 5
-            ? rules[townIndex]
-            : rules[6];
+        if (townIndex == HiddenIslandTownIndex)
+        {
+            return 10;
+        }
+
+        int position = GetTownProgressionPosition(townIndex);
+        return position >= 0 ? Math.Min(position + 1, 10) : 1;
     }
 
-    private static bool EvaluateRule(
-        TownEquipmentRule rule,
-        MercenaryClass baseClass,
-        int equipmentRank,
-        EquipmentSlot slot)
-    {
-        if (rule.AllowAll)
-        {
-            return true;
-        }
-        if (rule.MaxRank.HasValue && equipmentRank <= rule.MaxRank.Value)
-        {
-            return true;
-        }
-        if (rule.MinRank.HasValue && equipmentRank >= rule.MinRank.Value)
-        {
-            return true;
-        }
-        if (rule.Classes != null &&
-            Array.IndexOf(rule.Classes, baseClass) >= 0)
-        {
-            return true;
-        }
-        if (rule.Slots != null &&
-            Array.IndexOf(rule.Slots, slot) >= 0)
-        {
-            return true;
-        }
-        return false;
-    }
 }

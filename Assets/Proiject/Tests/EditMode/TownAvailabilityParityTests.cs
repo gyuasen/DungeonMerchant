@@ -1,145 +1,143 @@
 using NUnit.Framework;
+using UnityEngine;
 
-// Action 4.2 の回帰ガード。MarketStockManager / BlacksmithManager にあった
-// 町別 availability switch 文を WorldMapService のテーブルへ置き換えた際、
-// 出力が完全一致することを検証する。
-//
-// Oracle*Rule メソッドは置き換え前の switch 文（git 履歴上の
-// MarketStockManager.IsAvailableInCurrentTown / BlacksmithManager.
-// IsRecipeAvailableInCurrentTown）からの逐語転記であり、新テーブルとは
-// 独立に「元の真実」を表す。テーブル側を変更する場合は、意図的な仕様変更で
-// ある場合に限り、このオラクルも同時に更新すること。
 public sealed class TownAvailabilityParityTests
 {
-    private static readonly int[] TownIndices = { 0, 1, 2, 3, 4, 5, 6, 7, -1 };
-    private static readonly MercenaryClass[] BaseClasses =
+    [TestCase(2, 1)]
+    [TestCase(1, 2)]
+    [TestCase(0, 3)]
+    [TestCase(3, 4)]
+    [TestCase(4, 5)]
+    [TestCase(5, 6)]
+    [TestCase(6, 7)]
+    public void MarketRankRange_FollowsTownProgression(
+        int townIndex, int expectedRank)
     {
-        MercenaryClass.Warrior,
-        MercenaryClass.Archer,
-        MercenaryClass.Mage,
-        MercenaryClass.Priest,
-        MercenaryClass.Rogue,
-        MercenaryClass.Lancer
-    };
-    private static readonly int[] Ranks = { 0, 1, 2, 3, 4 };
-    private static readonly EquipmentSlot[] Slots =
-    {
-        EquipmentSlot.Weapon,
-        EquipmentSlot.Armor,
-        EquipmentSlot.Accessory
-    };
+        WorldMapService.EquipmentRankRange range =
+            WorldMapService.GetMarketEquipmentRankRange(townIndex);
 
-    [Test]
-    public void MarketTable_MatchesOriginalSwitch_ForAllCombinations()
+        Assert.That(range.Minimum, Is.EqualTo(expectedRank));
+        Assert.That(range.Maximum, Is.EqualTo(expectedRank));
+        Assert.That(range.Contains(expectedRank - 1), Is.False);
+        Assert.That(range.Contains(expectedRank + 1), Is.False);
+    }
+
+    [TestCase(2, 2)]
+    [TestCase(1, 3)]
+    [TestCase(0, 4)]
+    [TestCase(3, 5)]
+    [TestCase(4, 6)]
+    [TestCase(5, 7)]
+    [TestCase(6, 8)]
+    public void Blacksmith_UsesOneRankAboveTheTownMarket(
+        int townIndex, int expectedRank)
     {
-        foreach (int town in TownIndices)
-        foreach (MercenaryClass itemClass in BaseClasses)
-        foreach (int rank in Ranks)
-        foreach (EquipmentSlot slot in Slots)
-        {
-            bool expected = OracleMarketRule(town, itemClass, rank, slot);
-            bool actual = WorldMapService.IsMarketEquipmentAllowedInTown(
-                town, itemClass, rank, slot);
-            Assert.That(
-                actual,
-                Is.EqualTo(expected),
-                $"market town={town} class={itemClass} rank={rank} slot={slot}");
-        }
+        WorldMapService.EquipmentRankRange range =
+            WorldMapService.GetBlacksmithEquipmentRankRange(townIndex);
+
+        Assert.That(range.Minimum, Is.EqualTo(expectedRank));
+        Assert.That(range.Maximum, Is.EqualTo(expectedRank));
+        Assert.That(WorldMapService.IsBlacksmithEquipmentAllowedInTown(
+            townIndex,
+            MercenaryClass.Warrior,
+            expectedRank,
+            EquipmentSlot.Weapon), Is.True);
+        Assert.That(WorldMapService.IsBlacksmithEquipmentAllowedInTown(
+            townIndex,
+            MercenaryClass.Warrior,
+            expectedRank - 1,
+            EquipmentSlot.Weapon), Is.False);
+    }
+
+    [TestCase(2, 3)]
+    [TestCase(1, 4)]
+    [TestCase(0, 5)]
+    [TestCase(3, 6)]
+    [TestCase(4, 7)]
+    [TestCase(5, 8)]
+    [TestCase(6, 9)]
+    public void DungeonEquipment_UsesTwoRanksAboveTheTownMarket(
+        int townIndex, int expectedRank)
+    {
+        Assert.That(
+            WorldMapService.GetDungeonEquipmentRank(townIndex),
+            Is.EqualTo(expectedRank));
+        Assert.That(
+            WorldMapService.IsStandardDungeonEquipmentRank(
+                townIndex,
+                expectedRank),
+            Is.True);
+        Assert.That(
+            WorldMapService.IsStandardDungeonEquipmentRank(townIndex, 10),
+            Is.False);
     }
 
     [Test]
-    public void BlacksmithTable_MatchesOriginalSwitch_ForAllCombinations()
+    public void ConfiguredDungeonLimitedDrops_MatchTheirTownRank()
     {
-        foreach (int town in TownIndices)
-        foreach (MercenaryClass itemClass in BaseClasses)
-        foreach (int rank in Ranks)
-        foreach (EquipmentSlot slot in Slots)
+        DungeonDataSO[] dungeons =
+            Resources.LoadAll<DungeonDataSO>("GameData/Dungeons");
+
+        Assert.That(dungeons, Is.Not.Empty);
+        foreach (DungeonDataSO dungeon in dungeons)
         {
-            bool expected = OracleBlacksmithRule(town, itemClass, rank, slot);
-            bool actual = WorldMapService.IsBlacksmithEquipmentAllowedInTown(
-                town, itemClass, rank, slot);
-            Assert.That(
-                actual,
-                Is.EqualTo(expected),
-                $"blacksmith town={town} class={itemClass} rank={rank} slot={slot}");
+            if (dungeon.limitedEquipmentDrops == null)
+            {
+                continue;
+            }
+
+            int expectedRank = WorldMapService.GetDungeonEquipmentRank(
+                dungeon.nearbyTownIndex);
+            foreach (ItemDataSO item in dungeon.limitedEquipmentDrops)
+            {
+                Assert.That(item, Is.Not.Null, dungeon.dungeonName);
+                Assert.That(
+                    item.equipmentRank,
+                    Is.EqualTo(expectedRank),
+                    $"{dungeon.dungeonName}: {item.itemName}");
+                if (dungeon.nearbyTownIndex ==
+                    WorldMapService.HiddenIslandTownIndex)
+                {
+                    Assert.That(item.equipmentRank, Is.EqualTo(10));
+                }
+                else
+                {
+                    Assert.That(item.equipmentRank, Is.LessThan(10));
+                }
+            }
         }
     }
 
-    // 旧 MarketStockManager.IsAvailableInCurrentTown の switch を逐語転記。
-    private static bool OracleMarketRule(
-        int currentTownIndex,
-        MercenaryClass itemClass,
-        int equipmentRank,
-        EquipmentSlot equipmentSlot)
+    [Test]
+    public void HiddenIsland_ExclusivelyProvidesRankTen()
     {
-        switch (currentTownIndex)
-        {
-            case 2:
-                return equipmentRank <= 1;
-            case 1:
-                return equipmentRank <= 1 ||
-                       itemClass == MercenaryClass.Archer ||
-                       itemClass == MercenaryClass.Rogue;
-            case 0:
-                return true;
-            case 3:
-                return itemClass == MercenaryClass.Archer ||
-                       itemClass == MercenaryClass.Mage ||
-                       itemClass == MercenaryClass.Priest ||
-                       equipmentSlot == EquipmentSlot.Accessory;
-            case 4:
-                return itemClass == MercenaryClass.Warrior ||
-                       itemClass == MercenaryClass.Lancer ||
-                       itemClass == MercenaryClass.Priest;
-            case 5:
-                return itemClass == MercenaryClass.Warrior ||
-                       itemClass == MercenaryClass.Mage ||
-                       itemClass == MercenaryClass.Lancer ||
-                       equipmentRank >= 2;
-            default:
-                return equipmentRank >= 2 ||
-                       equipmentSlot == EquipmentSlot.Accessory;
-        }
+        Assert.That(
+            WorldMapService.GetBlacksmithEquipmentRankRange(
+                WorldMapService.HiddenIslandTownIndex).Contains(10),
+            Is.True);
+        Assert.That(
+            WorldMapService.GetDungeonEquipmentRank(
+                WorldMapService.HiddenIslandTownIndex),
+            Is.EqualTo(10));
+        Assert.That(
+            WorldMapService.IsStandardDungeonEquipmentRank(
+                WorldMapService.HiddenIslandTownIndex,
+                10),
+            Is.False);
+        Assert.That(
+            WorldMapService.IsDungeonEquipmentRankAllowed(
+                WorldMapService.HiddenIslandTownIndex,
+                10),
+            Is.True);
     }
 
-    // 旧 BlacksmithManager.IsRecipeAvailableInCurrentTown の switch を逐語転記
-    // （"Mutant Core Charm" の特例はマネージャー側に残存しているため対象外）。
-    private static bool OracleBlacksmithRule(
-        int currentTownIndex,
-        MercenaryClass itemClass,
-        int equipmentRank,
-        EquipmentSlot equipmentSlot)
+    [TestCase(1)]
+    [TestCase(5)]
+    [TestCase(10)]
+    public void RankPresentation_ProvidesColoredExplicitRank(int rank)
     {
-        switch (currentTownIndex)
-        {
-            case 2:
-                return itemClass == MercenaryClass.Warrior ||
-                       itemClass == MercenaryClass.Archer ||
-                       itemClass == MercenaryClass.Mage;
-            case 1:
-                return itemClass == MercenaryClass.Archer ||
-                       itemClass == MercenaryClass.Rogue ||
-                       equipmentSlot == EquipmentSlot.Accessory;
-            case 0:
-                return itemClass == MercenaryClass.Warrior ||
-                       itemClass == MercenaryClass.Priest ||
-                       itemClass == MercenaryClass.Lancer ||
-                       equipmentSlot == EquipmentSlot.Accessory;
-            case 3:
-                return itemClass == MercenaryClass.Archer ||
-                       itemClass == MercenaryClass.Mage ||
-                       itemClass == MercenaryClass.Priest;
-            case 4:
-                return itemClass == MercenaryClass.Warrior ||
-                       itemClass == MercenaryClass.Lancer ||
-                       equipmentSlot == EquipmentSlot.Armor;
-            case 5:
-                return itemClass == MercenaryClass.Mage ||
-                       itemClass == MercenaryClass.Rogue ||
-                       itemClass == MercenaryClass.Lancer ||
-                       equipmentSlot == EquipmentSlot.Weapon;
-            default:
-                return equipmentRank >= 3;
-        }
+        string text = EquipmentRankPresentation.GetRichText(rank);
+        Assert.That(text, Does.Contain("Rank " + rank));
+        Assert.That(text, Does.StartWith("<color=#"));
     }
 }

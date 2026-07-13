@@ -6,6 +6,12 @@ public static class TownServicePolicy
     public static bool IsHiringAvailable(int townIndex)
     {
         return townIndex != VelmTownIndex &&
-               townIndex != AbyssTownIndex;
+               townIndex != AbyssTownIndex &&
+               townIndex != WorldMapService.HiddenIslandTownIndex;
+    }
+
+    public static bool IsHiddenIslandTown(int townIndex)
+    {
+        return townIndex == WorldMapService.HiddenIslandTownIndex;
     }
 }

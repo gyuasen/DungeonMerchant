@@ -16,10 +16,8 @@ public class ProgressionManager : MonoBehaviour
     [SerializeField, Range(0, 3)] private int storageTier;
     [SerializeField] private int totalDungeonClears;
     [SerializeField] private int profitableDungeonClears;
-    [SerializeField] private int totalGoldEarned;
     [SerializeField] private int explorationExtraDays;
     [SerializeField] private int explorationStartGold;
-    [SerializeField] private int lastObservedGold;
 
     public IReadOnlyList<QuestRecord> Quests => quests;
     public int StorageTier => storageTier;
@@ -33,7 +31,7 @@ public class ProgressionManager : MonoBehaviour
     public int TotalDungeonClears => totalDungeonClears;
     public int TotalGoldEarned => merchantData != null
         ? merchantData.LifetimeGoldEarned
-        : totalGoldEarned;
+        : 0;
     public int ProfitableDungeonClears => profitableDungeonClears;
     public string LastExplorationResult { get; private set; } = string.Empty;
 
@@ -44,8 +42,6 @@ public class ProgressionManager : MonoBehaviour
         ResolveReferences();
         PopulateSpecialQuests();
         GenerateNormalQuestsIfNeeded();
-        lastObservedGold = merchantData != null ? merchantData.Gold : 0;
-        if (merchantData != null) merchantData.GoldChanged += HandleGoldChanged;
         if (dayManager != null) dayManager.DayChanged += HandleDayChanged;
         if (battleManager != null)
         {
@@ -63,7 +59,6 @@ public class ProgressionManager : MonoBehaviour
 
     private void OnDisable()
     {
-        if (merchantData != null) merchantData.GoldChanged -= HandleGoldChanged;
         if (dayManager != null) dayManager.DayChanged -= HandleDayChanged;
         if (battleManager != null)
         {
@@ -184,7 +179,6 @@ public class ProgressionManager : MonoBehaviour
             storageTier = storageTier,
             totalDungeonClears = totalDungeonClears,
             profitableDungeonClears = profitableDungeonClears,
-            totalGoldEarned = totalGoldEarned,
             quests = new List<QuestRecord>(quests)
         };
     }
@@ -198,7 +192,6 @@ public class ProgressionManager : MonoBehaviour
         storageTier = Mathf.Clamp(data.storageTier, 0, 3);
         totalDungeonClears = Mathf.Max(0, data.totalDungeonClears);
         profitableDungeonClears = Mathf.Max(0, data.profitableDungeonClears);
-        totalGoldEarned = Mathf.Max(0, data.totalGoldEarned);
         quests = data.quests ?? new List<QuestRecord>();
         GenerateNormalQuestsIfNeeded();
         ProgressionChanged?.Invoke();
@@ -321,15 +314,6 @@ public class ProgressionManager : MonoBehaviour
         }
         GenerateNormalQuestsIfNeeded();
         ProgressionChanged?.Invoke();
-    }
-
-    private void HandleGoldChanged(int currentGold)
-    {
-        if (currentGold > lastObservedGold)
-        {
-            totalGoldEarned += currentGold - lastObservedGold;
-        }
-        lastObservedGold = currentGold;
     }
 
     private void GenerateNormalQuestsIfNeeded()
@@ -474,6 +458,5 @@ public class ProgressionSaveData
     public int storageTier;
     public int totalDungeonClears;
     public int profitableDungeonClears;
-    public int totalGoldEarned;
     public List<QuestRecord> quests = new List<QuestRecord>();
 }

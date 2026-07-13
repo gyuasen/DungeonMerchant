@@ -191,6 +191,28 @@ public sealed class HireAndPartyController
         partyManager.Remove(mercenary);
     }
 
+    public void ReleaseMercenary(MercenaryInstance mercenary)
+    {
+        if (mercenary == null || !hireManager.TryReleaseMercenary(mercenary))
+        {
+            setStatus("契約を解除できませんでした。");
+            return;
+        }
+
+        if (mercenary.BaseData != null)
+        {
+            hiredCandidates.Remove(mercenary.BaseData);
+        }
+
+        setStatus($"{mercenary.MercenaryName}との契約を解除しました。");
+        refreshCompanyPage();
+        refreshPartyPage();
+        refreshHealPage();
+        refreshJobChangePage();
+        refreshUI();
+        saveManager?.SaveGame();
+    }
+
     public void HealMercenary(MercenaryInstance mercenary)
     {
         if (mercenary == null)

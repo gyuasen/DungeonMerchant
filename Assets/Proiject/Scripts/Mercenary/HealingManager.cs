@@ -9,14 +9,11 @@ public class HealingManager : MonoBehaviour
     [SerializeField] private DayManager dayManager;
 
     [Header("Healing Settings")]
-    [SerializeField, Min(0)] private int healCostPerHP = 2;
-    [SerializeField, Min(1)] private int incapacitatedCostMultiplier = 5;
-    [SerializeField, Min(0)] private int revivalBaseCost = 500;
     [SerializeField, Min(0)] private int naturalHealPerDay = 10;
 
-    public int HealCostPerHP => healCostPerHP;
-    public int IncapacitatedCostMultiplier => incapacitatedCostMultiplier;
-    public int RevivalBaseCost => revivalBaseCost;
+    public int HealCostPerHP => HealingCostService.LightInjuryRate;
+    public int IncapacitatedCostMultiplier => 1;
+    public int RevivalBaseCost => HealingCostService.RevivalCost;
     public int NaturalHealPerDay => naturalHealPerDay;
 
     public event Action HealingChanged;
@@ -50,18 +47,18 @@ public class HealingManager : MonoBehaviour
 
     public int GetFullHealCost(MercenaryInstance mercenary)
     {
-        if (mercenary == null)
-        {
-            return 0;
-        }
+        return GetFullHealCostBreakdown(mercenary).TotalCost;
+    }
 
-        int normalCost = GetMissingHP(mercenary) * healCostPerHP;
-        if (!mercenary.IsIncapacitated)
-        {
-            return normalCost;
-        }
-
-        return (normalCost * incapacitatedCostMultiplier) + revivalBaseCost;
+    public HealingCostBreakdown GetFullHealCostBreakdown(
+        MercenaryInstance mercenary)
+    {
+        return mercenary == null
+            ? HealingCostService.CalculateFullHealCost(0, 0, false)
+            : HealingCostService.CalculateFullHealCost(
+                mercenary.MaxHP,
+                mercenary.CurrentHP,
+                mercenary.IsIncapacitated);
     }
 
     public bool CanHeal(MercenaryInstance mercenary)

@@ -23,7 +23,7 @@ public class ItemDataSO : ScriptableObject, IPersistentGameAsset
     public MercenaryClass requiredClass = MercenaryClass.Warrior;
     public bool allClassesCanEquip;
     public EquipmentSetId equipmentSet = EquipmentSetId.None;
-    [Min(1)] public int equipmentRank = 1;
+    [Range(1, 10)] public int equipmentRank = 1;
     public int bonusMaxHP;
     public int bonusAttack;
     public int bonusDefense;
@@ -60,5 +60,10 @@ public enum EquipmentSetId
     Vanguard,
     Windstalker,
     ArcaneSage,
-    OniHunter
+    OniHunter,
+    NornCanopy,
+    GlaadSkyFortress,
+    VelmBlackIron,
+    AbyssThrone,
+    AstralDepths
 }

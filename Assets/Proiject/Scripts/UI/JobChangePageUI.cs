@@ -1,62 +1,23 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
-public sealed class JobChangePageUI : UIPageBase
+public sealed class JobChangePageUI : ListPageUIBase
 {
-    [SerializeField] private Text titleText;
     [SerializeField] private ScrollRect scrollRect;
-    [SerializeField] private RectTransform listRoot;
-    private UnityAction refreshAction;
     private Func<IEnumerable<MercenaryInstance>> mercenaryProvider;
     private Func<MercenaryInstance, bool> shouldShowSpecialPromotion;
     private Action<MercenaryInstance, MercenaryClass> promoteAction;
-    private Font rowFont;
-    private Color rowTextColor = Color.white;
-    private Color mutedTextColor = Color.gray;
-    private Color buttonTextColor = Color.white;
-    private Color rowColor = new Color(0.27f, 0.16f, 0.09f, 0.94f);
-    private Color buttonColor = new Color(0.35f, 0.22f, 0.13f, 1f);
-    private Color frameColor = new Color(0.72f, 0.52f, 0.27f, 0.9f);
-
-    public RectTransform ListRoot => listRoot;
 
     public void Initialize(
         Text title,
         ScrollRect targetScrollRect,
         RectTransform targetListRoot)
     {
-        titleText = title;
+        base.Initialize(title, null, targetListRoot);
         scrollRect = targetScrollRect;
-        listRoot = targetListRoot;
-    }
-
-    public void Configure(
-        Font font,
-        Color titleColor,
-        Color targetMutedTextColor,
-        Color targetButtonTextColor,
-        Color targetRowColor,
-        Color targetButtonColor,
-        Color targetFrameColor,
-        UnityAction refresh)
-    {
-        rowFont = font;
-        mutedTextColor = targetMutedTextColor;
-        buttonTextColor = targetButtonTextColor;
-        rowColor = targetRowColor;
-        buttonColor = targetButtonColor;
-        frameColor = targetFrameColor;
-        ConfigureText(
-            titleText,
-            font,
-            17,
-            TextAnchor.MiddleLeft,
-            titleColor);
-        scrollRect.content = listRoot;
-        refreshAction = refresh;
+        scrollRect.content = targetListRoot;
     }
 
     public void ConfigureJobChangeList(
@@ -73,23 +34,18 @@ public sealed class JobChangePageUI : UIPageBase
     {
         if (mercenaryProvider == null)
         {
-            refreshAction?.Invoke();
+            base.Refresh();
             return;
         }
 
-        ClearChildren(listRoot);
-
-        float top = 0f;
-        foreach (MercenaryInstance mercenary in
-                 mercenaryProvider.Invoke() ??
-                 Array.Empty<MercenaryInstance>())
-        {
-            CreateJobChangeRow(mercenary, top);
-            top -= 112f;
-        }
-
-        listRoot.sizeDelta =
-            new Vector2(0f, Mathf.Max(430f, -top));
+        RebuildRows(
+            mercenaryProvider.Invoke(),
+            112f,
+            430f,
+            null,
+            null,
+            (_, mercenary, top) => CreateJobChangeRow(mercenary, top),
+            null);
     }
 
     private void CreateJobChangeRow(
@@ -99,21 +55,21 @@ public sealed class JobChangePageUI : UIPageBase
         RectTransform row =
             CreateRow(
                 $"Job Change {mercenary.InstanceId}",
-                listRoot,
+                ListRoot,
                 top,
-                rowColor,
-                frameColor);
+                RowColor,
+                FrameColor);
         CreateText(
             row,
             $"{mercenary.MercenaryName}  Lv{mercenary.Level}  " +
             $"{JapaneseDisplayText.GetMercenaryClass(mercenary.MercenaryClass)}",
-            rowFont,
+            RowFont,
             18,
             FontStyle.Bold,
             TextAnchor.MiddleLeft,
             new Vector2(16f, -44f),
             new Vector2(-370f, -8f),
-            rowTextColor);
+            RowTextColor);
 
         if (mercenary.CanPromote)
         {
@@ -158,10 +114,10 @@ public sealed class JobChangePageUI : UIPageBase
         Button button = CreateActionButton(
             row,
             JapaneseDisplayText.GetMercenaryClass(target),
-            rowFont,
-            buttonColor,
-            frameColor,
-            buttonTextColor,
+            RowFont,
+            ButtonColor,
+            FrameColor,
+            ButtonTextColor,
             () => promoteAction?.Invoke(mercenary, target));
         RectTransform rect = button.GetComponent<RectTransform>();
         rect.sizeDelta = new Vector2(104f, 44f);
@@ -179,12 +135,12 @@ public sealed class JobChangePageUI : UIPageBase
         CreateText(
             row,
             message,
-            rowFont,
+            RowFont,
             14,
             FontStyle.Normal,
             TextAnchor.MiddleRight,
             new Vector2(16f, -72f),
             new Vector2(-18f, -42f),
-            mutedTextColor);
+            MutedTextColor);
     }
 }

@@ -11,22 +11,6 @@ using UnityEngine.UI;
 /// </summary>
 public class SimpleMercenaryHireUIFactory
 {
-    // Duplicated from SimpleMercenaryHireUI.cs. The originals stay there
-    // because other partial files still reference some of them directly;
-    // unifying the two sets is a possible future cleanup, out of scope here.
-    private static readonly Color BackgroundColor = new Color(0.07f, 0.08f, 0.1f, 1f);
-    private static readonly Color PanelColor = new Color(0.13f, 0.15f, 0.18f, 1f);
-    private static readonly Color RowColor =
-        new Color(0.27f, 0.16f, 0.09f, 0.94f);
-    private static readonly Color InactiveColor =
-        new Color(0.24f, 0.14f, 0.08f, 0.96f);
-    private static readonly Color WoodButtonColor =
-        new Color(0.35f, 0.22f, 0.13f, 1f);
-    private static readonly Color FrameColor =
-        new Color(0.72f, 0.52f, 0.27f, 0.9f);
-    private static readonly Color ButtonTextColor =
-        new Color(1f, 0.94f, 0.79f, 1f);
-
     private static Sprite parchmentPanelSprite;
 
     private readonly Font uiFont;
@@ -91,7 +75,7 @@ public class SimpleMercenaryHireUIFactory
 
         Image rowImage = row.GetComponent<Image>() ??
             row.gameObject.AddComponent<Image>();
-        rowImage.color = RowColor;
+        rowImage.color = UITheme.RowColor;
         if (row.GetComponent<Outline>() == null)
         {
             AddFantasyFrame(rowImage, 1f);
@@ -117,7 +101,7 @@ public class SimpleMercenaryHireUIFactory
 
         Image image = buttonRect.GetComponent<Image>() ??
             buttonRect.gameObject.AddComponent<Image>();
-        image.color = InactiveColor;
+        image.color = UITheme.InactiveColor;
         if (buttonRect.GetComponent<Outline>() == null)
         {
             AddFantasyFrame(image, 1.5f);
@@ -150,7 +134,7 @@ public class SimpleMercenaryHireUIFactory
 
         Image image = buttonRect.GetComponent<Image>() ??
             buttonRect.gameObject.AddComponent<Image>();
-        image.color = WoodButtonColor;
+        image.color = UITheme.WoodButtonColor;
         if (buttonRect.GetComponent<Outline>() == null)
         {
             AddFantasyFrame(image, 1.5f);
@@ -197,14 +181,14 @@ public class SimpleMercenaryHireUIFactory
         existing.fontSize = fontSize;
         existing.fontStyle = FontStyle.Bold;
         existing.alignment = TextAnchor.MiddleCenter;
-        existing.color = ButtonTextColor;
+        existing.color = UITheme.ButtonTextColor;
     }
 
     public void CreateButtonLabel(RectTransform parent, string label, int fontSize)
     {
         Text buttonText = CreateText(parent, label, fontSize, FontStyle.Bold,
             TextAnchor.MiddleCenter, Vector2.zero, Vector2.zero,
-            ButtonTextColor);
+            UITheme.ButtonTextColor);
         buttonText.rectTransform.anchorMin = Vector2.zero;
         buttonText.rectTransform.anchorMax = Vector2.one;
         buttonText.rectTransform.pivot = new Vector2(0.5f, 0.5f);
@@ -215,22 +199,14 @@ public class SimpleMercenaryHireUIFactory
     public static void AddFantasyFrame(Image image, float thickness)
     {
         Outline outline = image.gameObject.AddComponent<Outline>();
-        outline.effectColor = FrameColor;
+        outline.effectColor = UITheme.FrameColor;
         outline.effectDistance = new Vector2(thickness, -thickness);
         outline.useGraphicAlpha = true;
     }
 
     public static void ApplyButtonTransitions(Button button)
     {
-        ColorBlock colors = button.colors;
-        colors.normalColor = Color.white;
-        colors.highlightedColor = new Color(1.18f, 1.12f, 0.96f, 1f);
-        colors.pressedColor = new Color(0.76f, 0.68f, 0.56f, 1f);
-        colors.selectedColor = new Color(1.08f, 1.02f, 0.88f, 1f);
-        colors.disabledColor = new Color(0.42f, 0.38f, 0.32f, 0.72f);
-        colors.colorMultiplier = 1f;
-        colors.fadeDuration = 0.08f;
-        button.colors = colors;
+        UITheme.ApplyButtonTransitions(button);
     }
 
     public static void ApplyParchmentPanel(Image target)
@@ -259,7 +235,7 @@ public class SimpleMercenaryHireUIFactory
 
         if (parchmentPanelSprite == null)
         {
-            target.color = PanelColor;
+            target.color = UITheme.PanelColor;
             return;
         }
 
@@ -315,6 +291,7 @@ public class SimpleMercenaryHireUIFactory
         page.anchorMax = new Vector2(1f, 1f);
         page.offsetMin = new Vector2(28f, 64f);
         page.offsetMax = new Vector2(-28f, -126f);
+        page.gameObject.SetActive(false);
         return page;
     }
 
@@ -336,7 +313,7 @@ public class SimpleMercenaryHireUIFactory
         scaler.matchWidthOrHeight = 0.5f;
 
         Image background = canvasObject.AddComponent<Image>();
-        background.color = BackgroundColor;
+        background.color = UITheme.BackgroundColor;
         background.raycastTarget = false;
         return canvas;
     }

@@ -117,10 +117,101 @@
 - コンパイルエラーなし・Unity上の動作確認済み。
 - 未コミットの作業がある場合はコミットを推奨（Action 3.2以降の変更）。
 
-### 今後の候補（今回のスコープ外、次の取り組みの種）
+---
 
-- 既知の未解決バグ: ダンジョンタブのUI崩れ（上記Action 2セクション末尾の調査メモ参照）。ユーザーが別途対応予定。
-- PlayModeテスト基盤の整備（`BattleManager`/`DungeonRunManager`のコルーチン系ロジックのテスト化はこれ待ち）。
-- `BattleManager`（約1,480行）/`DungeonRunManager`（約870行）自体の責務分割（今回の計画では対象外。スキル解決・報酬・ログ生成の分離候補は`SHARED_PROJECT_STATUS.md`の2026-07-07教室側メモ参照）。
-- `ProgressionManager.totalGoldEarned`の二重管理解消（テストで挙動固定済み、安全に整理可能）。
-- `FindObjectOfType`依存の段階的削減、`EnemyDateSO.cs`/`MercenaryDstsSO.cs`のファイル名タイポ修正、`MercenaryContractType.cs`の文字コード修正。
+## 再評価（2026-07-12、第1次改善計画完了後）
+
+第1次計画完了後に、UI層+新コントローラー群の再調査（サブエージェント）と定量指標の採取を行い、設計を再評価した。
+
+### 定量比較（前回7/9評価 → 現在）
+
+| 指標 | 前回 | 現在 |
+|---|---|---|
+| Core→UI依存 | SaveManager/BootstrapがUIを直接参照 | Bootstrapのみ（コンポジションルートとして正当） |
+| `SimpleMercenaryHireUI`実ロジック | 約7,200行に混在 | partial残5,278行（UI構築/配線のみ）+独立クラス8個3,291行 |
+| EditModeテスト | 8ファイル・単純クラスのみ | 14ファイル1,869行・106件全緑 |
+| 重複ロジック | 5系統 | 5系統すべて一本化（パリティテスト付き） |
+| `FindObjectOfType` | 約60箇所 | 61箇所（意図的に未着手） |
+
+### 再評価で判明した新規/残存の課題
+
+1. **`CharacterEquipmentController`のデリゲート過多**: コンストラクタ引数22個。ボタン単位のマイクロセッター6個は小さなビューインターフェースに束ねるべき。
+2. **チュートリアル機能が抽出規約に違反**: 別作業系統で追加された`SimpleMercenaryHireUI.Tutorial.cs`（191行）が、状態・コンテンツ・PlayerPrefsをMonoBehaviour直持ちする旧パターン。神クラス再成長の芽。
+3. **色定数の重複8箇所**: RowColor/WoodButtonColor/FrameColor系が6ファイル+ボタン遷移ColorBlockが2箇所。共有パレット未整備。
+4. **ページUIの`ListPageUIBase`準拠度が3段階**: 完全準拠（Company/Heal）/フィールドのみ継承（Inventory/Market/Blacksmith）/独立（Hire/JobChange）。
+5. **ビュー側に残る軽いビジネスロジック**: `ShowWorldMap(int)`のゲート判定メッセージ構築、`RebuildCharacterEquipmentList`の装備可否フィルタ。
+6. **死にコード3件**: `StyleUnavailableWorldMapButton`（Map.cs）、`BuildMercenarySkillSummary`（CharacterEquipmentController）、`DailyResultController.dailyInventoryNames`（書き込みのみ）。
+7. **未着手のまま（既知）**: `BattleManager`（約1,480行）/`DungeonRunManager`（約870行）の神クラス、`ProgressionManager`の複数責務と`totalGoldEarned`二重管理、`FindObjectOfType`依存61箇所、ファイル名タイポ、`MercenaryContractType.cs`文字化け、ダンジョンタブUI崩れ。
+
+---
+
+## 第2次改善計画（ロードマップ、2026-07-12策定・未着手）
+
+**このセクションが次の作業計画の正本。** どのエージェント（Claude Code / 学校側Codex / 教室側Codex）が着手する場合も、フェーズ順に、1ステップ=1コミット可能な粒度で進め、完了したらこの表の状態を更新すること。第1次計画で確立した規約（下記「作業規約」）に従う。
+
+### 作業規約（第1次計画から継承。新規参加エージェントは必読）
+
+- **コントローラー抽出パターン**: プレーンC#クラス、マネージャーはコンストラクタ注入、UI副作用（statusText・ページ更新・ボタンラベル）は`Action`/`Func`デリゲート注入。UI構築（Build*）・ページ遷移（Show*）・イベント購読・コルーチンはMonoBehaviour側に残す。既存の8クラス（特に`EconomyController`）が手本。
+- **テスト規約**: EditMode NUnit、`GameObject`+`AddComponent`+`Object.DestroyImmediate`、private注入はリフレクション（`RoadEncounterServiceTests`参照）。`DungeonRunManager`を触るテストは`PlayerPrefs`キー`"DungeonMerchant.Dungeon.HighestUnlockedGrade"`をSetUp/TearDown両方でDeleteKey。
+- **リファクタの原則**: 挙動同一（ロジックは逐語コピー）、テストが先・統合は後、各ステップでdotnet build（`DungeonMerchant.Runtime.csproj`/`DungeonMerchant.EditModeTests.csproj`）エラー0確認。新規.csファイルは両csprojへの`<Compile Include>`追加が必要（Unityが後で再生成するが、それまでのビルド確認用）。
+- **してはいけないこと**: PowerShell正規表現での一括書き換え（日本語リテラル破損の前科あり。Edit/Writeツールを使う）、`using System;`と`using UnityEngine;`同居時の裸の`Object`参照（CS0104）、`Mathf.Abs`等のAPI呼び出しを手書き演算に置き換えること（ビット同一性が壊れる）。
+
+### フェーズA — 衛生・小規模（各項目独立、順不同で着手可。1項目=サブエージェント1回分）
+
+| # | 内容 | 対象ファイル | 完了条件 | 状態 |
+|---|---|---|---|---|
+| A-1 | `TutorialController`抽出。`SimpleMercenaryHireUI.Tutorial.cs`の状態（stepIndex）・コンテンツ（静的文字列配列）・PlayerPrefs処理をコントローラーへ移し、partialはオーバーレイ構築/表示のみに縮小 | `SimpleMercenaryHireUI.Tutorial.cs`、新規`TutorialController.cs`、コア`.cs`（生成追加） | 既存8コントローラーと同型になる。build 0エラー。Playモードでチュートリアル表示/進行/完了フラグ動作確認 | 完了（2026-07-12）: `TutorialController`新設（デリゲート9本注入、ロジック逐語コピー）、partialは構築+Show/Hideのみ97行に縮小、Runtime csproj追加、build 0エラー。Playモード確認は未実施（ユーザー確認待ち） |
+| A-2 | 死にコード削除3件: `StyleUnavailableWorldMapButton`、`BuildMercenarySkillSummary`、`DailyResultController.dailyInventoryNames` | `.Map.cs`、`CharacterEquipmentController.cs`、`DailyResultController.cs` | grep で呼び出しゼロ再確認後に削除。build 0エラー | 完了（2026-07-12）: 3件ともgrepで参照ゼロ確認後に削除（`dailyInventoryNames`はフィールド+Clear+書き込み2箇所、読み取りゼロ確認済み）。両csproj build 0エラー |
+| A-3 | `totalGoldEarned`二重管理解消: `ProgressionManager`のフィールド・`HandleGoldChanged`差分加算・`ProgressionSaveData.totalGoldEarned`を除去し、`merchantData.LifetimeGoldEarned`単独参照へ。セーブVersion 19→20（マイグレーション不要、フィールド削除のみ） | `ProgressionManager.cs`、`GameSaveData.cs` | `ProgressionManagerTests`の該当テスト（precedence quirkテストは仕様変更に伴い書き換え）更新。Test Runner全緑 | 完了（2026-07-12）: シャドウフィールド・`HandleGoldChanged`・`GoldChanged`購読・`lastObservedGold`（差分加算専用と確認）・`ProgressionSaveData.totalGoldEarned`を除去、getterは`merchantData.LifetimeGoldEarned`単独（null時0）。Version 19→20、`SaveDataMigrator`は参照なし確認。テスト4本書き換え（precedenceテストは`TotalGoldEarned_ReadsMerchantDataLifetimeEarnings`へ改名・簡素化）。両csproj build 0エラー。Unity Test Runner実行は未実施（Editor起動要、ユーザー確認待ち） |
+| A-4 | ファイル名タイポ修正: `EnemyDateSO.cs`→`EnemyDataSO.cs`、`MercenaryDstsSO.cs`→`MercenaryDataSO.cs`。**必ず`git mv`で.metaも同時リネームしGUID保持**（アセット参照が壊れるため） | 上記2ファイル+meta | Unity再起動後にMissing Script警告ゼロ、既存アセット参照が生きていること | 未着手 |
+| A-5 | `MercenaryContractType.cs`の文字化けコメント修正（UTF-8で保存し直し） | 同ファイル | 文字化け解消、コンパイル無変化 | 未着手 |
+| A-6 | ダンジョンタブUI崩れの修正（ユーザー対応予定だったもの。エージェントが着手する場合は上記Action 2セクション末尾の調査メモから再開: Playモード中の`Dungeon Selection List`配下行のRectTransform実値確認が起点） | `DungeonPageUI.cs`または`.BattleDungeon.cs`のレイアウト値 | Playモードでダンジョンタブの行がヘッダーと重ならない | 未着手 |
+
+### フェーズB — UI層の仕上げ（A完了後推奨、相互独立）
+
+| # | 内容 | 完了条件 | 状態 |
+|---|---|---|---|
+| B-1 | 共有色パレット導入: `UITheme`（静的クラス）を新設し、8箇所に重複する色定数（RowColor等6ファイル+ColorBlock2箇所）を一本化。値は現状と完全同一 | 重複宣言の削除、目視で全画面の見た目不変 | 完了（2026-07-12: `UITheme.cs`新設・12色+`ApplyButtonTransitions`。6ファイルの重複宣言削除、ColorBlock2箇所は`UITheme.ApplyButtonTransitions`へ委譲。値は全て完全同一コピー。注: ページUI群の`rowTextColor=Color.white`/`mutedTextColor=Color.gray`はSimpleMercenaryHireUIの値と異なるためローカルのまま維持。Editor側`SimpleMercenaryHireUIPrefabBuilder.cs`にも同値リテラルが残存するがB-1対象外。Runtime/EditModeTests両build 0エラー） |
+| B-2 | `CharacterEquipmentController`のデリゲート整理: 装備詳細オーバーレイ向けマイクロセッター6個を小さなビュー抽象（例: `IEquipmentDetailView`を`SimpleMercenaryHireUI`が実装）に束ね、コンストラクタ引数を22→15前後へ | build 0エラー、装備詳細画面の全操作（強化/売却/ロック）動作確認 | 完了（2026-07-13: `IEquipmentDetailView.cs`新設（HasOverlay/SetTitle/SetDetailText/SetEnhanceButton/SetSellButton/SetLockButtonLabel/ShowOverlay/HideOverlayの8メンバー）。装備詳細オーバーレイ系デリゲート8本（マイクロセッター6+hasEquipmentDetailOverlay+hideEquipmentDetails）を束ね、コンストラクタ引数22→15。実装は`SimpleMercenaryHireUI.CharacterEquipment.cs`末尾に明示的実装（旧ラムダ本体を逐語移動、`HideOverlay`は既存`HideEquipmentDetails`へ委譲）、コア`.cs`のnewは`this`を渡す形に短縮。第2クラスター（setCharacterDetailContent+showCharacterDetails）は2本のみで束ねる価値なしと判断し据え置き。Runtime csprojに`<Compile Include>`追加、両csproj build 0エラー0警告。Playモードでの強化/売却/ロック動作確認は未実施（ユーザー確認待ち）） |
+| B-3 | ページUI準拠度の統一 | 全リスト画面の表示・スクロール・ボタン動作が不変 | 完了（2026-07-13、Sonnetが引き継ぎ実施）。**発見**: `MarketPageUI`/`BlacksmithPageUI`は着手前から既に`RebuildRows`+共有`CreateEmptyMessage`を完全使用済みだった（過去調査時点の「フィールドのみ継承」という記述は当時の状態を反映しておらず、対応不要と判明）。`JobChangePageUI`を`ListPageUIBase`へ完全移行（`Configure`は基底の`titleFontSize`任意引数=17を利用、`Refresh`は`RebuildRows`使用）。`HirePageUI`を`ListPageUIBase`へ移行したが、固定候補+生成候補の2コレクションを1本の`rowTop`で連続配置する構造のため`RebuildRows`（1コレクション前提でClearChildrenする）には合わず、装飾（色/フォント/`Configure`/`Initialize`）のみ基底委譲し`Refresh()`は独自実装のまま理由コメント付きで維持（`PartyPageUI`と同型の正当な例外）。`InventoryPageUI`も通常アイテム+装備の2コレクション構造で同じ理由により独自`Refresh()`を維持し、理由コメントを追加。**回帰修正**: `JobChangePageUI`移行時、呼び出し元`.HireParty.cs`の`pageUI.Configure(...)`が新設`titleFontSize`引数を渡しておらず、タイトル文字サイズが17→15へ縮小する回帰を作業中に発見・修正（`titleFontSize: 17`を明示指定）。Runtime/EditModeTests両build 0エラー0警告。Playモードでの雇用/転職/在庫画面の見た目確認は未実施（ユーザー確認待ち）。 |
+
+### フェーズC — Battle/Dungeon層の分割（最大の残負債。B完了を待つ必要はないがC-1が先行必須）
+
+| # | 内容 | 完了条件 | 状態 |
+|---|---|---|---|
+| C-1 | **PlayModeテスト基盤の整備**（C-2/C-3の前提）: PlayModeテスト用asmdef新設、`BattleManager.StartBattle`→`BattleCompleted`の最小ハッピーパス（1HP敵即殺で`BattleCompleted(true)`）を`[UnityTest]`で1本通す | PlayModeテストがTest Runnerで緑。学校/教室環境でも実行手順をこのファイルに追記 | 完了（2026-07-13: `Assets/Proiject/Tests/PlayMode/`にasmdefと`BattleManagerPlayModeTests`を追加。Test RunnerのPlayModeタブで`StartBattle_OneHpEnemy_CompletesWithVictory`が1/1成功。EditModeも106/106成功を確認） |
+| C-2 | `BattleManager`分割（約1,480行）: 段階抽出。(1)`BattleRewardService`（報酬/ドロップ/経験値、`DungeonRewardService`が手本）→(2)`BattleLogFormatter`（ログ文字列生成、静的クラス化候補）→(3)`BattleSkillResolver`（14敵スキル+6職スキルの解決、最難関）→(4)`BattleStatusEffectService`。各段階でEditModeガード節テスト+C-1のPlayModeテストが緑を維持 | 各段階1コミット。`BattleManager`残存はターン進行コルーチンと参照解決のみ | 実装完了・Unity再確認待ち（2026-07-13: 4サービスを抽出し、`BattleManager`を1480行から602行へ縮小。各EditModeテスト追加、`dotnet build DungeonMerchant.sln`警告0・エラー0） |
+| C-3 | `DungeonRunManager`分割（約870行）: (1)フロア進行保存/復元（`PlayerPrefs`+永続ID解決）を`DungeonProgressStore`へ→(2)イベント提示状態（EventTitle等のUI向けプロパティ群）の整理。`DungeonRunManagerTests`の往復テストが回帰ガード | 各段階1コミット、Test Runner全緑 | 実装完了・Unity再確認待ち（2026-07-13: `DungeonProgressStore`と`DungeonEventState`を追加。公開API・永続ID/旧名互換・通知順を維持。対応EditModeテスト追加、全sln build警告0・エラー0） |
+
+**フェーズA/S完了確認（2026-07-12）**: A-1〜A-6（A-6=S-2）およびS-1〜S-5のエージェント作業がすべて完了し、**ユーザーがUnity上で動作確認済み**（ダンジョンタブ表示修正・チュートリアル・テスト含む）。残るユーザー作業は S-4のサンプルセーブ配置（配置後READMEの「同梱予定です」→「同梱しています」へ変更）と S-6（面接想定問答、エージェントによる下書き支援可）のみ。
+
+**フェーズB完了確認（2026-07-13）**: B-1〜B-3すべて完了（B-3はSonnetが引き継ぎ実施、JobChangePageUIのタイトル文字サイズ回帰を作業中に発見・修正済み）。Runtime/EditModeTests両build 0エラー。**Playモードでの見た目確認（雇用/転職/在庫/装備詳細画面）は未実施 — ユーザー確認待ち**。
+
+**フェーズC実装状況（2026-07-13）**: C-1はUnity Test RunnerでPlayMode 1/1成功済み。C-2/C-3もコード分割と単体テスト追加まで完了し、全sln buildは警告0・エラー0。最終完了判定には、Unity Test Runnerで現行EditMode全件とPlayMode 1件の再実行が必要。
+
+### フェーズS — 提出前仕上げ（就活ポートフォリオ提出前に完了させる。A/B/Cとは独立、最優先扱い可）
+
+背景: 本作は就活用ポートフォリオ。2026-07-12にメインセッションで提出前リスク評価を実施した。権利面の結論: マップ・羊皮紙画像はChatGPT(OpenAI)での画像生成と確認済み（権利はユーザー帰属、商用可、法的問題なし）。フォントは同梱がZen Kurenaido（SIL OFL、`Assets/Proiject/Fonts/`にOFL.txt有り）のみで、游明朝等はOSフォントの実行時読込のため再配布に非該当。残る対応は「申告の整合性」と「品質印象」。
+
+| # | 内容 | 完了条件 | 状態 |
+|---|---|---|---|
+| S-1 | README更新: AI活用欄を実態（ChatGPT設計相談+画像生成 / Codex / Claude Codeによる設計レビュー・リファクタリング支援）に合わせる。画像アセットの出所（AI生成）を明記。フォントのクレジット（Zen Kurenaido, SIL OFL）を追記 | READMEの記載がリポジトリの実態（handoffログ含む）と矛盾しないこと | 完了（2026-07-12） |
+| S-2 | ダンジョンタブUI崩れの修正（=A-6と同一。提出前必須に格上げ） | Playモードでダンジョンタブの行がヘッダーと重ならない | 未着手 |
+| S-3 | タイポ・文字化け・体裁（=A-4/A-5+α）: ファイル名2件、`MercenaryContractType.cs`文字化け、`ProjectSettings`のcompanyName（DefaultCompany→個人名等） | Unity再起動後にMissing Script警告ゼロ | 完了（2026-07-12、別エージェント実施・本行は後追い記入）: ファイル2件リネーム（`EnemyDataSO.cs`/`MercenaryDataSO.cs`、.meta同時移動でGUID保持）+csproj更新+`MercenaryContractType.cs`文字化け修正+companyName=YugaSen。Unity再起動でのMissing Script警告ゼロ確認は未実施（ユーザー確認待ち） |
+| S-4 | 審査者向け導線: READMEに「5〜10分で見るポイントと手順」を追記し、進行済み`game-save.json`のサンプルを同梱（配置場所と読込手順も記載） | 初見のレビュアーが10分で主要システム（雇用→戦闘→ダンジョン→経済）に触れられる | 完了（2026-07-12）: READMEゲームサイクル直後に「採用ご担当者様へ：10分で見るポイント」を追加（プレイルート/コードの見どころ/サンプルセーブ配置先`%USERPROFILE%\AppData\LocalLow\YugaSen\DungeonMerchant\game-save.json`）。サンプルセーブファイル自体はユーザーが後日配置（README内にTODOコメント有り） |
+| S-5 | ビルド配布時のライセンス表記: ビルドフォルダに`LICENSES.txt`（Zen Kurenaido OFL全文+画像はAI生成の旨）を同梱する運用をREADMEに記載 | ビルドzipにLICENSES.txtが含まれる | 完了（2026-07-12）: リポジトリ直下に`LICENSES.txt`作成（OFL 1.1全文をOFL.txtから逐語コピー+画像出所の注記）、READMEアセットの出所欄に同梱運用を1行追記 |
+| S-6 | 面接想定問答の整理（コード変更なし）: `FindObjectOfType`残存/神クラス/AI活用ワークフローについて、本ファイルの記録を基に自分の言葉で説明できる想定問答メモを作る（ユーザー自身の作業。エージェントは下書き支援可） | ユーザーが主要設計判断を説明できる状態 | 未着手 |
+
+注意: `Assets/Proiject`フォルダ名のタイポは全アセットパスに影響するため修正しない（READMEで自己申告済みの扱いとするか、ユーザー判断）。
+
+### フェーズD — 長期（着手判断はユーザーと相談してから）
+
+- `FindObjectOfType`依存61箇所の段階削減（Bootstrapまたは依存解決専用クラスへ集約。全面DI化はコスト大のため非推奨、新規コードで増やさない運用を継続）
+- `MercenaryClass.cs`内の`MercenaryClassProgression`（7つの並行switch）のデータ駆動化（ScriptableObject化）
+- `SaveManager`の分割（`SaveDataFactory`/`SaveDataApplier`/`SaveFileStore`、2026-07-07教室側メモの候補）
+- 経済チューニング値（`MerchantData`の倍率式等）の設定アセット化
+
+### 実行時の運用（Claude Codeの場合）
+
+- 実装はOpus/Sonnetサブエージェントへ委譲し、メインセッションは設計・監査・レビュー（ユーザー方針）。C-2(3)のスキル解決分割のみ難度が高いためメインセッション直接実施を検討。
+- 各項目完了時にこの表の「状態」を更新し、`FROM_HOME_CHAT.md`に要約を追記。

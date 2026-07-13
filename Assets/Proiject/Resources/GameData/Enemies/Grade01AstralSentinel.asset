@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
+  m_Name: Grade01AstralSentinel
+  m_EditorClassIdentifier:
+  enemyName: 星環の守衛
+  monsterGrade: 1
+  isBoss: 0
+  category: 0
+  enemySkill: 7
+  isSpecialVariant: 0
+  specialVariantTitle:
+  maxHP: 260
+  attack: 42
+  defense: 28
+  maxMagicPower: 80
+  attackSpeed: 0.85
+  criticalRate: 0.08
+  evasionRate: 0.03
+  goldReward: 650
+  experienceMultiplier: 1.4
+  itemDrops: []

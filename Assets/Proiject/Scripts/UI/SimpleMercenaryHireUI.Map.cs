@@ -42,6 +42,17 @@ public partial class SimpleMercenaryHireUI
             thirdContinentButton,
             new Color(0.55f, 0.12f, 0.16f, 0.32f));
 
+        hiddenIslandRegionButton = CreateWorldRegionButton(
+            globalMapPage,
+            "中央島アステラ\nRank 10",
+            new Vector2(0f, -5f),
+            new Vector2(155f, 135f),
+            () => ShowWorldMap(WorldMapService.HiddenIslandWorldMapIndex));
+        ConfigureWorldRegionHover(
+            hiddenIslandRegionButton,
+            new Color(0.38f, 0.72f, 0.95f, 0.38f));
+        hiddenIslandRegionButton.gameObject.SetActive(false);
+
         CreateText(
             globalMapPage,
             "探索する大陸を選択してください。",
@@ -57,18 +68,6 @@ public partial class SimpleMercenaryHireUI
             globalMapPage.gameObject.AddComponent<GlobalMapPageUI>();
         pageUI.Configure(RefreshGlobalMapPage);
         pageRouter.Register(globalMapPage);
-    }
-
-    private static void StyleUnavailableWorldMapButton(Button button)
-    {
-        ConfigureWorldRegionHover(
-            button,
-            new Color(0.12f, 0.14f, 0.17f, 0.42f));
-        Text label = button.GetComponentInChildren<Text>();
-        if (label != null)
-        {
-            label.color = new Color(0.72f, 0.75f, 0.78f, 1f);
-        }
     }
 
     private static void ConfigureWorldRegionHover(
@@ -238,6 +237,12 @@ public partial class SimpleMercenaryHireUI
                 new Vector2(-80f, 5f),
                 new Vector2(95f, -145f)
             });
+        CreateRegionMapPage(
+            WorldMapService.HiddenIslandWorldMapIndex,
+            "Maps/WorldMap",
+            new[] { WorldMapService.HiddenIslandTownIndex },
+            new[] { new Vector2(-90f, 35f) },
+            new[] { new Vector2(145f, -45f) });
 
         townProgressState.ViewedWorldMapIndex = townProgressState.CurrentWorldMapIndex;
         SetVisibleRegionMap(townProgressState.ViewedWorldMapIndex);
@@ -344,27 +349,29 @@ public partial class SimpleMercenaryHireUI
     {
         AddMapBackground(townMapPage, "Maps/TownMap");
 
+        standardTownFacilityButtons.Clear();
         hireFacilityButton = CreateMapButton(
             townMapPage, "酒場\n雇用", new Vector2(-255f, 105f),
             new Vector2(110f, 54f), ShowHirePage);
-        CreateMapButton(
+        standardTownFacilityButtons.Add(hireFacilityButton);
+        standardTownFacilityButtons.Add(CreateMapButton(
             townMapPage, "商会本部", new Vector2(0f, 135f),
-            new Vector2(110f, 48f), ShowCompanyPage);
-        CreateMapButton(
+            new Vector2(110f, 48f), ShowCompanyPage));
+        standardTownFacilityButtons.Add(CreateMapButton(
             townMapPage, "市場", new Vector2(175f, 105f),
-            new Vector2(100f, 48f), ShowMarketPage);
+            new Vector2(100f, 48f), ShowMarketPage));
         CreateMapButton(
             townMapPage, "鍛冶屋", new Vector2(290f, 75f),
             new Vector2(100f, 48f), ShowBlacksmithPage);
-        CreateMapButton(
+        standardTownFacilityButtons.Add(CreateMapButton(
             townMapPage, "倉庫", new Vector2(-260f, -45f),
-            new Vector2(100f, 48f), ShowInventoryPage);
-        CreateMapButton(
+            new Vector2(100f, 48f), ShowInventoryPage));
+        standardTownFacilityButtons.Add(CreateMapButton(
             townMapPage, "編成所", new Vector2(-105f, -20f),
-            new Vector2(100f, 48f), ShowPartyPage);
-        CreateMapButton(
+            new Vector2(100f, 48f), ShowPartyPage));
+        standardTownFacilityButtons.Add(CreateMapButton(
             townMapPage, "治療院", new Vector2(235f, -42f),
-            new Vector2(100f, 48f), ShowHealPage);
+            new Vector2(100f, 48f), ShowHealPage));
         CreateMapButton(
             townMapPage, "近隣ダンジョン", new Vector2(0f, -172f),
             new Vector2(150f, 52f),
@@ -372,6 +379,7 @@ public partial class SimpleMercenaryHireUI
         jobFacilityButton = CreateMapButton(
             townMapPage, "転職神殿", new Vector2(105f, -105f),
             new Vector2(110f, 48f), ShowJobChangePage);
+        standardTownFacilityButtons.Add(jobFacilityButton);
         Button continentButton = CreateMapButton(
             townMapPage, "← 地域マップへ", new Vector2(-300f, -172f),
             new Vector2(142f, 52f), ShowWorldMap);
@@ -478,8 +486,17 @@ public partial class SimpleMercenaryHireUI
 
     private void RefreshGlobalMapPage()
     {
+        bool newlyUnlocked = TryUnlockHiddenIsland();
+        if (hiddenIslandRegionButton != null)
+        {
+            hiddenIslandRegionButton.gameObject.SetActive(
+                townProgressState.IsTownUnlocked(
+                    WorldMapService.HiddenIslandTownIndex));
+        }
         statusText.text =
-            $"現在地: {WorldMapService.TownNames[townProgressState.CurrentTownIndex]}  |  大陸を選択";
+            newlyUnlocked
+                ? "全条件を達成しました。中央島アステラへの航路が出現しました。"
+                : $"現在地: {WorldMapService.TownNames[townProgressState.CurrentTownIndex]}  |  大陸を選択";
     }
 
     private void ShowWorldMap()
@@ -505,8 +522,25 @@ public partial class SimpleMercenaryHireUI
 
     private void RefreshTownMapPage()
     {
+        bool hiddenIsland = TownServicePolicy.IsHiddenIslandTown(
+            townProgressState.CurrentTownIndex);
         statusText.text =
-            $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}  |  利用する施設を選択";
+            hiddenIsland
+                ? $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}  |  鍛冶屋と深層ダンジョンのみ利用可能"
+                : $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}  |  利用する施設を選択";
+        foreach (Button facilityButton in standardTownFacilityButtons)
+        {
+            if (facilityButton != null)
+            {
+                facilityButton.gameObject.SetActive(!hiddenIsland);
+            }
+        }
+
+        if (hiddenIsland)
+        {
+            return;
+        }
+
         if (jobFacilityButton != null)
         {
             jobFacilityButton.gameObject.SetActive(
@@ -557,6 +591,14 @@ public partial class SimpleMercenaryHireUI
             }
 
             bool unlocked = townProgressState.IsTownUnlocked(i);
+            if (i == WorldMapService.HiddenIslandTownIndex)
+            {
+                button.gameObject.SetActive(unlocked);
+                if (!unlocked)
+                {
+                    continue;
+                }
+            }
             bool reachable =
                 i == townProgressState.CurrentTownIndex ||
                 WorldMapService.AreTownsAdjacent(i, townProgressState.CurrentTownIndex);
@@ -601,6 +643,21 @@ public partial class SimpleMercenaryHireUI
         }
 
         dungeonRunManager?.SetUnlockedTownIndices(townProgressState.GetUnlockedTownIndices());
+    }
+
+    private bool TryUnlockHiddenIsland()
+    {
+        bool unlocked = HiddenIslandUnlockService.TryUnlock(
+            townProgressState,
+            dungeonRunManager,
+            merchantInventory,
+            hireManager != null ? hireManager.HiredMercenaries : null);
+        if (unlocked)
+        {
+            SyncDungeonUnlocks();
+            saveManager?.SaveGame();
+        }
+        return unlocked;
     }
 
 }

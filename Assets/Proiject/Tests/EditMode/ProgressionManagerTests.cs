@@ -16,17 +16,13 @@ using UnityEngine;
 // calls GenerateNormalQuestsIfNeeded() internally. Neither method is asserted
 // on directly here -- both were confirmed (by reading the source) to be
 // no-throw with no other managers wired, and they do not touch
-// storageTier/totalDungeonClears/profitableDungeonClears/totalGoldEarned,
+// storageTier/totalDungeonClears/profitableDungeonClears,
 // which is all these tests check.
 //
-// IMPORTANT precedence quirk: the public TotalGoldEarned getter returns
-// merchantData.LifetimeGoldEarned when a MerchantData is resolved (via
-// ResolveReferences(), called from OnEnable()), and only falls back to the
-// private totalGoldEarned field (the one Restore(...) writes) when
-// merchantData is null. Most tests below therefore avoid adding a
-// MerchantData component anywhere in the object graph so TotalGoldEarned
-// reliably reflects the restored field; TotalGoldEarned_WithMerchantDataPresent_...
-// exists specifically to pin down the opposite case.
+// Note on TotalGoldEarned: since A-3 (2nd improvement plan) removed the
+// private gold-earned shadow field, the getter reads
+// merchantData.LifetimeGoldEarned exclusively and returns 0 when no
+// MerchantData is resolvable. There is no restored fallback anymore.
 public sealed class ProgressionManagerTests
 {
     private GameObject root;
@@ -63,7 +59,6 @@ public sealed class ProgressionManagerTests
             storageTier = 2,
             totalDungeonClears = 7,
             profitableDungeonClears = 3,
-            totalGoldEarned = 4200,
             quests = new List<QuestRecord>()
         };
 
@@ -73,21 +68,18 @@ public sealed class ProgressionManagerTests
         Assert.That(saved.storageTier, Is.EqualTo(2));
         Assert.That(saved.totalDungeonClears, Is.EqualTo(7));
         Assert.That(saved.profitableDungeonClears, Is.EqualTo(3));
-        Assert.That(saved.totalGoldEarned, Is.EqualTo(4200));
     }
 
     [Test]
     public void Restore_ThenPublicGetters_ReflectRestoredValues_WhenNoMerchantDataPresent()
     {
         // No MerchantData exists anywhere in this test's object graph, so
-        // ResolveReferences() leaves the private merchantData field null and
-        // TotalGoldEarned falls back to the restored totalGoldEarned field.
+        // ResolveReferences() leaves the private merchantData field null.
         ProgressionSaveData data = new ProgressionSaveData
         {
             storageTier = 1,
             totalDungeonClears = 5,
             profitableDungeonClears = 2,
-            totalGoldEarned = 999,
             quests = new List<QuestRecord>()
         };
 
@@ -96,16 +88,16 @@ public sealed class ProgressionManagerTests
         Assert.That(progressionManager.StorageTier, Is.EqualTo(1));
         Assert.That(progressionManager.TotalDungeonClears, Is.EqualTo(5));
         Assert.That(progressionManager.ProfitableDungeonClears, Is.EqualTo(2));
-        Assert.That(progressionManager.TotalGoldEarned, Is.EqualTo(999));
+        // No MerchantData -> the getter returns 0: the shadow field it used
+        // to fall back to was removed in A-3 (2nd improvement plan).
+        Assert.That(progressionManager.TotalGoldEarned, Is.EqualTo(0));
     }
 
     [Test]
-    public void TotalGoldEarned_WithMerchantDataPresent_PrefersMerchantDataOverRestoredField()
+    public void TotalGoldEarned_ReadsMerchantDataLifetimeEarnings()
     {
-        // Pins down the double-bookkeeping precedence: when a MerchantData is
-        // resolvable, TotalGoldEarned reads merchantData.LifetimeGoldEarned
-        // and ignores whatever was just written into the private
-        // totalGoldEarned field via Restore(...).
+        // Since A-3, TotalGoldEarned is a plain pass-through to
+        // merchantData.LifetimeGoldEarned when a MerchantData is resolvable.
         GameObject withMerchantDataRoot =
             Track(new GameObject("Progression Manager With MerchantData Test"));
         MerchantData merchantData = withMerchantDataRoot.AddComponent<MerchantData>();
@@ -125,17 +117,10 @@ public sealed class ProgressionManagerTests
         // of OnEnable timing in the EditMode test host.
         withMerchantData.CanStore();
 
-        withMerchantData.Restore(new ProgressionSaveData
-        {
-            storageTier = 0,
-            totalDungeonClears = 0,
-            profitableDungeonClears = 0,
-            totalGoldEarned = 9999, // Deliberately different from 1234.
-            quests = new List<QuestRecord>()
-        });
-
+        Assert.That(
+            withMerchantData.TotalGoldEarned,
+            Is.EqualTo(merchantData.LifetimeGoldEarned));
         Assert.That(withMerchantData.TotalGoldEarned, Is.EqualTo(1234));
-        Assert.That(withMerchantData.TotalGoldEarned, Is.Not.EqualTo(9999));
     }
 
     [Test]
@@ -146,7 +131,6 @@ public sealed class ProgressionManagerTests
             storageTier = 2,
             totalDungeonClears = 9,
             profitableDungeonClears = 4,
-            totalGoldEarned = 555,
             quests = new List<QuestRecord>()
         });
 
@@ -155,7 +139,6 @@ public sealed class ProgressionManagerTests
         Assert.That(progressionManager.StorageTier, Is.EqualTo(2));
         Assert.That(progressionManager.TotalDungeonClears, Is.EqualTo(9));
         Assert.That(progressionManager.ProfitableDungeonClears, Is.EqualTo(4));
-        Assert.That(progressionManager.TotalGoldEarned, Is.EqualTo(555));
     }
 
     private T Track<T>(T created) where T : Object

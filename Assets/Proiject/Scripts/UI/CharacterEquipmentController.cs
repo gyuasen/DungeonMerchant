@@ -18,17 +18,10 @@ public sealed class CharacterEquipmentController
     private readonly MercenaryHireManager hireManager;
     private readonly BattleManager battleManager;
     private readonly EconomyController economyController;
+    private readonly IEquipmentDetailView equipmentDetailView;
     private readonly Action<string> setStatus;
     private readonly Action<string, string> setCharacterDetailContent;
     private readonly Action<MercenaryInstance> showCharacterDetails;
-    private readonly Action hideEquipmentDetails;
-    private readonly Func<bool> hasEquipmentDetailOverlay;
-    private readonly Action<string, Color> setEquipmentDetailTitle;
-    private readonly Action<string> setEquipmentDetailText;
-    private readonly Action<bool, string> setEnhanceButton;
-    private readonly Action<bool, string> setSellButton;
-    private readonly Action<string> setLockButtonLabel;
-    private readonly Action showEquipmentDetailOverlay;
     private readonly Action refreshCompanyPage;
     private readonly Action refreshPartyPage;
     private readonly Action refreshInventoryPage;
@@ -45,17 +38,10 @@ public sealed class CharacterEquipmentController
         MercenaryHireManager hireManager,
         BattleManager battleManager,
         EconomyController economyController,
+        IEquipmentDetailView equipmentDetailView,
         Action<string> setStatus,
         Action<string, string> setCharacterDetailContent,
         Action<MercenaryInstance> showCharacterDetails,
-        Action hideEquipmentDetails,
-        Func<bool> hasEquipmentDetailOverlay,
-        Action<string, Color> setEquipmentDetailTitle,
-        Action<string> setEquipmentDetailText,
-        Action<bool, string> setEnhanceButton,
-        Action<bool, string> setSellButton,
-        Action<string> setLockButtonLabel,
-        Action showEquipmentDetailOverlay,
         Action refreshCompanyPage,
         Action refreshPartyPage,
         Action refreshInventoryPage,
@@ -68,17 +54,10 @@ public sealed class CharacterEquipmentController
         this.hireManager = hireManager;
         this.battleManager = battleManager;
         this.economyController = economyController;
+        this.equipmentDetailView = equipmentDetailView;
         this.setStatus = setStatus;
         this.setCharacterDetailContent = setCharacterDetailContent;
         this.showCharacterDetails = showCharacterDetails;
-        this.hideEquipmentDetails = hideEquipmentDetails;
-        this.hasEquipmentDetailOverlay = hasEquipmentDetailOverlay;
-        this.setEquipmentDetailTitle = setEquipmentDetailTitle;
-        this.setEquipmentDetailText = setEquipmentDetailText;
-        this.setEnhanceButton = setEnhanceButton;
-        this.setSellButton = setSellButton;
-        this.setLockButtonLabel = setLockButtonLabel;
-        this.showEquipmentDetailOverlay = showEquipmentDetailOverlay;
         this.refreshCompanyPage = refreshCompanyPage;
         this.refreshPartyPage = refreshPartyPage;
         this.refreshInventoryPage = refreshInventoryPage;
@@ -95,9 +74,7 @@ public sealed class CharacterEquipmentController
         }
 
         MercenaryInstance mercenary = SelectedDetailMercenary;
-        string source = mercenary.IsUnique ? "固有傭兵" : "量産型傭兵";
         string condition = mercenary.IsIncapacitated ? "戦闘不能" : "行動可能";
-        string shortId = mercenary.InstanceId.Substring(0, 8).ToUpperInvariant();
         string experienceText = mercenary.IsAtLevelCap
             ? "上限到達"
             : $"{mercenary.CurrentExperience} / " +
@@ -105,8 +82,6 @@ public sealed class CharacterEquipmentController
 
         setCharacterDetailContent(
             mercenary.MercenaryName,
-            $"種別: {source}\n" +
-            $"ID: {shortId}\n" +
             $"職業: {JapaneseDisplayText.GetMercenaryClass(mercenary.MercenaryClass)}\n" +
             $"契約: {JapaneseDisplayText.GetContractType(mercenary.ContractType)}\n" +
             $"契約期限: {(mercenary.ContractEndDay > 0 ? mercenary.ContractEndDay + "日" : "無期限")}" +
@@ -263,7 +238,7 @@ public sealed class CharacterEquipmentController
 
     public void ShowEquipmentDetails(EquipmentInstance equipment)
     {
-        if (equipment?.BaseItem == null || !hasEquipmentDetailOverlay())
+        if (equipment?.BaseItem == null || !equipmentDetailView.HasOverlay)
         {
             return;
         }
@@ -271,7 +246,7 @@ public sealed class CharacterEquipmentController
         SelectedEquipmentDetail = equipment;
         ItemDataSO item = equipment.BaseItem;
         string quality = JapaneseDisplayText.GetEquipmentQuality(equipment.Quality);
-        setEquipmentDetailTitle(
+        equipmentDetailView.SetTitle(
             $"[{quality}] {GetEquipmentDisplayName(equipment)}",
             GetEquipmentQualityColor(equipment.Quality));
 
@@ -299,9 +274,9 @@ public sealed class CharacterEquipmentController
             ? JapaneseDisplayText.GetItemName(enhancementMaterial)
             : "対応する強化鉱石";
 
-        setEquipmentDetailText(
+        equipmentDetailView.SetDetailText(
             $"種類: {JapaneseDisplayText.GetEquipmentSlot(item.equipmentSlot)}\n" +
-            $"装備対象: {target}  ランク: {item.equipmentRank}\n" +
+            $"装備対象: {target}  {EquipmentRankPresentation.GetRichText(item)}\n" +
             $"品質: {quality}  強化: +{equipment.EnhancementLevel} / +10\n\n" +
             $"最終性能\n" +
             $"HP {FormatSigned(equipment.BonusMaxHP)}  " +
@@ -315,7 +290,7 @@ public sealed class CharacterEquipmentController
             $"{equipment.GetEnhancementMaterialAmount()}個");
 
         bool canEnhance = equipment.EnhancementLevel < 10;
-        setEnhanceButton(
+        equipmentDetailView.SetEnhanceButton(
             canEnhance &&
             merchantData.CanPay(equipment.GetEnhancementCost()) &&
             enhancementMaterial != null &&
@@ -325,13 +300,13 @@ public sealed class CharacterEquipmentController
             canEnhance
                 ? $"強化 {equipment.GetEnhancementCost()}G"
                 : "強化完了");
-        setSellButton(
+        equipmentDetailView.SetSellButton(
             IsEquipmentInInventory(equipment) && !equipment.IsLocked,
             $"売却 {merchantInventory.GetSellPrice(equipment)}G");
-        setLockButtonLabel(
+        equipmentDetailView.SetLockButtonLabel(
             equipment.IsLocked ? "ロック解除" : "ロック");
 
-        showEquipmentDetailOverlay();
+        equipmentDetailView.ShowOverlay();
     }
 
     public void EnhanceSelectedEquipment()
@@ -398,7 +373,7 @@ public sealed class CharacterEquipmentController
             return;
         }
 
-        hideEquipmentDetails();
+        equipmentDetailView.HideOverlay();
         economyController.SellEquipment(equipment);
     }
 
@@ -648,7 +623,8 @@ public sealed class CharacterEquipmentController
                 mercenary.MercenaryClass);
         foreach (MercenarySkillDefinition definition in progressionSkills)
         {
-            if (!definition.IsPassive)
+            if (definition.Id == MercenaryClassProgression.GetPrimarySkill(
+                    mercenary.MercenaryClass).Id)
             {
                 continue;
             }
@@ -657,7 +633,9 @@ public sealed class CharacterEquipmentController
             {
                 Name = definition.Name,
                 ShortDescription = unlocked
-                    ? $"パッシブ / Lv{definition.UnlockLevel}"
+                    ? (definition.IsPassive
+                        ? $"パッシブ / Lv{definition.UnlockLevel}"
+                        : $"戦闘スキル / MP{definition.MagicCost}")
                     : $"未習得 / Lv{definition.UnlockLevel}",
                 DetailDescription = definition.Description,
                 Unlocked = unlocked
@@ -835,27 +813,31 @@ public sealed class CharacterEquipmentController
                 return "セット: 鬼狩り\n" +
                        "2部位: 最大HP+10、攻撃+3\n" +
                        "3部位: 攻撃+5、防御+2";
+            case EquipmentSetId.NornCanopy:
+                return "セット: ノルン樹冠\n" +
+                       "2部位: 最大HP+16、防御+4\n" +
+                       "3部位: 攻撃+4、攻撃速度+0.02";
+            case EquipmentSetId.GlaadSkyFortress:
+                return "セット: グラード天嶺\n" +
+                       "2部位: 攻撃+3、防御+6\n" +
+                       "3部位: 最大HP+22、攻撃速度+0.03";
+            case EquipmentSetId.VelmBlackIron:
+                return "セット: ヴェルム黒鉄\n" +
+                       "2部位: 最大HP+28、攻撃+4\n" +
+                       "3部位: 防御+8、攻撃速度+0.03";
+            case EquipmentSetId.AbyssThrone:
+                return "セット: アビス玉座\n" +
+                       "2部位: 攻撃+7、防御+7\n" +
+                       "3部位: 最大HP+36、攻撃速度+0.04";
+            case EquipmentSetId.AstralDepths:
+                return "セット: 星幽深層\n" +
+                       "2部位: 最大HP+45、攻撃速度+0.04\n" +
+                       "3部位: 攻撃+10、防御+10";
             default:
                 return "セット: 古代守護者\n" +
                        "2部位: 最大HP+30、防御+8\n" +
                        "3部位: 攻撃+12、攻撃速度+0.08";
         }
-    }
-
-    private static string BuildMercenarySkillSummary(MercenaryInstance mercenary)
-    {
-        List<string> skills = new List<string>();
-        foreach (MercenarySkillInfo skill in GetMercenarySkillInfos(mercenary))
-        {
-            if (skill.Unlocked)
-            {
-                skills.Add($"{skill.Name}: {skill.ShortDescription}");
-            }
-        }
-
-        return skills.Count > 0
-            ? string.Join(" / ", skills)
-            : "スキル未設定";
     }
 
     private static List<ItemDataSO> FindAllEquipmentAssets()

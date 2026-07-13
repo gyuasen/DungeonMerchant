@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
+  m_Name: NormalRank10Accessory
+  persistentId: item.normal.rank10.accessory
+  itemName: 神話の星環護符
+  itemType: 1
+  rarity: 3
+  description: アステラ秘匿都市の炉でのみ刻印できる、Rank 10の星環護符。
+  basePrice: 10000
+  acquisitionType: 1
+  equipmentSlot: 2
+  requiredClass: 0
+  allClassesCanEquip: 1
+  equipmentSet: 0
+  equipmentRank: 10
+  bonusMaxHP: 55
+  bonusAttack: 14
+  bonusDefense: 14
+  bonusAttackSpeed: 0.07
+  consumableEffect: 0

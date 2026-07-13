@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
+  m_Name: NormalRank09
+  persistentId: item.normal.rank09
+  itemName: Traveler Charm IX
+  itemType: 1
+  rarity: 0
+  description: Standard market equipment for every basic class.
+  basePrice: 950
+  equipmentSlot: 2
+  requiredClass: 0
+  allClassesCanEquip: 1
+  equipmentRank: 9
+  bonusMaxHP: 28
+  bonusAttack: 13

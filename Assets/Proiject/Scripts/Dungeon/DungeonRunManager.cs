@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class DungeonRunManager : MonoBehaviour
 {
-    private const string UnlockedGradeSaveKey =
-        "DungeonMerchant.Dungeon.HighestUnlockedGrade";
     private const int DefaultMaxEnemyCountPerEncounter = 5;
 
     [Header("References")]
@@ -17,10 +15,9 @@ public class DungeonRunManager : MonoBehaviour
     [SerializeField] private DungeonDataSO dungeonData;
     [SerializeField] private List<DungeonDataSO> availableDungeons =
         new List<DungeonDataSO>();
-    [SerializeField] private DungeonGrade highestUnlockedGrade = DungeonGrade.Low;
     private readonly HashSet<int> unlockedTownIndices = new HashSet<int> { 2 };
-    private readonly Dictionary<string, int> clearedFloorsByDungeon =
-        new Dictionary<string, int>();
+    private readonly DungeonProgressStore progressStore =
+        new DungeonProgressStore();
     private DungeonRewardService rewardService;
     [SerializeField, Min(0)] private int currentWorldMapIndex;
 
@@ -61,13 +58,13 @@ public class DungeonRunManager : MonoBehaviour
         GetClearedFloors(dungeonData) >= TotalFloors;
     public IReadOnlyList<DungeonDataSO> AvailableDungeons => availableDungeons;
     public DungeonDataSO SelectedDungeon => dungeonData;
-    public DungeonGrade HighestUnlockedGrade => highestUnlockedGrade;
+    public DungeonGrade HighestUnlockedGrade => progressStore.HighestUnlockedGrade;
     public int CurrentWorldMapIndex => currentWorldMapIndex;
-    public string EventTitle { get; private set; } = string.Empty;
-    public string EventDescription { get; private set; } = string.Empty;
-    public string FirstOptionLabel { get; private set; } = string.Empty;
-    public string SecondOptionLabel { get; private set; } = string.Empty;
-    public string ThirdOptionLabel { get; private set; } = string.Empty;
+    public string EventTitle => eventState.Presentation.Title;
+    public string EventDescription => eventState.Presentation.Description;
+    public string FirstOptionLabel => eventState.Presentation.FirstOptionLabel;
+    public string SecondOptionLabel => eventState.Presentation.SecondOptionLabel;
+    public string ThirdOptionLabel => eventState.Presentation.ThirdOptionLabel;
 
     public event Action<string> DungeonMessage;
     public event Action DungeonStateChanged;
@@ -75,7 +72,7 @@ public class DungeonRunManager : MonoBehaviour
 
     private void OnEnable()
     {
-        LoadDungeonProgress();
+        progressStore.Load();
         ResolveReferences();
         PopulateDungeonDataIfNeeded();
     }
@@ -190,15 +187,7 @@ public class DungeonRunManager : MonoBehaviour
 
     public int GetClearedFloors(DungeonDataSO data)
     {
-        if (data == null ||
-            !clearedFloorsByDungeon.TryGetValue(
-                GetDungeonProgressKey(data),
-                out int clearedFloors))
-        {
-            return 0;
-        }
-
-        return Mathf.Clamp(clearedFloors, 0, Mathf.Max(1, data.totalFloors));
+        return progressStore.GetClearedFloors(data);
     }
 
     public int GetCurrentFloor(DungeonDataSO data)
@@ -214,22 +203,7 @@ public class DungeonRunManager : MonoBehaviour
 
     public List<SavedDungeonFloorProgress> CreateFloorProgressSaveData()
     {
-        List<SavedDungeonFloorProgress> result =
-            new List<SavedDungeonFloorProgress>();
-        foreach (KeyValuePair<string, int> pair in clearedFloorsByDungeon)
-        {
-            DungeonDataSO dungeon = FindDungeonByProgressKey(pair.Key);
-            result.Add(new SavedDungeonFloorProgress
-            {
-                dungeonPersistentId =
-                    dungeon != null ? dungeon.PersistentId : pair.Key,
-                dungeonAssetName =
-                    dungeon != null ? dungeon.name : pair.Key,
-                clearedFloors = pair.Value
-            });
-        }
-
-        return result;
+        return progressStore.CreateFloorProgressSaveData(availableDungeons);
     }
 
     public void SetUnlockedTownIndices(IReadOnlyList<int> townIndices)
@@ -276,41 +250,16 @@ public class DungeonRunManager : MonoBehaviour
         string selectedDungeonPersistentId,
         IReadOnlyList<SavedDungeonFloorProgress> savedFloorProgress = null)
     {
-        highestUnlockedGrade = (DungeonGrade)Mathf.Clamp(
-            (int)restoredHighestGrade,
-            (int)DungeonGrade.Low,
-            (int)DungeonGrade.Highest);
-        SaveDungeonProgress();
         PopulateDungeonDataIfNeeded();
-        clearedFloorsByDungeon.Clear();
-        if (savedFloorProgress != null)
-        {
-            foreach (SavedDungeonFloorProgress progress in savedFloorProgress)
-            {
-                if (progress == null ||
-                    (string.IsNullOrWhiteSpace(progress.dungeonPersistentId) &&
-                     string.IsNullOrWhiteSpace(progress.dungeonAssetName)))
-                {
-                    continue;
-                }
+        progressStore.RestoreProgress(
+            restoredHighestGrade,
+            savedFloorProgress,
+            availableDungeons);
 
-                DungeonDataSO restoredDungeon =
-                    FindDungeon(
-                        progress.dungeonPersistentId,
-                        progress.dungeonAssetName);
-                string progressKey = restoredDungeon != null
-                    ? GetDungeonProgressKey(restoredDungeon)
-                    : !string.IsNullOrWhiteSpace(progress.dungeonPersistentId)
-                        ? progress.dungeonPersistentId
-                        : progress.dungeonAssetName;
-                clearedFloorsByDungeon[progressKey] =
-                    Mathf.Max(0, progress.clearedFloors);
-            }
-        }
-
-        DungeonDataSO restoredSelection = FindDungeon(
+        DungeonDataSO restoredSelection = progressStore.ResolveDungeon(
             selectedDungeonPersistentId,
-            selectedDungeonAssetName);
+            selectedDungeonAssetName,
+            availableDungeons);
         if (restoredSelection != null &&
             !IsDungeonUnlocked(restoredSelection))
         {
@@ -321,63 +270,10 @@ public class DungeonRunManager : MonoBehaviour
         DungeonStateChanged?.Invoke();
     }
 
-    private static string GetDungeonProgressKey(DungeonDataSO data)
-    {
-        return data != null ? data.PersistentId : string.Empty;
-    }
-
-    private DungeonDataSO FindDungeon(
-        string persistentId,
-        string legacyAssetName)
-    {
-        foreach (DungeonDataSO data in availableDungeons)
-        {
-            if (data == null)
-            {
-                continue;
-            }
-
-            if (!string.IsNullOrWhiteSpace(persistentId) &&
-                data.PersistentId == persistentId)
-            {
-                return data;
-            }
-
-            if (string.IsNullOrWhiteSpace(persistentId) &&
-                data.name == legacyAssetName)
-            {
-                return data;
-            }
-        }
-
-        return GameAssetRepository.FindByPersistentId<DungeonDataSO>(
-            persistentId,
-            legacyAssetName);
-    }
-
-    private DungeonDataSO FindDungeonByProgressKey(string progressKey)
-    {
-        foreach (DungeonDataSO data in availableDungeons)
-        {
-            if (data != null &&
-                (data.PersistentId == progressKey || data.name == progressKey))
-            {
-                return data;
-            }
-        }
-
-        return GameAssetRepository.FindByPersistentId<DungeonDataSO>(
-            progressKey,
-            progressKey);
-    }
-
     [ContextMenu("ダンジョン開放状態を初期化")]
     public void ResetDungeonProgress()
     {
-        highestUnlockedGrade = DungeonGrade.Low;
-        clearedFloorsByDungeon.Clear();
-        PlayerPrefs.DeleteKey(UnlockedGradeSaveKey);
-        PlayerPrefs.Save();
+        progressStore.Reset();
 
         PopulateDungeonDataIfNeeded();
         dungeonData = FindFirstUnlockedDungeon();
@@ -392,7 +288,7 @@ public class DungeonRunManager : MonoBehaviour
             return false;
         }
 
-        DungeonEventType eventType = currentEventType;
+        DungeonEventType eventType = eventState.Type;
         IsAwaitingEventChoice = false;
 
         if (optionIndex == 2)
@@ -587,9 +483,7 @@ public class DungeonRunManager : MonoBehaviour
 
         int completedFloor = CurrentFloor;
         int totalFloors = TotalFloors;
-        int previousClearedFloors = GetClearedFloors(dungeonData);
-        clearedFloorsByDungeon[GetDungeonProgressKey(dungeonData)] =
-            Mathf.Max(previousClearedFloors, completedFloor);
+        progressStore.RecordClearedFloor(dungeonData, completedFloor);
 
         int floorReward = Mathf.Max(0, dungeonData.floorClearGoldReward);
         if (floorReward > 0)
@@ -615,24 +509,20 @@ public class DungeonRunManager : MonoBehaviour
             $"次回は第{completedFloor + 1}フロアから開始します。");
     }
 
-    private DungeonEventType currentEventType = DungeonEventType.None;
+    private DungeonEventState eventState = DungeonEventState.Empty;
 
     private void PresentRandomEvent()
     {
-        currentEventType = DungeonEventService.RollRandomEvent();
+        DungeonEventType eventType = DungeonEventService.RollRandomEvent();
         IsAwaitingEventChoice = true;
 
         DungeonEventPresentation presentation =
             DungeonEventService.CreatePresentation(
-                currentEventType,
+                eventType,
                 restHealAmount,
                 treasureGoldReward,
                 hazardDamage);
-        EventTitle = presentation.Title;
-        EventDescription = presentation.Description;
-        FirstOptionLabel = presentation.FirstOptionLabel;
-        SecondOptionLabel = presentation.SecondOptionLabel;
-        ThirdOptionLabel = presentation.ThirdOptionLabel;
+        eventState = new DungeonEventState(eventType, presentation);
         SendDungeonMessage($"ダンジョンイベント: {EventTitle}");
         DungeonStateChanged?.Invoke();
     }
@@ -762,23 +652,6 @@ public class DungeonRunManager : MonoBehaviour
         }
     }
 
-    private void LoadDungeonProgress()
-    {
-        int savedGrade = PlayerPrefs.GetInt(
-            UnlockedGradeSaveKey,
-            (int)DungeonGrade.Low);
-        highestUnlockedGrade = (DungeonGrade)Mathf.Clamp(
-            savedGrade,
-            (int)DungeonGrade.Low,
-            (int)DungeonGrade.Highest);
-    }
-
-    private void SaveDungeonProgress()
-    {
-        PlayerPrefs.SetInt(UnlockedGradeSaveKey, (int)highestUnlockedGrade);
-        PlayerPrefs.Save();
-    }
-
     private DungeonDataSO FindFirstUnlockedDungeon()
     {
         foreach (DungeonDataSO data in availableDungeons)
@@ -796,12 +669,7 @@ public class DungeonRunManager : MonoBehaviour
 
     private void ClearEvent()
     {
-        currentEventType = DungeonEventType.None;
-        EventTitle = string.Empty;
-        EventDescription = string.Empty;
-        FirstOptionLabel = string.Empty;
-        SecondOptionLabel = string.Empty;
-        ThirdOptionLabel = string.Empty;
+        eventState = DungeonEventState.Empty;
     }
 
     private void SubscribeToBattle()
