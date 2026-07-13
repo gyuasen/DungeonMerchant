@@ -21,6 +21,7 @@ public class MercenaryHireManager : MonoBehaviour
     public MercenaryContractType SelectedContract => selectedContract;
 
     public event Action<MercenaryInstance> MercenaryHired;
+    public event Action<MercenaryInstance> MercenaryDismissed;
     public event Action ContractsChanged;
 
     private void OnEnable()
@@ -109,7 +110,7 @@ public class MercenaryHireManager : MonoBehaviour
             selectedContract)
             ? selectedContract
             : MercenaryContractType.Local;
-        if (UnityEngine.Random.value > merchantData.GetHireSuccessRate())
+        if (UnityEngine.Random.value > GetSelectedContractSuccessRate())
         {
             return false;
         }
@@ -139,6 +140,18 @@ public class MercenaryHireManager : MonoBehaviour
 
         mercenary.RenewContract(
             dayManager != null ? dayManager.CurrentDay : 1);
+        ContractsChanged?.Invoke();
+        return true;
+    }
+
+    public bool TryReleaseMercenary(MercenaryInstance mercenary)
+    {
+        if (mercenary == null || !hiredMercenaries.Remove(mercenary))
+        {
+            return false;
+        }
+
+        MercenaryDismissed?.Invoke(mercenary);
         ContractsChanged?.Invoke();
         return true;
     }
@@ -195,11 +208,32 @@ public class MercenaryHireManager : MonoBehaviour
         return selectedContract;
     }
 
+    public float GetSelectedContractSuccessRate()
+    {
+        ResolveReferences();
+        return selectedContract == MercenaryContractType.Exclusive &&
+               merchantData != null
+            ? merchantData.GetHireSuccessRate()
+            : 1f;
+    }
+
     private void HandleDayChanged(int currentDay)
     {
         foreach (MercenaryInstance mercenary in hiredMercenaries)
         {
-            mercenary?.UpdateContractForDay(currentDay);
+            if (mercenary == null)
+            {
+                continue;
+            }
+
+            mercenary.UpdateContractForDay(currentDay);
+            if (mercenary.ContractType == MercenaryContractType.Local &&
+                mercenary.ContractNeedsRenewal &&
+                merchantData != null &&
+                merchantData.TryPayGold(GetRenewalCost(mercenary)))
+            {
+                mercenary.RenewContract(currentDay);
+            }
         }
         ContractsChanged?.Invoke();
     }

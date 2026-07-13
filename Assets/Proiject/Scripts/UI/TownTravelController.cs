@@ -138,6 +138,20 @@ public sealed class TownTravelController
 
         confirmationTravelTownIndex = townIndex;
         confirmationOpenDungeonAfterTravel = openDungeonAfterTravel;
+        bool hiddenIslandRoute =
+            townIndex == WorldMapService.HiddenIslandTownIndex ||
+            townProgressState.CurrentTownIndex ==
+                WorldMapService.HiddenIslandTownIndex;
+        if (hiddenIslandRoute)
+        {
+            showTravelConfirmation(
+                $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]} から\n" +
+                $"{WorldMapService.TownNames[townIndex]} へ移動します。\n\n" +
+                "・発見済みの中央島航路を利用します\n" +
+                "・街道戦闘と日数経過はありません");
+            return;
+        }
+
         string unlockNotice = validation.IsUnlockTravel
             ? "\n勝利すると新しい町が解放されます。"
             : string.Empty;
@@ -175,6 +189,16 @@ public sealed class TownTravelController
         int destinationTownIndex,
         bool openDungeonAfterTravel)
     {
+        if (destinationTownIndex == WorldMapService.HiddenIslandTownIndex ||
+            townProgressState.CurrentTownIndex ==
+                WorldMapService.HiddenIslandTownIndex)
+        {
+            CompleteHiddenIslandTravel(
+                destinationTownIndex,
+                openDungeonAfterTravel);
+            return;
+        }
+
         if (battleManager.IsBattling)
         {
             setStatus("戦闘中は町を移動できません。");
@@ -220,6 +244,33 @@ public sealed class TownTravelController
         setStatus(
             $"町の移動: 街道戦闘 {roadTravelState.EncounterIndex}/" +
             $"{roadTravelState.EncounterCount}");
+    }
+
+    private void CompleteHiddenIslandTravel(
+        int destinationTownIndex,
+        bool openDungeonAfterTravel)
+    {
+        townProgressState.SetCurrentTown(destinationTownIndex);
+        townProgressState.ViewedWorldMapIndex =
+            townProgressState.CurrentWorldMapIndex;
+        dungeonRunManager.SetCurrentWorldMapIndex(
+            townProgressState.ViewedWorldMapIndex);
+        ApplyTownServiceSettings(false, false);
+        syncDungeonUnlocks();
+        refreshTownMapButtons();
+
+        if (openDungeonAfterTravel)
+        {
+            openNearbyDungeon();
+        }
+        else
+        {
+            showTownMap();
+        }
+
+        setStatus(
+            $"中央島航路を利用し、{WorldMapService.TownNames[destinationTownIndex]}へ移動しました。");
+        saveManager?.SaveGame();
     }
 
     /// <summary>

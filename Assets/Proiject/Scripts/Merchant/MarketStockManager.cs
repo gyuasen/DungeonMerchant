@@ -12,7 +12,8 @@ public class MarketStockManager : MonoBehaviour
     [SerializeField, Range(0.4f, 1.8f)] private float maximumBuyMultiplier = 1.15f;
     [SerializeField] private List<ItemDataSO> purchasableItems = new List<ItemDataSO>();
     [SerializeField] private List<MarketStockEntry> stock = new List<MarketStockEntry>();
-    [SerializeField, Range(0, 6)] private int currentTownIndex = 2;
+    [SerializeField, Range(0, WorldMapService.HiddenIslandTownIndex)]
+    private int currentTownIndex = 2;
 
     public IReadOnlyList<MarketStockEntry> Stock => stock;
     public int CurrentDay => dayManager != null ? dayManager.CurrentDay : 1;
@@ -21,7 +22,10 @@ public class MarketStockManager : MonoBehaviour
 
     public void SetTownIndex(int townIndex, bool regenerate = true)
     {
-        currentTownIndex = Mathf.Clamp(townIndex, 0, 6);
+        currentTownIndex = Mathf.Clamp(
+            townIndex,
+            0,
+            WorldMapService.HiddenIslandTownIndex);
         if (regenerate)
         {
             GenerateDailyStock();
@@ -233,18 +237,22 @@ public class MarketStockManager : MonoBehaviour
 
     private ItemDataSO CreateRuntimeFallbackItem()
     {
+        WorldMapService.EquipmentRankRange rankRange =
+            WorldMapService.GetMarketEquipmentRankRange(currentTownIndex);
+        int rank = rankRange.Minimum;
         ItemDataSO item = ScriptableObject.CreateInstance<ItemDataSO>();
-        item.itemName = "Iron Sword";
+        item.itemName = $"Standard Equipment Rank {rank}";
         item.itemType = ItemType.Equipment;
         item.rarity = ItemRarity.Common;
         item.description = "Runtime fallback weapon.";
-        item.basePrice = 120;
+        item.basePrice = 80 + rank * 70;
         item.equipmentSlot = EquipmentSlot.Weapon;
         item.requiredClass = MercenaryClass.Warrior;
-        item.equipmentRank = 1;
-        item.bonusMaxHP = 5;
-        item.bonusAttack = 4;
-        item.bonusDefense = 1;
+        item.allClassesCanEquip = true;
+        item.equipmentRank = rank;
+        item.bonusMaxHP = rank * 3;
+        item.bonusAttack = rank * 2 + 2;
+        item.bonusDefense = rank;
         return item;
     }
 

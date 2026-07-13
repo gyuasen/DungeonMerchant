@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
+  m_Name: AstralCore
+  persistentId: item.hidden.astral_core
+  itemName: 星環の核
+  itemType: 1
+  rarity: 3
+  description: 中央島の動力源から分離した、脈動する星の護符。
+  basePrice: 4600
+  acquisitionType: 2
+  equipmentSlot: 2
+  requiredClass: 0
+  allClassesCanEquip: 1
+  equipmentSet: 10
+  equipmentRank: 10
+  bonusMaxHP: 50
+  bonusAttack: 12
+  bonusDefense: 12
+  bonusAttackSpeed: 0.06
+  consumableEffect: 0

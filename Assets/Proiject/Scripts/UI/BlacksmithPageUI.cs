@@ -80,8 +80,9 @@ public sealed class BlacksmithPageUI : ListPageUIBase
             RowTextColor);
 
         string stats =
+            EquipmentRankPresentation.GetRichText(item) + "  |  " +
             $"{JapaneseDisplayText.GetMercenaryClass(item.requiredClass)}用  |  " +
-            $"ランク{item.equipmentRank}  |  攻撃+{item.bonusAttack}  " +
+            $"攻撃+{item.bonusAttack}  " +
             $"防御+{item.bonusDefense}  HP+{item.bonusMaxHP}";
         CreateText(
             row,

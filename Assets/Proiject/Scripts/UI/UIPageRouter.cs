@@ -31,6 +31,14 @@ public sealed class UIPageRouter : MonoBehaviour
             page = pageRoot.gameObject.AddComponent<SimpleUIPage>();
         }
         pages[pageRoot] = page;
+
+        // Prefab pages are authored as siblings. Keep a newly registered page
+        // hidden until Show explicitly selects it, otherwise every page can be
+        // rendered together while the UI is still being initialized.
+        if (page != CurrentPage)
+        {
+            page.Hide();
+        }
     }
 
     public void Show(RectTransform pageRoot)
@@ -54,9 +62,15 @@ public sealed class UIPageRouter : MonoBehaviour
 
     public void HideAll()
     {
-        foreach (UIPageBase page in pages.Values)
+        foreach (KeyValuePair<RectTransform, UIPageBase> entry in pages)
         {
-            page.Hide();
+            // Hide the registered root as well as its page component. This
+            // keeps routing safe if a prefab contains an unexpected component
+            // arrangement or a page component is replaced during migration.
+            if (entry.Key != null)
+            {
+                entry.Key.gameObject.SetActive(false);
+            }
         }
         CurrentPage = null;
     }

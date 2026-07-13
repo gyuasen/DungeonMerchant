@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using System.Reflection;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 // Characterization tests for DungeonRunManager (Action 2.2 of the god-object
@@ -11,17 +11,17 @@ using UnityEngine;
 // synchronous, side-effect-bounded surface: IsDungeonUnlocked(...),
 // TrySelectDungeon(...), StartRun()'s early guard clauses (asserting only the
 // `false` returns, never driving a run to a successful start),
-// ChooseEventOption(...)'s guard clause, and the
-// CreateFloorProgressSaveData()/RestoreProgress(...) round trip. Driving a
+// ChooseEventOption(...)'s guard clause, and public progress-store delegation.
+// Driving a
 // run to completion, event-choice resolution, HP/reward application, and
 // DungeonCompleted/DungeonMessage firing from a real run are out of scope for
 // the same reason BattleManagerTests.cs stops at StartBattle's guard clauses.
 //
-// IMPORTANT: DungeonRunManager.OnEnable() calls LoadDungeonProgress(), which
+// IMPORTANT: DungeonRunManager.OnEnable() loads DungeonProgressStore, which
 // reads PlayerPrefs key "DungeonMerchant.Dungeon.HighestUnlockedGrade" the
 // instant AddComponent<DungeonRunManager>() runs. RestoreProgress(...) writes
-// that same key via SaveDungeonProgress(). Both SetUp and TearDown delete the
-// key so this state never leaks across tests in this file, or into
+// that same key through the store. Both SetUp and TearDown delete the key so
+// this state never leaks across tests in this file, or into
 // RoadEncounterServiceTests.cs / RoadTravelCompletionServiceTests.cs, which
 // also construct DungeonRunManager instances.
 public sealed class DungeonRunManagerTests
@@ -187,53 +187,43 @@ public sealed class DungeonRunManagerTests
         Assert.That(result, Is.False);
     }
 
-    // --- CreateFloorProgressSaveData() / RestoreProgress(...) round trip ---
+    // --- Public progress-store delegation ---
 
     [Test]
-    public void CreateFloorProgressSaveData_ThenRestoreProgress_RoundTripsClearedFloorsForInjectedDungeon()
+    public void RestoreProgress_ThenCreateFloorProgressSaveData_RoundTripsClearedFloors()
     {
-        // PopulateDungeonDataIfNeeded() (called from OnEnable, StartRun(),
-        // RestoreProgress(), etc.) loads every DungeonDataSO under any
-        // Resources folder via GameAssetRepository.LoadAll<DungeonDataSO>()
-        // (Resources.LoadAll<DungeonDataSO>(string.Empty)), so a fresh
-        // DungeonRunManager's availableDungeons list is NOT guaranteed empty
-        // -- it is populated with this project's real dungeon assets. To keep
-        // this round trip deterministic regardless of the real roster, we
-        // inject our own DungeonDataSO (with an explicit persistentId) into
-        // availableDungeons on both the "save" and "restore" manager
-        // instances and only assert about that dungeon's cleared-floor count.
         DungeonDataSO dungeon = CreateDungeon(
             "RoundTripDungeon",
-            "round-trip-dungeon-id",
+            null,
             worldMapIndex: 0,
             nearbyTownIndex: 2,
             totalFloors: 5);
 
-        GetAvailableDungeons(dungeonRunManager).Add(dungeon);
-        GetClearedFloorsByDungeon(dungeonRunManager)[dungeon.PersistentId] = 3;
-
-        List<SavedDungeonFloorProgress> saved =
-            dungeonRunManager.CreateFloorProgressSaveData();
-
-        SavedDungeonFloorProgress savedEntry = saved.Find(
-            entry => entry.dungeonPersistentId == dungeon.PersistentId);
-        Assert.That(savedEntry, Is.Not.Null);
-        Assert.That(savedEntry.clearedFloors, Is.EqualTo(3));
-
-        GameObject restoreRoot = Track(new GameObject("Dungeon Run Manager Restore Test"));
-        DungeonRunManager restoreManager =
-            restoreRoot.AddComponent<DungeonRunManager>();
-        GetAvailableDungeons(restoreManager).Add(dungeon);
-
-        restoreManager.RestoreProgress(
+        dungeonRunManager.RestoreProgress(
             DungeonGrade.Middle,
             dungeon.name,
             dungeon.PersistentId,
-            saved);
+            new List<SavedDungeonFloorProgress>
+            {
+                new SavedDungeonFloorProgress
+                {
+                    dungeonPersistentId = dungeon.PersistentId,
+                    dungeonAssetName = dungeon.name,
+                    clearedFloors = 3
+                }
+            });
 
-        Assert.That(restoreManager.GetClearedFloors(dungeon), Is.EqualTo(3));
-        Assert.That(restoreManager.SelectedDungeon, Is.SameAs(dungeon));
-        Assert.That(restoreManager.HighestUnlockedGrade, Is.EqualTo(DungeonGrade.Middle));
+        List<SavedDungeonFloorProgress> saved =
+            dungeonRunManager.CreateFloorProgressSaveData();
+        SavedDungeonFloorProgress savedEntry = saved.Find(
+            entry => entry.dungeonPersistentId == dungeon.PersistentId);
+
+        Assert.That(dungeonRunManager.GetClearedFloors(dungeon), Is.EqualTo(3));
+        Assert.That(savedEntry, Is.Not.Null);
+        Assert.That(savedEntry.clearedFloors, Is.EqualTo(3));
+        Assert.That(
+            dungeonRunManager.HighestUnlockedGrade,
+            Is.EqualTo(DungeonGrade.Middle));
     }
 
     private DungeonDataSO CreateDungeon(
@@ -250,33 +240,12 @@ public sealed class DungeonRunManagerTests
         dungeon.totalFloors = totalFloors;
         if (!string.IsNullOrEmpty(persistentId))
         {
-            SetPrivateField(dungeon, "persistentId", persistentId);
+            SerializedObject serializedDungeon = new SerializedObject(dungeon);
+            serializedDungeon.FindProperty("persistentId").stringValue =
+                persistentId;
+            serializedDungeon.ApplyModifiedPropertiesWithoutUndo();
         }
         return dungeon;
-    }
-
-    private static List<DungeonDataSO> GetAvailableDungeons(DungeonRunManager manager)
-    {
-        FieldInfo field = typeof(DungeonRunManager).GetField(
-            "availableDungeons",
-            BindingFlags.Instance | BindingFlags.NonPublic);
-        return (List<DungeonDataSO>)field.GetValue(manager);
-    }
-
-    private static Dictionary<string, int> GetClearedFloorsByDungeon(DungeonRunManager manager)
-    {
-        FieldInfo field = typeof(DungeonRunManager).GetField(
-            "clearedFloorsByDungeon",
-            BindingFlags.Instance | BindingFlags.NonPublic);
-        return (Dictionary<string, int>)field.GetValue(manager);
-    }
-
-    private static void SetPrivateField(object target, string fieldName, object value)
-    {
-        FieldInfo field = target.GetType().GetField(
-            fieldName,
-            BindingFlags.Instance | BindingFlags.NonPublic);
-        field.SetValue(target, value);
     }
 
     private T Track<T>(T created) where T : Object

@@ -23,12 +23,13 @@ MonoBehaviour:
   firstEncounterEnemyCount: 5
   enemyCountIncreasePerEncounter: 2
   enemyCountIncreasePerFloor: 1
+  maxEnemyCountPerEncounter: 5
   normalEnemies:
   - {fileID: 11400000, guid: b3b67e52dccc48089bb352b4aefc6eed, type: 2}
   - {fileID: 11400000, guid: 1625713f89ec4433967ca98bf82bf071, type: 2}
   bossEnemy: {fileID: 11400000, guid: 1cb34bb369e94232a648c0e0af10b22c, type: 2}
-  floorClearGoldReward: 180
-  clearGoldReward: 800
+  floorClearGoldReward: 300
+  clearGoldReward: 3000
   clearItemRewards:
   - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
     amount: 12
@@ -37,9 +38,9 @@ MonoBehaviour:
   eventLimitedDropChance: 0.05
   bossLimitedDropChance: 0.12
   limitedEquipmentDrops:
-  - {fileID: 11400000, guid: 68f03ed7307742d8814a1ec088c45bc1, type: 2}
-  - {fileID: 11400000, guid: 8177ed4faefc450885f8d06738f9a05e, type: 2}
-  - {fileID: 11400000, guid: 21d742c7122c4e4da77a01f608c511f6, type: 2}
-  specialVariantChance: 0.1
-  specialBossChance: 0.05
+  - {fileID: 11400000, guid: a1200000000000000000000000000001, type: 2}
+  - {fileID: 11400000, guid: a1200000000000000000000000000002, type: 2}
+  - {fileID: 11400000, guid: a1200000000000000000000000000003, type: 2}
+  specialVariantChance: 0.12
+  specialBossChance: 0.06
   specialVariantSkillPool: 0300000004000000050000000600000007000000080000000a0000000b0000000c0000000d0000000e000000

@@ -18,10 +18,16 @@ public class SaveManager : MonoBehaviour
     private ProgressionManager progressionManager;
     private DebtManager debtManager;
     private TownProgressState townProgressState;
+    private StoryProgressManager storyProgressManager;
     private bool initialized;
     private bool isLoading;
+    private bool suppressAutoSaveAfterDelete;
+    private string savePathOverride = string.Empty;
 
-    public string SavePath => Path.Combine(Application.persistentDataPath, SaveFileName);
+    public string SavePath => !string.IsNullOrEmpty(savePathOverride)
+        ? savePathOverride
+        : Path.Combine(Application.persistentDataPath, SaveFileName);
+    public bool HasSaveData => File.Exists(SavePath);
 
     public void InitializeAndLoad()
     {
@@ -31,15 +37,20 @@ public class SaveManager : MonoBehaviour
         }
 
         ResolveReferences();
+        bool hasExistingSave = File.Exists(SavePath);
         LoadGame();
         Subscribe();
+        if (!hasExistingSave)
+        {
+            storyProgressManager?.BeginNewGame();
+        }
         initialized = true;
     }
 
     [ContextMenu("ゲームを保存")]
     public void SaveGame()
     {
-        if (isLoading)
+        if (isLoading || IsAutomatedTestRun())
         {
             return;
         }
@@ -78,6 +89,7 @@ public class SaveManager : MonoBehaviour
                 data.version != GameSaveData.CurrentVersion;
             data = SaveDataMigrator.Migrate(data);
             isLoading = true;
+            storyProgressManager?.BeginRestore();
             ApplySaveData(data);
             if (requiresMigration)
             {
@@ -97,12 +109,14 @@ public class SaveManager : MonoBehaviour
         finally
         {
             isLoading = false;
+            storyProgressManager?.EndRestore();
         }
     }
 
     [ContextMenu("セーブデータを削除")]
     public void DeleteSaveData()
     {
+        suppressAutoSaveAfterDelete = true;
         if (File.Exists(SavePath))
         {
             File.Delete(SavePath);
@@ -114,7 +128,7 @@ public class SaveManager : MonoBehaviour
 
     private void OnApplicationQuit()
     {
-        if (initialized)
+        if (initialized && !suppressAutoSaveAfterDelete)
         {
             SaveGame();
         }
@@ -122,7 +136,7 @@ public class SaveManager : MonoBehaviour
 
     private void OnApplicationPause(bool paused)
     {
-        if (paused && initialized)
+        if (paused && initialized && !suppressAutoSaveAfterDelete)
         {
             SaveGame();
         }
@@ -131,6 +145,23 @@ public class SaveManager : MonoBehaviour
     private void OnDestroy()
     {
         Unsubscribe();
+    }
+
+    private static bool IsAutomatedTestRun()
+    {
+        string[] arguments = Environment.GetCommandLineArgs();
+        for (int i = 0; i < arguments.Length; i++)
+        {
+            if (string.Equals(
+                    arguments[i],
+                    "-runTests",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private GameSaveData CreateSaveData()
@@ -189,6 +220,12 @@ public class SaveManager : MonoBehaviour
                     : string.Empty
         };
 
+        if (storyProgressManager != null)
+        {
+            data.completedStoryMilestones.AddRange(
+                storyProgressManager.CompletedMilestones);
+        }
+
         if (townProgressState != null)
         {
             data.unlockedTownIndices.Clear();
@@ -225,7 +262,12 @@ public class SaveManager : MonoBehaviour
             {
                 if (equipment?.BaseItem != null)
                 {
-                    data.equipmentInventory.Add(CreateSavedEquipment(equipment));
+                    SavedEquipmentInstance savedEquipment =
+                        CreateSavedEquipment(equipment);
+                    if (savedEquipment != null)
+                    {
+                        data.equipmentInventory.Add(savedEquipment);
+                    }
                 }
             }
         }
@@ -442,6 +484,8 @@ public class SaveManager : MonoBehaviour
             data.selectedDungeonPersistentId,
             data.dungeonFloorProgress);
         dungeonRunManager?.SetCurrentWorldMapIndex(townProgressState.CurrentWorldMapIndex);
+        storyProgressManager?.RestoreCompletedMilestones(
+            data.completedStoryMilestones);
     }
 
     private MercenaryInstance RestoreMercenary(SavedMercenary saved)
@@ -517,6 +561,13 @@ public class SaveManager : MonoBehaviour
     private static SavedEquipmentInstance CreateSavedEquipment(
         EquipmentInstance equipment)
     {
+        // Broken or legacy equipment references must not prevent the entire
+        // game from being saved when play mode or the application ends.
+        if (equipment?.BaseItem == null)
+        {
+            return null;
+        }
+
         SavedEquipmentInstance saved = new SavedEquipmentInstance
         {
             instanceId = equipment.InstanceId,
@@ -526,6 +577,11 @@ public class SaveManager : MonoBehaviour
             enhancementLevel = equipment.EnhancementLevel,
             isLocked = equipment.IsLocked
         };
+        if (equipment.Modifiers == null)
+        {
+            return saved;
+        }
+
         foreach (EquipmentModifier modifier in equipment.Modifiers)
         {
             if (modifier != null)
@@ -583,6 +639,9 @@ public class SaveManager : MonoBehaviour
         if (dayManager != null) dayManager.DayChanged += HandleChanged;
         if (merchantInventory != null) merchantInventory.InventoryChanged += HandleChanged;
         if (hireManager != null) hireManager.MercenaryHired += HandleMercenaryChanged;
+        if (hireManager != null) hireManager.MercenaryDismissed += HandleMercenaryChanged;
+        if (hireManager != null) hireManager.ContractsChanged += HandleChanged;
+        if (storyProgressManager != null) storyProgressManager.MilestoneCompleted += HandleStoryMilestoneCompleted;
         if (partyManager != null) partyManager.PartyChanged += HandleChanged;
         if (healingManager != null) healingManager.HealingChanged += HandleChanged;
         if (battleManager != null) battleManager.BattleCompleted += HandleBattleCompleted;
@@ -608,6 +667,9 @@ public class SaveManager : MonoBehaviour
         if (dayManager != null) dayManager.DayChanged -= HandleChanged;
         if (merchantInventory != null) merchantInventory.InventoryChanged -= HandleChanged;
         if (hireManager != null) hireManager.MercenaryHired -= HandleMercenaryChanged;
+        if (hireManager != null) hireManager.MercenaryDismissed -= HandleMercenaryChanged;
+        if (hireManager != null) hireManager.ContractsChanged -= HandleChanged;
+        if (storyProgressManager != null) storyProgressManager.MilestoneCompleted -= HandleStoryMilestoneCompleted;
         if (partyManager != null) partyManager.PartyChanged -= HandleChanged;
         if (healingManager != null) healingManager.HealingChanged -= HandleChanged;
         if (battleManager != null) battleManager.BattleCompleted -= HandleBattleCompleted;
@@ -631,6 +693,7 @@ public class SaveManager : MonoBehaviour
     private void HandleMercenaryChanged(MercenaryInstance mercenary) => SaveGame();
     private void HandleBattleCompleted(bool victory) => SaveGame();
     private void HandleDungeonCompleted(bool cleared) => SaveGame();
+    private void HandleStoryMilestoneCompleted(StoryMilestone milestone) => SaveGame();
 
     private ItemDataSO FindItem(
         string persistentId,
@@ -697,5 +760,8 @@ public class SaveManager : MonoBehaviour
         townProgressState =
             GetComponent<TownProgressState>() ??
             FindObjectOfType<TownProgressState>();
+        storyProgressManager =
+            GetComponent<StoryProgressManager>() ??
+            FindObjectOfType<StoryProgressManager>();
     }
 }

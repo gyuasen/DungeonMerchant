@@ -5,10 +5,13 @@ public sealed class WorldMapServiceTests
     [Test]
     public void TownData_HasExpectedProgressionAndRegions()
     {
-        Assert.That(WorldMapService.TownCount, Is.EqualTo(7));
-        Assert.That(WorldMapService.WorldRegionCount, Is.EqualTo(3));
+        Assert.That(WorldMapService.TownCount, Is.EqualTo(8));
+        Assert.That(WorldMapService.WorldRegionCount, Is.EqualTo(4));
         Assert.That(WorldMapService.GetTownName(2), Is.EqualTo("セイル港湾都市"));
         Assert.That(WorldMapService.GetTownName(6), Is.EqualTo("アビス辺境都市"));
+        Assert.That(
+            WorldMapService.GetTownName(WorldMapService.HiddenIslandTownIndex),
+            Is.EqualTo("アステラ秘匿都市"));
         Assert.That(
             WorldMapService.GetWorldRegionName(1),
             Is.EqualTo("北西山岳森林地域"));
@@ -165,5 +168,43 @@ public sealed class WorldMapServiceTests
         Assert.That(result.CanTravel, Is.True);
         Assert.That(result.IsUnlockTravel, Is.True);
         Assert.That(result.FailureMessage, Is.Empty);
+    }
+
+    [Test]
+    public void HiddenIsland_IsInvisibleRouteUntilConditionUnlocksTown()
+    {
+        Assert.That(
+            WorldMapService.CanEnterWorldRegion(
+                WorldMapService.HiddenIslandWorldMapIndex,
+                6,
+                new[] { 0, 1, 2, 3, 4, 5, 6 },
+                _ => true),
+            Is.False);
+
+        WorldMapService.TravelValidationResult locked =
+            WorldMapService.ValidateTravelRequest(
+                6,
+                WorldMapService.HiddenIslandTownIndex,
+                new[] { 0, 1, 2, 3, 4, 5, 6 },
+                true,
+                _ => true);
+        Assert.That(locked.CanTravel, Is.False);
+
+        int[] unlockedTowns = { 0, 1, 2, 3, 4, 5, 6, 7 };
+        Assert.That(
+            WorldMapService.CanEnterWorldRegion(
+                WorldMapService.HiddenIslandWorldMapIndex,
+                6,
+                unlockedTowns,
+                _ => false),
+            Is.True);
+        Assert.That(
+            WorldMapService.ValidateTravelRequest(
+                6,
+                WorldMapService.HiddenIslandTownIndex,
+                unlockedTowns,
+                false,
+                _ => false).CanTravel,
+            Is.True);
     }
 }

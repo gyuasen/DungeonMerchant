@@ -13,6 +13,7 @@ public static class SaveDataMigrator
         int sourceVersion = Mathf.Max(0, data.version);
         MigrateMerchantProgression(data, sourceVersion);
         MigrateDebt(data, sourceVersion);
+        MigrateStoryProgress(data, sourceVersion);
         PreserveLegacyCollectionSemantics(data, sourceVersion);
         EnsureCollections(data);
         PopulatePersistentIds(data);
@@ -69,6 +70,37 @@ public static class SaveDataMigrator
         }
     }
 
+    private static void MigrateStoryProgress(GameSaveData data, int sourceVersion)
+    {
+        if (sourceVersion >= 21)
+        {
+            return;
+        }
+
+        data.completedStoryMilestones = new List<StoryMilestone>
+        {
+            StoryMilestone.OpeningDebtNotice
+        };
+        if (data.hiredMercenaries != null && data.hiredMercenaries.Count > 0)
+        {
+            AddStoryMilestone(data, StoryMilestone.FirstMercenary);
+        }
+        if (data.dungeonFloorProgress != null &&
+            data.dungeonFloorProgress.Exists(progress =>
+                progress != null && progress.clearedFloors > 0))
+        {
+            AddStoryMilestone(data, StoryMilestone.FirstDungeonClear);
+        }
+        if (data.unlockedTownIndices != null)
+        {
+            if (data.unlockedTownIndices.Contains(1)) AddStoryMilestone(data, StoryMilestone.LeafUnlocked);
+            if (WorldMapService.HasUnlockedTownInWorld(data.unlockedTownIndices, 1)) AddStoryMilestone(data, StoryMilestone.RegionGateCleared);
+            if (data.unlockedTownIndices.Contains(6)) AddStoryMilestone(data, StoryMilestone.AbyssReached);
+            if (data.unlockedTownIndices.Contains(WorldMapService.HiddenIslandTownIndex)) AddStoryMilestone(data, StoryMilestone.HiddenIslandReached);
+        }
+        if (data.remainingDebt <= 0) AddStoryMilestone(data, StoryMilestone.DebtCleared);
+    }
+
     private static void EnsureCollections(GameSaveData data)
     {
         data.inventory ??= new List<SavedInventoryItem>();
@@ -77,6 +109,7 @@ public static class SaveDataMigrator
         data.partyMemberIds ??= new List<string>();
         data.discoveredEquipmentAssetNames ??= new List<string>();
         data.discoveredEquipmentPersistentIds ??= new List<string>();
+        data.completedStoryMilestones ??= new List<StoryMilestone>();
         data.progression ??= new ProgressionSaveData();
     }
 
@@ -215,6 +248,14 @@ public static class SaveDataMigrator
         if (!string.IsNullOrWhiteSpace(value) && !values.Contains(value))
         {
             values.Add(value);
+        }
+    }
+
+    private static void AddStoryMilestone(GameSaveData data, StoryMilestone milestone)
+    {
+        if (!data.completedStoryMilestones.Contains(milestone))
+        {
+            data.completedStoryMilestones.Add(milestone);
         }
     }
 }

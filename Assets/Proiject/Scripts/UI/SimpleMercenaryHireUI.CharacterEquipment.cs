@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public partial class SimpleMercenaryHireUI
+public partial class SimpleMercenaryHireUI : IEquipmentDetailView
 {
     private void BuildEquipmentDetailOverlay()
     {
@@ -685,5 +685,50 @@ public partial class SimpleMercenaryHireUI
     private void HideEquipmentCollection()
     {
         equipmentCollectionOverlay?.gameObject.SetActive(false);
+    }
+
+    // --- IEquipmentDetailView (equipment-detail overlay view surface for
+    // CharacterEquipmentController; bodies are the former constructor
+    // lambdas, moved verbatim in step B-2) ---
+
+    bool IEquipmentDetailView.HasOverlay => equipmentDetailOverlay != null;
+
+    void IEquipmentDetailView.SetTitle(string title, Color color)
+    {
+        equipmentDetailTitle.text = title;
+        equipmentDetailTitle.color = color;
+    }
+
+    void IEquipmentDetailView.SetDetailText(string text)
+    {
+        equipmentDetailText.text = text;
+    }
+
+    void IEquipmentDetailView.SetEnhanceButton(bool interactable, string label)
+    {
+        equipmentEnhanceButton.interactable = interactable;
+        equipmentEnhanceButton.GetComponentInChildren<Text>().text = label;
+    }
+
+    void IEquipmentDetailView.SetSellButton(bool interactable, string label)
+    {
+        equipmentSellButton.interactable = interactable;
+        equipmentSellButton.GetComponentInChildren<Text>().text = label;
+    }
+
+    void IEquipmentDetailView.SetLockButtonLabel(string label)
+    {
+        equipmentLockButton.GetComponentInChildren<Text>().text = label;
+    }
+
+    void IEquipmentDetailView.ShowOverlay()
+    {
+        equipmentDetailOverlay.SetAsLastSibling();
+        equipmentDetailOverlay.gameObject.SetActive(true);
+    }
+
+    void IEquipmentDetailView.HideOverlay()
+    {
+        HideEquipmentDetails();
     }
 }

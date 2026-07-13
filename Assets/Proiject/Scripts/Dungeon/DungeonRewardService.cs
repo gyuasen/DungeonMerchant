@@ -79,7 +79,11 @@ public sealed class DungeonRewardService
         List<ItemDataSO> validDrops = new List<ItemDataSO>();
         foreach (ItemDataSO item in dungeonData.limitedEquipmentDrops)
         {
-            if (item != null && item.IsEquipment)
+            if (item != null &&
+                item.IsEquipment &&
+                WorldMapService.IsDungeonEquipmentRankAllowed(
+                    dungeonData.nearbyTownIndex,
+                    item.equipmentRank))
             {
                 validDrops.Add(item);
             }

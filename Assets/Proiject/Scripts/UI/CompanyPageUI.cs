@@ -14,6 +14,7 @@ public sealed class CompanyPageUI : ListPageUIBase
     private Action<MercenaryInstance> togglePartyAction;
     private Action<MercenaryInstance> showDetailsAction;
     private Action<MercenaryInstance> renewContractAction;
+    private Action<MercenaryInstance> releaseContractAction;
 
     public void Initialize(
         Text title,
@@ -23,7 +24,7 @@ public sealed class CompanyPageUI : ListPageUIBase
     {
         questButton = quest;
         scrollRect = targetScrollRect;
-        Initialize(title, null, targetListRoot);
+        base.Initialize(title, null, targetListRoot);
     }
 
     public void Configure(
@@ -59,7 +60,8 @@ public sealed class CompanyPageUI : ListPageUIBase
         Func<MercenaryInstance, int> targetRenewalCostProvider,
         Action<MercenaryInstance> targetTogglePartyAction,
         Action<MercenaryInstance> targetShowDetailsAction,
-        Action<MercenaryInstance> targetRenewContractAction)
+        Action<MercenaryInstance> targetRenewContractAction,
+        Action<MercenaryInstance> targetReleaseContractAction)
     {
         mercenaryProvider = mercenaries;
         isInParty = targetIsInParty;
@@ -67,6 +69,7 @@ public sealed class CompanyPageUI : ListPageUIBase
         togglePartyAction = targetTogglePartyAction;
         showDetailsAction = targetShowDetailsAction;
         renewContractAction = targetRenewContractAction;
+        releaseContractAction = targetReleaseContractAction;
     }
 
     public override void Refresh()
@@ -120,17 +123,6 @@ public sealed class CompanyPageUI : ListPageUIBase
             new Vector2(-300f, -48f),
             MutedTextColor);
 
-        CreateText(
-            row,
-            $"ID {GetShortId(mercenary)}",
-            RowFont,
-            13,
-            FontStyle.Normal,
-            TextAnchor.MiddleRight,
-            new Vector2(18f, -64f),
-            new Vector2(-300f, -30f),
-            MutedTextColor);
-
         string actionLabel =
             isInParty?.Invoke(mercenary) == true ? "外す" : "加える";
         Button partyButton = CreateActionButton(
@@ -142,7 +134,7 @@ public sealed class CompanyPageUI : ListPageUIBase
             ButtonTextColor,
             () => togglePartyAction?.Invoke(mercenary));
         partyButton.GetComponent<RectTransform>().sizeDelta =
-            new Vector2(112f, 52f);
+            new Vector2(80f, 44f);
 
         Button detailsButton = CreateActionButton(
             row,
@@ -153,8 +145,20 @@ public sealed class CompanyPageUI : ListPageUIBase
             ButtonTextColor,
             () => showDetailsAction?.Invoke(mercenary));
         RectTransform detailsRect = detailsButton.GetComponent<RectTransform>();
-        detailsRect.sizeDelta = new Vector2(112f, 52f);
-        detailsRect.anchoredPosition = new Vector2(-142f, 0f);
+        detailsRect.sizeDelta = new Vector2(80f, 44f);
+        detailsRect.anchoredPosition = new Vector2(-104f, 0f);
+
+        Button releaseButton = CreateActionButton(
+            row,
+            "契約解除",
+            RowFont,
+            ButtonColor,
+            FrameColor,
+            ButtonTextColor,
+            () => releaseContractAction?.Invoke(mercenary));
+        RectTransform releaseRect = releaseButton.GetComponent<RectTransform>();
+        releaseRect.sizeDelta = new Vector2(80f, 44f);
+        releaseRect.anchoredPosition = new Vector2(-190f, 0f);
 
         if (!mercenary.ContractNeedsRenewal)
         {
@@ -171,8 +175,8 @@ public sealed class CompanyPageUI : ListPageUIBase
             ButtonTextColor,
             () => renewContractAction?.Invoke(mercenary));
         RectTransform renewRect = renewButton.GetComponent<RectTransform>();
-        renewRect.sizeDelta = new Vector2(112f, 52f);
-        renewRect.anchoredPosition = new Vector2(-266f, 0f);
+        renewRect.sizeDelta = new Vector2(80f, 44f);
+        renewRect.anchoredPosition = new Vector2(-276f, 0f);
     }
 
     private static string BuildMercenaryDetails(MercenaryInstance mercenary)
@@ -191,13 +195,4 @@ public sealed class CompanyPageUI : ListPageUIBase
             contractStatus;
     }
 
-    private static string GetShortId(MercenaryInstance mercenary)
-    {
-        return string.IsNullOrEmpty(mercenary.InstanceId)
-            ? "--------"
-            : mercenary.InstanceId.Substring(
-                0,
-                Mathf.Min(8, mercenary.InstanceId.Length))
-                .ToUpperInvariant();
-    }
 }

@@ -23,7 +23,7 @@ MonoBehaviour:
   requiredClass: 0
   allClassesCanEquip: 1
   equipmentSet: 0
-  equipmentRank: 2
+  equipmentRank: 4
   bonusMaxHP: 8
   bonusAttack: 10
   bonusDefense: 3

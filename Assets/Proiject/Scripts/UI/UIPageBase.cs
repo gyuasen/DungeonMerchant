@@ -65,15 +65,7 @@ public abstract class UIPageBase : MonoBehaviour
             text, font, 17, TextAnchor.MiddleCenter, textColor);
 
         text.text = label;
-        ColorBlock colors = button.colors;
-        colors.normalColor = Color.white;
-        colors.highlightedColor = new Color(1.18f, 1.12f, 0.96f, 1f);
-        colors.pressedColor = new Color(0.76f, 0.68f, 0.56f, 1f);
-        colors.selectedColor = new Color(1.08f, 1.02f, 0.88f, 1f);
-        colors.disabledColor = new Color(0.42f, 0.38f, 0.32f, 0.72f);
-        colors.colorMultiplier = 1f;
-        colors.fadeDuration = 0.08f;
-        button.colors = colors;
+        UITheme.ApplyButtonTransitions(button);
     }
 
     protected static void ClearChildren(RectTransform root)

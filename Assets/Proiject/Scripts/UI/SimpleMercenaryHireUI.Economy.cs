@@ -228,6 +228,7 @@ public partial class SimpleMercenaryHireUI
     private void HandleInventoryChanged()
     {
         dailyResultController.RecordDailyInventoryGains();
+        TryUnlockHiddenIsland();
         RefreshPage(inventoryPage);
         RefreshPage(blacksmithPage);
         RefreshUI();

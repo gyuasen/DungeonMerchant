@@ -293,6 +293,7 @@ public static class SimpleMercenaryHireUIPrefabBuilder
         page.anchorMax = Vector2.one;
         page.offsetMin = new Vector2(28f, 64f);
         page.offsetMax = new Vector2(-28f, -126f);
+        pageObject.SetActive(false);
         return page;
     }
 

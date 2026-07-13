@@ -308,10 +308,45 @@ public partial class SimpleMercenaryHireUI
         jobChangePage = GetOrCreatePage(
             view, panel, SimpleMercenaryHirePageSlot.JobChange, "Job Change Page");
 
+        // The prefab stores every page as a sibling. Hide them before any
+        // runtime content is built so an initialization error cannot leave all
+        // page contents visible at once. UIPageRouter.Show selects the first
+        // visible page after BuildUI completes.
+        SetPageRootsActive(false);
+
         if (view.HasHireCompanyLayout)
         {
             view.HireCompany.GetOrCreateHirePageUI();
             view.HireCompany.GetOrCreateCompanyPageUI();
+        }
+    }
+
+    private void SetPageRootsActive(bool active)
+    {
+        RectTransform[] pageRoots =
+        {
+            hirePage,
+            globalMapPage,
+            worldMapPage,
+            townMapPage,
+            companyPage,
+            partyPage,
+            healPage,
+            battlePage,
+            roadBattlePage,
+            dungeonPage,
+            marketPage,
+            blacksmithPage,
+            inventoryPage,
+            jobChangePage
+        };
+
+        foreach (RectTransform pageRoot in pageRoots)
+        {
+            if (pageRoot != null)
+            {
+                pageRoot.gameObject.SetActive(active);
+            }
         }
     }
 

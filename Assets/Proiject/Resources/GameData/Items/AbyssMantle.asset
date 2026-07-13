@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
+  m_Name: AbyssMantle
+  persistentId: item.dungeon.abyss_mantle
+  itemName: 深淵竜鱗衣
+  itemType: 1
+  rarity: 3
+  description: 深淵竜の鱗が幾重にも重なった黒き防具。
+  basePrice: 3200
+  acquisitionType: 2
+  equipmentSlot: 1
+  requiredClass: 0
+  allClassesCanEquip: 1
+  equipmentSet: 9
+  equipmentRank: 9
+  bonusMaxHP: 95
+  bonusAttack: 0
+  bonusDefense: 22
+  bonusAttackSpeed: 0
+  consumableEffect: 0

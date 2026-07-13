@@ -5,6 +5,7 @@ public class BattleUnit
     public string UnitName { get; private set; }
     public bool IsPlayerSide { get; private set; }
     public MercenaryClass MercenaryClass { get; private set; }
+    public int Level { get; private set; }
 
     public int MaxHP { get; private set; }
     public int CurrentHP { get; private set; }
@@ -56,11 +57,13 @@ public class BattleUnit
         int maxMagicPower = 0,
         float criticalRate = 0f,
         float evasionRate = 0f,
-        BattleStatusEffect initialStatus = BattleStatusEffect.None)
+        BattleStatusEffect initialStatus = BattleStatusEffect.None,
+        int level = 1)
     {
         UnitName = unitName;
         IsPlayerSide = isPlayerSide;
         MercenaryClass = mercenaryClass;
+        Level = Mathf.Max(1, level);
         MaxHP = maxHP;
         CurrentHP = Mathf.Clamp(currentHP, 0, maxHP);
         Attack = attack;

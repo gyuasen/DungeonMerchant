@@ -30,6 +30,8 @@ public static class DungeonMerchantBootstrap
         EnsureComponent<RoadEncounterService>(root);
         EnsureComponent<DebtManager>(root);
         EnsureComponent<ProgressionManager>(root);
+        EnsureComponent<StoryProgressManager>(root);
+        EnsureComponent<AudioFeedbackService>(root);
         EnsureComponent<SimpleMercenaryHireUI>(root);
         SaveManager saveManager = EnsureComponent<SaveManager>(root);
         saveManager.InitializeAndLoad();

@@ -319,7 +319,8 @@ public partial class SimpleMercenaryHireUI
             RowColor,
             WoodButtonColor,
             FrameColor,
-            null);
+            null,
+            17);
         pageUI.ConfigureJobChangeList(
             () => hireManager.HiredMercenaries,
             hireAndPartyController.ShouldShowSpecialPromotion,
@@ -336,7 +337,7 @@ public partial class SimpleMercenaryHireUI
             () => mercenaryGenerator.Candidates,
             candidate => candidate != null,
             hireAndPartyController.GetUnlockedContractType,
-            () => merchantData.GetHireSuccessRate(),
+            () => hireManager.GetSelectedContractSuccessRate(),
             hireAndPartyController.CanHireFixedCandidate,
             candidate => hireManager.CanAfford(candidate),
             hireAndPartyController.Hire,
@@ -353,7 +354,8 @@ public partial class SimpleMercenaryHireUI
             mercenary => hireManager.GetRenewalCost(mercenary),
             hireAndPartyController.TogglePartyMember,
             ShowCharacterDetails,
-            merchantStatusAndQuestController.RenewContract);
+            merchantStatusAndQuestController.RenewContract,
+            hireAndPartyController.ReleaseMercenary);
     }
 
     private void ConfigurePartyListPage(PartyPageUI pageUI)
@@ -377,7 +379,16 @@ public partial class SimpleMercenaryHireUI
     private void HandleMercenaryHired(MercenaryInstance mercenary)
     {
         dailyResultController.CaptureMercenarySnapshot(mercenary);
+        TryUnlockHiddenIsland();
         RefreshPage(companyPage);
+    }
+
+    private void HandleMercenaryDismissed(MercenaryInstance mercenary)
+    {
+        RefreshPage(companyPage);
+        RefreshPage(partyPage);
+        RefreshPage(healPage);
+        RefreshPage(jobChangePage);
     }
 
     private void HandlePartyChanged()

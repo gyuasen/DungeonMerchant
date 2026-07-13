@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
+  m_Name: NormalRank02Accessory
+  persistentId: item.normal.rank02.accessory
+  itemName: 鉄製の護符
+  itemType: 1
+  rarity: 0
+  description: 町の市場で流通する、扱いやすい標準装備。
+  basePrice: 310
+  acquisitionType: 0
+  equipmentSlot: 2
+  requiredClass: 0
+  allClassesCanEquip: 1
+  equipmentSet: 0
+  equipmentRank: 2
+  bonusMaxHP: 8
+  bonusAttack: 2
+  bonusDefense: 2
+  bonusAttackSpeed: 0.01
+  consumableEffect: 0

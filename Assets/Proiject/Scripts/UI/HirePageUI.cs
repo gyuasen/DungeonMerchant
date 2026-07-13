@@ -1,16 +1,18 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-public sealed class HirePageUI : UIPageBase
+public sealed class HirePageUI : ListPageUIBase
 {
-    [SerializeField] private Text titleText;
+    private const float CardWidth = 520f;
+    private const float CardHeight = 330f;
+    private const float CardSpacing = 16f;
+
     [SerializeField] private Button contractButton;
     [SerializeField] private ScrollRect scrollRect;
-    [SerializeField] private RectTransform listRoot;
-    private UnityAction refreshAction;
     private Action beforeRebuild;
     private Func<IEnumerable<MercenaryDataSO>> fixedCandidateProvider;
     private Func<MercenaryDataSO, bool> shouldShowFixedCandidate;
@@ -24,16 +26,14 @@ public sealed class HirePageUI : UIPageBase
     private Action<MercenaryInstance> hireGeneratedAction;
     private Action<Button, MercenaryDataSO> registerFixedButton;
     private Action<Button, MercenaryInstance> registerGeneratedButton;
-    private Font rowFont;
-    private Color rowTextColor = Color.white;
-    private Color mutedTextColor = Color.gray;
-    private Color buttonTextColor = Color.white;
-    private Color rowColor = new Color(0.27f, 0.16f, 0.09f, 0.94f);
-    private Color buttonColor = new Color(0.35f, 0.22f, 0.13f, 1f);
-    private Color frameColor = new Color(0.72f, 0.52f, 0.27f, 0.9f);
+    private Button previousButton;
+    private Button nextButton;
+    private Text pageIndicator;
+    private int selectedIndex;
+    private int candidateCount;
+    private Coroutine slideRoutine;
 
     public Button ContractButton => contractButton;
-    public RectTransform ListRoot => listRoot;
 
     public void Initialize(
         Text targetTitle,
@@ -41,10 +41,9 @@ public sealed class HirePageUI : UIPageBase
         ScrollRect targetScrollRect,
         RectTransform targetListRoot)
     {
-        titleText = targetTitle;
+        base.Initialize(targetTitle, null, targetListRoot);
         contractButton = targetContractButton;
         scrollRect = targetScrollRect;
-        listRoot = targetListRoot;
     }
 
     public void Configure(
@@ -59,29 +58,33 @@ public sealed class HirePageUI : UIPageBase
         UnityAction onCycleContract,
         UnityAction onRefresh)
     {
-        rowFont = titleFont;
-        buttonTextColor = targetButtonTextColor;
-        mutedTextColor = targetMutedTextColor;
-        rowColor = targetRowColor;
-        buttonColor = targetButtonColor;
-        frameColor = targetFrameColor;
+        base.Configure(
+            titleFont,
+            titleColor,
+            targetMutedTextColor,
+            targetButtonTextColor,
+            targetRowColor,
+            targetButtonColor,
+            targetFrameColor,
+            onRefresh);
 
-        ConfigureText(
-            titleText, titleFont, 15,
-            TextAnchor.MiddleLeft, titleColor);
         ConfigureButton(
             contractButton,
             buttonFont,
-            buttonTextColor,
-            "契約: 日雇い",
+            targetButtonTextColor,
+            "契約を変更",
             onCycleContract);
 
-        scrollRect.content = listRoot;
-        scrollRect.horizontal = false;
-        scrollRect.vertical = true;
-        scrollRect.movementType = ScrollRect.MovementType.Clamped;
-        scrollRect.scrollSensitivity = 28f;
-        refreshAction = onRefresh;
+        scrollRect.content = ListRoot;
+        scrollRect.horizontal = true;
+        scrollRect.vertical = false;
+        scrollRect.movementType = ScrollRect.MovementType.Elastic;
+        scrollRect.elasticity = 0.12f;
+        scrollRect.inertia = true;
+        scrollRect.decelerationRate = 0.12f;
+        scrollRect.scrollSensitivity = 42f;
+        ConfigureCarouselContent();
+        EnsureNavigation(buttonFont, targetButtonTextColor);
     }
 
     public void ConfigureHireList(
@@ -112,6 +115,7 @@ public sealed class HirePageUI : UIPageBase
         hireGeneratedAction = targetHireGeneratedAction;
         registerFixedButton = targetRegisterFixedButton;
         registerGeneratedButton = targetRegisterGeneratedButton;
+        UpdateContractButtonLabel();
     }
 
     public override void Refresh()
@@ -119,143 +123,384 @@ public sealed class HirePageUI : UIPageBase
         if (fixedCandidateProvider == null &&
             generatedCandidateProvider == null)
         {
-            refreshAction?.Invoke();
+            base.Refresh();
             return;
         }
 
-        ClearChildren(listRoot);
+        ClearChildren(ListRoot);
         beforeRebuild?.Invoke();
+        ConfigureCarouselContent();
+        UpdateContractButtonLabel();
 
-        float rowTop = 0f;
+        int cardIndex = 0;
         foreach (MercenaryDataSO candidate in
                  fixedCandidateProvider?.Invoke() ??
                  Array.Empty<MercenaryDataSO>())
         {
-            if (shouldShowFixedCandidate != null &&
+            if (candidate == null ||
+                shouldShowFixedCandidate != null &&
                 !shouldShowFixedCandidate(candidate))
             {
                 continue;
             }
 
-            CreateFixedCandidateRow(candidate, rowTop);
-            rowTop -= 112f;
+            CreateFixedCandidateCard(candidate, cardIndex++);
         }
 
         foreach (MercenaryInstance candidate in
                  generatedCandidateProvider?.Invoke() ??
                  Array.Empty<MercenaryInstance>())
         {
-            if (shouldShowGeneratedCandidate != null &&
+            if (candidate == null ||
+                shouldShowGeneratedCandidate != null &&
                 !shouldShowGeneratedCandidate(candidate))
             {
                 continue;
             }
 
-            CreateGeneratedCandidateRow(candidate, rowTop);
-            rowTop -= 112f;
+            CreateGeneratedCandidateCard(candidate, cardIndex++);
         }
 
-        listRoot.sizeDelta = new Vector2(0f, Mathf.Max(430f, -rowTop));
+        candidateCount = cardIndex;
+        selectedIndex = Mathf.Clamp(
+            selectedIndex, 0, Mathf.Max(0, candidateCount - 1));
+        float contentWidth = candidateCount > 0
+            ? candidateCount * (CardWidth + CardSpacing) + CardSpacing
+            : CardWidth;
+        ListRoot.sizeDelta = new Vector2(contentWidth, 0f);
+
+        if (candidateCount == 0)
+        {
+            CreateEmptyMessage("現在、紹介できる傭兵はいません。翌日に再度ご確認ください。");
+        }
+
+        Canvas.ForceUpdateCanvases();
+        SetCarouselPosition(false);
+        UpdateNavigation();
     }
 
-    private void CreateFixedCandidateRow(
+    private void CreateFixedCandidateCard(
         MercenaryDataSO candidate,
-        float top)
+        int index)
     {
-        RectTransform row =
-            CreateRow(
-                candidate.mercenaryName,
-                listRoot,
-                top,
-                rowColor,
-                frameColor);
-        CreateCandidateTexts(
-            row,
+        RectTransform card = CreateResumeCard(
             candidate.mercenaryName,
-            JapaneseDisplayText.GetMercenaryClass(candidate.mercenaryClass),
+            candidate.mercenaryClass,
+            1,
             candidate.maxHP,
             candidate.attack,
-            candidate.defense);
+            candidate.defense,
+            candidate.maxMagicPower,
+            candidate.attackSpeed,
+            candidate.hireCost,
+            true,
+            index);
 
-        Button hireButton = CreateActionButton(
-            row,
-            $"{candidate.hireCost} G",
-            rowFont,
-            buttonColor,
-            frameColor,
-            buttonTextColor,
+        Button hireButton = CreateHireButton(
+            card,
+            candidate.hireCost,
             () => hireFixedAction?.Invoke(candidate));
         hireButton.interactable =
             canHireFixedCandidate?.Invoke(candidate) == true;
         registerFixedButton?.Invoke(hireButton, candidate);
     }
 
-    private void CreateGeneratedCandidateRow(
+    private void CreateGeneratedCandidateCard(
         MercenaryInstance candidate,
-        float top)
+        int index)
     {
-        RectTransform row =
-            CreateRow(
-                candidate.MercenaryName,
-                listRoot,
-                top,
-                rowColor,
-                frameColor);
-        CreateCandidateTexts(
-            row,
+        RectTransform card = CreateResumeCard(
             candidate.MercenaryName,
-            JapaneseDisplayText.GetMercenaryClass(candidate.MercenaryClass),
+            candidate.MercenaryClass,
+            candidate.Level,
             candidate.MaxHP,
             candidate.Attack,
-            candidate.Defense);
+            candidate.Defense,
+            candidate.MaxMagicPower,
+            candidate.AttackSpeed,
+            candidate.HireCost,
+            false,
+            index);
 
-        Button hireButton = CreateActionButton(
-            row,
-            $"{candidate.HireCost} G",
-            rowFont,
-            buttonColor,
-            frameColor,
-            buttonTextColor,
+        Button hireButton = CreateHireButton(
+            card,
+            candidate.HireCost,
             () => hireGeneratedAction?.Invoke(candidate));
         hireButton.interactable =
             canHireGeneratedCandidate?.Invoke(candidate) == true;
         registerGeneratedButton?.Invoke(hireButton, candidate);
     }
 
-    private void CreateCandidateTexts(
-        RectTransform row,
+    private RectTransform CreateResumeCard(
         string candidateName,
-        string className,
+        MercenaryClass mercenaryClass,
+        int level,
         int maxHP,
         int attack,
-        int defense)
+        int defense,
+        int magicPower,
+        float attackSpeed,
+        int hireCost,
+        bool isUnique,
+        int index)
     {
-        CreateText(
-            row,
-            candidateName,
-            rowFont,
-            22,
-            FontStyle.Bold,
-            TextAnchor.MiddleLeft,
-            new Vector2(18f, -42f),
-            new Vector2(-160f, -12f),
-            rowTextColor);
+        RectTransform card = CreateUIObject(
+            $"Resume {candidateName}", ListRoot);
+        card.anchorMin = card.anchorMax = new Vector2(0f, 0.5f);
+        card.pivot = new Vector2(0f, 0.5f);
+        card.sizeDelta = new Vector2(CardWidth, CardHeight);
+        card.anchoredPosition = new Vector2(
+            CardSpacing + index * (CardWidth + CardSpacing), 0f);
 
+        Image paper = card.gameObject.AddComponent<Image>();
+        SimpleMercenaryHireUIFactory.ApplyParchmentPanel(paper);
+        Outline outline = card.gameObject.AddComponent<Outline>();
+        outline.effectColor = FrameColor;
+        outline.effectDistance = new Vector2(2f, -2f);
+
+        CreateCardText(
+            card,
+            "傭兵登録票",
+            18,
+            FontStyle.Bold,
+            TextAnchor.MiddleCenter,
+            new Vector2(16f, -40f),
+            new Vector2(-16f, -10f),
+            UITheme.ParchmentTextColor);
+
+        CreatePortrait(card, mercenaryClass);
+
+        string className =
+            JapaneseDisplayText.GetMercenaryClass(mercenaryClass);
+        CreateCardText(
+            card,
+            $"{candidateName}\n【{className}】  Lv{level}\n{GetClassRole(mercenaryClass)}",
+            18,
+            FontStyle.Bold,
+            TextAnchor.UpperLeft,
+            new Vector2(184f, -116f),
+            new Vector2(-18f, -52f),
+            UITheme.ParchmentTextColor);
+
+        string contract =
+            JapaneseDisplayText.GetContractType(GetContractType());
+        string success = $"{GetSuccessRate() * 100f:0}%";
         string details =
-            $"{className}  |  " +
-            $"{JapaneseDisplayText.GetContractType(GetContractType())}  |  " +
-            $"成功率 {GetSuccessRate() * 100f:0}%  |  " +
-            $"HP {maxHP}  攻撃 {attack}  防御 {defense}";
-        CreateText(
-            row,
+            "能力\n" +
+            $"HP {maxHP}　攻撃 {attack}　防御 {defense}\n" +
+            $"魔力 {magicPower}　速度 {attackSpeed:0.00}\n\n" +
+            "略歴・得意分野\n" +
+            $"{GetCareerSummary(mercenaryClass, isUnique)}\n\n" +
+            $"希望契約: {contract}　成立率: {success}\n" +
+            $"契約金: {hireCost} G";
+        CreateCardText(
+            card,
             details,
-            rowFont,
             14,
             FontStyle.Normal,
-            TextAnchor.MiddleLeft,
-            new Vector2(18f, -76f),
-            new Vector2(-160f, -48f),
-            mutedTextColor);
+            TextAnchor.UpperLeft,
+            new Vector2(184f, -280f),
+            new Vector2(-18f, -120f),
+            UITheme.ParchmentTextColor);
+        return card;
+    }
+
+    private void CreatePortrait(
+        RectTransform card,
+        MercenaryClass mercenaryClass)
+    {
+        RectTransform portraitRect = CreateUIObject("Portrait", card);
+        portraitRect.anchorMin = portraitRect.anchorMax =
+            new Vector2(0f, 1f);
+        portraitRect.pivot = new Vector2(0f, 1f);
+        portraitRect.sizeDelta = new Vector2(148f, 238f);
+        portraitRect.anchoredPosition = new Vector2(20f, -56f);
+
+        RawImage portrait = portraitRect.gameObject.AddComponent<RawImage>();
+        if (!MercenaryPortraitProvider.TryApply(
+                portrait, mercenaryClass))
+        {
+            portrait.color = GetClassColor(mercenaryClass);
+        }
+
+        Outline frame = portraitRect.gameObject.AddComponent<Outline>();
+        frame.effectColor = FrameColor;
+        frame.effectDistance = new Vector2(2f, -2f);
+    }
+
+    private Button CreateHireButton(
+        RectTransform card,
+        int hireCost,
+        UnityAction action)
+    {
+        Button button = CreateActionButton(
+            card,
+            $"この傭兵と契約\n{hireCost} G",
+            RowFont,
+            ButtonColor,
+            FrameColor,
+            ButtonTextColor,
+            action);
+        RectTransform rect = button.GetComponent<RectTransform>();
+        rect.anchorMin = rect.anchorMax = new Vector2(1f, 0f);
+        rect.pivot = new Vector2(1f, 0f);
+        rect.sizeDelta = new Vector2(166f, 48f);
+        rect.anchoredPosition = new Vector2(-18f, 16f);
+        return button;
+    }
+
+    private void EnsureNavigation(Font buttonFont, Color textColor)
+    {
+        if (previousButton == null)
+        {
+            previousButton = CreateActionButton(
+                transform as RectTransform,
+                "＜",
+                buttonFont,
+                ButtonColor,
+                FrameColor,
+                textColor,
+                () => MoveSelection(-1));
+            ConfigureNavigationButton(previousButton, false);
+        }
+
+        if (nextButton == null)
+        {
+            nextButton = CreateActionButton(
+                transform as RectTransform,
+                "＞",
+                buttonFont,
+                ButtonColor,
+                FrameColor,
+                textColor,
+                () => MoveSelection(1));
+            ConfigureNavigationButton(nextButton, true);
+        }
+
+        if (pageIndicator == null)
+        {
+            pageIndicator = CreateCardText(
+                transform as RectTransform,
+                string.Empty,
+                14,
+                FontStyle.Bold,
+                TextAnchor.MiddleCenter,
+                new Vector2(270f, -38f),
+                new Vector2(-270f, -8f),
+                UITheme.ParchmentTextColor);
+        }
+    }
+
+    private static void ConfigureNavigationButton(Button button, bool right)
+    {
+        RectTransform rect = button.GetComponent<RectTransform>();
+        rect.anchorMin = rect.anchorMax =
+            new Vector2(right ? 1f : 0f, 0.5f);
+        rect.pivot = new Vector2(right ? 1f : 0f, 0.5f);
+        rect.sizeDelta = new Vector2(42f, 72f);
+        rect.anchoredPosition = new Vector2(right ? -4f : 4f, -18f);
+        rect.SetAsLastSibling();
+    }
+
+    private void MoveSelection(int direction)
+    {
+        if (candidateCount <= 0)
+        {
+            return;
+        }
+
+        selectedIndex = Mathf.Clamp(
+            selectedIndex + direction, 0, candidateCount - 1);
+        SetCarouselPosition(true);
+        UpdateNavigation();
+    }
+
+    private void SetCarouselPosition(bool animate)
+    {
+        float target = candidateCount <= 1
+            ? 0f
+            : selectedIndex / (float)(candidateCount - 1);
+        if (!animate || !isActiveAndEnabled)
+        {
+            scrollRect.horizontalNormalizedPosition = target;
+            return;
+        }
+
+        if (slideRoutine != null)
+        {
+            StopCoroutine(slideRoutine);
+        }
+        slideRoutine = StartCoroutine(SlideTo(target));
+    }
+
+    private IEnumerator SlideTo(float target)
+    {
+        float start = scrollRect.horizontalNormalizedPosition;
+        float elapsed = 0f;
+        const float duration = 0.2f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.SmoothStep(
+                0f, 1f, Mathf.Clamp01(elapsed / duration));
+            scrollRect.horizontalNormalizedPosition =
+                Mathf.Lerp(start, target, t);
+            yield return null;
+        }
+        scrollRect.horizontalNormalizedPosition = target;
+        slideRoutine = null;
+    }
+
+    private void UpdateNavigation()
+    {
+        if (previousButton != null)
+        {
+            previousButton.interactable = selectedIndex > 0;
+        }
+        if (nextButton != null)
+        {
+            nextButton.interactable =
+                candidateCount > 0 && selectedIndex < candidateCount - 1;
+        }
+        if (pageIndicator != null)
+        {
+            pageIndicator.text = candidateCount > 0
+                ? $"候補 {selectedIndex + 1} / {candidateCount}"
+                : "候補なし";
+        }
+    }
+
+    private void ConfigureCarouselContent()
+    {
+        ListRoot.anchorMin = new Vector2(0f, 0f);
+        ListRoot.anchorMax = new Vector2(0f, 1f);
+        ListRoot.pivot = new Vector2(0f, 0.5f);
+        ListRoot.anchoredPosition = Vector2.zero;
+    }
+
+    private Text CreateCardText(
+        RectTransform parent,
+        string content,
+        int fontSize,
+        FontStyle fontStyle,
+        TextAnchor alignment,
+        Vector2 offsetMin,
+        Vector2 offsetMax,
+        Color color)
+    {
+        Text text = CreateText(
+            parent,
+            content,
+            RowFont,
+            fontSize,
+            fontStyle,
+            alignment,
+            offsetMin,
+            offsetMax,
+            color);
+        text.horizontalOverflow = HorizontalWrapMode.Wrap;
+        text.verticalOverflow = VerticalWrapMode.Truncate;
+        return text;
     }
 
     private MercenaryContractType GetContractType()
@@ -270,5 +515,63 @@ public sealed class HirePageUI : UIPageBase
         return successRateProvider != null
             ? successRateProvider.Invoke()
             : 0f;
+    }
+
+    private void UpdateContractButtonLabel()
+    {
+        if (contractButton == null)
+        {
+            return;
+        }
+        Text label = contractButton.GetComponentInChildren<Text>();
+        if (label != null)
+        {
+            label.text =
+                $"契約: {JapaneseDisplayText.GetContractType(GetContractType())}";
+        }
+    }
+
+    private static string GetClassRole(MercenaryClass mercenaryClass)
+    {
+        switch (MercenaryClassProgression.GetBaseClass(mercenaryClass))
+        {
+            case MercenaryClass.Warrior: return "前衛／防御・敵の引きつけ";
+            case MercenaryClass.Archer: return "後衛／連続攻撃・狙撃";
+            case MercenaryClass.Mage: return "後衛／魔法火力・範囲攻撃";
+            case MercenaryClass.Priest: return "後衛／治療・支援";
+            case MercenaryClass.Rogue: return "前衛／高速攻撃・急所狙い";
+            default: return "前衛／貫通攻撃・隊列防護";
+        }
+    }
+
+    private static string GetCareerSummary(
+        MercenaryClass mercenaryClass,
+        bool isUnique)
+    {
+        string prefix = isUnique
+            ? "各地で名を知られた経験豊かな傭兵。"
+            : "街道護衛と魔物討伐の経験を持つ。";
+        switch (MercenaryClassProgression.GetBaseClass(mercenaryClass))
+        {
+            case MercenaryClass.Warrior: return prefix + " 持久戦と味方の護衛を得意とする。";
+            case MercenaryClass.Archer: return prefix + " 遠距離からの援護射撃を得意とする。";
+            case MercenaryClass.Mage: return prefix + " 魔力を用いた集団戦を得意とする。";
+            case MercenaryClass.Priest: return prefix + " 負傷者の治療と戦線維持を担う。";
+            case MercenaryClass.Rogue: return prefix + " 索敵と素早い奇襲を得意とする。";
+            default: return prefix + " 長い間合いで前線を支える。";
+        }
+    }
+
+    private static Color GetClassColor(MercenaryClass mercenaryClass)
+    {
+        switch (MercenaryClassProgression.GetBaseClass(mercenaryClass))
+        {
+            case MercenaryClass.Warrior: return new Color(0.45f, 0.25f, 0.18f, 1f);
+            case MercenaryClass.Archer: return new Color(0.22f, 0.42f, 0.22f, 1f);
+            case MercenaryClass.Mage: return new Color(0.28f, 0.25f, 0.5f, 1f);
+            case MercenaryClass.Priest: return new Color(0.72f, 0.64f, 0.42f, 1f);
+            case MercenaryClass.Rogue: return new Color(0.28f, 0.28f, 0.31f, 1f);
+            default: return new Color(0.34f, 0.38f, 0.46f, 1f);
+        }
     }
 }

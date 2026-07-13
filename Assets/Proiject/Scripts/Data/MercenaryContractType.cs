@@ -1,6 +1,6 @@
 public enum MercenaryContractType
 {
-    Temporary, // ˆê‰ñŒÀ‚è
-    Local,     // ƒ_ƒ“ƒWƒ‡ƒ“ŒÀ’è
-    Exclusive  // ê‘®
+    Temporary, // è‡¨æ™‚å¥‘ç´„
+    Local,     // æ—¥é›‡ã„å¥‘ç´„
+    Exclusive  // å°‚å±å¥‘ç´„
 }
