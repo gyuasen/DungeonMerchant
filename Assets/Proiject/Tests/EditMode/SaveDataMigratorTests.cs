@@ -81,6 +81,8 @@ public sealed class SaveDataMigratorTests
     [Test]
     public void Migrate_PreStorySave_InfersCompletedMilestones()
     {
+        DungeonDataSO dungeon = FirstAsset<DungeonDataSO>();
+        Assert.That(dungeon, Is.Not.Null);
         GameSaveData data = new GameSaveData
         {
             version = 20,
@@ -89,7 +91,9 @@ public sealed class SaveDataMigratorTests
         data.hiredMercenaries.Add(new SavedMercenary());
         data.dungeonFloorProgress.Add(new SavedDungeonFloorProgress
         {
-            clearedFloors = 1
+            dungeonPersistentId = dungeon.PersistentId,
+            dungeonAssetName = dungeon.name,
+            clearedFloors = dungeon.totalFloors
         });
         data.unlockedTownIndices.Add(1);
         data.unlockedTownIndices.Add(3);
@@ -114,6 +118,45 @@ public sealed class SaveDataMigratorTests
             Does.Contain(StoryMilestone.HiddenIslandReached));
         Assert.That(data.completedStoryMilestones,
             Does.Contain(StoryMilestone.DebtCleared));
+    }
+
+    [Test]
+    public void Migrate_PreStorySave_DoesNotTreatPartialFloorAsDungeonClear()
+    {
+        DungeonDataSO dungeon = FirstAsset<DungeonDataSO>();
+        Assert.That(dungeon, Is.Not.Null);
+        GameSaveData data = new GameSaveData { version = 20 };
+        data.dungeonFloorProgress.Add(new SavedDungeonFloorProgress
+        {
+            dungeonPersistentId = dungeon.PersistentId,
+            dungeonAssetName = dungeon.name,
+            clearedFloors = dungeon.totalFloors > 1
+                ? dungeon.totalFloors - 1
+                : 0
+        });
+
+        SaveDataMigrator.Migrate(data);
+
+        Assert.That(
+            data.completedStoryMilestones.Contains(
+                StoryMilestone.FirstDungeonClear),
+            Is.False);
+    }
+
+    [Test]
+    public void Migrate_FutureVersion_DoesNotDowngradeOrMutateData()
+    {
+        int futureVersion = GameSaveData.CurrentVersion + 1;
+        GameSaveData data = new GameSaveData
+        {
+            version = futureVersion,
+            gold = 1234
+        };
+
+        SaveDataMigrator.Migrate(data);
+
+        Assert.That(data.version, Is.EqualTo(futureVersion));
+        Assert.That(data.gold, Is.EqualTo(1234));
     }
 
     private static T FirstAsset<T>()

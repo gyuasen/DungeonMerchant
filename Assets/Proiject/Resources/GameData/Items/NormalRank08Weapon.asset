@@ -5,12 +5,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: NormalRank08Weapon
   persistentId: item.normal.rank08.weapon
-  itemName: 竜鱗の武具
+  itemName: 黒鉄の遠征剣
   itemType: 1
   rarity: 0
-  description: 町の市場で流通する、扱いやすい標準装備。
+  description: 黒鉄を幾重にも鍛え、あらゆる職が扱えるよう整えた武器。
   basePrice: 830
-  acquisitionType: 0
+  acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 0
   allClassesCanEquip: 1

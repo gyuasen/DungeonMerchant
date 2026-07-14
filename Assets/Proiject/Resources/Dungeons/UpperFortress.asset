@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -13,21 +13,27 @@ MonoBehaviour:
   m_Name: GlaadSkyFortress
   m_EditorClassIdentifier: 
   persistentId: dungeon.GlaadSkyFortress
-  dungeonName: "グラード天嶺砦"
+  dungeonName: "\u30B0\u30E9\u30FC\u30C9\u5929\u5DBA\u7826"
   grade: 3
   worldMapIndex: 1
   nearbyTownIndex: 4
   totalFloors: 6
-  description: "雪峰と古樹の境界に築かれた、飛竜と魔族が守る天空の砦。"
+  description: "\u96EA\u5CF0\u3068\u53E4\u6A39\u306E\u5883\u754C\u306B\u7BC9\u304B\u308C\u305F\u3001\u98DB\u7ADC\u3068\u9B54\u65CF\u304C\u5B88\u308B\u5929\u7A7A\u306E\u7826\u3002"
   encounterCount: 4
   firstEncounterEnemyCount: 4
   enemyCountIncreasePerEncounter: 2
   enemyCountIncreasePerFloor: 1
   maxEnemyCountPerEncounter: 5
   normalEnemies:
-  - {fileID: 11400000, guid: f8cc8e9386e84dbd87ad119e3a14e07d, type: 2}
-  - {fileID: 11400000, guid: d5b504215a634161b572384055626995, type: 2}
-  bossEnemy: {fileID: 11400000, guid: aee8a74142e14cfa89a2f95831de161b, type: 2}
+  - {fileID: 11400000, guid: 9493c9d4e5d64634966f3bdda3c0e1ca, type: 2}
+  - {fileID: 11400000, guid: f5f268b439b8441998680c9c1a2c7a35, type: 2}
+  - {fileID: 11400000, guid: 97a4b941d2bf4f7b953a98380bff14ea, type: 2}
+  bossEnemy: {fileID: 11400000, guid: 3c2383c859d349a88b32dee677e8313b, type: 2}
+  specialVariantChance: 0.09
+  specialBossChance: 0.045
+  specialVariantSkillPool: 010000000400000005000000090000000f000000100000001100000013000000
+  battleBackground: {fileID: 0}
+  battleBackgroundKey: 
   floorClearGoldReward: 130
   clearGoldReward: 500
   clearItemRewards:
@@ -41,6 +47,3 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 5a06eb100fcd4f52da59a1c7b5c8d265, type: 2}
   - {fileID: 11400000, guid: 6b17fc2110de4053eb6ab2d8c6d9e376, type: 2}
   - {fileID: 11400000, guid: 7c280d3221ef4164fc7bc3e9d7eaf487, type: 2}
-  specialVariantChance: 0.09
-  specialBossChance: 0.045
-  specialVariantSkillPool: 02000000040000000500000007000000080000000a0000000c0000000d000000

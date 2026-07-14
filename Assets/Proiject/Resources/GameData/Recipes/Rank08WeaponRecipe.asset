@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20acd31e8b6f423581ac34d0952a1667, type: 3}
+  m_Name: Rank08WeaponRecipe
+  m_EditorClassIdentifier:
+  recipeName: 黒鉄の遠征剣
+  resultItem: {fileID: 11400000, guid: 20800000000000000000000000000000, type: 2}
+  resultAmount: 1
+  goldCost: 550
+  materials:
+  - item: {fileID: 11400000, guid: 41a4798a2b1e48dcbbf3d766cefd6229, type: 2}
+    amount: 4
+  - item: {fileID: 11400000, guid: 45cd44ad792545fc8055a50332882b9d, type: 2}
+    amount: 2

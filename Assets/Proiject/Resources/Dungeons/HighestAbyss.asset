@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: FinalBlackSoilAbyss
   m_EditorClassIdentifier: 
   persistentId: dungeon.FinalBlackSoilAbyss
-  dungeonName: "終焉の黒土深淵"
+  dungeonName: "\u7D42\u7109\u306E\u9ED2\u571F\u6DF1\u6DF5"
   grade: 4
   worldMapIndex: 2
   nearbyTownIndex: 6
   totalFloors: 7
-  description: "黒土大陸の最深部。深淵の王と最上位の魔物が眠る終着地。"
+  description: "\u9ED2\u571F\u5927\u9678\u306E\u6700\u6DF1\u90E8\u3002\u6DF1\u6DF5\u306E\u738B\u3068\u6700\u4E0A\u4F4D\u306E\u9B54\u7269\u304C\u7720\u308B\u7D42\u7740\u5730\u3002"
   encounterCount: 5
   firstEncounterEnemyCount: 5
   enemyCountIncreasePerEncounter: 2
@@ -28,6 +28,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b3b67e52dccc48089bb352b4aefc6eed, type: 2}
   - {fileID: 11400000, guid: 1625713f89ec4433967ca98bf82bf071, type: 2}
   bossEnemy: {fileID: 11400000, guid: 1cb34bb369e94232a648c0e0af10b22c, type: 2}
+  specialVariantChance: 0.12
+  specialBossChance: 0.05
+  specialVariantSkillPool: 0300000004000000050000000600000007000000080000000a0000000b0000000c0000000d0000000e00000010000000120000001300000014000000
+  battleBackground: {fileID: 0}
+  battleBackgroundKey: 
   floorClearGoldReward: 300
   clearGoldReward: 3000
   clearItemRewards:
@@ -41,6 +46,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a1200000000000000000000000000001, type: 2}
   - {fileID: 11400000, guid: a1200000000000000000000000000002, type: 2}
   - {fileID: 11400000, guid: a1200000000000000000000000000003, type: 2}
-  specialVariantChance: 0.12
-  specialBossChance: 0.06
-  specialVariantSkillPool: 0300000004000000050000000600000007000000080000000a0000000b0000000c0000000d0000000e000000
+  - {fileID: 11400000, guid: 20900000000000000000000000000000, type: 2}
+  - {fileID: 11400000, guid: 20910000000000000000000000000000, type: 2}
+  - {fileID: 11400000, guid: 10a10000000000000000000000000009, type: 2}

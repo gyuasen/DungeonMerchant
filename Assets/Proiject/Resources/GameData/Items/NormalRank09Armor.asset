@@ -5,12 +5,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: NormalRank09Armor
   persistentId: item.normal.rank09.armor
-  itemName: 星鋼の防具
+  itemName: 深淵探索の外套
   itemType: 1
   rarity: 0
-  description: 町の市場で流通する、扱いやすい標準装備。
+  description: 深淵の瘴気を遠ざける繊維で織られた探索用の外套。
   basePrice: 950
-  acquisitionType: 0
+  acquisitionType: 2
   equipmentSlot: 1
   requiredClass: 0
   allClassesCanEquip: 1

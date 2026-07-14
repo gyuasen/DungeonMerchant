@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
+  m_Name: LancerSteelLance
+  m_EditorClassIdentifier:
+  persistentId: item.lancer.steel_lance
+  itemName: 鋼鉄の長槍
+  itemType: 1
+  rarity: 1
+  description: 前線を支える槍兵のために鍛えられた鋼の長槍。
+  basePrice: 320
+  acquisitionType: 0
+  equipmentSlot: 0
+  requiredClass: 5
+  allClassesCanEquip: 0
+  equipmentSet: 0
+  equipmentRank: 2
+  bonusMaxHP: 10
+  bonusAttack: 8
+  bonusDefense: 2
+  bonusAttackSpeed: 0.02

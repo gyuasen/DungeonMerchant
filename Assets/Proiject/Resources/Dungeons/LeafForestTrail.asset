@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -11,18 +11,19 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e979c614ce1242bd9c993974ec08851e, type: 3}
   m_Name: LeafForestTrail
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   persistentId: dungeon.LeafForestTrail
-  dungeonName: リーフ樹海の獣道
+  dungeonName: "\u30EA\u30FC\u30D5\u6A39\u6D77\u306E\u7363\u9053"
   grade: 0
   worldMapIndex: 0
   nearbyTownIndex: 1
   totalFloors: 3
-  description: リーフ森林都市の外れに続く、魔物の足跡が残る深い獣道。
+  description: "\u30EA\u30FC\u30D5\u68EE\u6797\u90FD\u5E02\u306E\u5916\u308C\u306B\u7D9A\u304F\u3001\u9B54\u7269\u306E\u8DB3\u8DE1\u304C\u6B8B\u308B\u6DF1\u3044\u7363\u9053\u3002"
   encounterCount: 3
   firstEncounterEnemyCount: 2
   enemyCountIncreasePerEncounter: 1
   enemyCountIncreasePerFloor: 1
+  maxEnemyCountPerEncounter: 5
   normalEnemies:
   - {fileID: 11400000, guid: 239a8f3917ce33c469d7359348e47b0b, type: 2}
   - {fileID: 11400000, guid: 9017a6d57352445198b657303e35421e, type: 2}
@@ -37,7 +38,9 @@ MonoBehaviour:
   bossEnemy: {fileID: 11400000, guid: 5c78c95223f24a0ea9217d76786d9044, type: 2}
   specialVariantChance: 0.06
   specialBossChance: 0.03
-  specialVariantSkillPool: 010000000200000009000000
+  specialVariantSkillPool: 0100000002000000090000000f00000011000000
+  battleBackground: {fileID: 0}
+  battleBackgroundKey: 
   floorClearGoldReward: 35
   clearGoldReward: 120
   clearItemRewards:

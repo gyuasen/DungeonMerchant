@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -11,14 +11,14 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e979c614ce1242bd9c993974ec08851e, type: 3}
   m_Name: NornCanopyLabyrinth
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   persistentId: dungeon.NornCanopyLabyrinth
-  dungeonName: "ノルン樹冠迷宮"
+  dungeonName: "\u30CE\u30EB\u30F3\u6A39\u51A0\u8FF7\u5BAE"
   grade: 3
   worldMapIndex: 1
   nearbyTownIndex: 3
   totalFloors: 5
-  description: "巨木の枝と山肌が絡み合う立体迷宮。森と岩場の魔物が共に巣食う。"
+  description: "\u5DE8\u6728\u306E\u679D\u3068\u5C71\u808C\u304C\u7D61\u307F\u5408\u3046\u7ACB\u4F53\u8FF7\u5BAE\u3002\u68EE\u3068\u5CA9\u5834\u306E\u9B54\u7269\u304C\u5171\u306B\u5DE3\u98DF\u3046\u3002"
   encounterCount: 4
   firstEncounterEnemyCount: 3
   enemyCountIncreasePerEncounter: 1
@@ -34,7 +34,9 @@ MonoBehaviour:
   bossEnemy: {fileID: 11400000, guid: 539900f1ce594749a2cf45d334448c8b, type: 2}
   specialVariantChance: 0.08
   specialBossChance: 0.04
-  specialVariantSkillPool: 01000000030000000400000007000000090000000b0000000e000000
+  specialVariantSkillPool: 01000000030000000400000007000000090000000b0000000e0000000f0000001000000013000000
+  battleBackground: {fileID: 0}
+  battleBackgroundKey: 
   floorClearGoldReward: 105
   clearGoldReward: 420
   clearItemRewards:

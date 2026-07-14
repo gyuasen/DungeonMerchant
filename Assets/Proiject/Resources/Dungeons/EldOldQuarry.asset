@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -11,18 +11,19 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e979c614ce1242bd9c993974ec08851e, type: 3}
   m_Name: EldOldQuarry
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   persistentId: dungeon.EldOldQuarry
-  dungeonName: エルド旧採石場
+  dungeonName: "\u30A8\u30EB\u30C9\u65E7\u63A1\u77F3\u5834"
   grade: 1
   worldMapIndex: 0
   nearbyTownIndex: 0
   totalFloors: 4
-  description: 交易都市の建材を切り出していた、崩落の進む危険な採石場。
+  description: "\u4EA4\u6613\u90FD\u5E02\u306E\u5EFA\u6750\u3092\u5207\u308A\u51FA\u3057\u3066\u3044\u305F\u3001\u5D29\u843D\u306E\u9032\u3080\u5371\u967A\u306A\u63A1\u77F3\u5834\u3002"
   encounterCount: 3
   firstEncounterEnemyCount: 3
   enemyCountIncreasePerEncounter: 1
   enemyCountIncreasePerFloor: 1
+  maxEnemyCountPerEncounter: 5
   normalEnemies:
   - {fileID: 11400000, guid: 83e2c3814b5a44ffb387e19e1dbb7487, type: 2}
   - {fileID: 11400000, guid: a019250301a742f4bb74703c84e364d3, type: 2}
@@ -37,7 +38,9 @@ MonoBehaviour:
   bossEnemy: {fileID: 11400000, guid: 5801c50e8df7449bbab39e1ca0b4922f, type: 2}
   specialVariantChance: 0.07
   specialBossChance: 0.035
-  specialVariantSkillPool: 010000000200000003000000070000000a000000
+  specialVariantSkillPool: 010000000200000003000000070000000a0000000f00000013000000
+  battleBackground: {fileID: 0}
+  battleBackgroundKey: 
   floorClearGoldReward: 55
   clearGoldReward: 170
   clearItemRewards:

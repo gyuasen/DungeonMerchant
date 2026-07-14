@@ -113,8 +113,8 @@ public partial class SimpleMercenaryHireUI
             15,
             FontStyle.Normal,
             TextAnchor.MiddleCenter,
-            new Vector2(34f, -158f),
-            new Vector2(-34f, -190f),
+            new Vector2(34f, -190f),
+            new Vector2(-34f, -158f),
             ParchmentMutedColor);
         CreateTitleButton(
             newGameConfirmationWindow,

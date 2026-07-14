@@ -30,8 +30,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b3100000000000000000000000000003, type: 2}
   bossEnemy: {fileID: 11400000, guid: b3100000000000000000000000000004, type: 2}
   specialVariantChance: 0.14
-  specialBossChance: 0.08
-  specialVariantSkillPool: 01000000030000000400000007000000090000000b0000000e000000
+  specialBossChance: 0.05
+  specialVariantSkillPool: 01000000030000000400000007000000090000000b0000000e0000000f00000010000000110000001300000014000000
   floorClearGoldReward: 450
   clearGoldReward: 5000
   clearItemRewards: []

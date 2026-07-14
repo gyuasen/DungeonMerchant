@@ -14,6 +14,12 @@ public class EnemyDataSO : ScriptableObject
     public bool isSpecialVariant;
     public string specialVariantTitle;
 
+    [Header("Battle Visual")]
+    [Tooltip("Optional battle sprite. A placeholder is used when empty.")]
+    public Sprite battleSprite;
+    [Tooltip("Optional Resources path key under Battle/Enemies.")]
+    public string battleVisualKey;
+
     [Header("Stats")]
     public int maxHP = 80;
     public int attack = 8;

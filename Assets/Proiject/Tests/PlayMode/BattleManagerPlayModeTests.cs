@@ -76,6 +76,14 @@ public sealed class BattleManagerPlayModeTests
 
             bool completed = false;
             bool victory = false;
+            BattlePresentationRoster preparedRoster = null;
+            List<BattlePresentationEvent> presentationEvents =
+                new List<BattlePresentationEvent>();
+            battleManager.BattleVisualsPrepared +=
+                roster => preparedRoster = roster;
+            battleManager.BattlePresentation +=
+                presentationEvents.Add;
+            battleManager.SetNextBattleBackground(null, "TestArena");
             completedHandler = result =>
             {
                 completed = true;
@@ -97,6 +105,28 @@ public sealed class BattleManagerPlayModeTests
 
             Assert.That(completed, Is.True, "BattleCompleted was not raised in time.");
             Assert.That(victory, Is.True);
+            Assert.That(preparedRoster, Is.Not.Null);
+            Assert.That(preparedRoster.Players.Count, Is.EqualTo(1));
+            Assert.That(preparedRoster.Enemies.Count, Is.EqualTo(1));
+            Assert.That(preparedRoster.BackgroundKey, Is.EqualTo("TestArena"));
+            Assert.That(
+                presentationEvents.Exists(
+                    item => item.Type == BattlePresentationEventType.Action),
+                Is.True);
+            Assert.That(
+                presentationEvents.Exists(
+                    item => item.Type == BattlePresentationEventType.Damage),
+                Is.True);
+            Assert.That(
+                presentationEvents.Exists(
+                    item => item.Type == BattlePresentationEventType.Defeated),
+                Is.True);
+            Assert.That(
+                presentationEvents.Exists(
+                    item => item.Type ==
+                            BattlePresentationEventType.BattleCompleted &&
+                            item.Victory),
+                Is.True);
         }
         finally
         {

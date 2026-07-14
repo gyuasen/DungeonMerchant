@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -23,6 +23,7 @@ MonoBehaviour:
   firstEncounterEnemyCount: 2
   enemyCountIncreasePerEncounter: 1
   enemyCountIncreasePerFloor: 1
+  maxEnemyCountPerEncounter: 5
   normalEnemies:
   - {fileID: 11400000, guid: 239a8f3917ce33c469d7359348e47b0b, type: 2}
   - {fileID: 11400000, guid: 9017a6d57352445198b657303e35421e, type: 2}
@@ -35,6 +36,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a04018ea899b41bbbe41cff593236c22, type: 2}
   - {fileID: 11400000, guid: 170c65f3d2c74740a72add3b3b46291e, type: 2}
   bossEnemy: {fileID: 11400000, guid: 5c78c95223f24a0ea9217d76786d9044, type: 2}
+  specialVariantChance: 0.06
+  specialBossChance: 0.03
+  specialVariantSkillPool: 0100000002000000090000000f00000011000000
+  battleBackground: {fileID: 0}
+  battleBackgroundKey: 
   floorClearGoldReward: 40
   clearGoldReward: 1000
   clearItemRewards:
@@ -48,6 +54,3 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2966a1f3f3e048b699ad1dfcab913a4c, type: 2}
   - {fileID: 11400000, guid: 6830512a6bab4dc6a53eb0ce3be24f8a, type: 2}
   - {fileID: 11400000, guid: 198753fb2ca1461599b6fe3eb59d16ca, type: 2}
-  specialVariantChance: 0.06
-  specialBossChance: 0.03
-  specialVariantSkillPool: 010000000200000009000000

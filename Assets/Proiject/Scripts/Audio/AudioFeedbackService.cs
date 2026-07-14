@@ -29,6 +29,8 @@ public sealed class AudioFeedbackService : MonoBehaviour
     private float volume = DefaultVolume;
     private bool initialized;
 
+    public static AudioFeedbackService Active { get; private set; }
+
     public float Volume
     {
         get
@@ -48,11 +50,17 @@ public sealed class AudioFeedbackService : MonoBehaviour
 
     private void Awake()
     {
+        Active = this;
         Initialize();
     }
 
     public void Initialize()
     {
+        if (Active == null)
+        {
+            Active = this;
+        }
+
         if (initialized)
         {
             return;
@@ -91,6 +99,10 @@ public sealed class AudioFeedbackService : MonoBehaviour
         }
 
         registeredButtons.Clear();
+        if (Active == this)
+        {
+            Active = null;
+        }
     }
 
     public void Play(UISoundCue cue)
@@ -116,11 +128,16 @@ public sealed class AudioFeedbackService : MonoBehaviour
         Button[] buttons = root.GetComponentsInChildren<Button>(true);
         for (int i = 0; i < buttons.Length; i++)
         {
-            Button button = buttons[i];
-            if (button != null && registeredButtons.Add(button))
-            {
-                button.onClick.AddListener(PlayButtonClick);
-            }
+            RegisterButton(buttons[i]);
+        }
+    }
+
+    public void RegisterButton(Button button)
+    {
+        Initialize();
+        if (button != null && registeredButtons.Add(button))
+        {
+            button.onClick.AddListener(PlayButtonClick);
         }
     }
 

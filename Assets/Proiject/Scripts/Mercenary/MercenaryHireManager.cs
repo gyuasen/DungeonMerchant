@@ -100,7 +100,7 @@ public class MercenaryHireManager : MonoBehaviour
             return false;
         }
 
-        if (!merchantData.TryPayGold(mercenary.HireCost))
+        if (!merchantData.CanPay(mercenary.HireCost))
         {
             Debug.Log($"Not enough gold to hire {mercenary.MercenaryName}.");
             return false;
@@ -111,6 +111,10 @@ public class MercenaryHireManager : MonoBehaviour
             ? selectedContract
             : MercenaryContractType.Local;
         if (UnityEngine.Random.value > GetSelectedContractSuccessRate())
+        {
+            return false;
+        }
+        if (!merchantData.TryPayGold(mercenary.HireCost))
         {
             return false;
         }

@@ -44,7 +44,7 @@ DungeonMerchantは、**商人として傭兵団を運営し、交易・育成・
 ## コードの見どころ
 
 - **UIの責務分離（Controllerパターン抽出）**: 巨大UIクラスからロジックを段階的に抽出しています。`Assets/Proiject/Scripts/UI/EconomyController.cs` が入口としておすすめです
-- **純粋ロジック＋テスト**: `Assets/Proiject/Scripts/Core/WorldMapService.cs` などUnity非依存のロジック層に対し、`Assets/Proiject/Tests/EditMode/` に106件のEditModeテストを整備しています（リファクタリング前後の等価性を810通りの組み合わせで検証するパリティテストを含みます）
+- **純粋ロジック＋テスト**: `Assets/Proiject/Scripts/Core/WorldMapService.cs` などUnity非依存のロジック層に対し、`Assets/Proiject/Tests/EditMode/` に250件以上のEditModeテストを整備しています（リファクタリング前後の等価性を810通りの組み合わせで検証するパリティテストを含みます）
 - **セーブ・マイグレーション**: 永続IDによる参照解決と、旧形式セーブデータを移行する `SaveDataMigrator` を実装しています
 - **AI支援リファクタリングの記録**: `handoff/CLAUDE_WORK_LOG.md` に、AIエージェントと協働した設計判断・リファクタリングの経緯を全て記録しています
 
@@ -141,7 +141,7 @@ DungeonMerchantは、**商人として傭兵団を運営し、交易・育成・
 本作はAIエージェントを開発ワークフローに組み込んで制作しています。役割分担は以下の通りで、**設計判断・仕様決定・動作検証・最終的なコードレビューはすべて自分自身で行っています**。
 
 - **ChatGPT**: 設計相談、実装補助、デバッグ支援、マップ・UI背景画像の生成
-- **OpenAI Codex / Claude Code**: 全体設計のレビュー、責務分離リファクタリングの段階実行、EditModeテスト（106件）の追加支援
+- **OpenAI Codex / Claude Code**: 全体設計のレビュー、責務分離リファクタリングの段階実行、EditMode・PlayModeテストの追加支援
 
 AIとの作業経緯・設計判断の記録は `handoff/` ディレクトリに全て残しており、各設計判断の理由を説明できます。
 

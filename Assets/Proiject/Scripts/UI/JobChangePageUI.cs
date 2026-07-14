@@ -9,6 +9,8 @@ public sealed class JobChangePageUI : ListPageUIBase
     private Func<IEnumerable<MercenaryInstance>> mercenaryProvider;
     private Func<MercenaryInstance, bool> shouldShowSpecialPromotion;
     private Action<MercenaryInstance, MercenaryClass> promoteAction;
+    private MercenaryInstance pendingMercenary;
+    private MercenaryClass pendingTarget;
 
     public void Initialize(
         Text title,
@@ -84,6 +86,12 @@ public sealed class JobChangePageUI : ListPageUIBase
         RectTransform row,
         MercenaryInstance mercenary)
     {
+        if (pendingMercenary == mercenary)
+        {
+            CreatePromotionConfirmation(row, mercenary);
+            return;
+        }
+
         MercenaryClass[] advanced =
             MercenaryClassProgression.GetAdvancedClasses(
                 mercenary.MercenaryClass);
@@ -118,10 +126,79 @@ public sealed class JobChangePageUI : ListPageUIBase
             ButtonColor,
             FrameColor,
             ButtonTextColor,
-            () => promoteAction?.Invoke(mercenary, target));
+            () => RequestPromotion(mercenary, target));
         RectTransform rect = button.GetComponent<RectTransform>();
         rect.sizeDelta = new Vector2(104f, 44f);
         rect.anchoredPosition = new Vector2(x, 0f);
+    }
+
+    private void RequestPromotion(
+        MercenaryInstance mercenary,
+        MercenaryClass target)
+    {
+        pendingMercenary = mercenary;
+        pendingTarget = target;
+        Refresh();
+    }
+
+    private void CreatePromotionConfirmation(
+        RectTransform row,
+        MercenaryInstance mercenary)
+    {
+        bool consumesCertificate =
+            !mercenary.IsUnique &&
+            pendingTarget == MercenaryClassProgression.GetSpecialClass(
+                mercenary.MercenaryClass);
+        string suffix = consumesCertificate ? "（転職証を消費）" : string.Empty;
+        CreateText(
+            row,
+            $"{JapaneseDisplayText.GetMercenaryClass(pendingTarget)}へ転職{suffix}",
+            RowFont,
+            14,
+            FontStyle.Bold,
+            TextAnchor.MiddleRight,
+            new Vector2(250f, -78f),
+            new Vector2(-250f, -44f),
+            RowTextColor);
+
+        Button confirm = CreateActionButton(
+            row,
+            "決定",
+            RowFont,
+            ButtonColor,
+            FrameColor,
+            ButtonTextColor,
+            ConfirmPromotion);
+        RectTransform confirmRect = confirm.GetComponent<RectTransform>();
+        confirmRect.sizeDelta = new Vector2(104f, 44f);
+        confirmRect.anchoredPosition = new Vector2(-18f, 0f);
+
+        Button cancel = CreateActionButton(
+            row,
+            "取消",
+            RowFont,
+            ButtonColor,
+            FrameColor,
+            ButtonTextColor,
+            CancelPromotion);
+        RectTransform cancelRect = cancel.GetComponent<RectTransform>();
+        cancelRect.sizeDelta = new Vector2(104f, 44f);
+        cancelRect.anchoredPosition = new Vector2(-130f, 0f);
+    }
+
+    private void ConfirmPromotion()
+    {
+        MercenaryInstance mercenary = pendingMercenary;
+        MercenaryClass target = pendingTarget;
+        pendingMercenary = null;
+        promoteAction?.Invoke(mercenary, target);
+        Refresh();
+    }
+
+    private void CancelPromotion()
+    {
+        pendingMercenary = null;
+        Refresh();
     }
 
     private void CreateUnavailableMessage(

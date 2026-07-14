@@ -10,12 +10,21 @@ public partial class SimpleMercenaryHireUI
     {
         battlePageTitleText = CreateText(
             battlePage, "ダンジョン戦闘", 15, FontStyle.Normal, TextAnchor.MiddleLeft,
-            new Vector2(0f, -30f), new Vector2(0f, 0f), ParchmentMutedColor);
+            new Vector2(0f, -30f), new Vector2(0f, 0f),
+            new Color(0.98f, 0.91f, 0.72f));
+        Outline titleOutline =
+            battlePageTitleText.gameObject.AddComponent<Outline>();
+        titleOutline.effectColor = new Color(0f, 0f, 0f, 0.85f);
+        titleOutline.effectDistance = new Vector2(1f, -1f);
 
         battleEncounterText = CreateText(
             battlePage, string.Empty, 18, FontStyle.Bold, TextAnchor.MiddleLeft,
             new Vector2(0f, -78f), new Vector2(-160f, -42f),
-            ParchmentTextColor);
+            new Color(1f, 0.94f, 0.76f));
+        Outline encounterOutline =
+            battleEncounterText.gameObject.AddComponent<Outline>();
+        encounterOutline.effectColor = new Color(0f, 0f, 0f, 0.9f);
+        encounterOutline.effectDistance = new Vector2(1f, -1f);
 
         startBattleButton = CreateActionButton(
             battlePage,
@@ -53,14 +62,27 @@ public partial class SimpleMercenaryHireUI
         battleSkipRect.sizeDelta = new Vector2(110f, 38f);
         battleSkipRect.anchoredPosition = new Vector2(-20f, -36f);
 
+        RectTransform battleVisualRoot =
+            CreateUIObject("Battle Visuals", battlePage);
+        battleVisualRoot.anchorMin = Vector2.zero;
+        battleVisualRoot.anchorMax = Vector2.one;
+        battleVisualRoot.offsetMin = Vector2.zero;
+        battleVisualRoot.offsetMax = Vector2.zero;
+        battleVisualController =
+            battleVisualRoot.gameObject.AddComponent<BattleVisualController>();
+        battleVisualController.Configure(
+            battleManager,
+            uiBodyFont != null ? uiBodyFont : uiFont);
+
         battleLogPanel = CreateUIObject("Battle Log", battlePage);
         battleLogPanel.anchorMin = new Vector2(0f, 0f);
-        battleLogPanel.anchorMax = new Vector2(1f, 1f);
+        battleLogPanel.anchorMax = new Vector2(1f, 0.24f);
         battleLogPanel.offsetMin = Vector2.zero;
-        battleLogPanel.offsetMax = new Vector2(0f, -104f);
+        battleLogPanel.offsetMax = Vector2.zero;
 
         Image logBackground = battleLogPanel.gameObject.AddComponent<Image>();
-        logBackground.color = RowColor;
+        logBackground.color =
+            new Color(RowColor.r, RowColor.g, RowColor.b, 0.78f);
 
         battleLogViewport =
             CreateUIObject("Battle Log Viewport", battleLogPanel);
@@ -108,7 +130,7 @@ public partial class SimpleMercenaryHireUI
 
     private void BuildRoadBattlePage()
     {
-        CreateText(
+        Text roadBattleTitle = CreateText(
             roadBattlePage,
             "街道戦闘",
             24,
@@ -116,7 +138,11 @@ public partial class SimpleMercenaryHireUI
             TextAnchor.MiddleLeft,
             new Vector2(0f, -38f),
             new Vector2(0f, 0f),
-            ParchmentTextColor);
+            new Color(1f, 0.94f, 0.76f));
+        Outline roadTitleOutline =
+            roadBattleTitle.gameObject.AddComponent<Outline>();
+        roadTitleOutline.effectColor = new Color(0f, 0f, 0f, 0.9f);
+        roadTitleOutline.effectDistance = new Vector2(1f, -1f);
 
         roadBattleRouteText = CreateText(
             roadBattlePage,
@@ -126,7 +152,11 @@ public partial class SimpleMercenaryHireUI
             TextAnchor.MiddleLeft,
             new Vector2(0f, -82f),
             new Vector2(0f, -42f),
-            ParchmentTextColor);
+            new Color(1f, 0.94f, 0.76f));
+        Outline roadRouteOutline =
+            roadBattleRouteText.gameObject.AddComponent<Outline>();
+        roadRouteOutline.effectColor = new Color(0f, 0f, 0f, 0.9f);
+        roadRouteOutline.effectDistance = new Vector2(1f, -1f);
 
         roadSpeedButton =
             CreateActionButton(
@@ -381,8 +411,10 @@ public partial class SimpleMercenaryHireUI
         {
             audioFeedbackService?.Play(UISoundCue.Reward);
         }
-        else if (logType == BattleLogType.Player ||
-                 logType == BattleLogType.Enemy)
+        else if ((logType == BattleLogType.Player ||
+                  logType == BattleLogType.Enemy) &&
+                 (battleManager == null ||
+                  !battleManager.IsSkippingToBattleEnd))
         {
             audioFeedbackService?.Play(UISoundCue.BattleAttack);
         }
@@ -615,9 +647,10 @@ public partial class SimpleMercenaryHireUI
 
         battleLogPanel.SetParent(destinationPage, false);
         battleLogPanel.anchorMin = Vector2.zero;
-        battleLogPanel.anchorMax = Vector2.one;
+        battleLogPanel.anchorMax = new Vector2(1f, 0.24f);
         battleLogPanel.offsetMin = Vector2.zero;
-        battleLogPanel.offsetMax = new Vector2(0f, -104f);
+        battleLogPanel.offsetMax = Vector2.zero;
+        battleVisualController?.MoveTo(destinationPage);
     }
 
     private void ShowDungeonPage()
