@@ -95,6 +95,25 @@ public sealed class MercenaryHireManagerContractTests
         Assert.That(hireManager.TryReleaseMercenary(mercenary), Is.False);
     }
 
+    [Test]
+    public void ExclusiveContract_FailedRoll_DoesNotChargeHireCost()
+    {
+        merchantData.SetGold(100);
+        SetPrivateField(merchantData, "merchantLevel", 5);
+        SetPrivateField(
+            hireManager,
+            "selectedContract",
+            MercenaryContractType.Exclusive);
+        float successRate = hireManager.GetSelectedContractSuccessRate();
+        int failingSeed = FindSeedWithRollAbove(successRate);
+        Random.InitState(failingSeed);
+
+        bool hired = hireManager.TryHireMercenary(CreateMercenary(30), out _);
+
+        Assert.That(hired, Is.False);
+        Assert.That(merchantData.Gold, Is.EqualTo(100));
+    }
+
     private MercenaryDataSO CreateMercenary(int hireCost)
     {
         MercenaryDataSO data = Track(
@@ -116,5 +135,32 @@ public sealed class MercenaryHireManagerContractTests
         component.GetType()
             .GetMethod("OnEnable", BindingFlags.Instance | BindingFlags.NonPublic)
             ?.Invoke(component, null);
+    }
+
+    private static int FindSeedWithRollAbove(float threshold)
+    {
+        for (int seed = 0; seed < 10000; seed++)
+        {
+            Random.InitState(seed);
+            if (Random.value > threshold)
+            {
+                return seed;
+            }
+        }
+
+        Assert.Fail($"Could not find a failed hire roll above {threshold}.");
+        return 0;
+    }
+
+    private static void SetPrivateField(
+        object target,
+        string fieldName,
+        object value)
+    {
+        FieldInfo field = target.GetType().GetField(
+            fieldName,
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.That(field, Is.Not.Null, fieldName);
+        field.SetValue(target, value);
     }
 }

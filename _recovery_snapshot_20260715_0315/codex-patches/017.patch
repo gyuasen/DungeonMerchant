@@ -1,0 +1,79 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Battle\BattleSkillResolver.cs
+@@
+             case MercenarySkillId.PiercingThrust:
++            case MercenarySkillId.AegisPierce:
++            case MercenarySkillId.ArmorBreakArrow:
++            case MercenarySkillId.FortressPierce:
++            case MercenarySkillId.TemporalRift:
++            case MercenarySkillId.VoidPierce:
+                 return TryUsePiercingThrust(attacker, primaryTarget, skill);
+             case MercenarySkillId.ShieldBash:
++            case MercenarySkillId.HolyShieldBash:
++            case MercenarySkillId.BindingBlade:
+                 return TryUseStatusDamagePlayer(attacker, primaryTarget, skill,
+                     BattleStatusEffect.Paralysis);
+             case MercenarySkillId.Volley:
+             case MercenarySkillId.SweepingThrust:
++            case MercenarySkillId.GaleVolley:
++            case MercenarySkillId.WarfrontSmash:
++            case MercenarySkillId.DragonfallBreath:
+                 return TryUsePlayerAreaDamage(attacker, skill,
+                     BattleStatusEffect.None);
+             case MercenarySkillId.FrostNova:
++            case MercenarySkillId.StormCircle:
+                 return TryUsePlayerAreaDamage(attacker, skill,
+                     BattleStatusEffect.Paralysis);
+@@
+             case MercenarySkillId.GuardianThrust:
+             case MercenarySkillId.WarlordCommand:
+-                return TryUseDirectPlayerDamage(attacker, primaryTarget, skill);
++            case MercenarySkillId.ArcaneBurst:
++                return TryUseDirectPlayerDamage(
++                    attacker, primaryTarget, skill, out _);
+             case MercenarySkillId.PrayerLight:
+             case MercenarySkillId.SaintsGrace:
++            case MercenarySkillId.GreaterHeal:
++            case MercenarySkillId.DivineHymn:
+                 return TryUsePartyHeal(attacker, skill);
+             case MercenarySkillId.BeastPack:
+             case MercenarySkillId.DragonBreath:
+@@
+             case MercenarySkillId.ShadowRend:
+                 return TryUsePlayerMultiStrike(attacker, primaryTarget, skill, 3);
++            case MercenarySkillId.RagingCombo:
++            case MercenarySkillId.SkySpearCombo:
++                return TryUsePlayerMultiStrike(attacker, primaryTarget, skill, 3);
++            case MercenarySkillId.FatalFlurry:
++            case MercenarySkillId.BeastKingFangs:
++                return TryUsePlayerMultiStrike(attacker, primaryTarget, skill, 4);
+             default:
+                 return false;
+@@
+     private bool TryUseDirectPlayerDamage(
+         BattleUnit attacker,
+         BattleUnit target,
+-        MercenarySkillDefinition skill)
++        MercenarySkillDefinition skill,
++        out bool hit)
+     {
++        hit = false;
+         if (target == null || !attacker.TryConsumeMagicPower(skill.MagicCost))
+         {
+             return false;
+@@
+         int before = target.CurrentHP;
+         target.TakeDamage(Round(attacker.CalculateDamage() * skill.Power *
+             (critical ? context.CriticalDamageMultiplier : 1f)));
++        hit = true;
+         Log(BattleLogFormatter.FormatDamageSkill(attacker.UnitName, skill.Name, critical,
+             target.UnitName, before - target.CurrentHP, string.Empty), BattleLogType.Player);
+@@
+-        if (!TryUseDirectPlayerDamage(attacker, target, skill))
++        if (!TryUseDirectPlayerDamage(attacker, target, skill, out bool hit))
+         {
+             return false;
+         }
+-        if (target != null && !target.IsDead)
++        if (hit && target != null && !target.IsDead)
+*** End Patch

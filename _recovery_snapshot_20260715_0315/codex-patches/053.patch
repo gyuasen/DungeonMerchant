@@ -1,0 +1,19 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\TownTravelController.cs
+@@
+     private bool IsGateTownFullyCleared(int gateTownIndex)
+@@
+                Mathf.Max(1, gateDungeon.totalFloors);
+     }
++
++    private static string BuildRoadBattleBackgroundKey(
++        int firstTownIndex,
++        int secondTownIndex)
++    {
++        int lower = Mathf.Min(firstTownIndex, secondTownIndex);
++        int upper = Mathf.Max(firstTownIndex, secondTownIndex);
++        return $"Road_{lower}_{upper}";
++    }
+ 
+     public void ApplyTownServiceSettings(
+*** End Patch

@@ -1,0 +1,46 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\BattleVisualController.cs
+@@
+     private IEnumerator AnimateImpact(
+@@
+         Destroy(popup.gameObject);
+     }
++
++    private IEnumerator AnimateHP(BattlePresentationEvent presentationEvent)
++    {
++        if (!slots.TryGetValue(presentationEvent.Target, out UnitSlot slot))
++        {
++            yield break;
++        }
++
++        int start = slot.CurrentHP;
++        int target = presentationEvent.CurrentHP;
++        int maximum = Mathf.Max(1, presentationEvent.MaxHP);
++        yield return Tween(Duration(0.14f), value =>
++        {
++            int current = Mathf.RoundToInt(Mathf.Lerp(start, target, value));
++            slot.SetHP(current, maximum);
++        });
++    }
++
++    private IEnumerator ShowActionBanner(string label)
++    {
++        if (actionBanner == null)
++        {
++            yield break;
++        }
++
++        actionBanner.text = label;
++        actionBanner.color = new Color(1f, 0.86f, 0.38f);
++        actionBanner.gameObject.SetActive(true);
++        actionBanner.transform.SetAsLastSibling();
++        actionBanner.rectTransform.localScale = Vector3.one * 0.85f;
++        yield return Tween(Duration(0.12f), value =>
++        {
++            actionBanner.rectTransform.localScale = Vector3.one *
++                Mathf.Lerp(0.85f, 1f, value);
++        });
++        yield return Wait(0.12f);
++        actionBanner.gameObject.SetActive(false);
++    }
+*** End Patch

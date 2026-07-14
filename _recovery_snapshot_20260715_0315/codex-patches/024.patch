@@ -1,0 +1,73 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Battle\BattleLogType.cs
+@@
+-    None,
+-    PowerStrike,
+-    VenomStrike,
+-    ParalyzingRoar,
+-    CriticalFocus,
+-    DoubleStrike,
+-    LifeDrain,
+-    ArmorPierce,
+-    FlameBreath,
+-    FrostBite,
+-    TripleStrike,
+-    BattleHeal,
+-    SacrificialStrike,
+-    Execute,
+-    ToxicCloud
++    None = 0,
++    PowerStrike = 1,
++    VenomStrike = 2,
++    ParalyzingRoar = 3,
++    CriticalFocus = 4,
++    DoubleStrike = 5,
++    LifeDrain = 6,
++    ArmorPierce = 7,
++    FlameBreath = 8,
++    FrostBite = 9,
++    TripleStrike = 10,
++    BattleHeal = 11,
++    SacrificialStrike = 12,
++    Execute = 13,
++    ToxicCloud = 14,
++    ArcaneBolt = 15,
++    MeteorRain = 16,
++    CrushingBlow = 17,
++    BerserkRush = 18,
++    Regeneration = 19,
++    SoulBurst = 20
+ }
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Battle\BattleSkillResolver.cs
+@@
+-            case EnemySkillType.ToxicCloud:
++            case EnemySkillType.ArcaneBolt:
++                return UseEnemyMagicDamageSkill(
++                    attacker,
++                    target,
++                    "Arcane Bolt",
++                    0.55f,
++                    0.28f,
++                    BattleStatusEffect.None);
++            case EnemySkillType.MeteorRain:
++                return UseEnemyMagicAreaDamageSkill(
++                    attacker,
++                    "Meteor Rain",
++                    0.45f,
++                    0.12f);
++            case EnemySkillType.CrushingBlow:
++                return UseEnemyDamageSkill(
++                    attacker,
++                    target,
++                    "Crushing Blow",
++                    1.15f,
++                    BattleStatusEffect.Paralysis);
++            case EnemySkillType.BerserkRush:
++                return UseEnemyMultiStrike(
++                    attacker, target, "Berserk Rush", 4, 0.38f);
++            case EnemySkillType.Regeneration:
++                return UseEnemyRegeneration(attacker);
++            case EnemySkillType.SoulBurst:
++                return UseEnemySoulBurst(attacker);
++            case EnemySkillType.ToxicCloud:
+*** End Patch

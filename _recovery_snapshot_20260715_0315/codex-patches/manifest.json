@@ -1,0 +1,800 @@
+[
+    {
+        "Index":  1,
+        "File":  "001.patch",
+        "Timestamp":  "2026-07-14T14:29:30.6940000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  9428,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Core\\SaveManager.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Core\\StoryProgressManager.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Core\\SaveDataMigrator.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\EditMode\\SaveDataMigratorTests.cs"
+                    ]
+    },
+    {
+        "Index":  2,
+        "File":  "002.patch",
+        "Timestamp":  "2026-07-14T14:30:42.1560000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  9441,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\EditMode\\SaveDataMigratorTests.cs"
+                    ]
+    },
+    {
+        "Index":  3,
+        "File":  "003.patch",
+        "Timestamp":  "2026-07-14T14:34:46.3080000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  9482,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Mercenary\\MercenaryHireManager.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\SimpleMercenaryHireUI.Title.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\SimpleMercenaryHireUI.BattleDungeon.cs"
+                    ]
+    },
+    {
+        "Index":  4,
+        "File":  "004.patch",
+        "Timestamp":  "2026-07-14T14:38:19.0280000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  9490,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\CharacterEquipmentController.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\SimpleMercenaryHireUI.cs"
+                    ]
+    },
+    {
+        "Index":  5,
+        "File":  "005.patch",
+        "Timestamp":  "2026-07-14T14:38:46.6790000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  9495,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\EditMode\\AudioFeedbackServiceTests.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Audio\\AudioFeedbackService.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\SimpleMercenaryHireUIFactory.cs"
+                    ]
+    },
+    {
+        "Index":  6,
+        "File":  "006.patch",
+        "Timestamp":  "2026-07-14T14:40:40.2720000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  9518,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\EditMode\\GameAssetRepositoryTests.cs"
+                    ]
+    },
+    {
+        "Index":  7,
+        "File":  "007.patch",
+        "Timestamp":  "2026-07-14T14:42:46.8360000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  9533,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\EditMode\\MercenaryHireManagerContractTests.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Core\\SaveDataMigrator.cs"
+                    ]
+    },
+    {
+        "Index":  8,
+        "File":  "008.patch",
+        "Timestamp":  "2026-07-14T14:45:15.7860000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  9555,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\JobChangePageUI.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\UIPageBase.cs"
+                    ]
+    },
+    {
+        "Index":  9,
+        "File":  "009.patch",
+        "Timestamp":  "2026-07-14T14:53:34.6200000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  9622,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Dungeons\\AstralDepths.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\EditMode\\GameAssetRepositoryTests.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Dungeons\\HighestAbyss.asset"
+                    ]
+    },
+    {
+        "Index":  10,
+        "File":  "010.patch",
+        "Timestamp":  "2026-07-14T14:54:26.9400000+00:00",
+        "Session":  "rollout-2026-07-14T23-50-24-019f611b-7cdb-7aa1-91be-9eb4261a662f.jsonl",
+        "SourceLine":  82,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Glaad\\Grade03GlaadFrostDrake.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Glaad.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Glaad\\Grade03GlaadFrostDrake.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Glaad\\Grade03GlaadSkyWarden.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Glaad\\Grade03GlaadGaleHarpy.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Glaad\\Boss02GlaadStormCastellan.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Glaad\\Grade03GlaadSkyWarden.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Dungeons\\UpperFortress.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Glaad\\Grade03GlaadGaleHarpy.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Glaad\\Boss02GlaadStormCastellan.asset.meta"
+                    ]
+    },
+    {
+        "Index":  11,
+        "File":  "011.patch",
+        "Timestamp":  "2026-07-14T14:55:36.6030000+00:00",
+        "Session":  "rollout-2026-07-14T23-50-24-019f611b-7cdb-7aa1-91be-9eb4261a662f.jsonl",
+        "SourceLine":  103,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Glaad\\Grade03GlaadFrostDrake.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Glaad\\Grade03GlaadGaleHarpy.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Glaad\\Boss02GlaadStormCastellan.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Glaad\\Grade03GlaadSkyWarden.asset"
+                    ]
+    },
+    {
+        "Index":  12,
+        "File":  "012.patch",
+        "Timestamp":  "2026-07-14T14:55:58.9210000+00:00",
+        "Session":  "rollout-2026-07-14T23-50-24-019f611b-7cdb-7aa1-91be-9eb4261a662f.jsonl",
+        "SourceLine":  109,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Glaad\\Grade03GlaadGaleHarpy.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Glaad\\Grade04GlaadGaleHarpy.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Glaad\\Grade03GlaadGaleHarpy.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Glaad\\Grade04GlaadGaleHarpy.asset.meta"
+                    ]
+    },
+    {
+        "Index":  13,
+        "File":  "013.patch",
+        "Timestamp":  "2026-07-14T14:57:05.8070000+00:00",
+        "Session":  "rollout-2026-07-14T23-50-29-019f611b-90ab-7280-8dad-8416e59fd465.jsonl",
+        "SourceLine":  145,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Velm\\VelmDeepforgeOverlord.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Velm\\VelmBlackIronDelver.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Velm\\VelmDeepforgeOverlord.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Dungeons\\VelmBlackIronMine.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Velm.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Velm\\VelmMagmaDrake.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Velm\\VelmBlackIronDelver.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Velm\\VelmEmberforgedAutomaton.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Velm\\VelmEmberforgedAutomaton.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Velm\\VelmMagmaDrake.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Velm\\VelmDeepforgeHexer.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Velm\\VelmDeepforgeHexer.asset.meta"
+                    ]
+    },
+    {
+        "Index":  14,
+        "File":  "014.patch",
+        "Timestamp":  "2026-07-14T15:00:46.7880000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  9695,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Glaad\\Grade03GlaadSkyWarden.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Velm\\VelmEmberforgedAutomaton.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Velm\\VelmMagmaDrake.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Glaad\\Grade04GlaadGaleHarpy.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Glaad\\Grade03GlaadFrostDrake.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Velm\\VelmBlackIronDelver.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Velm\\VelmDeepforgeOverlord.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Velm\\VelmDeepforgeHexer.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Enemies\\Glaad\\Boss02GlaadStormCastellan.asset"
+                    ]
+    },
+    {
+        "Index":  15,
+        "File":  "015.patch",
+        "Timestamp":  "2026-07-14T15:01:56.3860000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  9704,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\EditMode\\GameAssetRepositoryTests.cs"
+                    ]
+    },
+    {
+        "Index":  16,
+        "File":  "016.patch",
+        "Timestamp":  "2026-07-14T15:15:46.7410000+00:00",
+        "Session":  "rollout-2026-07-15T00-13-57-019f6130-fffb-7fe1-a678-c74f1a3a4cbf.jsonl",
+        "SourceLine":  44,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Data\\MercenaryClass.cs"
+                    ]
+    },
+    {
+        "Index":  17,
+        "File":  "017.patch",
+        "Timestamp":  "2026-07-14T15:16:13.9150000+00:00",
+        "Session":  "rollout-2026-07-15T00-13-57-019f6130-fffb-7fe1-a678-c74f1a3a4cbf.jsonl",
+        "SourceLine":  53,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattleSkillResolver.cs"
+                    ]
+    },
+    {
+        "Index":  18,
+        "File":  "018.patch",
+        "Timestamp":  "2026-07-14T15:16:36.6570000+00:00",
+        "Session":  "rollout-2026-07-15T00-13-57-019f6130-fffb-7fe1-a678-c74f1a3a4cbf.jsonl",
+        "SourceLine":  62,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattleSkillResolver.cs"
+                    ]
+    },
+    {
+        "Index":  19,
+        "File":  "019.patch",
+        "Timestamp":  "2026-07-14T15:17:41.3980000+00:00",
+        "Session":  "rollout-2026-07-15T00-13-48-019f6130-ec39-75d1-b09d-53c5c3d942cb.jsonl",
+        "SourceLine":  40,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\LancerSpear.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\LancerSteelLance.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\PriestBlessedStaff.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\LancerChainmail.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\PriestBlessedStaff.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\RogueLeatherArmor.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\RogueTalisman.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\LancerInsignia.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\RogueSwiftDagger.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\LancerChainmail.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\PriestRosary.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\PriestPrayerStaff.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\RogueDagger.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\PriestPrayerStaff.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\RogueDagger.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\PriestVestment.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\RogueLeatherArmor.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\LancerSteelLance.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\LancerSpear.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\PriestVestment.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\LancerInsignia.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\RogueTalisman.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\RogueSwiftDagger.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\PriestRosary.asset"
+                    ]
+    },
+    {
+        "Index":  20,
+        "File":  "020.patch",
+        "Timestamp":  "2026-07-14T15:17:43.0410000+00:00",
+        "Session":  "rollout-2026-07-15T00-13-57-019f6130-fffb-7fe1-a678-c74f1a3a4cbf.jsonl",
+        "SourceLine":  72,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\EditMode\\BattleSkillResolverTests.cs"
+                    ]
+    },
+    {
+        "Index":  21,
+        "File":  "021.patch",
+        "Timestamp":  "2026-07-14T15:18:12.3320000+00:00",
+        "Session":  "rollout-2026-07-15T00-13-57-019f6130-fffb-7fe1-a678-c74f1a3a4cbf.jsonl",
+        "SourceLine":  77,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\EditMode\\MercenaryClassProgressionTests.cs"
+                    ]
+    },
+    {
+        "Index":  22,
+        "File":  "022.patch",
+        "Timestamp":  "2026-07-14T15:22:11.3320000+00:00",
+        "Session":  "rollout-2026-07-15T00-17-04-019f6133-e765-7f10-bcbd-6ee3e7f69315.jsonl",
+        "SourceLine":  66,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\NormalRank08Accessory.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\NormalRank09Weapon.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\NormalRank09.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\NormalRank08Weapon.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Dungeons\\HighestAbyss.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\NormalRank08.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\NormalRank09Armor.asset"
+                    ]
+    },
+    {
+        "Index":  23,
+        "File":  "023.patch",
+        "Timestamp":  "2026-07-14T15:22:13.0860000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  9858,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\EditMode\\GameAssetRepositoryTests.cs"
+                    ]
+    },
+    {
+        "Index":  24,
+        "File":  "024.patch",
+        "Timestamp":  "2026-07-14T15:22:53.4510000+00:00",
+        "Session":  "rollout-2026-07-15T00-19-48-019f6136-69d2-7690-bc73-f17dcb996ad4.jsonl",
+        "SourceLine":  50,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattleSkillResolver.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattleLogType.cs"
+                    ]
+    },
+    {
+        "Index":  25,
+        "File":  "025.patch",
+        "Timestamp":  "2026-07-14T15:23:04.0290000+00:00",
+        "Session":  "rollout-2026-07-15T00-19-48-019f6136-69d2-7690-bc73-f17dcb996ad4.jsonl",
+        "SourceLine":  55,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattleSkillResolver.cs"
+                    ]
+    },
+    {
+        "Index":  26,
+        "File":  "026.patch",
+        "Timestamp":  "2026-07-14T15:23:05.2500000+00:00",
+        "Session":  "rollout-2026-07-15T00-17-04-019f6133-e765-7f10-bcbd-6ee3e7f69315.jsonl",
+        "SourceLine":  75,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Recipes\\Rank08AccessoryRecipe.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\EditMode\\EquipmentAvailabilityTests.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Recipes\\Rank08WeaponRecipe.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Recipes\\Rank08ArmorRecipe.asset"
+                    ]
+    },
+    {
+        "Index":  27,
+        "File":  "027.patch",
+        "Timestamp":  "2026-07-14T15:23:20.9210000+00:00",
+        "Session":  "rollout-2026-07-15T00-19-48-019f6136-69d2-7690-bc73-f17dcb996ad4.jsonl",
+        "SourceLine":  60,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattleSkillResolver.cs"
+                    ]
+    },
+    {
+        "Index":  28,
+        "File":  "028.patch",
+        "Timestamp":  "2026-07-14T15:23:24.0020000+00:00",
+        "Session":  "rollout-2026-07-15T00-17-04-019f6133-e765-7f10-bcbd-6ee3e7f69315.jsonl",
+        "SourceLine":  80,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Recipes\\Rank08ArmorRecipe.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\EditMode\\EquipmentAvailabilityTests.cs.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Recipes.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Recipes\\Rank08WeaponRecipe.asset.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Recipes\\Rank08AccessoryRecipe.asset.meta"
+                    ]
+    },
+    {
+        "Index":  29,
+        "File":  "029.patch",
+        "Timestamp":  "2026-07-14T15:23:27.7450000+00:00",
+        "Session":  "rollout-2026-07-15T00-19-48-019f6136-69d2-7690-bc73-f17dcb996ad4.jsonl",
+        "SourceLine":  65,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattleSkillResolver.cs"
+                    ]
+    },
+    {
+        "Index":  30,
+        "File":  "030.patch",
+        "Timestamp":  "2026-07-14T15:23:35.4790000+00:00",
+        "Session":  "rollout-2026-07-15T00-19-48-019f6136-69d2-7690-bc73-f17dcb996ad4.jsonl",
+        "SourceLine":  69,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattleSkillResolver.cs"
+                    ]
+    },
+    {
+        "Index":  31,
+        "File":  "031.patch",
+        "Timestamp":  "2026-07-14T15:24:42.1130000+00:00",
+        "Session":  "rollout-2026-07-15T00-17-04-019f6133-e765-7f10-bcbd-6ee3e7f69315.jsonl",
+        "SourceLine":  94,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\EditMode\\EquipmentAvailabilityTests.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Recipes\\Rank08ArmorRecipe.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Dungeons\\HighestAbyss.asset"
+                    ]
+    },
+    {
+        "Index":  32,
+        "File":  "032.patch",
+        "Timestamp":  "2026-07-14T15:24:50.9140000+00:00",
+        "Session":  "rollout-2026-07-15T00-17-04-019f6133-e765-7f10-bcbd-6ee3e7f69315.jsonl",
+        "SourceLine":  99,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\EditMode\\EquipmentAvailabilityTests.cs"
+                    ]
+    },
+    {
+        "Index":  33,
+        "File":  "033.patch",
+        "Timestamp":  "2026-07-14T15:25:01.9610000+00:00",
+        "Session":  "rollout-2026-07-15T00-19-48-019f6136-69d2-7690-bc73-f17dcb996ad4.jsonl",
+        "SourceLine":  79,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\EditMode\\EnemySkillBalanceTests.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\EditMode\\EnemySkillBalanceTests.cs.meta"
+                    ]
+    },
+    {
+        "Index":  34,
+        "File":  "034.patch",
+        "Timestamp":  "2026-07-14T15:27:53.1960000+00:00",
+        "Session":  "rollout-2026-07-15T00-19-48-019f6136-69d2-7690-bc73-f17dcb996ad4.jsonl",
+        "SourceLine":  138,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattleSkillResolver.cs"
+                    ]
+    },
+    {
+        "Index":  35,
+        "File":  "035.patch",
+        "Timestamp":  "2026-07-14T15:28:07.4060000+00:00",
+        "Session":  "rollout-2026-07-15T00-19-48-019f6136-69d2-7690-bc73-f17dcb996ad4.jsonl",
+        "SourceLine":  147,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattleSkillResolver.cs"
+                    ]
+    },
+    {
+        "Index":  36,
+        "File":  "036.patch",
+        "Timestamp":  "2026-07-14T15:28:15.1470000+00:00",
+        "Session":  "rollout-2026-07-15T00-19-48-019f6136-69d2-7690-bc73-f17dcb996ad4.jsonl",
+        "SourceLine":  152,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\EditMode\\EnemySkillBalanceTests.cs"
+                    ]
+    },
+    {
+        "Index":  37,
+        "File":  "037.patch",
+        "Timestamp":  "2026-07-14T15:30:05.8250000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  9905,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattleSkillResolver.cs"
+                    ]
+    },
+    {
+        "Index":  38,
+        "File":  "038.patch",
+        "Timestamp":  "2026-07-14T15:34:41.6100000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  9933,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Recipes\\Rank08WeaponRecipe.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\NormalRank09Weapon.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\NormalRank08Accessory.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Recipes\\Rank08ArmorRecipe.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Recipes\\Rank08AccessoryRecipe.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\NormalRank09Armor.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\NormalRank08.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\NormalRank08Weapon.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Items\\NormalRank09.asset"
+                    ]
+    },
+    {
+        "Index":  39,
+        "File":  "039.patch",
+        "Timestamp":  "2026-07-14T15:36:40.8470000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  9947,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Dungeons\\VelmBlackIronMine.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Dungeons\\UpperFortress.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Dungeons\\NornCanopyLabyrinth.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Dungeons\\AstralDepths.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Dungeons\\DungeonData.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Dungeons\\MiddleRuins.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\GameData\\Dungeons\\LowerMine.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Dungeons\\EldOldQuarry.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Dungeons\\HighestAbyss.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Dungeons\\LeafForestTrail.asset",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Dungeons\\EldUndergroundWaterway.asset"
+                    ]
+    },
+    {
+        "Index":  40,
+        "File":  "040.patch",
+        "Timestamp":  "2026-07-14T15:39:25.9440000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  9973,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\EditMode\\MercenaryClassProgressionTests.cs.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\EditMode\\GameAssetRepositoryTests.cs"
+                    ]
+    },
+    {
+        "Index":  41,
+        "File":  "041.patch",
+        "Timestamp":  "2026-07-14T15:47:39.8480000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10031,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Core\\SaveManager.cs"
+                    ]
+    },
+    {
+        "Index":  42,
+        "File":  "042.patch",
+        "Timestamp":  "2026-07-14T16:21:05.4270000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10097,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\EditMode\\ProgressionManagerTests.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Merchant\\ProgressionManager.cs"
+                    ]
+    },
+    {
+        "Index":  43,
+        "File":  "043.patch",
+        "Timestamp":  "2026-07-14T16:38:48.4910000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10167,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattlePresentationEvent.cs.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattlePresentationEvent.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Data\\EnemyDataSO.cs"
+                    ]
+    },
+    {
+        "Index":  44,
+        "File":  "044.patch",
+        "Timestamp":  "2026-07-14T16:39:51.9730000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10172,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattleManager.cs"
+                    ]
+    },
+    {
+        "Index":  45,
+        "File":  "045.patch",
+        "Timestamp":  "2026-07-14T16:42:13.4660000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10178,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\BattleVisualController.cs.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\BattleVisualController.cs"
+                    ]
+    },
+    {
+        "Index":  46,
+        "File":  "046.patch",
+        "Timestamp":  "2026-07-14T16:42:59.5430000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10183,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\SimpleMercenaryHireUI.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\SimpleMercenaryHireUI.BattleDungeon.cs"
+                    ]
+    },
+    {
+        "Index":  47,
+        "File":  "047.patch",
+        "Timestamp":  "2026-07-14T16:44:52.2360000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10205,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\BattleVisualController.cs"
+                    ]
+    },
+    {
+        "Index":  48,
+        "File":  "048.patch",
+        "Timestamp":  "2026-07-14T16:46:34.5660000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10217,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Battle\\Enemies\\README.md.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Battle.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\PlayMode\\BattleManagerPlayModeTests.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Battle\\Enemies\\README.md",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Battle\\Enemies.meta"
+                    ]
+    },
+    {
+        "Index":  49,
+        "File":  "049.patch",
+        "Timestamp":  "2026-07-14T16:48:23.6170000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10234,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattleManager.cs"
+                    ]
+    },
+    {
+        "Index":  50,
+        "File":  "050.patch",
+        "Timestamp":  "2026-07-14T16:49:28.1010000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10246,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\BattleVisualController.cs"
+                    ]
+    },
+    {
+        "Index":  51,
+        "File":  "051.patch",
+        "Timestamp":  "2026-07-14T16:58:47.8270000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10288,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattlePresentationEvent.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Dungeon\\DungeonDataSO.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Dungeon\\DungeonRunManager.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattleManager.cs"
+                    ]
+    },
+    {
+        "Index":  52,
+        "File":  "052.patch",
+        "Timestamp":  "2026-07-14T16:59:14.3930000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10293,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\TownTravelController.cs"
+                    ]
+    },
+    {
+        "Index":  53,
+        "File":  "053.patch",
+        "Timestamp":  "2026-07-14T16:59:54.6280000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10302,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\TownTravelController.cs"
+                    ]
+    },
+    {
+        "Index":  54,
+        "File":  "054.patch",
+        "Timestamp":  "2026-07-14T17:00:57.4400000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10307,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\SimpleMercenaryHireUI.BattleDungeon.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\BattleVisualController.cs"
+                    ]
+    },
+    {
+        "Index":  55,
+        "File":  "055.patch",
+        "Timestamp":  "2026-07-14T17:01:50.4720000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10313,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Battle\\Backgrounds\\README.md",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Dungeon\\DungeonRunManager.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\BattleVisualController.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Battle\\Backgrounds\\README.md.meta",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Battle\\Backgrounds.meta"
+                    ]
+    },
+    {
+        "Index":  56,
+        "File":  "056.patch",
+        "Timestamp":  "2026-07-14T17:03:41.7480000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10325,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattleManager.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\PlayMode\\BattleManagerPlayModeTests.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\SimpleMercenaryHireUI.BattleDungeon.cs"
+                    ]
+    },
+    {
+        "Index":  57,
+        "File":  "057.patch",
+        "Timestamp":  "2026-07-14T17:04:02.2390000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10330,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattleManager.cs"
+                    ]
+    },
+    {
+        "Index":  58,
+        "File":  "058.patch",
+        "Timestamp":  "2026-07-14T17:06:08.0650000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10351,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Resources\\Battle\\Backgrounds\\README.md",
+                        "C:\\UnityProjects\\DungeonMerchant\\handoff\\SHARED_PROJECT_STATUS.md"
+                    ]
+    },
+    {
+        "Index":  59,
+        "File":  "059.patch",
+        "Timestamp":  "2026-07-14T17:25:17.5520000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10450,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattleManager.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattleSkillResolver.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\Battle\\BattlePresentationEvent.cs"
+                    ]
+    },
+    {
+        "Index":  60,
+        "File":  "060.patch",
+        "Timestamp":  "2026-07-14T17:27:00.6900000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10463,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\BattleVisualController.cs"
+                    ]
+    },
+    {
+        "Index":  61,
+        "File":  "061.patch",
+        "Timestamp":  "2026-07-14T17:27:24.4330000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10468,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\BattleVisualController.cs"
+                    ]
+    },
+    {
+        "Index":  62,
+        "File":  "062.patch",
+        "Timestamp":  "2026-07-14T17:27:45.1060000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10473,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\BattleVisualController.cs"
+                    ]
+    },
+    {
+        "Index":  63,
+        "File":  "063.patch",
+        "Timestamp":  "2026-07-14T17:28:36.9930000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10482,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\BattleVisualController.cs"
+                    ]
+    },
+    {
+        "Index":  64,
+        "File":  "064.patch",
+        "Timestamp":  "2026-07-14T17:29:02.5300000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10487,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\BattleVisualController.cs"
+                    ]
+    },
+    {
+        "Index":  65,
+        "File":  "065.patch",
+        "Timestamp":  "2026-07-14T17:29:36.4880000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10492,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\BattleVisualController.cs"
+                    ]
+    },
+    {
+        "Index":  66,
+        "File":  "066.patch",
+        "Timestamp":  "2026-07-14T17:29:56.0710000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10497,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\BattleVisualController.cs"
+                    ]
+    },
+    {
+        "Index":  67,
+        "File":  "067.patch",
+        "Timestamp":  "2026-07-14T17:32:10.7120000+00:00",
+        "Session":  "rollout-2026-06-23T11-13-50-019ef241-48a7-70c0-b688-f2ad9b1ff054.jsonl",
+        "SourceLine":  10516,
+        "Targets":  [
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Tests\\EditMode\\BattleSkillResolverTests.cs",
+                        "C:\\UnityProjects\\DungeonMerchant\\Assets\\Proiject\\Scripts\\UI\\BattleVisualController.cs"
+                    ]
+    }
+]

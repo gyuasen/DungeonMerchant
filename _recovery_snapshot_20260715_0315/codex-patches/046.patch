@@ -1,0 +1,39 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\SimpleMercenaryHireUI.cs
+@@
+     private Coroutine battleLogScrollCoroutine;
++    private BattleVisualController battleVisualController;
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\SimpleMercenaryHireUI.BattleDungeon.cs
+@@
+         battleSkipRect.sizeDelta = new Vector2(110f, 38f);
+         battleSkipRect.anchoredPosition = new Vector2(-20f, -36f);
++
++        RectTransform battleVisualRoot =
++            CreateUIObject("Battle Visuals", battlePage);
++        battleVisualRoot.anchorMin = new Vector2(0f, 0.38f);
++        battleVisualRoot.anchorMax = Vector2.one;
++        battleVisualRoot.offsetMin = Vector2.zero;
++        battleVisualRoot.offsetMax = new Vector2(0f, -104f);
++        battleVisualController =
++            battleVisualRoot.gameObject.AddComponent<BattleVisualController>();
++        battleVisualController.Configure(
++            battleManager,
++            uiBodyFont != null ? uiBodyFont : uiFont);
+ 
+         battleLogPanel = CreateUIObject("Battle Log", battlePage);
+         battleLogPanel.anchorMin = new Vector2(0f, 0f);
+-        battleLogPanel.anchorMax = new Vector2(1f, 1f);
++        battleLogPanel.anchorMax = new Vector2(1f, 0.38f);
+         battleLogPanel.offsetMin = Vector2.zero;
+-        battleLogPanel.offsetMax = new Vector2(0f, -104f);
++        battleLogPanel.offsetMax = Vector2.zero;
+@@
+         battleLogPanel.SetParent(destinationPage, false);
+         battleLogPanel.anchorMin = Vector2.zero;
+-        battleLogPanel.anchorMax = Vector2.one;
++        battleLogPanel.anchorMax = new Vector2(1f, 0.38f);
+         battleLogPanel.offsetMin = Vector2.zero;
+-        battleLogPanel.offsetMax = new Vector2(0f, -104f);
++        battleLogPanel.offsetMax = Vector2.zero;
++        battleVisualController?.MoveTo(destinationPage);
+*** End Patch

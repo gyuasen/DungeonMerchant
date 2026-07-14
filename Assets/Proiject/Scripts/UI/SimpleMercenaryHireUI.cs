@@ -157,6 +157,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform battleLogViewport;
     private ScrollRect battleLogScrollRect;
     private Coroutine battleLogScrollCoroutine;
+    private BattleVisualController battleVisualController;
     private DailyResultController dailyResultController;
     private HireAndPartyController hireAndPartyController;
     private EconomyController economyController;
@@ -647,9 +648,12 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
 
     private Font LoadUIFont()
     {
-        Font font = Font.CreateDynamicFontFromOSFont(
-            new[]
-            {
+        Font font = Resources.Load<Font>("Fonts/ZenKurenaido-Regular");
+        if (font == null)
+        {
+            font = Font.CreateDynamicFontFromOSFont(
+                new[]
+                {
                 "游明朝 Demibold",
                 "Yu Mincho Demibold",
                 "UD デジタル 教科書体 N",
@@ -659,8 +663,9 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
                 "Yu Gothic UI",
                 "Meiryo",
                 "MS Gothic"
-            },
-            16);
+                },
+                16);
+        }
 
         if (font == null)
         {

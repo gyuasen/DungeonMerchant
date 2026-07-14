@@ -1,0 +1,9 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Battle\BattleSkillResolver.cs
+@@
+             EnemySkillType.BattleHeal,
+             EnemySkillType.SacrificialStrike,
+-            EnemySkillType.ToxicCloud,
+-            EnemySkillType.LifeDrain
++            EnemySkillType.ToxicCloud
+*** End Patch

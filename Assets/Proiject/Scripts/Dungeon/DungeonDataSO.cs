@@ -31,6 +31,12 @@ public class DungeonDataSO : ScriptableObject, IPersistentGameAsset
     [Range(0f, 1f)] public float specialBossChance = 0.03f;
     public EnemySkillType[] specialVariantSkillPool;
 
+    [Header("Battle Background")]
+    [Tooltip("Optional background sprite used for this dungeon's battles.")]
+    public Sprite battleBackground;
+    [Tooltip("Optional Resources path key under Battle/Backgrounds.")]
+    public string battleBackgroundKey;
+
     [Header("踏破報酬")]
     [Min(0)] public int floorClearGoldReward = 40;
     [Min(0)] public int clearGoldReward = 100;

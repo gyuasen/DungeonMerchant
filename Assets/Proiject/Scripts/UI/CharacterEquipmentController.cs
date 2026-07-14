@@ -820,7 +820,7 @@ public sealed class CharacterEquipmentController
             case EquipmentSetId.GlaadSkyFortress:
                 return "セット: グラード天嶺\n" +
                        "2部位: 攻撃+3、防御+6\n" +
-                       "3部位: 最大HP+22、攻撃速度+0.03";
+                       "3部位: 最大HP+22、攻撃速度+0.025";
             case EquipmentSetId.VelmBlackIron:
                 return "セット: ヴェルム黒鉄\n" +
                        "2部位: 最大HP+28、攻撃+4\n" +
@@ -828,7 +828,7 @@ public sealed class CharacterEquipmentController
             case EquipmentSetId.AbyssThrone:
                 return "セット: アビス玉座\n" +
                        "2部位: 攻撃+7、防御+7\n" +
-                       "3部位: 最大HP+36、攻撃速度+0.04";
+                       "3部位: 最大HP+36、攻撃速度+0.035";
             case EquipmentSetId.AstralDepths:
                 return "セット: 星幽深層\n" +
                        "2部位: 最大HP+45、攻撃速度+0.04\n" +

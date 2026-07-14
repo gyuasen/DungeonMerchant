@@ -1,0 +1,135 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\BattleVisualController.cs
+@@
+         RectTransform rect = (RectTransform)transform;
+         rect.SetParent(destination, false);
+-        rect.anchorMin = new Vector2(0f, 0.38f);
++        rect.anchorMin = Vector2.zero;
+         rect.anchorMax = Vector2.one;
+-        rect.offsetMin = new Vector2(0f, 0f);
+-        rect.offsetMax = new Vector2(0f, -104f);
++        rect.offsetMin = Vector2.zero;
++        rect.offsetMax = Vector2.zero;
+         rect.SetAsFirstSibling();
+@@
+         Image background = GetComponent<Image>() ?? gameObject.AddComponent<Image>();
+-        background.color = new Color(0.11f, 0.075f, 0.04f, 0.72f);
++        background.sprite = ResolveBattleBackground(roster);
++        background.preserveAspect = false;
++        background.raycastTarget = false;
++        background.color = background.sprite != null
++            ? Color.white
++            : new Color(0.11f, 0.075f, 0.04f, 1f);
++
++        RectTransform shade = CreateRect("Battlefield Shade", transform);
++        Stretch(shade);
++        Image shadeImage = shade.gameObject.AddComponent<Image>();
++        shadeImage.color = new Color(0.04f, 0.025f, 0.015f, 0.25f);
++        shadeImage.raycastTarget = false;
++
++        RectTransform headerShade = CreateRect("Header Shade", transform);
++        headerShade.anchorMin = new Vector2(0f, 0.78f);
++        headerShade.anchorMax = Vector2.one;
++        headerShade.offsetMin = headerShade.offsetMax = Vector2.zero;
++        Image headerImage = headerShade.gameObject.AddComponent<Image>();
++        headerImage.color = new Color(0.04f, 0.025f, 0.015f, 0.6f);
++        headerImage.raycastTarget = false;
+ 
+-        CreateSide(roster.Enemies, false, new Vector2(0f, 0.48f), Vector2.one);
+-        CreateSide(roster.Players, true, Vector2.zero, new Vector2(1f, 0.48f));
++        CreateSide(
++            roster.Enemies,
++            false,
++            new Vector2(0f, 0.48f),
++            new Vector2(1f, 0.79f));
++        CreateSide(
++            roster.Players,
++            true,
++            new Vector2(0f, 0.24f),
++            new Vector2(1f, 0.50f));
+@@
+         panelImage.color = descriptor.EnemyData != null &&
+                            descriptor.EnemyData.isSpecialVariant
+-            ? new Color(0.28f, 0.12f, 0.34f, 0.9f)
+-            : new Color(0.23f, 0.14f, 0.075f, 0.86f);
++            ? new Color(0.28f, 0.12f, 0.34f, 0.68f)
++            : new Color(0.16f, 0.10f, 0.055f, 0.6f);
+@@
+         portrait.anchorMax = new Vector2(0.92f, 0.96f);
+         portrait.offsetMin = portrait.offsetMax = Vector2.zero;
++        AspectRatioFitter portraitFitter =
++            portrait.gameObject.AddComponent<AspectRatioFitter>();
++        portraitFitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
++        portraitFitter.aspectRatio = 1f;
+@@
+     private Sprite ResolveEnemySprite(EnemyDataSO data)
+@@
+         return Resources.Load<Sprite>($"Battle/Enemies/{key}");
+     }
++
++    private static Sprite ResolveBattleBackground(
++        BattlePresentationRoster roster)
++    {
++        if (roster == null)
++        {
++            return Resources.Load<Sprite>("Battle/Backgrounds/Default");
++        }
++        if (roster.BackgroundSprite != null)
++        {
++            return roster.BackgroundSprite;
++        }
++
++        string key = string.IsNullOrWhiteSpace(roster.BackgroundKey)
++            ? "Default"
++            : roster.BackgroundKey.Trim();
++        Sprite background = Resources.Load<Sprite>(
++            $"Battle/Backgrounds/{key}");
++        return background != null
++            ? background
++            : Resources.Load<Sprite>("Battle/Backgrounds/Default");
++    }
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\SimpleMercenaryHireUI.BattleDungeon.cs
+@@
+         battlePageTitleText = CreateText(
+             battlePage, "ダンジョン戦闘", 15, FontStyle.Normal, TextAnchor.MiddleLeft,
+-            new Vector2(0f, -30f), new Vector2(0f, 0f), ParchmentMutedColor);
++            new Vector2(0f, -30f), new Vector2(0f, 0f),
++            new Color(0.98f, 0.91f, 0.72f));
++        Outline titleOutline =
++            battlePageTitleText.gameObject.AddComponent<Outline>();
++        titleOutline.effectColor = new Color(0f, 0f, 0f, 0.85f);
++        titleOutline.effectDistance = new Vector2(1f, -1f);
+ 
+         battleEncounterText = CreateText(
+             battlePage, string.Empty, 18, FontStyle.Bold, TextAnchor.MiddleLeft,
+             new Vector2(0f, -78f), new Vector2(-160f, -42f),
+-            ParchmentTextColor);
++            new Color(1f, 0.94f, 0.76f));
++        Outline encounterOutline =
++            battleEncounterText.gameObject.AddComponent<Outline>();
++        encounterOutline.effectColor = new Color(0f, 0f, 0f, 0.9f);
++        encounterOutline.effectDistance = new Vector2(1f, -1f);
+@@
+         RectTransform battleVisualRoot =
+             CreateUIObject("Battle Visuals", battlePage);
+-        battleVisualRoot.anchorMin = new Vector2(0f, 0.38f);
++        battleVisualRoot.anchorMin = Vector2.zero;
+         battleVisualRoot.anchorMax = Vector2.one;
+         battleVisualRoot.offsetMin = Vector2.zero;
+-        battleVisualRoot.offsetMax = new Vector2(0f, -104f);
++        battleVisualRoot.offsetMax = Vector2.zero;
+@@
+         battleLogPanel = CreateUIObject("Battle Log", battlePage);
+         battleLogPanel.anchorMin = new Vector2(0f, 0f);
+-        battleLogPanel.anchorMax = new Vector2(1f, 0.38f);
++        battleLogPanel.anchorMax = new Vector2(1f, 0.24f);
+@@
+-        logBackground.color = RowColor;
++        logBackground.color =
++            new Color(RowColor.r, RowColor.g, RowColor.b, 0.78f);
+@@
+         battleLogPanel.SetParent(destinationPage, false);
+         battleLogPanel.anchorMin = Vector2.zero;
+-        battleLogPanel.anchorMax = new Vector2(1f, 0.38f);
++        battleLogPanel.anchorMax = new Vector2(1f, 0.24f);
+*** End Patch

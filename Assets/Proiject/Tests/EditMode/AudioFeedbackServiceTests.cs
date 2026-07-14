@@ -94,6 +94,25 @@ public sealed class AudioFeedbackServiceTests
         Assert.That(GetRegisteredButtonCount(service), Is.EqualTo(2));
     }
 
+    [Test]
+    public void FactoryCreatedActionButton_RegistersWithActiveService()
+    {
+        AudioFeedbackService service = CreateService();
+        GameObject parentObject = new GameObject(
+            "Button Parent", typeof(RectTransform));
+        parentObject.transform.SetParent(service.transform, false);
+        Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        SimpleMercenaryHireUIFactory factory =
+            new SimpleMercenaryHireUIFactory(font, font);
+
+        factory.CreateActionButton(
+            parentObject.GetComponent<RectTransform>(),
+            "Test",
+            () => { });
+
+        Assert.That(GetRegisteredButtonCount(service), Is.EqualTo(1));
+    }
+
     private AudioFeedbackService CreateService()
     {
         serviceObject = new GameObject("Audio Feedback Service");

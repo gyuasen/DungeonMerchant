@@ -1,0 +1,40 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Battle\BattleSkillResolver.cs
+@@
+             EnemySkillType.PowerStrike,
+             EnemySkillType.VenomStrike,
+             EnemySkillType.FrostBite,
+             EnemySkillType.DoubleStrike,
+             EnemySkillType.ArcaneBolt,
+             EnemySkillType.CrushingBlow,
+             EnemySkillType.Regeneration
+@@
+             EnemySkillType.ArmorPierce,
+             EnemySkillType.FlameBreath,
+-            EnemySkillType.TripleStrike,
+-            EnemySkillType.BattleHeal,
+-            EnemySkillType.SacrificialStrike,
++            EnemySkillType.MeteorRain,
++            EnemySkillType.BerserkRush,
++            EnemySkillType.SoulBurst,
+             EnemySkillType.Execute,
++            EnemySkillType.TripleStrike,
++            EnemySkillType.BattleHeal,
++            EnemySkillType.SacrificialStrike,
+             EnemySkillType.ToxicCloud,
+-            EnemySkillType.MeteorRain,
+-            EnemySkillType.BerserkRush,
+-            EnemySkillType.SoulBurst
++            EnemySkillType.LifeDrain
+         };
+         EnemySkillType[] candidates = monsterGrade <= 5 ? upper : lower;
+-        return candidates[Math.Abs(monsterGrade) % candidates.Length];
++        int candidateIndex = monsterGrade <= 5
++            ? Math.Abs(monsterGrade)
++            : monsterGrade - 4;
++        return candidates[candidateIndex % candidates.Length];
+@@
+-        if (attacker.CurrentHP > Mathf.RoundToInt(attacker.MaxHP * 0.55f))
++        if (attacker.IsDead ||
++            attacker.CurrentHP > Mathf.RoundToInt(attacker.MaxHP * 0.55f))
+*** End Patch

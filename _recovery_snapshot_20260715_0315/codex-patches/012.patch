@@ -1,0 +1,47 @@
+*** Begin Patch
+*** Add File: C:/UnityProjects/DungeonMerchant/Assets/Proiject/Resources/Enemies/Glaad/Grade04GlaadGaleHarpy.asset
++%YAML 1.1
++%TAG !u! tag:unity3d.com,2011:
++--- !u!114 &11400000
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 0}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
++  m_Name: Grade04GlaadGaleHarpy
++  m_EditorClassIdentifier:
++  enemyName: "グラード疾風ハーピー"
++  monsterGrade: 4
++  isBoss: 0
++  category: 0
++  enemySkill: 5
++  isSpecialVariant: 0
++  specialVariantTitle:
++  maxHP: 84
++  attack: 24
++  defense: 7
++  maxMagicPower: 55
++  attackSpeed: 1.32
++  criticalRate: 0.14
++  evasionRate: 0.12
++  goldReward: 210
++  experienceMultiplier: 1.1
++  itemDrops: []
+*** Add File: C:/UnityProjects/DungeonMerchant/Assets/Proiject/Resources/Enemies/Glaad/Grade04GlaadGaleHarpy.asset.meta
++fileFormatVersion: 2
++guid: 97a4b941d2bf4f7b953a98380bff14ea
++NativeFormatImporter:
++  externalObjects: {}
++  mainObjectFileID: 11400000
++  userData: 
++  assetBundleName: 
++  assetBundleVariant: 
+*** Delete File: C:/UnityProjects/DungeonMerchant/Assets/Proiject/Resources/Enemies/Glaad/Grade03GlaadGaleHarpy.asset
+
+*** Delete File: C:/UnityProjects/DungeonMerchant/Assets/Proiject/Resources/Enemies/Glaad/Grade03GlaadGaleHarpy.asset.meta
+
+*** End Patch

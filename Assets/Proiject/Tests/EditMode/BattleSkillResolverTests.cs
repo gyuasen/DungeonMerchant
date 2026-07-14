@@ -70,7 +70,7 @@ public sealed class BattleSkillResolverTests
                 1f,
                 0f,
                 1.5f,
-                () => randomCall++ == 0 ? 0f : 0.99f,
+                () => randomCall++ == 0 ? 0f : 0.6f,
                 (message, _) => logs.Add(message)));
         MercenarySkillDefinition skill =
             MercenaryClassProgression.GetCombatSkills(mercenaryClass).Find(
@@ -122,6 +122,94 @@ public sealed class BattleSkillResolverTests
         Assert.That(
             logs.Exists(message => message.Contains("戦陣号令")),
             Is.False);
+    }
+
+    [TestCase(MercenaryClass.Knight, MercenarySkillId.AegisPierce)]
+    [TestCase(MercenaryClass.Berserker, MercenarySkillId.RagingCombo)]
+    [TestCase(MercenaryClass.Sniper, MercenarySkillId.ArmorBreakArrow)]
+    [TestCase(MercenaryClass.Ranger, MercenarySkillId.GaleVolley)]
+    [TestCase(MercenaryClass.Sage, MercenarySkillId.ArcaneBurst)]
+    [TestCase(MercenaryClass.Elementalist, MercenarySkillId.StormCircle)]
+    [TestCase(MercenaryClass.Bishop, MercenarySkillId.GreaterHeal)]
+    [TestCase(MercenaryClass.Paladin, MercenarySkillId.HolyShieldBash)]
+    [TestCase(MercenaryClass.Assassin, MercenarySkillId.FatalFlurry)]
+    [TestCase(MercenaryClass.Ninja, MercenarySkillId.BindingBlade)]
+    [TestCase(MercenaryClass.Dragoon, MercenarySkillId.SkySpearCombo)]
+    [TestCase(MercenaryClass.GuardianLancer, MercenarySkillId.FortressPierce)]
+    [TestCase(MercenaryClass.Warlord, MercenarySkillId.WarfrontSmash)]
+    [TestCase(MercenaryClass.Beastmaster, MercenarySkillId.BeastKingFangs)]
+    [TestCase(MercenaryClass.Chronomancer, MercenarySkillId.TemporalRift)]
+    [TestCase(MercenaryClass.Saint, MercenarySkillId.DivineHymn)]
+    [TestCase(MercenaryClass.Shadow, MercenarySkillId.VoidPierce)]
+    [TestCase(MercenaryClass.DragonKnight, MercenarySkillId.DragonfallBreath)]
+    public void AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(
+        MercenaryClass mercenaryClass,
+        MercenarySkillId expectedSkill)
+    {
+        List<string> logs = new List<string>();
+        MercenarySkillDefinition skill =
+            MercenaryClassProgression.GetCombatSkills(mercenaryClass).Find(
+                definition => definition.Id == expectedSkill);
+        BattleUnit attacker = Unit(
+            "veteran", 120, 120, 20, 0, true, mercenaryClass,
+            100, skill.UnlockLevel);
+        attacker.GainMagicPower(80);
+        BattleUnit primaryTarget = Unit("target", 500, 500, 4, 0, false);
+        BattleUnit secondaryTarget = Unit("secondary", 500, 500, 4, 0, false);
+        BattleUnit ally = Unit("ally", 120, 40, 10, 0, true);
+        int randomCall = 0;
+        BattleSkillResolver resolver = new BattleSkillResolver(
+            new BattleSkillResolverContext(
+                new List<BattleUnit> { attacker, ally },
+                new List<BattleUnit> { primaryTarget, secondaryTarget },
+                1f, 0f, 1.5f,
+                () => randomCall++ == 0 ? 0f : 0.99f,
+                (message, _) => logs.Add(message)));
+
+        Assert.That(
+            resolver.TryUsePlayerSkill(
+                attacker,
+                primaryTarget,
+                out string selectedSkillName),
+            Is.True);
+        Assert.That(selectedSkillName, Is.EqualTo(skill.Name));
+        Assert.That(attacker.CurrentMagicPower,
+            Is.EqualTo(attacker.MaxMagicPower - skill.MagicCost));
+        Assert.That(logs.Exists(message => message.Contains(skill.Name)), Is.True);
+    }
+
+    [Test]
+    public void EvadedParalysisDamageSkill_DoesNotApplyParalysis()
+    {
+        for (int seed = 0; seed < 20; seed++)
+        {
+            UnityEngine.Random.InitState(seed);
+            BattleUnit attacker = Unit(
+                "warrior", 120, 120, 20, 0, true,
+                MercenaryClass.Warrior, 100);
+            attacker.GainMagicPower(80);
+            BattleUnit target = Unit(
+                "evasive", 500, 500, 4, 0, false,
+                evasionRate: 0.75f);
+            int randomCall = 0;
+            BattleSkillResolver resolver = new BattleSkillResolver(
+                new BattleSkillResolverContext(
+                    new List<BattleUnit> { attacker },
+                    new List<BattleUnit> { target },
+                    1f, 0f, 1.5f,
+                    () => randomCall++ == 0 ? 0f : 0.34f,
+                    (message, _) => { }));
+
+            Assert.That(resolver.TryUsePlayerSkill(attacker, target), Is.True);
+            if (target.CurrentHP == target.MaxHP)
+            {
+                Assert.That(target.StatusEffect,
+                    Is.EqualTo(BattleStatusEffect.None));
+                return;
+            }
+        }
+
+        Assert.Fail("No evasion was produced by the configured deterministic seeds.");
     }
 
     [TestCase(0, EnemySkillType.ArmorPierce)]
@@ -186,7 +274,8 @@ public sealed class BattleSkillResolverTests
         bool player,
         MercenaryClass mercenaryClass = MercenaryClass.Warrior,
         int maxMagicPower = 0,
-        int level = 1)
+        int level = 1,
+        float evasionRate = 0f)
     {
         return new BattleUnit(
             name,
@@ -199,7 +288,7 @@ public sealed class BattleSkillResolverTests
             mercenaryClass,
             maxMagicPower,
             0f,
-            0f,
+            evasionRate,
             BattleStatusEffect.None,
             level);
     }

@@ -1,0 +1,56 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\NormalRank08.asset
+@@
+-  itemName: Traveler Guard VIII
++  itemName: 黒鉄の遠征鎧
+@@
+-  description: Standard market equipment for every basic class.
++  description: ヴェルムの黒鉄を鍛えた、長期遠征用の重鎧。
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\NormalRank08Accessory.asset
+@@
+-  itemName: 竜鱗の護符
++  itemName: 黒鉄の遠征章
+@@
+-  description: 町の市場で流通する、扱いやすい標準装備。
++  description: 黒鉄坑を越える者へ授けられる、耐久力を高める徽章。
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\NormalRank08Weapon.asset
+@@
+-  itemName: 竜鱗の武具
++  itemName: 黒鉄の遠征剣
+@@
+-  description: 町の市場で流通する、扱いやすい標準装備。
++  description: 黒鉄を幾重にも鍛え、あらゆる職が扱えるよう整えた武器。
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\NormalRank09.asset
+@@
+-  itemName: Traveler Charm IX
++  itemName: 深淵探索の護符
+@@
+-  description: Standard market equipment for every basic class.
++  description: 終焉の黒土で拾われた欠片を封じた、深淵探索者の護符。
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\NormalRank09Armor.asset
+@@
+-  itemName: 星鋼の防具
++  itemName: 深淵探索の外套
+@@
+-  description: 町の市場で流通する、扱いやすい標準装備。
++  description: 深淵の瘴気を遠ざける繊維で織られた探索用の外套。
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\NormalRank09Weapon.asset
+@@
+-  itemName: 星鋼の武具
++  itemName: 深淵探索の刃
+@@
+-  description: 町の市場で流通する、扱いやすい標準装備。
++  description: 深淵の魔物に抗うため、黒鉄へ魔力を通した探索者の刃。
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Recipes\Rank08WeaponRecipe.asset
+@@
+-  recipeName: Rank 8 Weapon
++  recipeName: 黒鉄の遠征剣
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Recipes\Rank08ArmorRecipe.asset
+@@
+-  recipeName: Rank 8 Armor
++  recipeName: 黒鉄の遠征鎧
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Recipes\Rank08AccessoryRecipe.asset
+@@
+-  recipeName: Rank 8 Accessory
++  recipeName: 黒鉄の遠征章
+*** End Patch

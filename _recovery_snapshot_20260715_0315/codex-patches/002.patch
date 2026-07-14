@@ -1,0 +1,15 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Tests\EditMode\SaveDataMigratorTests.cs
+@@
+-            clearedFloors = Mathf.Max(0, dungeon.totalFloors - 1)
++            clearedFloors = dungeon.totalFloors > 1
++                ? dungeon.totalFloors - 1
++                : 0
+@@
+-        Assert.That(data.completedStoryMilestones,
+-            Does.Not.Contain(StoryMilestone.FirstDungeonClear));
++        Assert.That(
++            data.completedStoryMilestones.Contains(
++                StoryMilestone.FirstDungeonClear),
++            Is.False);
+*** End Patch

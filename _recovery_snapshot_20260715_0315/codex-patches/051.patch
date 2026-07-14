@@ -1,0 +1,80 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Battle\BattlePresentationEvent.cs
+@@
+ public sealed class BattlePresentationRoster
+ {
+     public IReadOnlyList<BattleVisualUnitDescriptor> Players { get; }
+     public IReadOnlyList<BattleVisualUnitDescriptor> Enemies { get; }
++    public UnityEngine.Sprite BackgroundSprite { get; }
++    public string BackgroundKey { get; }
+ 
+     public BattlePresentationRoster(
+         IReadOnlyList<BattleVisualUnitDescriptor> players,
+-        IReadOnlyList<BattleVisualUnitDescriptor> enemies)
++        IReadOnlyList<BattleVisualUnitDescriptor> enemies,
++        UnityEngine.Sprite backgroundSprite = null,
++        string backgroundKey = null)
+     {
+         Players = players;
+         Enemies = enemies;
++        BackgroundSprite = backgroundSprite;
++        BackgroundKey = backgroundKey;
+     }
+ }
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Dungeon\DungeonDataSO.cs
+@@
+     public EnemySkillType[] specialVariantSkillPool;
++
++    [Header("Battle Background")]
++    [Tooltip("Optional background sprite used for this dungeon's battles.")]
++    public Sprite battleBackground;
++    [Tooltip("Optional Resources path key under Battle/Backgrounds.")]
++    public string battleBackgroundKey;
+ 
+     [Header("踏破報酬")]
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Battle\BattleManager.cs
+@@
+     [SerializeField, Range(0f, 1f)] private float baseCriticalRate = 0.08f;
+     [SerializeField, Min(1f)] private float criticalDamageMultiplier = 1.5f;
++
++    [Header("Battle Presentation")]
++    [SerializeField] private Sprite defaultBattleBackground;
++    [SerializeField] private string defaultBattleBackgroundKey = "Default";
+@@
+     private bool skipToBattleEndRequested;
++    private Sprite nextBattleBackground;
++    private string nextBattleBackgroundKey;
+@@
+     public event Action<IReadOnlyList<EnemyDataSO>> EnemiesDefeated;
++
++    public void SetNextBattleBackground(Sprite background, string resourceKey)
++    {
++        nextBattleBackground = background;
++        nextBattleBackgroundKey = resourceKey;
++    }
+@@
+-        BattleVisualsPrepared?.Invoke(
+-            new BattlePresentationRoster(players, enemies));
++        Sprite background = nextBattleBackground != null
++            ? nextBattleBackground
++            : defaultBattleBackground;
++        string backgroundKey = !string.IsNullOrWhiteSpace(
++            nextBattleBackgroundKey)
++            ? nextBattleBackgroundKey
++            : defaultBattleBackgroundKey;
++        BattleVisualsPrepared?.Invoke(
++            new BattlePresentationRoster(
++                players,
++                enemies,
++                background,
++                backgroundKey));
++        nextBattleBackground = null;
++        nextBattleBackgroundKey = null;
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Dungeon\DungeonRunManager.cs
+@@
+-        bool started = battleManager.StartBattle(partyManager.Members, enemies);
++        battleManager.SetNextBattleBackground(
++            dungeonData != null ? dungeonData.battleBackground : null,
++            dungeonData != null ? dungeonData.battleBackgroundKey : null);
++        bool started = battleManager.StartBattle(partyManager.Members, enemies);
+*** End Patch

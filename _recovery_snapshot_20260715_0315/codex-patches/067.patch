@@ -1,0 +1,21 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\BattleVisualController.cs
+@@
+     private IEnumerator PlayQueue()
+     {
++        if (introRoutine != null)
++        {
++            yield return introRoutine;
++        }
+         while (eventQueue.Count > 0)
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Tests\EditMode\BattleSkillResolverTests.cs
+@@
+-        Assert.That(resolver.TryUsePlayerSkill(attacker, primaryTarget), Is.True);
++        Assert.That(
++            resolver.TryUsePlayerSkill(
++                attacker,
++                primaryTarget,
++                out string selectedSkillName),
++            Is.True);
++        Assert.That(selectedSkillName, Is.EqualTo(skill.Name));
+*** End Patch

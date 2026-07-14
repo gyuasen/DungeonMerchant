@@ -1,0 +1,34 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\BattleVisualController.cs
+@@
+         CreateSide(
+             roster.Players,
+             true,
+             new Vector2(0f, 0.24f),
+             new Vector2(1f, 0.50f));
++
++        actionBanner = CreateText(
++            "Action Banner",
++            (RectTransform)transform,
++            string.Empty,
++            24,
++            FontStyle.Bold,
++            TextAnchor.MiddleCenter);
++        actionBanner.rectTransform.anchorMin = new Vector2(0.2f, 0.45f);
++        actionBanner.rectTransform.anchorMax = new Vector2(0.8f, 0.58f);
++        actionBanner.rectTransform.offsetMin = Vector2.zero;
++        actionBanner.rectTransform.offsetMax = Vector2.zero;
++        Outline bannerOutline = actionBanner.gameObject.AddComponent<Outline>();
++        bannerOutline.effectColor = new Color(0.08f, 0.03f, 0f, 0.95f);
++        bannerOutline.effectDistance = new Vector2(2f, -2f);
++        actionBanner.gameObject.SetActive(false);
+ 
+         resultText = CreateText(
+@@
+         Stretch(resultText.rectTransform);
+         resultText.gameObject.SetActive(false);
++
++        introPending = true;
++        introIsBoss = HasBoss(roster);
++        TryStartIntro();
+*** End Patch

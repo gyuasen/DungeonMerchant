@@ -1,0 +1,10 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Battle\BattleManager.cs
+@@
+         if (partyManager == null)
+         {
++            ClearNextBattleBackground();
+             SendBattleMessage("パーティー管理が設定されていません。");
+             return false;
+         }
+*** End Patch

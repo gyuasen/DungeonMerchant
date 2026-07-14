@@ -6,6 +6,7 @@ using UnityEngine;
 public class SaveManager : MonoBehaviour
 {
     private const string SaveFileName = "game-save.json";
+    private static string automatedTestSavePath;
 
     private MerchantData merchantData;
     private DayManager dayManager;
@@ -26,7 +27,9 @@ public class SaveManager : MonoBehaviour
 
     public string SavePath => !string.IsNullOrEmpty(savePathOverride)
         ? savePathOverride
-        : Path.Combine(Application.persistentDataPath, SaveFileName);
+        : IsAutomatedTestRun()
+            ? GetAutomatedTestSavePath()
+            : Path.Combine(Application.persistentDataPath, SaveFileName);
     public bool HasSaveData => File.Exists(SavePath);
 
     public void InitializeAndLoad()
@@ -82,6 +85,15 @@ public class SaveManager : MonoBehaviour
                 File.ReadAllText(SavePath));
             if (data == null)
             {
+                return;
+            }
+
+            if (data.version > GameSaveData.CurrentVersion)
+            {
+                Debug.LogError(
+                    $"Save data version {data.version} is newer than the " +
+                    $"supported version {GameSaveData.CurrentVersion}. " +
+                    "The save was not loaded or modified.");
                 return;
             }
 
@@ -162,6 +174,18 @@ public class SaveManager : MonoBehaviour
         }
 
         return false;
+    }
+
+    private static string GetAutomatedTestSavePath()
+    {
+        if (string.IsNullOrEmpty(automatedTestSavePath))
+        {
+            automatedTestSavePath = Path.Combine(
+                Application.temporaryCachePath,
+                $"dungeon-merchant-test-{Guid.NewGuid():N}.json");
+        }
+
+        return automatedTestSavePath;
     }
 
     private GameSaveData CreateSaveData()

@@ -1,0 +1,9 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Battle\Backgrounds\README.md
+@@
+ - 街道背景: `Road_町番号_町番号.png`。番号は小さい方から並べます（例: `Road_2_3.png`）
++
++現在使用する街道背景名は`Road_1_2`、`Road_0_1`、`Road_0_3`、`Road_3_4`、`Road_4_5`、`Road_5_6`です。
++
++現在使用するダンジョン背景名は`DungeonData`、`LeafForestTrail`、`EldUndergroundWaterway`、`LowerMine`、`EldOldQuarry`、`MiddleRuins`、`NornCanopyLabyrinth`、`UpperFortress`、`VelmBlackIronMine`、`HighestAbyss`、`AstralDepths`です。
+*** End Patch

@@ -22,6 +22,10 @@ public class BattleManager : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float baseCriticalRate = 0.08f;
     [SerializeField, Min(1f)] private float criticalDamageMultiplier = 1.5f;
 
+    [Header("Battle Presentation")]
+    [SerializeField] private Sprite defaultBattleBackground;
+    [SerializeField] private string defaultBattleBackgroundKey = "Default";
+
     private readonly List<BattleUnit> playerUnits = new List<BattleUnit>();
     private readonly List<MercenaryInstance> battleMercenaries =
         new List<MercenaryInstance>();
@@ -32,6 +36,8 @@ public class BattleManager : MonoBehaviour
     private EnemyDataSO fallbackEnemyData;
     private BattleRewardService battleRewardService;
     private bool skipToBattleEndRequested;
+    private Sprite nextBattleBackground;
+    private string nextBattleBackgroundKey;
     private readonly BattleStatusEffectService battleStatusEffectService =
         new BattleStatusEffectService();
 
@@ -42,8 +48,16 @@ public class BattleManager : MonoBehaviour
 
     public event Action<string> BattleMessage;
     public event Action<string, BattleLogType> BattleMessageTyped;
+    public event Action<BattlePresentationRoster> BattleVisualsPrepared;
+    public event Action<BattlePresentationEvent> BattlePresentation;
     public event Action<bool> BattleCompleted;
     public event Action<IReadOnlyList<EnemyDataSO>> EnemiesDefeated;
+
+    public void SetNextBattleBackground(Sprite background, string resourceKey)
+    {
+        nextBattleBackground = background;
+        nextBattleBackgroundKey = resourceKey;
+    }
 
     public bool StartBattle()
     {
@@ -51,6 +65,7 @@ public class BattleManager : MonoBehaviour
 
         if (partyManager == null)
         {
+            ClearNextBattleBackground();
             SendBattleMessage("パーティー管理が設定されていません。");
             return false;
         }
@@ -71,12 +86,14 @@ public class BattleManager : MonoBehaviour
 
         if (IsBattling)
         {
+            ClearNextBattleBackground();
             SendBattleMessage("すでに戦闘中です。");
             return false;
         }
 
         if (partyMembers == null || partyMembers.Count == 0)
         {
+            ClearNextBattleBackground();
             SendBattleMessage("パーティーに傭兵を1人以上編成してください。");
             return false;
         }
@@ -85,6 +102,7 @@ public class BattleManager : MonoBehaviour
 
         if (BuildEnemyEncounterData().Count == 0)
         {
+            ClearNextBattleBackground();
             SendBattleMessage("敵データが設定されていません。");
             return false;
         }
@@ -92,6 +110,7 @@ public class BattleManager : MonoBehaviour
         CreateBattleUnits(partyMembers);
         skipToBattleEndRequested = false;
         IsBattling = true;
+        PrepareBattleVisuals();
         StartCoroutine(BattleRoutine());
         return true;
     }
@@ -399,13 +418,40 @@ public class BattleManager : MonoBehaviour
                     yield return WaitForActionDelay();
                 }
 
+                BattleStatusEffect previousStatus = unit.StatusEffect;
                 BattleStatusEffectResult statusResult =
                     battleStatusEffectService.ProcessActionStart(unit);
                 if (statusResult.PoisonDamage > 0)
                 {
+                    RaisePresentation(new BattlePresentationEvent(
+                        BattlePresentationEventType.Damage,
+                        unit,
+                        unit,
+                        statusResult.PoisonDamage,
+                        unit.CurrentHP,
+                        unit.MaxHP,
+                        actionKind: BattlePresentationActionKind.StatusEffect));
+                    if (unit.StatusEffect != previousStatus)
+                    {
+                        RaisePresentation(new BattlePresentationEvent(
+                            BattlePresentationEventType.Status,
+                            unit,
+                            unit,
+                            currentHP: unit.CurrentHP,
+                            maxHP: unit.MaxHP,
+                            statusEffect: unit.StatusEffect,
+                            actionKind:
+                                BattlePresentationActionKind.StatusEffect));
+                    }
                     SendBattleMessage(statusResult.LogMessage, statusResult.LogType);
                     if (statusResult.IsUnitDead)
                     {
+                        RaisePresentation(new BattlePresentationEvent(
+                            BattlePresentationEventType.Defeated,
+                            unit,
+                            unit,
+                            currentHP: unit.CurrentHP,
+                            maxHP: unit.MaxHP));
                         if (GetFirstLivingPlayerUnit() == null)
                         {
                             CompleteBattle(false);
@@ -422,6 +468,14 @@ public class BattleManager : MonoBehaviour
 
                 if (statusResult.IsActionSkipped)
                 {
+                    RaisePresentation(new BattlePresentationEvent(
+                        BattlePresentationEventType.Status,
+                        unit,
+                        unit,
+                        currentHP: unit.CurrentHP,
+                        maxHP: unit.MaxHP,
+                        statusEffect: unit.StatusEffect,
+                        actionKind: BattlePresentationActionKind.StatusEffect));
                     SendBattleMessage(statusResult.LogMessage, statusResult.LogType);
                     continue;
                 }
@@ -436,9 +490,23 @@ public class BattleManager : MonoBehaviour
                         yield break;
                     }
 
-                    if (!CreateSkillResolver().TryUsePlayerSkill(unit, enemyTarget))
+                    Dictionary<BattleUnit, BattleUnitPresentationState> before =
+                        CapturePresentationStates();
+                    BattleSkillResolver playerSkillResolver = CreateSkillResolver();
+                    if (!playerSkillResolver.TryUsePlayerSkill(
+                            unit, enemyTarget, out string playerSkillName))
                     {
                         Attack(unit, enemyTarget);
+                    }
+                    else
+                    {
+                        RaisePresentation(new BattlePresentationEvent(
+                            BattlePresentationEventType.Action,
+                            unit,
+                            enemyTarget,
+                            actionKind: BattlePresentationActionKind.Skill,
+                            actionLabel: playerSkillName));
+                        RaiseStateChangeEvents(unit, before);
                     }
                     battleStatusEffectService.TickAfterAction(unit);
 
@@ -450,7 +518,8 @@ public class BattleManager : MonoBehaviour
                 }
                 else
                 {
-                    BattleUnit target = CreateSkillResolver().GetEnemyTarget();
+                    BattleSkillResolver enemySkillResolver = CreateSkillResolver();
+                    BattleUnit target = enemySkillResolver.GetEnemyTarget();
                     if (target == null)
                     {
                         CompleteBattle(false);
@@ -462,10 +531,22 @@ public class BattleManager : MonoBehaviour
                         enemyIndex >= 0 && enemyIndex < battleEnemyData.Count
                             ? battleEnemyData[enemyIndex]
                             : null;
-                    if (!CreateSkillResolver().TryUseEnemySkill(
-                            unit, target, sourceData))
+                    Dictionary<BattleUnit, BattleUnitPresentationState> before =
+                        CapturePresentationStates();
+                    if (!enemySkillResolver.TryUseEnemySkill(
+                            unit, target, sourceData, out string enemySkillName))
                     {
                         Attack(unit, target);
+                    }
+                    else
+                    {
+                        RaisePresentation(new BattlePresentationEvent(
+                            BattlePresentationEventType.Action,
+                            unit,
+                            target,
+                            actionKind: BattlePresentationActionKind.Skill,
+                            actionLabel: enemySkillName));
+                        RaiseStateChangeEvents(unit, before);
                     }
                     battleStatusEffectService.TickAfterAction(unit);
 
@@ -516,8 +597,20 @@ public class BattleManager : MonoBehaviour
 
     private void Attack(BattleUnit attacker, BattleUnit target)
     {
+        RaisePresentation(new BattlePresentationEvent(
+            BattlePresentationEventType.Action,
+            attacker,
+            target,
+            actionKind: BattlePresentationActionKind.NormalAttack));
+
         if (target.TryEvade())
         {
+            RaisePresentation(new BattlePresentationEvent(
+                BattlePresentationEventType.Evade,
+                attacker,
+                target,
+                currentHP: target.CurrentHP,
+                maxHP: target.MaxHP));
             SendBattleMessage(
                 BattleLogFormatter.FormatEvadedAttack(
                     target.UnitName,
@@ -536,6 +629,24 @@ public class BattleManager : MonoBehaviour
         int previousHP = target.CurrentHP;
         target.TakeDamage(rawDamage);
         int damageDealt = previousHP - target.CurrentHP;
+
+        RaisePresentation(new BattlePresentationEvent(
+            BattlePresentationEventType.Damage,
+            attacker,
+            target,
+            damageDealt,
+            target.CurrentHP,
+            target.MaxHP,
+            critical));
+        if (target.IsDead)
+        {
+            RaisePresentation(new BattlePresentationEvent(
+                BattlePresentationEventType.Defeated,
+                attacker,
+                target,
+                currentHP: target.CurrentHP,
+                maxHP: target.MaxHP));
+        }
 
         SendBattleMessage(
             BattleLogFormatter.FormatAttack(
@@ -566,6 +677,8 @@ public class BattleManager : MonoBehaviour
         }
 
         skipToBattleEndRequested = true;
+        RaisePresentation(new BattlePresentationEvent(
+            BattlePresentationEventType.SkipRequested));
         SendBattleMessage(
             "戦闘終了まで早送りします。",
             BattleLogType.System);
@@ -618,6 +731,9 @@ public class BattleManager : MonoBehaviour
         {
             SendBattleMessage(BattleLogFormatter.FormatDefeat(), BattleLogType.System);
         }
+        RaisePresentation(new BattlePresentationEvent(
+            BattlePresentationEventType.BattleCompleted,
+            victory: victory));
         BattleCompleted?.Invoke(victory);
         overrideEnemyEncounter.Clear();
     }
@@ -641,5 +757,142 @@ public class BattleManager : MonoBehaviour
         Debug.Log(message);
         BattleMessage?.Invoke(message);
         BattleMessageTyped?.Invoke(message, logType);
+    }
+
+    private void PrepareBattleVisuals()
+    {
+        List<BattleVisualUnitDescriptor> players =
+            new List<BattleVisualUnitDescriptor>();
+        for (int i = 0; i < playerUnits.Count; i++)
+        {
+            BattleUnit unit = playerUnits[i];
+            players.Add(new BattleVisualUnitDescriptor(
+                unit,
+                null,
+                unit.MercenaryClass));
+        }
+
+        List<BattleVisualUnitDescriptor> enemies =
+            new List<BattleVisualUnitDescriptor>();
+        for (int i = 0; i < enemyUnits.Count; i++)
+        {
+            EnemyDataSO source = i < battleEnemyData.Count
+                ? battleEnemyData[i]
+                : null;
+            enemies.Add(new BattleVisualUnitDescriptor(
+                enemyUnits[i],
+                source,
+                MercenaryClass.Warrior));
+        }
+
+        Sprite background = nextBattleBackground != null
+            ? nextBattleBackground
+            : defaultBattleBackground;
+        string backgroundKey = !string.IsNullOrWhiteSpace(
+            nextBattleBackgroundKey)
+            ? nextBattleBackgroundKey
+            : defaultBattleBackgroundKey;
+        BattleVisualsPrepared?.Invoke(
+            new BattlePresentationRoster(
+                players,
+                enemies,
+                background,
+                backgroundKey));
+        nextBattleBackground = null;
+        nextBattleBackgroundKey = null;
+    }
+
+    private Dictionary<BattleUnit, BattleUnitPresentationState>
+        CapturePresentationStates()
+    {
+        Dictionary<BattleUnit, BattleUnitPresentationState> states =
+            new Dictionary<BattleUnit, BattleUnitPresentationState>();
+        foreach (BattleUnit unit in playerUnits)
+        {
+            states[unit] = new BattleUnitPresentationState(unit);
+        }
+        foreach (BattleUnit unit in enemyUnits)
+        {
+            states[unit] = new BattleUnitPresentationState(unit);
+        }
+        return states;
+    }
+
+    private void RaiseStateChangeEvents(
+        BattleUnit actor,
+        IReadOnlyDictionary<BattleUnit, BattleUnitPresentationState> before)
+    {
+        foreach (KeyValuePair<BattleUnit, BattleUnitPresentationState> pair in before)
+        {
+            BattleUnit unit = pair.Key;
+            BattleUnitPresentationState previous = pair.Value;
+            int hpChange = unit.CurrentHP - previous.CurrentHP;
+            if (hpChange < 0)
+            {
+                RaisePresentation(new BattlePresentationEvent(
+                    BattlePresentationEventType.Damage,
+                    actor,
+                    unit,
+                    -hpChange,
+                    unit.CurrentHP,
+                    unit.MaxHP));
+            }
+            else if (hpChange > 0)
+            {
+                RaisePresentation(new BattlePresentationEvent(
+                    BattlePresentationEventType.Heal,
+                    actor,
+                    unit,
+                    hpChange,
+                    unit.CurrentHP,
+                    unit.MaxHP));
+            }
+
+            if (unit.StatusEffect != previous.StatusEffect)
+            {
+                RaisePresentation(new BattlePresentationEvent(
+                    BattlePresentationEventType.Status,
+                    actor,
+                    unit,
+                    currentHP: unit.CurrentHP,
+                    maxHP: unit.MaxHP,
+                    statusEffect: unit.StatusEffect));
+            }
+
+            if (!previous.IsDead && unit.IsDead)
+            {
+                RaisePresentation(new BattlePresentationEvent(
+                    BattlePresentationEventType.Defeated,
+                    actor,
+                    unit,
+                    currentHP: unit.CurrentHP,
+                    maxHP: unit.MaxHP));
+            }
+        }
+    }
+
+    private void RaisePresentation(BattlePresentationEvent presentationEvent)
+    {
+        BattlePresentation?.Invoke(presentationEvent);
+    }
+
+    private void ClearNextBattleBackground()
+    {
+        nextBattleBackground = null;
+        nextBattleBackgroundKey = null;
+    }
+
+    private readonly struct BattleUnitPresentationState
+    {
+        public int CurrentHP { get; }
+        public BattleStatusEffect StatusEffect { get; }
+        public bool IsDead { get; }
+
+        public BattleUnitPresentationState(BattleUnit unit)
+        {
+            CurrentHP = unit.CurrentHP;
+            StatusEffect = unit.StatusEffect;
+            IsDead = unit.IsDead;
+        }
     }
 }

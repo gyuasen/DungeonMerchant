@@ -1,0 +1,116 @@
+*** Begin Patch
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Battle\BattlePresentationEvent.cs
++using System.Collections.Generic;
++
++public enum BattlePresentationEventType
++{
++    Action,
++    Damage,
++    Heal,
++    Evade,
++    Status,
++    Defeated,
++    BattleCompleted,
++    SkipRequested
++}
++
++public enum BattlePresentationActionKind
++{
++    NormalAttack,
++    Skill,
++    StatusEffect
++}
++
++public sealed class BattleVisualUnitDescriptor
++{
++    public BattleUnit Unit { get; }
++    public EnemyDataSO EnemyData { get; }
++    public MercenaryClass MercenaryClass { get; }
++    public bool IsPlayerSide => Unit != null && Unit.IsPlayerSide;
++
++    public BattleVisualUnitDescriptor(
++        BattleUnit unit,
++        EnemyDataSO enemyData,
++        MercenaryClass mercenaryClass)
++    {
++        Unit = unit;
++        EnemyData = enemyData;
++        MercenaryClass = mercenaryClass;
++    }
++}
++
++public sealed class BattlePresentationRoster
++{
++    public IReadOnlyList<BattleVisualUnitDescriptor> Players { get; }
++    public IReadOnlyList<BattleVisualUnitDescriptor> Enemies { get; }
++
++    public BattlePresentationRoster(
++        IReadOnlyList<BattleVisualUnitDescriptor> players,
++        IReadOnlyList<BattleVisualUnitDescriptor> enemies)
++    {
++        Players = players;
++        Enemies = enemies;
++    }
++}
++
++public sealed class BattlePresentationEvent
++{
++    public BattlePresentationEventType Type { get; }
++    public BattlePresentationActionKind ActionKind { get; }
++    public BattleUnit Actor { get; }
++    public BattleUnit Target { get; }
++    public int Amount { get; }
++    public int CurrentHP { get; }
++    public int MaxHP { get; }
++    public bool IsCritical { get; }
++    public BattleStatusEffect StatusEffect { get; }
++    public bool Victory { get; }
++
++    public BattlePresentationEvent(
++        BattlePresentationEventType type,
++        BattleUnit actor = null,
++        BattleUnit target = null,
++        int amount = 0,
++        int currentHP = 0,
++        int maxHP = 0,
++        bool isCritical = false,
++        BattleStatusEffect statusEffect = BattleStatusEffect.None,
++        bool victory = false,
++        BattlePresentationActionKind actionKind =
++            BattlePresentationActionKind.NormalAttack)
++    {
++        Type = type;
++        Actor = actor;
++        Target = target;
++        Amount = amount;
++        CurrentHP = currentHP;
++        MaxHP = maxHP;
++        IsCritical = isCritical;
++        StatusEffect = statusEffect;
++        Victory = victory;
++        ActionKind = actionKind;
++    }
++}
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Battle\BattlePresentationEvent.cs.meta
++fileFormatVersion: 2
++guid: a74f8c265adf48c4a4590e0d74cc84ab
++MonoImporter:
++  externalObjects: {}
++  serializedVersion: 2
++  defaultReferences: []
++  executionOrder: 0
++  icon: {instanceID: 0}
++  userData:
++  assetBundleName:
++  assetBundleVariant:
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Data\EnemyDataSO.cs
+@@
+     public bool isSpecialVariant;
+     public string specialVariantTitle;
++
++    [Header("Battle Visual")]
++    [Tooltip("Optional battle sprite. A placeholder is used when empty.")]
++    public Sprite battleSprite;
++    [Tooltip("Optional Resources path key under Battle/Enemies.")]
++    public string battleVisualKey;
+*** End Patch

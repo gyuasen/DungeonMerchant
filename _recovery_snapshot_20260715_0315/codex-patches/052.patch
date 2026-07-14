@@ -1,0 +1,32 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\TownTravelController.cs
+@@
+         List<EnemyDataSO> enemies =
+             roadEncounterService.CreateEncounter(
+                 townProgressState.CurrentTownIndex,
+                 destinationTownIndex,
+                 out bool containsRareEncounter);
+         roadTravelState.SetRareEncounter(containsRareEncounter);
++        battleManager.SetNextBattleBackground(
++            null,
++            BuildRoadBattleBackgroundKey(
++                townProgressState.CurrentTownIndex,
++                destinationTownIndex));
+ 
+         if (enemies == null ||
+@@
+         List<EnemyDataSO> enemies =
+             roadEncounterService.CreateEncounter(
+                 townProgressState.CurrentTownIndex,
+                 destinationTownIndex,
+                 out bool containsRareEncounter);
+         roadTravelState.SetRareEncounter(containsRareEncounter);
++        battleManager.SetNextBattleBackground(
++            null,
++            BuildRoadBattleBackgroundKey(
++                townProgressState.CurrentTownIndex,
++                destinationTownIndex));
+         if (enemies == null ||
+@@
+     public void ContinueTownTravel()
+*** End Patch

@@ -230,6 +230,11 @@ public sealed class TownTravelController
                 destinationTownIndex,
                 out bool containsRareEncounter);
         roadTravelState.SetRareEncounter(containsRareEncounter);
+        battleManager.SetNextBattleBackground(
+            null,
+            BuildRoadBattleBackgroundKey(
+                townProgressState.CurrentTownIndex,
+                destinationTownIndex));
 
         if (enemies == null ||
             enemies.Count == 0 ||
@@ -292,6 +297,11 @@ public sealed class TownTravelController
                 destinationTownIndex,
                 out bool containsRareEncounter);
         roadTravelState.SetRareEncounter(containsRareEncounter);
+        battleManager.SetNextBattleBackground(
+            null,
+            BuildRoadBattleBackgroundKey(
+                townProgressState.CurrentTownIndex,
+                destinationTownIndex));
         if (enemies == null ||
             enemies.Count == 0 ||
             !battleManager.StartBattle(partyManager.Members, enemies))
@@ -437,6 +447,15 @@ public sealed class TownTravelController
         return gateDungeon != null &&
                dungeonRunManager.GetClearedFloors(gateDungeon) >=
                Mathf.Max(1, gateDungeon.totalFloors);
+    }
+
+    private static string BuildRoadBattleBackgroundKey(
+        int firstTownIndex,
+        int secondTownIndex)
+    {
+        int lower = Mathf.Min(firstTownIndex, secondTownIndex);
+        int upper = Mathf.Max(firstTownIndex, secondTownIndex);
+        return $"Road_{lower}_{upper}";
     }
 
     public void ApplyTownServiceSettings(

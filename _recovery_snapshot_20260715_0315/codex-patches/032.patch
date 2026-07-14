@@ -1,0 +1,10 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Tests\EditMode\EquipmentAvailabilityTests.cs
+@@
+     {
+         "item.normal.rank08",
+-        "item.normal.rank08.weapon"
+-        ,"item.normal.rank08.accessory"
++        "item.normal.rank08.accessory",
++        "item.normal.rank08.weapon"
+*** End Patch

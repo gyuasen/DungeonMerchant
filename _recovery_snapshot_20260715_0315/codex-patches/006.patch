@@ -1,0 +1,52 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Tests\EditMode\GameAssetRepositoryTests.cs
+@@
+ public sealed class GameAssetRepositoryTests
+ {
++    [Test]
++    public void ItemPersistentIds_ArePresentAndUnique()
++    {
++        AssertPersistentIds<ItemDataSO>();
++    }
++
++    [Test]
++    public void MercenaryPersistentIds_ArePresentAndUnique()
++    {
++        AssertPersistentIds<MercenaryDataSO>();
++    }
++
++    [Test]
++    public void MercenaryArchetypePersistentIds_ArePresentAndUnique()
++    {
++        AssertPersistentIds<MercenaryArchetypeSO>();
++    }
++
+@@
+     public void HighestDungeonForEachTown_IsUniqueAndUsesExpectedEquipmentRank()
+@@
+         }
+     }
++
++    private static void AssertPersistentIds<T>()
++        where T : UnityEngine.Object
++    {
++        IReadOnlyList<T> assets = GameAssetRepository.LoadAll<T>();
++        HashSet<string> ids = new HashSet<string>();
++
++        Assert.That(assets.Count, Is.GreaterThan(0));
++        foreach (T asset in assets)
++        {
++            Assert.That(asset, Is.InstanceOf<IPersistentGameAsset>());
++            string id = ((IPersistentGameAsset)asset).PersistentId;
++            Assert.That(id, Is.Not.Null.And.Not.Empty, asset.name);
++            Assert.That(
++                ids.Add(id),
++                Is.True,
++                $"Duplicate {typeof(T).Name} PersistentId: {id}");
++            Assert.That(
++                GameAssetRepository.FindByPersistentId<T>(id, asset.name),
++                Is.SameAs(asset));
++        }
++    }
+ }
+*** End Patch

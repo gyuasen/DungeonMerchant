@@ -1,0 +1,19 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\BattleVisualController.cs
+@@
+         panelImage.color = descriptor.EnemyData != null &&
+                            descriptor.EnemyData.isSpecialVariant
+             ? new Color(0.28f, 0.12f, 0.34f, 0.68f)
+             : new Color(0.16f, 0.10f, 0.055f, 0.6f);
++        Outline targetOutline = panel.gameObject.AddComponent<Outline>();
++        targetOutline.effectColor = new Color(1f, 0.72f, 0.2f, 0.95f);
++        targetOutline.effectDistance = new Vector2(3f, -3f);
++        targetOutline.enabled = false;
+         CanvasGroup canvasGroup = panel.gameObject.AddComponent<CanvasGroup>();
+@@
+             hpText,
+             status,
+-            canvasGroup);
++            canvasGroup,
++            targetOutline);
+*** End Patch

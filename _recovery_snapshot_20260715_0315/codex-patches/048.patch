@@ -1,0 +1,75 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Tests\PlayMode\BattleManagerPlayModeTests.cs
+@@
+             bool completed = false;
+             bool victory = false;
++            BattlePresentationRoster preparedRoster = null;
++            List<BattlePresentationEvent> presentationEvents =
++                new List<BattlePresentationEvent>();
++            battleManager.BattleVisualsPrepared +=
++                roster => preparedRoster = roster;
++            battleManager.BattlePresentation +=
++                presentationEvents.Add;
+             completedHandler = result =>
+@@
+             Assert.That(completed, Is.True, "BattleCompleted was not raised in time.");
+             Assert.That(victory, Is.True);
++            Assert.That(preparedRoster, Is.Not.Null);
++            Assert.That(preparedRoster.Players.Count, Is.EqualTo(1));
++            Assert.That(preparedRoster.Enemies.Count, Is.EqualTo(1));
++            Assert.That(
++                presentationEvents.Exists(
++                    item => item.Type == BattlePresentationEventType.Action),
++                Is.True);
++            Assert.That(
++                presentationEvents.Exists(
++                    item => item.Type == BattlePresentationEventType.Damage),
++                Is.True);
++            Assert.That(
++                presentationEvents.Exists(
++                    item => item.Type == BattlePresentationEventType.Defeated),
++                Is.True);
++            Assert.That(
++                presentationEvents.Exists(
++                    item => item.Type ==
++                            BattlePresentationEventType.BattleCompleted &&
++                            item.Victory),
++                Is.True);
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Battle.meta
++fileFormatVersion: 2
++guid: 561f4141f442440d9f47aa7936b82139
++folderAsset: yes
++DefaultImporter:
++  externalObjects: {}
++  userData:
++  assetBundleName:
++  assetBundleVariant:
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Battle\Enemies.meta
++fileFormatVersion: 2
++guid: 191fa522210942cf9ec62feae0cb92a3
++folderAsset: yes
++DefaultImporter:
++  externalObjects: {}
++  userData:
++  assetBundleName:
++  assetBundleVariant:
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Battle\Enemies\README.md
++# モンスター戦闘画像
++
++透過PNGをこのフォルダへ追加し、Texture Typeを`Sprite (2D and UI)`に設定します。
++
++使用方法は次のどちらかです。
++
++1. `EnemyDataSO`の`Battle Sprite`へSpriteを直接割り当てる。
++2. PNGのファイル名を`Battle Visual Key`へ入力する。未入力時はEnemyDataSOのアセット名と同名のSpriteを自動検索する。
++
++通常敵は512x512、ボスは768x768または1024x1024を基準にし、足元と透明余白を統一してください。画像が未設定でも、戦闘画面では代替カードが表示されます。
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Battle\Enemies\README.md.meta
++fileFormatVersion: 2
++guid: 15a0919c57e44a84b0528c3ea92f2b04
++TextScriptImporter:
++  externalObjects: {}
++  userData:
++  assetBundleName:
++  assetBundleVariant:
+*** End Patch

@@ -1,0 +1,57 @@
+*** Begin Patch
+*** Update File: C:/UnityProjects/DungeonMerchant/Assets/Proiject/Resources/Enemies/Glaad/Grade03GlaadFrostDrake.asset
+@@
+-  maxHP: 128
+-  attack: 31
++  maxHP: 112
++  attack: 28
+@@
+-  goldReward: 270
+-  experienceMultiplier: 1.2
++  goldReward: 245
++  experienceMultiplier: 1.15
+*** Update File: C:/UnityProjects/DungeonMerchant/Assets/Proiject/Resources/Enemies/Glaad/Grade03GlaadSkyWarden.asset
+@@
+-  maxHP: 155
+-  attack: 28
+-  defense: 19
++  maxHP: 115
++  attack: 25
++  defense: 12
+@@
+-  goldReward: 285
+-  experienceMultiplier: 1.25
++  goldReward: 250
++  experienceMultiplier: 1.15
+*** Update File: C:/UnityProjects/DungeonMerchant/Assets/Proiject/Resources/Enemies/Glaad/Grade03GlaadGaleHarpy.asset
+@@
+-  monsterGrade: 3
++  monsterGrade: 4
+@@
+-  maxHP: 112
+-  attack: 30
+-  defense: 9
++  maxHP: 84
++  attack: 24
++  defense: 7
+@@
+-  goldReward: 275
+-  experienceMultiplier: 1.2
++  goldReward: 210
++  experienceMultiplier: 1.1
+*** Update File: C:/UnityProjects/DungeonMerchant/Assets/Proiject/Resources/Enemies/Glaad/Boss02GlaadStormCastellan.asset
+@@
+-  maxHP: 390
+-  attack: 44
+-  defense: 22
+-  maxMagicPower: 100
++  maxHP: 320
++  attack: 38
++  defense: 19
++  maxMagicPower: 85
+@@
+-  goldReward: 800
+-  experienceMultiplier: 1.8
++  goldReward: 650
++  experienceMultiplier: 1.7
+*** End Patch

@@ -1,0 +1,482 @@
+*** Begin Patch
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\PriestPrayerStaff.asset
++%YAML 1.1
++%TAG !u! tag:unity3d.com,2011:
++--- !u!114 &11400000
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 0}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
++  m_Name: PriestPrayerStaff
++  m_EditorClassIdentifier:
++  persistentId: item.priest.prayer_staff
++  itemName: 見習いの祈祷杖
++  itemType: 1
++  rarity: 0
++  description: 初歩の祈りを安定して届けるための杖。
++  basePrice: 130
++  acquisitionType: 0
++  equipmentSlot: 0
++  requiredClass: 3
++  allClassesCanEquip: 0
++  equipmentSet: 0
++  equipmentRank: 1
++  bonusMaxHP: 0
++  bonusAttack: 6
++  bonusDefense: 0
++  bonusAttackSpeed: 0
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\PriestPrayerStaff.asset.meta
++fileFormatVersion: 2
++guid: a20d4f5d7b0a4e8c91c35f7e2d6a104b
++NativeFormatImporter:
++  externalObjects: {}
++  mainObjectFileID: 11400000
++  userData:
++  assetBundleName:
++  assetBundleVariant:
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\PriestVestment.asset
++%YAML 1.1
++%TAG !u! tag:unity3d.com,2011:
++--- !u!114 &11400000
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 0}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
++  m_Name: PriestVestment
++  m_EditorClassIdentifier:
++  persistentId: item.priest.vestment
++  itemName: 見習いの司祭衣
++  itemType: 1
++  rarity: 0
++  description: 祈り手の動きを妨げない、柔らかな司祭衣。
++  basePrice: 155
++  acquisitionType: 0
++  equipmentSlot: 1
++  requiredClass: 3
++  allClassesCanEquip: 0
++  equipmentSet: 0
++  equipmentRank: 1
++  bonusMaxHP: 6
++  bonusAttack: 2
++  bonusDefense: 2
++  bonusAttackSpeed: 0
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\PriestVestment.asset.meta
++fileFormatVersion: 2
++guid: b31e5a6e8c1b4f9da2d46a8f3e7b215c
++NativeFormatImporter:
++  externalObjects: {}
++  mainObjectFileID: 11400000
++  userData:
++  assetBundleName:
++  assetBundleVariant:
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\PriestRosary.asset
++%YAML 1.1
++%TAG !u! tag:unity3d.com,2011:
++--- !u!114 &11400000
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 0}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
++  m_Name: PriestRosary
++  m_EditorClassIdentifier:
++  persistentId: item.priest.rosary
++  itemName: 祈りの数珠
++  itemType: 1
++  rarity: 0
++  description: 魔力を祈りへと整える、小さな数珠。
++  basePrice: 120
++  acquisitionType: 0
++  equipmentSlot: 2
++  requiredClass: 3
++  allClassesCanEquip: 0
++  equipmentSet: 0
++  equipmentRank: 1
++  bonusMaxHP: 0
++  bonusAttack: 4
++  bonusDefense: 0
++  bonusAttackSpeed: 0.01
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\PriestRosary.asset.meta
++fileFormatVersion: 2
++guid: c42f6b7f9d2c4a0eb3e57b9a4f8c326d
++NativeFormatImporter:
++  externalObjects: {}
++  mainObjectFileID: 11400000
++  userData:
++  assetBundleName:
++  assetBundleVariant:
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\RogueDagger.asset
++%YAML 1.1
++%TAG !u! tag:unity3d.com,2011:
++--- !u!114 &11400000
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 0}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
++  m_Name: RogueDagger
++  m_EditorClassIdentifier:
++  persistentId: item.rogue.dagger
++  itemName: 駆け出しの短剣
++  itemType: 1
++  rarity: 0
++  description: 素早い一撃の練習に向く、軽い短剣。
++  basePrice: 125
++  acquisitionType: 0
++  equipmentSlot: 0
++  requiredClass: 4
++  allClassesCanEquip: 0
++  equipmentSet: 0
++  equipmentRank: 1
++  bonusMaxHP: 0
++  bonusAttack: 4
++  bonusDefense: 0
++  bonusAttackSpeed: 0.08
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\RogueDagger.asset.meta
++fileFormatVersion: 2
++guid: d53a7c8a0e3d4b1fc4f68c0b5a9d437e
++NativeFormatImporter:
++  externalObjects: {}
++  mainObjectFileID: 11400000
++  userData:
++  assetBundleName:
++  assetBundleVariant:
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\RogueLeatherArmor.asset
++%YAML 1.1
++%TAG !u! tag:unity3d.com,2011:
++--- !u!114 &11400000
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 0}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
++  m_Name: RogueLeatherArmor
++  m_EditorClassIdentifier:
++  persistentId: item.rogue.leather_armor
++  itemName: 盗賊の革鎧
++  itemType: 1
++  rarity: 0
++  description: 身を隠しやすく、身軽に動ける革鎧。
++  basePrice: 145
++  acquisitionType: 0
++  equipmentSlot: 1
++  requiredClass: 4
++  allClassesCanEquip: 0
++  equipmentSet: 0
++  equipmentRank: 1
++  bonusMaxHP: 7
++  bonusAttack: 0
++  bonusDefense: 3
++  bonusAttackSpeed: 0.02
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\RogueLeatherArmor.asset.meta
++fileFormatVersion: 2
++guid: e64b8d9b1f4e4c20a5f79d1c6b0e548f
++NativeFormatImporter:
++  externalObjects: {}
++  mainObjectFileID: 11400000
++  userData:
++  assetBundleName:
++  assetBundleVariant:
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\RogueTalisman.asset
++%YAML 1.1
++%TAG !u! tag:unity3d.com,2011:
++--- !u!114 &11400000
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 0}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
++  m_Name: RogueTalisman
++  m_EditorClassIdentifier:
++  persistentId: item.rogue.talisman
++  itemName: 隠密の護符
++  itemType: 1
++  rarity: 0
++  description: 足運びを軽くしてくれる、小さな護符。
++  basePrice: 115
++  acquisitionType: 0
++  equipmentSlot: 2
++  requiredClass: 4
++  allClassesCanEquip: 0
++  equipmentSet: 0
++  equipmentRank: 1
++  bonusMaxHP: 0
++  bonusAttack: 2
++  bonusDefense: 0
++  bonusAttackSpeed: 0.04
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\RogueTalisman.asset.meta
++fileFormatVersion: 2
++guid: f75c9e0c2a5f4d31b6a80e2d7c1f6590
++NativeFormatImporter:
++  externalObjects: {}
++  mainObjectFileID: 11400000
++  userData:
++  assetBundleName:
++  assetBundleVariant:
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\LancerSpear.asset
++%YAML 1.1
++%TAG !u! tag:unity3d.com,2011:
++--- !u!114 &11400000
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 0}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
++  m_Name: LancerSpear
++  m_EditorClassIdentifier:
++  persistentId: item.lancer.spear
++  itemName: 新兵の槍
++  itemType: 1
++  rarity: 0
++  description: 前線での基礎訓練に使われる、丈夫な槍。
++  basePrice: 120
++  acquisitionType: 0
++  equipmentSlot: 0
++  requiredClass: 5
++  allClassesCanEquip: 0
++  equipmentSet: 0
++  equipmentRank: 1
++  bonusMaxHP: 5
++  bonusAttack: 4
++  bonusDefense: 1
++  bonusAttackSpeed: 0
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\LancerSpear.asset.meta
++fileFormatVersion: 2
++guid: 086da1b3c6e54f42a7b91f3e8d2a7601
++NativeFormatImporter:
++  externalObjects: {}
++  mainObjectFileID: 11400000
++  userData:
++  assetBundleName:
++  assetBundleVariant:
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\LancerChainmail.asset
++%YAML 1.1
++%TAG !u! tag:unity3d.com,2011:
++--- !u!114 &11400000
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 0}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
++  m_Name: LancerChainmail
++  m_EditorClassIdentifier:
++  persistentId: item.lancer.chainmail
++  itemName: 槍兵の鎖帷子
++  itemType: 1
++  rarity: 0
++  description: 槍を構える兵士のために編まれた鎖帷子。
++  basePrice: 150
++  acquisitionType: 0
++  equipmentSlot: 1
++  requiredClass: 5
++  allClassesCanEquip: 0
++  equipmentSet: 0
++  equipmentRank: 1
++  bonusMaxHP: 10
++  bonusAttack: 0
++  bonusDefense: 5
++  bonusAttackSpeed: 0
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\LancerChainmail.asset.meta
++fileFormatVersion: 2
++guid: 197eb2c4d7f64a53b8ca20f4e9b8712a
++NativeFormatImporter:
++  externalObjects: {}
++  mainObjectFileID: 11400000
++  userData:
++  assetBundleName:
++  assetBundleVariant:
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\LancerInsignia.asset
++%YAML 1.1
++%TAG !u! tag:unity3d.com,2011:
++--- !u!114 &11400000
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 0}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
++  m_Name: LancerInsignia
++  m_EditorClassIdentifier:
++  persistentId: item.lancer.insignia
++  itemName: 槍兵の徽章
++  itemType: 1
++  rarity: 0
++  description: 隊列を守る槍兵に授けられる、丈夫な徽章。
++  basePrice: 110
++  acquisitionType: 0
++  equipmentSlot: 2
++  requiredClass: 5
++  allClassesCanEquip: 0
++  equipmentSet: 0
++  equipmentRank: 1
++  bonusMaxHP: 4
++  bonusAttack: 3
++  bonusDefense: 1
++  bonusAttackSpeed: 0
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\LancerInsignia.asset.meta
++fileFormatVersion: 2
++guid: 2a8fc3d5e0a74b64c9db31a5f0c9823b
++NativeFormatImporter:
++  externalObjects: {}
++  mainObjectFileID: 11400000
++  userData:
++  assetBundleName:
++  assetBundleVariant:
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\PriestBlessedStaff.asset
++%YAML 1.1
++%TAG !u! tag:unity3d.com,2011:
++--- !u!114 &11400000
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 0}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
++  m_Name: PriestBlessedStaff
++  m_EditorClassIdentifier:
++  persistentId: item.priest.blessed_staff
++  itemName: 祝福の司祭杖
++  itemType: 1
++  rarity: 1
++  description: 祝福の力を高め、祈りを素早く届ける司祭杖。
++  basePrice: 360
++  acquisitionType: 0
++  equipmentSlot: 0
++  requiredClass: 3
++  allClassesCanEquip: 0
++  equipmentSet: 0
++  equipmentRank: 2
++  bonusMaxHP: 3
++  bonusAttack: 12
++  bonusDefense: 0
++  bonusAttackSpeed: 0.03
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\PriestBlessedStaff.asset.meta
++fileFormatVersion: 2
++guid: 3b9ad4e6f1b84c75daec42b6a1d0934c
++NativeFormatImporter:
++  externalObjects: {}
++  mainObjectFileID: 11400000
++  userData:
++  assetBundleName:
++  assetBundleVariant:
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\RogueSwiftDagger.asset
++%YAML 1.1
++%TAG !u! tag:unity3d.com,2011:
++--- !u!114 &11400000
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 0}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
++  m_Name: RogueSwiftDagger
++  m_EditorClassIdentifier:
++  persistentId: item.rogue.swift_dagger
++  itemName: 疾風の短剣
++  itemType: 1
++  rarity: 1
++  description: 鋭い刃と軽さを備えた、素早い連撃のための短剣。
++  basePrice: 340
++  acquisitionType: 0
++  equipmentSlot: 0
++  requiredClass: 4
++  allClassesCanEquip: 0
++  equipmentSet: 0
++  equipmentRank: 2
++  bonusMaxHP: 4
++  bonusAttack: 8
++  bonusDefense: 1
++  bonusAttackSpeed: 0.15
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\RogueSwiftDagger.asset.meta
++fileFormatVersion: 2
++guid: 4cad5f70a2c94d86ebfd53c7b2e1a45d
++NativeFormatImporter:
++  externalObjects: {}
++  mainObjectFileID: 11400000
++  userData:
++  assetBundleName:
++  assetBundleVariant:
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\LancerSteelLance.asset
++%YAML 1.1
++%TAG !u! tag:unity3d.com,2011:
++--- !u!114 &11400000
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 0}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
++  m_Name: LancerSteelLance
++  m_EditorClassIdentifier:
++  persistentId: item.lancer.steel_lance
++  itemName: 鋼鉄の長槍
++  itemType: 1
++  rarity: 1
++  description: 前線を支える槍兵のために鍛えられた鋼の長槍。
++  basePrice: 320
++  acquisitionType: 0
++  equipmentSlot: 0
++  requiredClass: 5
++  allClassesCanEquip: 0
++  equipmentSet: 0
++  equipmentRank: 2
++  bonusMaxHP: 10
++  bonusAttack: 8
++  bonusDefense: 2
++  bonusAttackSpeed: 0.02
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\LancerSteelLance.asset.meta
++fileFormatVersion: 2
++guid: 5dbe6081b3da4e97fc0e64d8c3f2b56e
++NativeFormatImporter:
++  externalObjects: {}
++  mainObjectFileID: 11400000
++  userData:
++  assetBundleName:
++  assetBundleVariant:
+*** End Patch

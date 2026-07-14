@@ -1,0 +1,98 @@
+using System;
+using System.Collections.Generic;
+using NUnit.Framework;
+
+public sealed class MercenaryClassProgressionTests
+{
+    [TestCase(MercenaryClass.Knight, MercenarySkillId.AegisPierce, 50, 1.45f)]
+    [TestCase(MercenaryClass.Berserker, MercenarySkillId.RagingCombo, 55, 0.55f)]
+    [TestCase(MercenaryClass.Sniper, MercenarySkillId.ArmorBreakArrow, 50, 1.55f)]
+    [TestCase(MercenaryClass.Ranger, MercenarySkillId.GaleVolley, 55, 0.75f)]
+    [TestCase(MercenaryClass.Sage, MercenarySkillId.ArcaneBurst, 50, 1.45f)]
+    [TestCase(MercenaryClass.Elementalist, MercenarySkillId.StormCircle, 60, 0.75f)]
+    [TestCase(MercenaryClass.Bishop, MercenarySkillId.GreaterHeal, 55, 1.75f)]
+    [TestCase(MercenaryClass.Paladin, MercenarySkillId.HolyShieldBash, 50, 1.2f)]
+    [TestCase(MercenaryClass.Assassin, MercenarySkillId.FatalFlurry, 55, 0.5f)]
+    [TestCase(MercenaryClass.Ninja, MercenarySkillId.BindingBlade, 50, 1.05f)]
+    [TestCase(MercenaryClass.Dragoon, MercenarySkillId.SkySpearCombo, 55, 0.55f)]
+    [TestCase(MercenaryClass.GuardianLancer, MercenarySkillId.FortressPierce, 50, 1.4f)]
+    public void AdvancedClass_HasUniqueLevel25ActiveSkill(
+        MercenaryClass mercenaryClass,
+        MercenarySkillId expectedId,
+        int expectedMagicCost,
+        float expectedPower)
+    {
+        AssertSkill(mercenaryClass, expectedId, 25, expectedMagicCost,
+            expectedPower);
+    }
+
+    [TestCase(MercenaryClass.Warlord, MercenarySkillId.WarfrontSmash, 70, 0.9f)]
+    [TestCase(MercenaryClass.Beastmaster, MercenarySkillId.BeastKingFangs, 70, 0.48f)]
+    [TestCase(MercenaryClass.Chronomancer, MercenarySkillId.TemporalRift, 65, 1.6f)]
+    [TestCase(MercenaryClass.Saint, MercenarySkillId.DivineHymn, 70, 1.3f)]
+    [TestCase(MercenaryClass.Shadow, MercenarySkillId.VoidPierce, 65, 1.65f)]
+    [TestCase(MercenaryClass.DragonKnight, MercenarySkillId.DragonfallBreath, 75, 0.95f)]
+    public void SpecialClass_HasUniqueLevel45ActiveSkill(
+        MercenaryClass mercenaryClass,
+        MercenarySkillId expectedId,
+        int expectedMagicCost,
+        float expectedPower)
+    {
+        AssertSkill(mercenaryClass, expectedId, 45, expectedMagicCost,
+            expectedPower);
+    }
+
+    [Test]
+    public void AddedSkillIds_AreTheFinalContiguousEnumEntries()
+    {
+        MercenarySkillId[] expected =
+        {
+            MercenarySkillId.AegisPierce,
+            MercenarySkillId.RagingCombo,
+            MercenarySkillId.ArmorBreakArrow,
+            MercenarySkillId.GaleVolley,
+            MercenarySkillId.ArcaneBurst,
+            MercenarySkillId.StormCircle,
+            MercenarySkillId.GreaterHeal,
+            MercenarySkillId.HolyShieldBash,
+            MercenarySkillId.FatalFlurry,
+            MercenarySkillId.BindingBlade,
+            MercenarySkillId.SkySpearCombo,
+            MercenarySkillId.FortressPierce,
+            MercenarySkillId.WarfrontSmash,
+            MercenarySkillId.BeastKingFangs,
+            MercenarySkillId.TemporalRift,
+            MercenarySkillId.DivineHymn,
+            MercenarySkillId.VoidPierce,
+            MercenarySkillId.DragonfallBreath
+        };
+        Array values = Enum.GetValues(typeof(MercenarySkillId));
+
+        Assert.That(values.Length, Is.GreaterThanOrEqualTo(expected.Length));
+        for (int index = 0; index < expected.Length; index++)
+        {
+            Assert.That(values.GetValue(values.Length - expected.Length + index),
+                Is.EqualTo(expected[index]));
+        }
+    }
+
+    private static void AssertSkill(
+        MercenaryClass mercenaryClass,
+        MercenarySkillId expectedId,
+        int expectedLevel,
+        int expectedMagicCost,
+        float expectedPower)
+    {
+        List<MercenarySkillDefinition> skills =
+            MercenaryClassProgression.GetCombatSkills(mercenaryClass);
+        MercenarySkillDefinition skill = skills.Find(
+            definition => definition.Id == expectedId);
+
+        Assert.That(skill, Is.Not.Null);
+        Assert.That(skill.IsPassive, Is.False);
+        Assert.That(skill.UnlockLevel, Is.EqualTo(expectedLevel));
+        Assert.That(skill.MagicCost, Is.EqualTo(expectedMagicCost));
+        Assert.That(skill.Power, Is.EqualTo(expectedPower));
+        Assert.That(skill.Description, Is.Not.Empty);
+    }
+}

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -139,6 +140,27 @@ public sealed class ProgressionManagerTests
         Assert.That(progressionManager.StorageTier, Is.EqualTo(2));
         Assert.That(progressionManager.TotalDungeonClears, Is.EqualTo(9));
         Assert.That(progressionManager.ProfitableDungeonClears, Is.EqualTo(4));
+    }
+
+    [Test]
+    public void DungeonCompletion_AdvancesBaseDayPlusEventDelays()
+    {
+        DayManager dayManager = root.AddComponent<DayManager>();
+        progressionManager.StartExploration();
+        progressionManager.AddExplorationDelay(2);
+
+        MethodInfo handleDungeonCompleted = typeof(ProgressionManager)
+            .GetMethod(
+                "HandleDungeonCompleted",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+
+        Assert.That(handleDungeonCompleted, Is.Not.Null);
+        handleDungeonCompleted.Invoke(
+            progressionManager,
+            new object[] { false });
+
+        Assert.That(dayManager.CurrentDay, Is.EqualTo(4));
+        Assert.That(progressionManager.LastExplorationResult, Does.Contain("3日"));
     }
 
     private T Track<T>(T created) where T : Object

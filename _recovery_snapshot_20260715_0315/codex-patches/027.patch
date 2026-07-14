@@ -1,0 +1,98 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Battle\BattleSkillResolver.cs
+@@
+-    private bool UseEnemyMultiStrike(BattleUnit attacker, BattleUnit target, string skillName, int hitCount, float power)
++    private bool UseEnemyMagicDamageSkill(
++        BattleUnit attacker,
++        BattleUnit target,
++        string skillName,
++        float attackPower,
++        float magicPower,
++        BattleStatusEffect status)
++    {
++        if (target == null)
++        {
++            return false;
++        }
++
++        if (target.TryEvade())
++        {
++            Log(
++                BattleLogFormatter.FormatSkillEvadedWithMagic(
++                    attacker.UnitName,
++                    skillName,
++                    target.UnitName,
++                    attacker.CurrentMagicPower,
++                    attacker.MaxMagicPower),
++                BattleLogType.Enemy);
++            return true;
++        }
++
++        bool critical = attacker.RollCritical();
++        int rawDamage = Round(
++            (attacker.Attack * attackPower +
++             attacker.MaxMagicPower * magicPower) *
++            (critical ? context.CriticalDamageMultiplier : 1f));
++        int before = target.CurrentHP;
++        target.TakeDamage(rawDamage);
++        int damage = before - target.CurrentHP;
++        if (!target.IsDead && status != BattleStatusEffect.None)
++        {
++            target.ApplyStatus(status, 1);
++        }
++        Log(
++            BattleLogFormatter.FormatDamageSkillWithMagic(
++                attacker.UnitName,
++                skillName,
++                critical,
++                target.UnitName,
++                damage,
++                attacker.CurrentMagicPower,
++                attacker.MaxMagicPower),
++            BattleLogType.Enemy);
++        return true;
++    }
++
++    private bool UseEnemyMagicAreaDamageSkill(
++        BattleUnit attacker,
++        string skillName,
++        float attackPower,
++        float magicPower)
++    {
++        List<BattleUnit> targets = Living(context.PlayerUnits);
++        if (targets.Count == 0)
++        {
++            return false;
++        }
++
++        int rawDamage = Round(
++            attacker.Attack * attackPower +
++            attacker.MaxMagicPower * magicPower);
++        int damage = 0;
++        int affected = 0;
++        foreach (BattleUnit target in targets)
++        {
++            if (target.TryEvade())
++            {
++                continue;
++            }
++
++            int before = target.CurrentHP;
++            target.TakeDamage(rawDamage);
++            damage += before - target.CurrentHP;
++            affected++;
++        }
++
++        Log(
++            BattleLogFormatter.FormatAreaDamageSkill(
++                attacker.UnitName,
++                skillName,
++                affected,
++                damage,
++                string.Empty),
++            BattleLogType.Enemy);
++        return true;
++    }
++
++    private bool UseEnemyMultiStrike(BattleUnit attacker, BattleUnit target, string skillName, int hitCount, float power)
+*** End Patch

@@ -1,0 +1,43 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Tests\EditMode\GameAssetRepositoryTests.cs
+@@
+     public void MercenaryArchetypePersistentIds_ArePresentAndUnique()
+@@
+         AssertPersistentIds<MercenaryArchetypeSO>();
+     }
++
++    [Test]
++    public void EarlyRankClassEquipment_IsEvenlyDistributedAcrossBaseClasses()
++    {
++        Dictionary<MercenaryClass, int> counts =
++            new Dictionary<MercenaryClass, int>();
++        foreach (MercenaryClass baseClass in
++                 MercenaryClassProgression.GetBaseClasses())
++        {
++            counts.Add(baseClass, 0);
++        }
++
++        foreach (ItemDataSO item in GameAssetRepository.LoadAll<ItemDataSO>())
++        {
++            if (item == null || !item.IsEquipment ||
++                item.allClassesCanEquip || item.equipmentRank > 3)
++            {
++                continue;
++            }
++
++            MercenaryClass baseClass =
++                MercenaryClassProgression.GetBaseClass(item.requiredClass);
++            if (counts.ContainsKey(baseClass))
++            {
++                counts[baseClass]++;
++            }
++        }
++
++        int expected = counts[MercenaryClass.Warrior];
++        Assert.That(expected, Is.GreaterThan(0));
++        foreach (KeyValuePair<MercenaryClass, int> pair in counts)
++        {
++            Assert.That(pair.Value, Is.EqualTo(expected), pair.Key.ToString());
++        }
++    }
+*** End Patch

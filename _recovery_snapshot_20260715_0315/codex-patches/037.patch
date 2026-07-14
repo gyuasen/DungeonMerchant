@@ -1,0 +1,27 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Battle\BattleSkillResolver.cs
+@@
+-                    "Arcane Bolt",
++                    "魔弾",
+@@
+-                    "Meteor Rain",
++                    "星火雨",
+@@
+-                    "Crushing Blow",
++                    "粉砕撃",
+@@
+-                    attacker, target, "Berserk Rush", 4, 0.38f);
++                    attacker, target, "狂乱連撃", 4, 0.38f);
+@@
+-            case MercenarySkillId.GreaterHeal:
+             case MercenarySkillId.DivineHymn:
+                 return TryUsePartyHeal(attacker, skill);
++            case MercenarySkillId.GreaterHeal:
++                return TryUsePriestHeal(attacker, skill);
+@@
+-                "Regeneration",
++                "超再生",
+@@
+-            "Soul Burst",
++            "魂魄爆裂",
+*** End Patch

@@ -1,0 +1,29 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Battle\BattleManager.cs
+@@
+-                BattleStatusEffectResult statusResult =
++                BattleStatusEffect previousStatus = unit.StatusEffect;
++                BattleStatusEffectResult statusResult =
+                     battleStatusEffectService.ProcessActionStart(unit);
+@@
+                     RaisePresentation(new BattlePresentationEvent(
+@@
+                         unit.MaxHP,
+                         actionKind: BattlePresentationActionKind.StatusEffect));
++                    if (unit.StatusEffect != previousStatus)
++                    {
++                        RaisePresentation(new BattlePresentationEvent(
++                            BattlePresentationEventType.Status,
++                            unit,
++                            unit,
++                            currentHP: unit.CurrentHP,
++                            maxHP: unit.MaxHP,
++                            statusEffect: unit.StatusEffect,
++                            actionKind:
++                                BattlePresentationActionKind.StatusEffect));
++                    }
+                     SendBattleMessage(statusResult.LogMessage, statusResult.LogType);
+@@
+-                        statusEffect: BattleStatusEffect.Paralysis,
++                        statusEffect: unit.StatusEffect,
+*** End Patch

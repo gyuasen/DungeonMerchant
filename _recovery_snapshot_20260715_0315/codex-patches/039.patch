@@ -1,0 +1,46 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Dungeons\DungeonData.asset
+@@
+-  specialVariantSkillPool: 010000000200000009000000
++  specialVariantSkillPool: 0100000002000000090000000f00000011000000
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Dungeons\LeafForestTrail.asset
+@@
+-  specialVariantSkillPool: 010000000200000009000000
++  specialVariantSkillPool: 0100000002000000090000000f00000011000000
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Dungeons\EldUndergroundWaterway.asset
+@@
+-  specialVariantSkillPool: 010000000200000009000000
++  specialVariantSkillPool: 0100000002000000090000000f00000011000000
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Dungeons\LowerMine.asset
+@@
+-  specialVariantSkillPool: 010000000200000003000000070000000a000000
++  specialVariantSkillPool: 010000000200000003000000070000000a0000000f00000013000000
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Dungeons\EldOldQuarry.asset
+@@
+-  specialVariantSkillPool: 010000000200000003000000070000000a000000
++  specialVariantSkillPool: 010000000200000003000000070000000a0000000f00000013000000
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Dungeons\MiddleRuins.asset
+@@
+-  specialVariantSkillPool: 01000000030000000400000007000000090000000b0000000e000000
++  specialVariantSkillPool: 01000000030000000400000007000000090000000b0000000e0000000f0000001000000013000000
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Dungeons\NornCanopyLabyrinth.asset
+@@
+-  specialVariantSkillPool: 01000000030000000400000007000000090000000b0000000e000000
++  specialVariantSkillPool: 01000000030000000400000007000000090000000b0000000e0000000f0000001000000013000000
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Dungeons\UpperFortress.asset
+@@
+-  specialVariantSkillPool: 02000000040000000500000007000000080000000a0000000c0000000d000000
++  specialVariantSkillPool: 010000000400000005000000090000000f000000100000001100000013000000
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Dungeons\VelmBlackIronMine.asset
+@@
+-  specialVariantSkillPool: 02000000040000000500000007000000080000000a0000000c0000000d000000
++  specialVariantSkillPool: 07000000080000000a0000000c0000000d000000100000001200000014000000
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Dungeons\HighestAbyss.asset
+@@
+-  specialVariantSkillPool: 0300000004000000050000000600000007000000080000000a0000000b0000000c0000000d0000000e000000
++  specialVariantSkillPool: 0300000004000000050000000600000007000000080000000a0000000b0000000c0000000d0000000e00000010000000120000001300000014000000
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Dungeons\AstralDepths.asset
+@@
+-  specialVariantSkillPool: 01000000030000000400000007000000090000000b0000000e000000
++  specialVariantSkillPool: 01000000030000000400000007000000090000000b0000000e0000000f00000010000000110000001300000014000000
+*** End Patch

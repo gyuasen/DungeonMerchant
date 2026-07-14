@@ -1,0 +1,113 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Battle\BattlePresentationEvent.cs
+@@
+     public bool Victory { get; }
++    public string ActionLabel { get; }
+@@
+         bool victory = false,
+         BattlePresentationActionKind actionKind =
+-            BattlePresentationActionKind.NormalAttack)
++            BattlePresentationActionKind.NormalAttack,
++        string actionLabel = null)
+@@
+         ActionKind = actionKind;
++        ActionLabel = actionLabel;
+     }
+ }
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Battle\BattleSkillResolver.cs
+@@
+     public bool TryUseEnemySkill(BattleUnit attacker, BattleUnit target, EnemyDataSO data)
++    {
++        return TryUseEnemySkill(attacker, target, data, out _);
++    }
++
++    public bool TryUseEnemySkill(
++        BattleUnit attacker,
++        BattleUnit target,
++        EnemyDataSO data,
++        out string skillName)
+     {
++        skillName = string.Empty;
+         if (data == null || context.RandomValue() > context.EnemySkillUseChance)
+@@
+         EnemySkillType skill = data.enemySkill != EnemySkillType.None
+             ? data.enemySkill : GetDefaultEnemySkill(data.monsterGrade);
++        skillName = GetEnemySkillDisplayName(skill);
+         switch (skill)
+@@
+     public bool TryUsePlayerSkill(BattleUnit attacker, BattleUnit primaryTarget)
++    {
++        return TryUsePlayerSkill(attacker, primaryTarget, out _);
++    }
++
++    public bool TryUsePlayerSkill(
++        BattleUnit attacker,
++        BattleUnit primaryTarget,
++        out string skillName)
+     {
++        skillName = string.Empty;
+         if (context.RandomValue() > context.PlayerSkillUseChance ||
+@@
+         MercenarySkillDefinition skill = skills[skillIndex];
++        skillName = skill.Name;
+         switch (skill.Id)
+@@
+     public static EnemySkillType GetDefaultEnemySkill(int monsterGrade)
+@@
+     }
++
++    public static string GetEnemySkillDisplayName(EnemySkillType skill)
++    {
++        switch (skill)
++        {
++            case EnemySkillType.PowerStrike: return "強撃";
++            case EnemySkillType.VenomStrike: return "毒牙";
++            case EnemySkillType.ParalyzingRoar: return "麻痺の咆哮";
++            case EnemySkillType.CriticalFocus: return "急所集中";
++            case EnemySkillType.DoubleStrike: return "連撃";
++            case EnemySkillType.LifeDrain: return "生命吸収";
++            case EnemySkillType.ArmorPierce: return "装甲貫通";
++            case EnemySkillType.FlameBreath: return "灼熱の息";
++            case EnemySkillType.FrostBite: return "氷結牙";
++            case EnemySkillType.TripleStrike: return "三連爪";
++            case EnemySkillType.BattleHeal: return "戦場治癒";
++            case EnemySkillType.SacrificialStrike: return "捨身撃";
++            case EnemySkillType.Execute: return "処刑";
++            case EnemySkillType.ArcaneBolt: return "魔弾";
++            case EnemySkillType.MeteorRain: return "星屑雨";
++            case EnemySkillType.CrushingBlow: return "粉砕撃";
++            case EnemySkillType.BerserkRush: return "狂乱連撃";
++            case EnemySkillType.Regeneration: return "再生";
++            case EnemySkillType.SoulBurst: return "魂爆";
++            case EnemySkillType.ToxicCloud: return "毒霧";
++            default: return string.Empty;
++        }
++    }
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Battle\BattleManager.cs
+@@
+-                    if (!CreateSkillResolver().TryUsePlayerSkill(unit, enemyTarget))
++                    BattleSkillResolver playerSkillResolver = CreateSkillResolver();
++                    if (!playerSkillResolver.TryUsePlayerSkill(
++                            unit, enemyTarget, out string playerSkillName))
+@@
+                             unit,
+                             enemyTarget,
+-                            actionKind: BattlePresentationActionKind.Skill));
++                            actionKind: BattlePresentationActionKind.Skill,
++                            actionLabel: playerSkillName));
+@@
+-                    BattleUnit target = CreateSkillResolver().GetEnemyTarget();
++                    BattleSkillResolver enemySkillResolver = CreateSkillResolver();
++                    BattleUnit target = enemySkillResolver.GetEnemyTarget();
+@@
+-                    if (!CreateSkillResolver().TryUseEnemySkill(
+-                            unit, target, sourceData))
++                    if (!enemySkillResolver.TryUseEnemySkill(
++                            unit, target, sourceData, out string enemySkillName))
+@@
+                             unit,
+                             target,
+-                            actionKind: BattlePresentationActionKind.Skill));
++                            actionKind: BattlePresentationActionKind.Skill,
++                            actionLabel: enemySkillName));
+*** End Patch

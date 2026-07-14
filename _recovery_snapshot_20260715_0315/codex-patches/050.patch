@@ -1,0 +1,17 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\BattleVisualController.cs
+@@
+         if (battleManager != null && battleManager.IsSkippingToBattleEnd)
+         {
+             ApplyImmediately(presentationEvent);
+             return;
+         }
++
++        if (!isActiveAndEnabled)
++        {
++            ApplyImmediately(presentationEvent);
++            return;
++        }
+ 
+         eventQueue.Enqueue(presentationEvent);
+*** End Patch

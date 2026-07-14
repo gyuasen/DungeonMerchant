@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="4" result="Passed" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-07-14 18:46:50Z" end-time="2026-07-14 18:46:50Z" duration="0.0636764">
+  <test-suite type="TestSuite" id="1000" name="DungeonMerchant" fullname="DungeonMerchant" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-07-14 18:46:50Z" end-time="2026-07-14 18:46:50Z" duration="0.063676" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="1007" name="DungeonMerchant.PlayModeTests.dll" fullname="C:/UnityProjects/DungeonMerchant/Library/ScriptAssemblies/DungeonMerchant.PlayModeTests.dll" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-07-14 18:46:50Z" end-time="2026-07-14 18:46:50Z" duration="0.058716" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="24212" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <test-suite type="TestFixture" id="1001" name="BattleManagerPlayModeTests" fullname="BattleManagerPlayModeTests" classname="BattleManagerPlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-07-14 18:46:50Z" end-time="2026-07-14 18:46:50Z" duration="0.052943" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1003" name="RequestSkipToBattleEnd_RemovesActionDelayAndCompletesOnce" fullname="BattleManagerPlayModeTests.RequestSkipToBattleEnd_RemovesActionDelayAndCompletesOnce" methodname="RequestSkipToBattleEnd_RemovesActionDelayAndCompletesOnce" classname="BattleManagerPlayModeTests" runstate="Runnable" seed="1459174575" result="Passed" start-time="2026-07-14 18:46:50Z" end-time="2026-07-14 18:46:50Z" duration="0.036419" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+          </properties>
+          <output><![CDATA[戦闘開始: 傭兵1人 vs 敵1体
+戦闘終了まで早送りします。
+TesterがSlow Enemyを攻撃: 1ダメージ、HP 0/1
+Testerの戦闘後HP: 100/100  状態: なし
+Gained 50 G. Current gold: 550 G
+勝利！ 報酬: 50 G
+Testerが経験値50を獲得 (50/100)
+Added item: Abyss Crown x1
+戦利品: 深淵の王冠 x1
+]]></output>
+        </test-case>
+        <test-case id="1002" name="StartBattle_OneHpEnemy_CompletesWithVictory" fullname="BattleManagerPlayModeTests.StartBattle_OneHpEnemy_CompletesWithVictory" methodname="StartBattle_OneHpEnemy_CompletesWithVictory" classname="BattleManagerPlayModeTests" runstate="Runnable" seed="1797992428" result="Passed" start-time="2026-07-14 18:46:50Z" end-time="2026-07-14 18:46:50Z" duration="0.007440" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+          </properties>
+          <output><![CDATA[戦闘開始: 傭兵1人 vs 敵1体
+Test MercenaryがTest Enemyを攻撃: 1ダメージ、HP 0/1
+Test Mercenaryの戦闘後HP: 100/100  状態: なし
+Gained 50 G. Current gold: 600 G
+勝利！ 報酬: 50 G
+Test Mercenaryが経験値50を獲得 (50/100)
+Added item: Abyss Crown x1
+戦利品: 深淵の王冠 x1
+]]></output>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1004" name="RuntimeUIPlayModeTests" fullname="RuntimeUIPlayModeTests" classname="RuntimeUIPlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-07-14 18:46:50Z" end-time="2026-07-14 18:46:50Z" duration="0.004479" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1005" name="Bootstrap_BuildsTitleAndAllPrimaryPages" fullname="RuntimeUIPlayModeTests.Bootstrap_BuildsTitleAndAllPrimaryPages" methodname="Bootstrap_BuildsTitleAndAllPrimaryPages" classname="RuntimeUIPlayModeTests" runstate="Runnable" seed="837917955" result="Passed" start-time="2026-07-14 18:46:50Z" end-time="2026-07-14 18:46:50Z" duration="0.002451" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+          </properties>
+        </test-case>
+        <test-case id="1006" name="Bootstrap_HasOneActivePrimaryPageBehindTitle" fullname="RuntimeUIPlayModeTests.Bootstrap_HasOneActivePrimaryPageBehindTitle" methodname="Bootstrap_HasOneActivePrimaryPageBehindTitle" classname="RuntimeUIPlayModeTests" runstate="Runnable" seed="867161329" result="Passed" start-time="2026-07-14 18:46:50Z" end-time="2026-07-14 18:46:50Z" duration="0.001363" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+          </properties>
+        </test-case>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

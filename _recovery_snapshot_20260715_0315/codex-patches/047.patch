@@ -1,0 +1,7 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\BattleVisualController.cs
+@@
+-            return JapaneseDisplayText.GetClassName(descriptor.MercenaryClass);
++            return JapaneseDisplayText.GetMercenaryClass(
++                descriptor.MercenaryClass);
+*** End Patch

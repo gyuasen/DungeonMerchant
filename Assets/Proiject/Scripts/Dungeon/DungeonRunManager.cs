@@ -338,6 +338,14 @@ public class DungeonRunManager : MonoBehaviour
             $"敵が{enemyCount}体出現しました。");
         DungeonStateChanged?.Invoke();
 
+        battleManager.SetNextBattleBackground(
+            dungeonData != null ? dungeonData.battleBackground : null,
+            dungeonData != null &&
+            !string.IsNullOrWhiteSpace(dungeonData.battleBackgroundKey)
+                ? dungeonData.battleBackgroundKey
+                : dungeonData != null
+                    ? dungeonData.name
+                    : null);
         bool started = battleManager.StartBattle(partyManager.Members, enemies);
         if (!started)
         {

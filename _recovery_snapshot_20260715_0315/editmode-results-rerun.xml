@@ -1,0 +1,1246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="320" result="Passed" total="320" passed="320" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:55Z" duration="0.4278725">
+  <test-suite type="TestSuite" id="1393" name="DungeonMerchant" fullname="DungeonMerchant" runstate="Runnable" testcasecount="320" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:55Z" duration="0.427873" total="320" passed="320" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="1781" name="DungeonMerchant.EditModeTests.dll" fullname="C:/UnityProjects/DungeonMerchant/Library/ScriptAssemblies/DungeonMerchant.EditModeTests.dll" runstate="Runnable" testcasecount="320" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:55Z" duration="0.414801" total="320" passed="320" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="37652" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <test-suite type="TestFixture" id="1394" name="AudioFeedbackServiceTests" fullname="AudioFeedbackServiceTests" classname="AudioFeedbackServiceTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.049509" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1395" name="Awake_CreatesAndCachesEveryCueOnce" fullname="AudioFeedbackServiceTests.Awake_CreatesAndCachesEveryCueOnce" methodname="Awake_CreatesAndCachesEveryCueOnce" classname="AudioFeedbackServiceTests" runstate="Runnable" seed="1823739556" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.017174" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1398" name="FactoryCreatedActionButton_RegistersWithActiveService" fullname="AudioFeedbackServiceTests.FactoryCreatedActionButton_RegistersWithActiveService" methodname="FactoryCreatedActionButton_RegistersWithActiveService" classname="AudioFeedbackServiceTests" runstate="Runnable" seed="256514471" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.019848" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1397" name="RegisterButtonsUnder_RegistersInactiveButtonsWithoutDuplicates" fullname="AudioFeedbackServiceTests.RegisterButtonsUnder_RegistersInactiveButtonsWithoutDuplicates" methodname="RegisterButtonsUnder_RegistersInactiveButtonsWithoutDuplicates" classname="AudioFeedbackServiceTests" runstate="Runnable" seed="1610747524" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.001174" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1396" name="Volume_ClampsAppliesAndPersists" fullname="AudioFeedbackServiceTests.Volume_ClampsAppliesAndPersists" methodname="Volume_ClampsAppliesAndPersists" classname="AudioFeedbackServiceTests" runstate="Runnable" seed="1297618565" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.001464" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1399" name="BattleLogFormatterTests" fullname="BattleLogFormatterTests" classname="BattleLogFormatterTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.003694" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1401" name="FormatAttack_PreservesCriticalAndHpText" fullname="BattleLogFormatterTests.FormatAttack_PreservesCriticalAndHpText" methodname="FormatAttack_PreservesCriticalAndHpText" classname="BattleLogFormatterTests" runstate="Runnable" seed="1455056934" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000341" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1400" name="FormatBattleStart_PreservesExistingText" fullname="BattleLogFormatterTests.FormatBattleStart_PreservesExistingText" methodname="FormatBattleStart_PreservesExistingText" classname="BattleLogFormatterTests" runstate="Runnable" seed="669328828" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000189" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1403" name="FormatRepresentativeSkillMessages_PreserveExistingText" fullname="BattleLogFormatterTests.FormatRepresentativeSkillMessages_PreserveExistingText" methodname="FormatRepresentativeSkillMessages_PreserveExistingText" classname="BattleLogFormatterTests" runstate="Runnable" seed="897274188" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000545" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1402" name="FormatStatusAndRewards_ArePureAndExact" fullname="BattleLogFormatterTests.FormatStatusAndRewards_ArePureAndExact" methodname="FormatStatusAndRewards_ArePureAndExact" classname="BattleLogFormatterTests" runstate="Runnable" seed="2010016831" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000252" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1404" name="BattleManagerTests" fullname="BattleManagerTests" classname="BattleManagerTests" runstate="Runnable" testcasecount="14" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.018459" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="ParameterizedMethod" id="1414" name="CreateDefaultEnemyEncounter_WithInjectedEnemyData_ReturnsMaxOneOrRequestedCopiesOfSameEnemy" fullname="BattleManagerTests.CreateDefaultEnemyEncounter_WithInjectedEnemyData_ReturnsMaxOneOrRequestedCopiesOfSameEnemy" classname="BattleManagerTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.006729" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1409" name="CreateDefaultEnemyEncounter_WithInjectedEnemyData_ReturnsMaxOneOrRequestedCopiesOfSameEnemy(1,1)" fullname="BattleManagerTests.CreateDefaultEnemyEncounter_WithInjectedEnemyData_ReturnsMaxOneOrRequestedCopiesOfSameEnemy(1,1)" methodname="CreateDefaultEnemyEncounter_WithInjectedEnemyData_ReturnsMaxOneOrRequestedCopiesOfSameEnemy" classname="BattleManagerTests" runstate="Runnable" seed="311550109" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.002685" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1410" name="CreateDefaultEnemyEncounter_WithInjectedEnemyData_ReturnsMaxOneOrRequestedCopiesOfSameEnemy(3,3)" fullname="BattleManagerTests.CreateDefaultEnemyEncounter_WithInjectedEnemyData_ReturnsMaxOneOrRequestedCopiesOfSameEnemy(3,3)" methodname="CreateDefaultEnemyEncounter_WithInjectedEnemyData_ReturnsMaxOneOrRequestedCopiesOfSameEnemy" classname="BattleManagerTests" runstate="Runnable" seed="531114382" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000175" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1411" name="CreateDefaultEnemyEncounter_WithInjectedEnemyData_ReturnsMaxOneOrRequestedCopiesOfSameEnemy(5,5)" fullname="BattleManagerTests.CreateDefaultEnemyEncounter_WithInjectedEnemyData_ReturnsMaxOneOrRequestedCopiesOfSameEnemy(5,5)" methodname="CreateDefaultEnemyEncounter_WithInjectedEnemyData_ReturnsMaxOneOrRequestedCopiesOfSameEnemy" classname="BattleManagerTests" runstate="Runnable" seed="1990221677" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000142" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1412" name="CreateDefaultEnemyEncounter_WithInjectedEnemyData_ReturnsMaxOneOrRequestedCopiesOfSameEnemy(0,1)" fullname="BattleManagerTests.CreateDefaultEnemyEncounter_WithInjectedEnemyData_ReturnsMaxOneOrRequestedCopiesOfSameEnemy(0,1)" methodname="CreateDefaultEnemyEncounter_WithInjectedEnemyData_ReturnsMaxOneOrRequestedCopiesOfSameEnemy" classname="BattleManagerTests" runstate="Runnable" seed="1070904264" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000133" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1413" name="CreateDefaultEnemyEncounter_WithInjectedEnemyData_ReturnsMaxOneOrRequestedCopiesOfSameEnemy(-2,1)" fullname="BattleManagerTests.CreateDefaultEnemyEncounter_WithInjectedEnemyData_ReturnsMaxOneOrRequestedCopiesOfSameEnemy(-2,1)" methodname="CreateDefaultEnemyEncounter_WithInjectedEnemyData_ReturnsMaxOneOrRequestedCopiesOfSameEnemy" classname="BattleManagerTests" runstate="Runnable" seed="1923597794" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000128" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-suite type="ParameterizedMethod" id="1417" name="CreateDefaultEnemyEncounter_WithNoEnemyDataConfigured_StillReturnsRequestedCount" fullname="BattleManagerTests.CreateDefaultEnemyEncounter_WithNoEnemyDataConfigured_StillReturnsRequestedCount" classname="BattleManagerTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.001232" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1415" name="CreateDefaultEnemyEncounter_WithNoEnemyDataConfigured_StillReturnsRequestedCount(1)" fullname="BattleManagerTests.CreateDefaultEnemyEncounter_WithNoEnemyDataConfigured_StillReturnsRequestedCount(1)" methodname="CreateDefaultEnemyEncounter_WithNoEnemyDataConfigured_StillReturnsRequestedCount" classname="BattleManagerTests" runstate="Runnable" seed="1617608571" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000620" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1416" name="CreateDefaultEnemyEncounter_WithNoEnemyDataConfigured_StillReturnsRequestedCount(4)" fullname="BattleManagerTests.CreateDefaultEnemyEncounter_WithNoEnemyDataConfigured_StillReturnsRequestedCount(4)" methodname="CreateDefaultEnemyEncounter_WithNoEnemyDataConfigured_StillReturnsRequestedCount" classname="BattleManagerTests" runstate="Runnable" seed="161483679" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000147" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-case id="1419" name="GetEncounterDescription_WithMultipleConfiguredEnemies_ReturnsAggregateFormat" fullname="BattleManagerTests.GetEncounterDescription_WithMultipleConfiguredEnemies_ReturnsAggregateFormat" methodname="GetEncounterDescription_WithMultipleConfiguredEnemies_ReturnsAggregateFormat" classname="BattleManagerTests" runstate="Runnable" seed="649651054" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.001412" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1420" name="GetEncounterDescription_WithNoEnemyDataConfigured_NeverReturnsUnconfiguredMessage" fullname="BattleManagerTests.GetEncounterDescription_WithNoEnemyDataConfigured_NeverReturnsUnconfiguredMessage" methodname="GetEncounterDescription_WithNoEnemyDataConfigured_NeverReturnsUnconfiguredMessage" classname="BattleManagerTests" runstate="Runnable" seed="2011746332" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.001155" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1418" name="GetEncounterDescription_WithSingleConfiguredEnemy_ReturnsSingleEnemyFormat" fullname="BattleManagerTests.GetEncounterDescription_WithSingleConfiguredEnemy_ReturnsSingleEnemyFormat" methodname="GetEncounterDescription_WithSingleConfiguredEnemy_ReturnsSingleEnemyFormat" classname="BattleManagerTests" runstate="Runnable" seed="132584830" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.002122" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1405" name="StartBattle_NoArgOverload_WithNoPartyManagerOrMembers_ReturnsFalse" fullname="BattleManagerTests.StartBattle_NoArgOverload_WithNoPartyManagerOrMembers_ReturnsFalse" methodname="StartBattle_NoArgOverload_WithNoPartyManagerOrMembers_ReturnsFalse" classname="BattleManagerTests" runstate="Runnable" seed="587527505" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.001423" asserts="0">
+          <properties />
+          <output><![CDATA[パーティー管理が設定されていません。
+]]></output>
+        </test-case>
+        <test-case id="1407" name="StartBattle_OneArgOverload_WithEmptyPartyMembers_ReturnsFalse" fullname="BattleManagerTests.StartBattle_OneArgOverload_WithEmptyPartyMembers_ReturnsFalse" methodname="StartBattle_OneArgOverload_WithEmptyPartyMembers_ReturnsFalse" classname="BattleManagerTests" runstate="Runnable" seed="107942448" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000714" asserts="0">
+          <properties />
+          <output><![CDATA[パーティーに傭兵を1人以上編成してください。
+]]></output>
+        </test-case>
+        <test-case id="1406" name="StartBattle_OneArgOverload_WithNullPartyMembers_ReturnsFalse" fullname="BattleManagerTests.StartBattle_OneArgOverload_WithNullPartyMembers_ReturnsFalse" methodname="StartBattle_OneArgOverload_WithNullPartyMembers_ReturnsFalse" classname="BattleManagerTests" runstate="Runnable" seed="87656113" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000478" asserts="0">
+          <properties />
+          <output><![CDATA[パーティーに傭兵を1人以上編成してください。
+]]></output>
+        </test-case>
+        <test-case id="1408" name="StartBattle_TwoArgOverload_WithEmptyParty_ReturnsFalse_EvenWithEnemyEncounterSupplied" fullname="BattleManagerTests.StartBattle_TwoArgOverload_WithEmptyParty_ReturnsFalse_EvenWithEnemyEncounterSupplied" methodname="StartBattle_TwoArgOverload_WithEmptyParty_ReturnsFalse_EvenWithEnemyEncounterSupplied" classname="BattleManagerTests" runstate="Runnable" seed="375045569" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000586" asserts="0">
+          <properties />
+          <output><![CDATA[パーティーに傭兵を1人以上編成してください。
+]]></output>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1421" name="BattleRewardServiceTests" fullname="BattleRewardServiceTests" classname="BattleRewardServiceTests" runstate="Runnable" testcasecount="17" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.008314" total="17" passed="17" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="ParameterizedMethod" id="1434" name="CalculateBaseExperienceReward_UsesFlattenedGradeCurve" fullname="BattleRewardServiceTests.CalculateBaseExperienceReward_UsesFlattenedGradeCurve" classname="BattleRewardServiceTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.003850" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1424" name="CalculateBaseExperienceReward_UsesFlattenedGradeCurve(10,50)" fullname="BattleRewardServiceTests.CalculateBaseExperienceReward_UsesFlattenedGradeCurve(10,50)" methodname="CalculateBaseExperienceReward_UsesFlattenedGradeCurve" classname="BattleRewardServiceTests" runstate="Runnable" seed="1216981219" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000286" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1425" name="CalculateBaseExperienceReward_UsesFlattenedGradeCurve(9,75)" fullname="BattleRewardServiceTests.CalculateBaseExperienceReward_UsesFlattenedGradeCurve(9,75)" methodname="CalculateBaseExperienceReward_UsesFlattenedGradeCurve" classname="BattleRewardServiceTests" runstate="Runnable" seed="935203310" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000065" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1426" name="CalculateBaseExperienceReward_UsesFlattenedGradeCurve(8,110)" fullname="BattleRewardServiceTests.CalculateBaseExperienceReward_UsesFlattenedGradeCurve(8,110)" methodname="CalculateBaseExperienceReward_UsesFlattenedGradeCurve" classname="BattleRewardServiceTests" runstate="Runnable" seed="672697709" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000054" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1427" name="CalculateBaseExperienceReward_UsesFlattenedGradeCurve(7,155)" fullname="BattleRewardServiceTests.CalculateBaseExperienceReward_UsesFlattenedGradeCurve(7,155)" methodname="CalculateBaseExperienceReward_UsesFlattenedGradeCurve" classname="BattleRewardServiceTests" runstate="Runnable" seed="463194873" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000047" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1428" name="CalculateBaseExperienceReward_UsesFlattenedGradeCurve(6,210)" fullname="BattleRewardServiceTests.CalculateBaseExperienceReward_UsesFlattenedGradeCurve(6,210)" methodname="CalculateBaseExperienceReward_UsesFlattenedGradeCurve" classname="BattleRewardServiceTests" runstate="Runnable" seed="1708167569" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000058" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1429" name="CalculateBaseExperienceReward_UsesFlattenedGradeCurve(5,275)" fullname="BattleRewardServiceTests.CalculateBaseExperienceReward_UsesFlattenedGradeCurve(5,275)" methodname="CalculateBaseExperienceReward_UsesFlattenedGradeCurve" classname="BattleRewardServiceTests" runstate="Runnable" seed="639470380" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000071" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1430" name="CalculateBaseExperienceReward_UsesFlattenedGradeCurve(4,350)" fullname="BattleRewardServiceTests.CalculateBaseExperienceReward_UsesFlattenedGradeCurve(4,350)" methodname="CalculateBaseExperienceReward_UsesFlattenedGradeCurve" classname="BattleRewardServiceTests" runstate="Runnable" seed="872460271" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000071" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1431" name="CalculateBaseExperienceReward_UsesFlattenedGradeCurve(3,435)" fullname="BattleRewardServiceTests.CalculateBaseExperienceReward_UsesFlattenedGradeCurve(3,435)" methodname="CalculateBaseExperienceReward_UsesFlattenedGradeCurve" classname="BattleRewardServiceTests" runstate="Runnable" seed="1853878805" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000050" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1432" name="CalculateBaseExperienceReward_UsesFlattenedGradeCurve(2,530)" fullname="BattleRewardServiceTests.CalculateBaseExperienceReward_UsesFlattenedGradeCurve(2,530)" methodname="CalculateBaseExperienceReward_UsesFlattenedGradeCurve" classname="BattleRewardServiceTests" runstate="Runnable" seed="1969086822" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000052" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1433" name="CalculateBaseExperienceReward_UsesFlattenedGradeCurve(1,635)" fullname="BattleRewardServiceTests.CalculateBaseExperienceReward_UsesFlattenedGradeCurve(1,635)" methodname="CalculateBaseExperienceReward_UsesFlattenedGradeCurve" classname="BattleRewardServiceTests" runstate="Runnable" seed="1884450051" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000044" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-suite type="ParameterizedMethod" id="1440" name="CalculateExperiencePerMercenary_UsesExistingMinimumAndDivisionRules" fullname="BattleRewardServiceTests.CalculateExperiencePerMercenary_UsesExistingMinimumAndDivisionRules" classname="BattleRewardServiceTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.002055" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1437" name="CalculateExperiencePerMercenary_UsesExistingMinimumAndDivisionRules(100,3,33)" fullname="BattleRewardServiceTests.CalculateExperiencePerMercenary_UsesExistingMinimumAndDivisionRules(100,3,33)" methodname="CalculateExperiencePerMercenary_UsesExistingMinimumAndDivisionRules" classname="BattleRewardServiceTests" runstate="Runnable" seed="891191471" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000233" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1438" name="CalculateExperiencePerMercenary_UsesExistingMinimumAndDivisionRules(1,4,1)" fullname="BattleRewardServiceTests.CalculateExperiencePerMercenary_UsesExistingMinimumAndDivisionRules(1,4,1)" methodname="CalculateExperiencePerMercenary_UsesExistingMinimumAndDivisionRules" classname="BattleRewardServiceTests" runstate="Runnable" seed="1520725581" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000061" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1439" name="CalculateExperiencePerMercenary_UsesExistingMinimumAndDivisionRules(100,0,0)" fullname="BattleRewardServiceTests.CalculateExperiencePerMercenary_UsesExistingMinimumAndDivisionRules(100,0,0)" methodname="CalculateExperiencePerMercenary_UsesExistingMinimumAndDivisionRules" classname="BattleRewardServiceTests" runstate="Runnable" seed="2014538221" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000051" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-case id="1423" name="CalculateExperienceReward_AppliesGradeBossAndMultiplierRules" fullname="BattleRewardServiceTests.CalculateExperienceReward_AppliesGradeBossAndMultiplierRules" methodname="CalculateExperienceReward_AppliesGradeBossAndMultiplierRules" classname="BattleRewardServiceTests" runstate="Runnable" seed="234906604" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000480" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1422" name="CalculateGoldReward_SumsNonNullEnemyRewards" fullname="BattleRewardServiceTests.CalculateGoldReward_SumsNonNullEnemyRewards" methodname="CalculateGoldReward_SumsNonNullEnemyRewards" classname="BattleRewardServiceTests" runstate="Runnable" seed="223937371" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000343" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1436" name="LowGradeEarlyRoad_GrantsVisibleProgressToFourMercenaries" fullname="BattleRewardServiceTests.LowGradeEarlyRoad_GrantsVisibleProgressToFourMercenaries" methodname="LowGradeEarlyRoad_GrantsVisibleProgressToFourMercenaries" classname="BattleRewardServiceTests" runstate="Runnable" seed="336483153" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000241" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1435" name="LowGradeFirstFloor_GrantsAtLeastOneInitialLevelToFourMercenaries" fullname="BattleRewardServiceTests.LowGradeFirstFloor_GrantsAtLeastOneInitialLevelToFourMercenaries" methodname="LowGradeFirstFloor_GrantsAtLeastOneInitialLevelToFourMercenaries" classname="BattleRewardServiceTests" runstate="Runnable" seed="1332521180" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000362" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1441" name="BattleSkillResolverTests" fullname="BattleSkillResolverTests" classname="BattleSkillResolverTests" runstate="Runnable" testcasecount="42" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.022665" total="42" passed="42" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="ParameterizedMethod" id="1476" name="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves" fullname="BattleSkillResolverTests.AddedClassSkill_IsSelectedAtUnlockLevelAndResolves" classname="BattleSkillResolverTests" runstate="Runnable" testcasecount="18" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.008226" total="18" passed="18" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1458" name="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Knight,AegisPierce)" fullname="BattleSkillResolverTests.AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Knight,AegisPierce)" methodname="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves" classname="BattleSkillResolverTests" runstate="Runnable" seed="529061492" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.002234" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1459" name="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Berserker,RagingCombo)" fullname="BattleSkillResolverTests.AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Berserker,RagingCombo)" methodname="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves" classname="BattleSkillResolverTests" runstate="Runnable" seed="1699926931" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000216" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1460" name="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Sniper,ArmorBreakArrow)" fullname="BattleSkillResolverTests.AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Sniper,ArmorBreakArrow)" methodname="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves" classname="BattleSkillResolverTests" runstate="Runnable" seed="324796549" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000061" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1461" name="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Ranger,GaleVolley)" fullname="BattleSkillResolverTests.AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Ranger,GaleVolley)" methodname="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves" classname="BattleSkillResolverTests" runstate="Runnable" seed="1847672099" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000386" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1462" name="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Sage,ArcaneBurst)" fullname="BattleSkillResolverTests.AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Sage,ArcaneBurst)" methodname="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves" classname="BattleSkillResolverTests" runstate="Runnable" seed="1987022099" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000205" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1463" name="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Elementalist,StormCircle)" fullname="BattleSkillResolverTests.AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Elementalist,StormCircle)" methodname="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves" classname="BattleSkillResolverTests" runstate="Runnable" seed="638054520" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000137" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1464" name="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Bishop,GreaterHeal)" fullname="BattleSkillResolverTests.AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Bishop,GreaterHeal)" methodname="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves" classname="BattleSkillResolverTests" runstate="Runnable" seed="978425929" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000241" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1465" name="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Paladin,HolyShieldBash)" fullname="BattleSkillResolverTests.AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Paladin,HolyShieldBash)" methodname="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves" classname="BattleSkillResolverTests" runstate="Runnable" seed="1182301702" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000110" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1466" name="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Assassin,FatalFlurry)" fullname="BattleSkillResolverTests.AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Assassin,FatalFlurry)" methodname="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves" classname="BattleSkillResolverTests" runstate="Runnable" seed="950878580" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000055" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1467" name="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Ninja,BindingBlade)" fullname="BattleSkillResolverTests.AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Ninja,BindingBlade)" methodname="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves" classname="BattleSkillResolverTests" runstate="Runnable" seed="1058911650" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000042" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1468" name="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Dragoon,SkySpearCombo)" fullname="BattleSkillResolverTests.AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Dragoon,SkySpearCombo)" methodname="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves" classname="BattleSkillResolverTests" runstate="Runnable" seed="402899452" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000042" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1469" name="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(GuardianLancer,FortressPierce)" fullname="BattleSkillResolverTests.AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(GuardianLancer,FortressPierce)" methodname="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves" classname="BattleSkillResolverTests" runstate="Runnable" seed="273776569" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000045" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1470" name="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Warlord,WarfrontSmash)" fullname="BattleSkillResolverTests.AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Warlord,WarfrontSmash)" methodname="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves" classname="BattleSkillResolverTests" runstate="Runnable" seed="1814743931" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000048" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1471" name="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Beastmaster,BeastKingFangs)" fullname="BattleSkillResolverTests.AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Beastmaster,BeastKingFangs)" methodname="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves" classname="BattleSkillResolverTests" runstate="Runnable" seed="408489898" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000044" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1472" name="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Chronomancer,TemporalRift)" fullname="BattleSkillResolverTests.AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Chronomancer,TemporalRift)" methodname="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves" classname="BattleSkillResolverTests" runstate="Runnable" seed="527974897" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000044" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1473" name="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Saint,DivineHymn)" fullname="BattleSkillResolverTests.AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Saint,DivineHymn)" methodname="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves" classname="BattleSkillResolverTests" runstate="Runnable" seed="1497198251" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000256" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1474" name="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Shadow,VoidPierce)" fullname="BattleSkillResolverTests.AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(Shadow,VoidPierce)" methodname="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves" classname="BattleSkillResolverTests" runstate="Runnable" seed="1404414198" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000055" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1475" name="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(DragonKnight,DragonfallBreath)" fullname="BattleSkillResolverTests.AddedClassSkill_IsSelectedAtUnlockLevelAndResolves(DragonKnight,DragonfallBreath)" methodname="AddedClassSkill_IsSelectedAtUnlockLevelAndResolves" classname="BattleSkillResolverTests" runstate="Runnable" seed="18957297" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000045" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-case id="1442" name="BaseClasses_HaveTwoCombatSkillsWithDistinctRoles" fullname="BattleSkillResolverTests.BaseClasses_HaveTwoCombatSkillsWithDistinctRoles" methodname="BaseClasses_HaveTwoCombatSkillsWithDistinctRoles" classname="BattleSkillResolverTests" runstate="Runnable" seed="101118221" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.001890" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1487" name="CanDefeatWithNormalAttack_UsesTargetDefense" fullname="BattleSkillResolverTests.CanDefeatWithNormalAttack_UsesTargetDefense" methodname="CanDefeatWithNormalAttack_UsesTargetDefense" classname="BattleSkillResolverTests" runstate="Runnable" seed="2108270483" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000122" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1477" name="EvadedParalysisDamageSkill_DoesNotApplyParalysis" fullname="BattleSkillResolverTests.EvadedParalysisDamageSkill_DoesNotApplyParalysis" methodname="EvadedParalysisDamageSkill_DoesNotApplyParalysis" classname="BattleSkillResolverTests" runstate="Runnable" seed="2047331604" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000515" asserts="0">
+          <properties />
+        </test-case>
+        <test-suite type="ParameterizedMethod" id="1484" name="GetDefaultEnemySkill_PreservesGradeBasedSelection" fullname="BattleSkillResolverTests.GetDefaultEnemySkill_PreservesGradeBasedSelection" classname="BattleSkillResolverTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.001131" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1478" name="GetDefaultEnemySkill_PreservesGradeBasedSelection(0,ArmorPierce)" fullname="BattleSkillResolverTests.GetDefaultEnemySkill_PreservesGradeBasedSelection(0,ArmorPierce)" methodname="GetDefaultEnemySkill_PreservesGradeBasedSelection" classname="BattleSkillResolverTests" runstate="Runnable" seed="192636293" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000271" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1479" name="GetDefaultEnemySkill_PreservesGradeBasedSelection(1,FlameBreath)" fullname="BattleSkillResolverTests.GetDefaultEnemySkill_PreservesGradeBasedSelection(1,FlameBreath)" methodname="GetDefaultEnemySkill_PreservesGradeBasedSelection" classname="BattleSkillResolverTests" runstate="Runnable" seed="1954515764" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000052" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1480" name="GetDefaultEnemySkill_PreservesGradeBasedSelection(5,Execute)" fullname="BattleSkillResolverTests.GetDefaultEnemySkill_PreservesGradeBasedSelection(5,Execute)" methodname="GetDefaultEnemySkill_PreservesGradeBasedSelection" classname="BattleSkillResolverTests" runstate="Runnable" seed="478975219" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000037" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1481" name="GetDefaultEnemySkill_PreservesGradeBasedSelection(6,FrostBite)" fullname="BattleSkillResolverTests.GetDefaultEnemySkill_PreservesGradeBasedSelection(6,FrostBite)" methodname="GetDefaultEnemySkill_PreservesGradeBasedSelection" classname="BattleSkillResolverTests" runstate="Runnable" seed="923609757" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000035" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1482" name="GetDefaultEnemySkill_PreservesGradeBasedSelection(7,DoubleStrike)" fullname="BattleSkillResolverTests.GetDefaultEnemySkill_PreservesGradeBasedSelection(7,DoubleStrike)" methodname="GetDefaultEnemySkill_PreservesGradeBasedSelection" classname="BattleSkillResolverTests" runstate="Runnable" seed="1771779550" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000033" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1483" name="GetDefaultEnemySkill_PreservesGradeBasedSelection(-1,FlameBreath)" fullname="BattleSkillResolverTests.GetDefaultEnemySkill_PreservesGradeBasedSelection(-1,FlameBreath)" methodname="GetDefaultEnemySkill_PreservesGradeBasedSelection" classname="BattleSkillResolverTests" runstate="Runnable" seed="497301421" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000036" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-case id="1485" name="GetEnemyTarget_PrefersFirstLivingTauntingPlayer" fullname="BattleSkillResolverTests.GetEnemyTarget_PrefersFirstLivingTauntingPlayer" methodname="GetEnemyTarget_PrefersFirstLivingTauntingPlayer" classname="BattleSkillResolverTests" runstate="Runnable" seed="1904282913" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000385" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1486" name="IsUsefulSkillTarget_RejectsNormalAttackFinishes_AndSelectsMeaningfulUpgrade" fullname="BattleSkillResolverTests.IsUsefulSkillTarget_RejectsNormalAttackFinishes_AndSelectsMeaningfulUpgrade" methodname="IsUsefulSkillTarget_RejectsNormalAttackFinishes_AndSelectsMeaningfulUpgrade" classname="BattleSkillResolverTests" runstate="Runnable" seed="2145675037" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000200" asserts="0">
+          <properties />
+        </test-case>
+        <test-suite type="ParameterizedMethod" id="1449" name="SpecialClasses_HaveUniqueCombatSkillAtConfiguredLevel" fullname="BattleSkillResolverTests.SpecialClasses_HaveUniqueCombatSkillAtConfiguredLevel" classname="BattleSkillResolverTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.003103" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1443" name="SpecialClasses_HaveUniqueCombatSkillAtConfiguredLevel(Warlord,WarlordCommand,20)" fullname="BattleSkillResolverTests.SpecialClasses_HaveUniqueCombatSkillAtConfiguredLevel(Warlord,WarlordCommand,20)" methodname="SpecialClasses_HaveUniqueCombatSkillAtConfiguredLevel" classname="BattleSkillResolverTests" runstate="Runnable" seed="2003833122" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000317" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1444" name="SpecialClasses_HaveUniqueCombatSkillAtConfiguredLevel(Beastmaster,BeastPack,24)" fullname="BattleSkillResolverTests.SpecialClasses_HaveUniqueCombatSkillAtConfiguredLevel(Beastmaster,BeastPack,24)" methodname="SpecialClasses_HaveUniqueCombatSkillAtConfiguredLevel" classname="BattleSkillResolverTests" runstate="Runnable" seed="1803275309" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000066" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1445" name="SpecialClasses_HaveUniqueCombatSkillAtConfiguredLevel(Chronomancer,TimeLock,28)" fullname="BattleSkillResolverTests.SpecialClasses_HaveUniqueCombatSkillAtConfiguredLevel(Chronomancer,TimeLock,28)" methodname="SpecialClasses_HaveUniqueCombatSkillAtConfiguredLevel" classname="BattleSkillResolverTests" runstate="Runnable" seed="151734322" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000045" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1446" name="SpecialClasses_HaveUniqueCombatSkillAtConfiguredLevel(Saint,SaintsGrace,32)" fullname="BattleSkillResolverTests.SpecialClasses_HaveUniqueCombatSkillAtConfiguredLevel(Saint,SaintsGrace,32)" methodname="SpecialClasses_HaveUniqueCombatSkillAtConfiguredLevel" classname="BattleSkillResolverTests" runstate="Runnable" seed="1861028734" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000065" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1447" name="SpecialClasses_HaveUniqueCombatSkillAtConfiguredLevel(Shadow,ShadowRend,36)" fullname="BattleSkillResolverTests.SpecialClasses_HaveUniqueCombatSkillAtConfiguredLevel(Shadow,ShadowRend,36)" methodname="SpecialClasses_HaveUniqueCombatSkillAtConfiguredLevel" classname="BattleSkillResolverTests" runstate="Runnable" seed="1710703744" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000058" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1448" name="SpecialClasses_HaveUniqueCombatSkillAtConfiguredLevel(DragonKnight,DragonBreath,40)" fullname="BattleSkillResolverTests.SpecialClasses_HaveUniqueCombatSkillAtConfiguredLevel(DragonKnight,DragonBreath,40)" methodname="SpecialClasses_HaveUniqueCombatSkillAtConfiguredLevel" classname="BattleSkillResolverTests" runstate="Runnable" seed="1188562428" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000063" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-case id="1457" name="SpecialClassSkill_IsNotSelectedBeforeUnlockLevel" fullname="BattleSkillResolverTests.SpecialClassSkill_IsNotSelectedBeforeUnlockLevel" methodname="SpecialClassSkill_IsNotSelectedBeforeUnlockLevel" classname="BattleSkillResolverTests" runstate="Runnable" seed="12911656" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000418" asserts="0">
+          <properties />
+        </test-case>
+        <test-suite type="ParameterizedMethod" id="1456" name="SpecialClassSkill_IsSelectedConsumesMagicAndWritesLog" fullname="BattleSkillResolverTests.SpecialClassSkill_IsSelectedConsumesMagicAndWritesLog" classname="BattleSkillResolverTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.003031" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1450" name="SpecialClassSkill_IsSelectedConsumesMagicAndWritesLog(Warlord,WarlordCommand)" fullname="BattleSkillResolverTests.SpecialClassSkill_IsSelectedConsumesMagicAndWritesLog(Warlord,WarlordCommand)" methodname="SpecialClassSkill_IsSelectedConsumesMagicAndWritesLog" classname="BattleSkillResolverTests" runstate="Runnable" seed="1636239051" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000663" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1451" name="SpecialClassSkill_IsSelectedConsumesMagicAndWritesLog(Beastmaster,BeastPack)" fullname="BattleSkillResolverTests.SpecialClassSkill_IsSelectedConsumesMagicAndWritesLog(Beastmaster,BeastPack)" methodname="SpecialClassSkill_IsSelectedConsumesMagicAndWritesLog" classname="BattleSkillResolverTests" runstate="Runnable" seed="1968506969" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000091" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1452" name="SpecialClassSkill_IsSelectedConsumesMagicAndWritesLog(Chronomancer,TimeLock)" fullname="BattleSkillResolverTests.SpecialClassSkill_IsSelectedConsumesMagicAndWritesLog(Chronomancer,TimeLock)" methodname="SpecialClassSkill_IsSelectedConsumesMagicAndWritesLog" classname="BattleSkillResolverTests" runstate="Runnable" seed="573619707" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000063" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1453" name="SpecialClassSkill_IsSelectedConsumesMagicAndWritesLog(Saint,SaintsGrace)" fullname="BattleSkillResolverTests.SpecialClassSkill_IsSelectedConsumesMagicAndWritesLog(Saint,SaintsGrace)" methodname="SpecialClassSkill_IsSelectedConsumesMagicAndWritesLog" classname="BattleSkillResolverTests" runstate="Runnable" seed="1413518591" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000058" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1454" name="SpecialClassSkill_IsSelectedConsumesMagicAndWritesLog(Shadow,ShadowRend)" fullname="BattleSkillResolverTests.SpecialClassSkill_IsSelectedConsumesMagicAndWritesLog(Shadow,ShadowRend)" methodname="SpecialClassSkill_IsSelectedConsumesMagicAndWritesLog" classname="BattleSkillResolverTests" runstate="Runnable" seed="400506383" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000046" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1455" name="SpecialClassSkill_IsSelectedConsumesMagicAndWritesLog(DragonKnight,DragonBreath)" fullname="BattleSkillResolverTests.SpecialClassSkill_IsSelectedConsumesMagicAndWritesLog(DragonKnight,DragonBreath)" methodname="SpecialClassSkill_IsSelectedConsumesMagicAndWritesLog" classname="BattleSkillResolverTests" runstate="Runnable" seed="487966970" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000044" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+      </test-suite>
+      <test-suite type="TestFixture" id="1488" name="BattleStatusEffectServiceTests" fullname="BattleStatusEffectServiceTests" classname="BattleStatusEffectServiceTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.002337" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1491" name="ProcessActionStart_ParalysisSkipsAndTicksStatusesImmediately" fullname="BattleStatusEffectServiceTests.ProcessActionStart_ParalysisSkipsAndTicksStatusesImmediately" methodname="ProcessActionStart_ParalysisSkipsAndTicksStatusesImmediately" classname="BattleStatusEffectServiceTests" runstate="Runnable" seed="498742280" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000644" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1490" name="ProcessActionStart_PoisonDeathReturnsDeathWithoutTickingOtherStatuses" fullname="BattleStatusEffectServiceTests.ProcessActionStart_PoisonDeathReturnsDeathWithoutTickingOtherStatuses" methodname="ProcessActionStart_PoisonDeathReturnsDeathWithoutTickingOtherStatuses" classname="BattleStatusEffectServiceTests" runstate="Runnable" seed="90838931" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000244" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1489" name="ProcessActionStart_PoisonPreservesDamageLogTypeAndTiming" fullname="BattleStatusEffectServiceTests.ProcessActionStart_PoisonPreservesDamageLogTypeAndTiming" methodname="ProcessActionStart_PoisonPreservesDamageLogTypeAndTiming" classname="BattleStatusEffectServiceTests" runstate="Runnable" seed="1576406569" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000186" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1492" name="TickAfterAction_LeavesStartOfTurnProcessingUntouched" fullname="BattleStatusEffectServiceTests.TickAfterAction_LeavesStartOfTurnProcessingUntouched" methodname="TickAfterAction_LeavesStartOfTurnProcessingUntouched" classname="BattleStatusEffectServiceTests" runstate="Runnable" seed="1724725355" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000140" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1493" name="DebtManagerTests" fullname="DebtManagerTests" classname="DebtManagerTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.004469" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1494" name="FirstMonth_WithInsufficientGold_CarriesArrears" fullname="DebtManagerTests.FirstMonth_WithInsufficientGold_CarriesArrears" methodname="FirstMonth_WithInsufficientGold_CarriesArrears" classname="DebtManagerTests" runstate="Runnable" seed="643148318" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.001769" asserts="0">
+          <properties />
+          <output><![CDATA[Paid 5000 G. Current gold: 0 G
+]]></output>
+        </test-case>
+        <test-case id="1495" name="ManualRepayment_IsLimitedByOwnedGold" fullname="DebtManagerTests.ManualRepayment_IsLimitedByOwnedGold" methodname="ManualRepayment_IsLimitedByOwnedGold" classname="DebtManagerTests" runstate="Runnable" seed="446910032" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000583" asserts="0">
+          <properties />
+          <output><![CDATA[Paid 5000 G. Current gold: 0 G
+]]></output>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1496" name="DungeonBattleControllerLogTests" fullname="DungeonBattleControllerLogTests" classname="DungeonBattleControllerLogTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.003604" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1498" name="AppendBattleMessage_KeepsLatestTwoHundredFiftyLines" fullname="DungeonBattleControllerLogTests.AppendBattleMessage_KeepsLatestTwoHundredFiftyLines" methodname="AppendBattleMessage_KeepsLatestTwoHundredFiftyLines" classname="DungeonBattleControllerLogTests" runstate="Runnable" seed="475524241" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.002237" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1497" name="AppendBattleMessage_PreservesOnlySpecialEnemyColorTag" fullname="DungeonBattleControllerLogTests.AppendBattleMessage_PreservesOnlySpecialEnemyColorTag" methodname="AppendBattleMessage_PreservesOnlySpecialEnemyColorTag" classname="DungeonBattleControllerLogTests" runstate="Runnable" seed="919402537" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000145" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1499" name="DungeonEquipmentSetBonusTests" fullname="DungeonEquipmentSetBonusTests" classname="DungeonEquipmentSetBonusTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.005118" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1506" name="DungeonSetEquipment_IsUsableByEveryBaseClass" fullname="DungeonEquipmentSetBonusTests.DungeonSetEquipment_IsUsableByEveryBaseClass" methodname="DungeonSetEquipment_IsUsableByEveryBaseClass" classname="DungeonEquipmentSetBonusTests" runstate="Runnable" seed="1105215520" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000422" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1507" name="ExistingOniHunterSet_RemainsUnchanged" fullname="DungeonEquipmentSetBonusTests.ExistingOniHunterSet_RemainsUnchanged" methodname="ExistingOniHunterSet_RemainsUnchanged" classname="DungeonEquipmentSetBonusTests" runstate="Runnable" seed="276723593" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.002390" asserts="0">
+          <properties />
+        </test-case>
+        <test-suite type="ParameterizedMethod" id="1505" name="FullDungeonSet_AppliesProgressiveAllRoleBonuses" fullname="DungeonEquipmentSetBonusTests.FullDungeonSet_AppliesProgressiveAllRoleBonuses" classname="DungeonEquipmentSetBonusTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.001515" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1500" name="FullDungeonSet_AppliesProgressiveAllRoleBonuses(NornCanopy,116,14,7,1.02f)" fullname="DungeonEquipmentSetBonusTests.FullDungeonSet_AppliesProgressiveAllRoleBonuses(NornCanopy,116,14,7,1.02f)" methodname="FullDungeonSet_AppliesProgressiveAllRoleBonuses" classname="DungeonEquipmentSetBonusTests" runstate="Runnable" seed="1246324932" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000412" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1501" name="FullDungeonSet_AppliesProgressiveAllRoleBonuses(GlaadSkyFortress,122,13,9,1.025f)" fullname="DungeonEquipmentSetBonusTests.FullDungeonSet_AppliesProgressiveAllRoleBonuses(GlaadSkyFortress,122,13,9,1.025f)" methodname="FullDungeonSet_AppliesProgressiveAllRoleBonuses" classname="DungeonEquipmentSetBonusTests" runstate="Runnable" seed="606191213" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000150" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1502" name="FullDungeonSet_AppliesProgressiveAllRoleBonuses(VelmBlackIron,128,14,11,1.03f)" fullname="DungeonEquipmentSetBonusTests.FullDungeonSet_AppliesProgressiveAllRoleBonuses(VelmBlackIron,128,14,11,1.03f)" methodname="FullDungeonSet_AppliesProgressiveAllRoleBonuses" classname="DungeonEquipmentSetBonusTests" runstate="Runnable" seed="786176084" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000139" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1503" name="FullDungeonSet_AppliesProgressiveAllRoleBonuses(AbyssThrone,136,17,10,1.035f)" fullname="DungeonEquipmentSetBonusTests.FullDungeonSet_AppliesProgressiveAllRoleBonuses(AbyssThrone,136,17,10,1.035f)" methodname="FullDungeonSet_AppliesProgressiveAllRoleBonuses" classname="DungeonEquipmentSetBonusTests" runstate="Runnable" seed="1672103284" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000138" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1504" name="FullDungeonSet_AppliesProgressiveAllRoleBonuses(AstralDepths,145,20,13,1.04f)" fullname="DungeonEquipmentSetBonusTests.FullDungeonSet_AppliesProgressiveAllRoleBonuses(AstralDepths,145,20,13,1.04f)" methodname="FullDungeonSet_AppliesProgressiveAllRoleBonuses" classname="DungeonEquipmentSetBonusTests" runstate="Runnable" seed="1835180725" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000139" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+      </test-suite>
+      <test-suite type="TestFixture" id="1508" name="DungeonEventServiceTests" fullname="DungeonEventServiceTests" classname="DungeonEventServiceTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.004102" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1509" name="AbandonedCamp_TradesFullRecoveryForOneDay" fullname="DungeonEventServiceTests.AbandonedCamp_TradesFullRecoveryForOneDay" methodname="AbandonedCamp_TradesFullRecoveryForOneDay" classname="DungeonEventServiceTests" runstate="Runnable" seed="726539564" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000390" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1511" name="CollapsedPassage_TradesOneDayForAvoidingDamage" fullname="DungeonEventServiceTests.CollapsedPassage_TradesOneDayForAvoidingDamage" methodname="CollapsedPassage_TradesOneDayForAvoidingDamage" classname="DungeonEventServiceTests" runstate="Runnable" seed="769846719" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000200" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1510" name="TreasureCache_TradesTimeForSafetyAndFullReward" fullname="DungeonEventServiceTests.TreasureCache_TradesTimeForSafetyAndFullReward" methodname="TreasureCache_TradesTimeForSafetyAndFullReward" classname="DungeonEventServiceTests" runstate="Runnable" seed="62985515" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000197" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1512" name="DungeonEventStateTests" fullname="DungeonEventStateTests" classname="DungeonEventStateTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.003752" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1513" name="Empty_HasNoEventAndEmptyPresentation" fullname="DungeonEventStateTests.Empty_HasNoEventAndEmptyPresentation" methodname="Empty_HasNoEventAndEmptyPresentation" classname="DungeonEventStateTests" runstate="Runnable" seed="444780537" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000607" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1514" name="State_ContainsMatchingTypeAndPresentationAsOneValue" fullname="DungeonEventStateTests.State_ContainsMatchingTypeAndPresentationAsOneValue" methodname="State_ContainsMatchingTypeAndPresentationAsOneValue" classname="DungeonEventStateTests" runstate="Runnable" seed="1741967864" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000256" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1515" name="DungeonProgressStoreTests" fullname="DungeonProgressStoreTests" classname="DungeonProgressStoreTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.010083" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1516" name="Load_ClampsSavedHighestUnlockedGrade" fullname="DungeonProgressStoreTests.Load_ClampsSavedHighestUnlockedGrade" methodname="Load_ClampsSavedHighestUnlockedGrade" classname="DungeonProgressStoreTests" runstate="Runnable" seed="2036579039" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.001054" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1518" name="Reset_ClearsProgressAndDeletesSavedGrade" fullname="DungeonProgressStoreTests.Reset_ClearsProgressAndDeletesSavedGrade" methodname="Reset_ClearsProgressAndDeletesSavedGrade" classname="DungeonProgressStoreTests" runstate="Runnable" seed="251779431" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.002519" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1517" name="RestoreProgress_WithLegacyAssetName_UsesPersistentIdWhenSaving" fullname="DungeonProgressStoreTests.RestoreProgress_WithLegacyAssetName_UsesPersistentIdWhenSaving" methodname="RestoreProgress_WithLegacyAssetName_UsesPersistentIdWhenSaving" classname="DungeonProgressStoreTests" runstate="Runnable" seed="1318589271" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.002789" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1519" name="DungeonRunManagerTests" fullname="DungeonRunManagerTests" classname="DungeonRunManagerTests" runstate="Runnable" testcasecount="14" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.089916" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="ParameterizedMethod" id="1533" name="ChooseEventOption_WhenNotRunning_ReturnsFalseForAnyIndex" fullname="DungeonRunManagerTests.ChooseEventOption_WhenNotRunning_ReturnsFalseForAnyIndex" classname="DungeonRunManagerTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.005576" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1528" name="ChooseEventOption_WhenNotRunning_ReturnsFalseForAnyIndex(-1)" fullname="DungeonRunManagerTests.ChooseEventOption_WhenNotRunning_ReturnsFalseForAnyIndex(-1)" methodname="ChooseEventOption_WhenNotRunning_ReturnsFalseForAnyIndex" classname="DungeonRunManagerTests" runstate="Runnable" seed="1821284368" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.001259" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1529" name="ChooseEventOption_WhenNotRunning_ReturnsFalseForAnyIndex(0)" fullname="DungeonRunManagerTests.ChooseEventOption_WhenNotRunning_ReturnsFalseForAnyIndex(0)" methodname="ChooseEventOption_WhenNotRunning_ReturnsFalseForAnyIndex" classname="DungeonRunManagerTests" runstate="Runnable" seed="628232027" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000261" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1530" name="ChooseEventOption_WhenNotRunning_ReturnsFalseForAnyIndex(1)" fullname="DungeonRunManagerTests.ChooseEventOption_WhenNotRunning_ReturnsFalseForAnyIndex(1)" methodname="ChooseEventOption_WhenNotRunning_ReturnsFalseForAnyIndex" classname="DungeonRunManagerTests" runstate="Runnable" seed="937915661" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000208" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1531" name="ChooseEventOption_WhenNotRunning_ReturnsFalseForAnyIndex(2)" fullname="DungeonRunManagerTests.ChooseEventOption_WhenNotRunning_ReturnsFalseForAnyIndex(2)" methodname="ChooseEventOption_WhenNotRunning_ReturnsFalseForAnyIndex" classname="DungeonRunManagerTests" runstate="Runnable" seed="669354571" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000176" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1532" name="ChooseEventOption_WhenNotRunning_ReturnsFalseForAnyIndex(3)" fullname="DungeonRunManagerTests.ChooseEventOption_WhenNotRunning_ReturnsFalseForAnyIndex(3)" methodname="ChooseEventOption_WhenNotRunning_ReturnsFalseForAnyIndex" classname="DungeonRunManagerTests" runstate="Runnable" seed="517729868" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000170" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-case id="1522" name="IsDungeonUnlocked_MatchingWorldMapAndDefaultUnlockedTown_ReturnsTrue" fullname="DungeonRunManagerTests.IsDungeonUnlocked_MatchingWorldMapAndDefaultUnlockedTown_ReturnsTrue" methodname="IsDungeonUnlocked_MatchingWorldMapAndDefaultUnlockedTown_ReturnsTrue" classname="DungeonRunManagerTests" runstate="Runnable" seed="1198105029" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000598" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1521" name="IsDungeonUnlocked_TownNotInDefaultUnlockedSet_ReturnsFalse" fullname="DungeonRunManagerTests.IsDungeonUnlocked_TownNotInDefaultUnlockedSet_ReturnsFalse" methodname="IsDungeonUnlocked_TownNotInDefaultUnlockedSet_ReturnsFalse" classname="DungeonRunManagerTests" runstate="Runnable" seed="505544668" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000320" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1520" name="IsDungeonUnlocked_WorldMapIndexMismatch_ReturnsFalse" fullname="DungeonRunManagerTests.IsDungeonUnlocked_WorldMapIndexMismatch_ReturnsFalse" methodname="IsDungeonUnlocked_WorldMapIndexMismatch_ReturnsFalse" classname="DungeonRunManagerTests" runstate="Runnable" seed="315182139" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000260" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1534" name="RestoreProgress_ThenCreateFloorProgressSaveData_RoundTripsClearedFloors" fullname="DungeonRunManagerTests.RestoreProgress_ThenCreateFloorProgressSaveData_RoundTripsClearedFloors" methodname="RestoreProgress_ThenCreateFloorProgressSaveData_RoundTripsClearedFloors" classname="DungeonRunManagerTests" runstate="Runnable" seed="147804845" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.077588" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1527" name="StartRun_WithBattleManagerButEmptyParty_ReturnsFalseAndDoesNotThrow" fullname="DungeonRunManagerTests.StartRun_WithBattleManagerButEmptyParty_ReturnsFalseAndDoesNotThrow" methodname="StartRun_WithBattleManagerButEmptyParty_ReturnsFalseAndDoesNotThrow" classname="DungeonRunManagerTests" runstate="Runnable" seed="1061008818" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.001889" asserts="0">
+          <properties />
+          <output><![CDATA[ダンジョンへ入る前に傭兵を編成してください。
+]]></output>
+        </test-case>
+        <test-case id="1526" name="StartRun_WithNoBattleManagerOrPartyManagerInScene_ReturnsFalseAndDoesNotThrow" fullname="DungeonRunManagerTests.StartRun_WithNoBattleManagerOrPartyManagerInScene_ReturnsFalseAndDoesNotThrow" methodname="StartRun_WithNoBattleManagerOrPartyManagerInScene_ReturnsFalseAndDoesNotThrow" classname="DungeonRunManagerTests" runstate="Runnable" seed="1841074226" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000893" asserts="0">
+          <properties />
+          <output><![CDATA[ダンジョン探索に必要な参照が不足しています。
+]]></output>
+        </test-case>
+        <test-case id="1524" name="TrySelectDungeon_LockedDungeon_ReturnsFalseAndDoesNotChangeSelection" fullname="DungeonRunManagerTests.TrySelectDungeon_LockedDungeon_ReturnsFalseAndDoesNotChangeSelection" methodname="TrySelectDungeon_LockedDungeon_ReturnsFalseAndDoesNotChangeSelection" classname="DungeonRunManagerTests" runstate="Runnable" seed="1002536534" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000393" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1523" name="TrySelectDungeon_NullData_ReturnsFalse" fullname="DungeonRunManagerTests.TrySelectDungeon_NullData_ReturnsFalse" methodname="TrySelectDungeon_NullData_ReturnsFalse" classname="DungeonRunManagerTests" runstate="Runnable" seed="1368347925" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000246" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1525" name="TrySelectDungeon_UnlockedDungeon_ReturnsTrueUpdatesSelectionAndFiresStateChanged" fullname="DungeonRunManagerTests.TrySelectDungeon_UnlockedDungeon_ReturnsTrueUpdatesSelectionAndFiresStateChanged" methodname="TrySelectDungeon_UnlockedDungeon_ReturnsTrueUpdatesSelectionAndFiresStateChanged" classname="DungeonRunManagerTests" runstate="Runnable" seed="1076407941" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000753" asserts="0">
+          <properties />
+          <output><![CDATA[低級「はじまりの洞窟」を選択しました。
+]]></output>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1535" name="EnemySkillBalanceTests" fullname="EnemySkillBalanceTests" classname="EnemySkillBalanceTests" runstate="Runnable" testcasecount="14" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.006526" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1544" name="ArcaneBolt_UsesMaxMagicPowerAndStillUsesDefense" fullname="EnemySkillBalanceTests.ArcaneBolt_UsesMaxMagicPowerAndStillUsesDefense" methodname="ArcaneBolt_UsesMaxMagicPowerAndStillUsesDefense" classname="EnemySkillBalanceTests" runstate="Runnable" seed="1933215485" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.001191" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1547" name="BerserkRush_ResolvesFourModerateHits" fullname="EnemySkillBalanceTests.BerserkRush_ResolvesFourModerateHits" methodname="BerserkRush_ResolvesFourModerateHits" classname="EnemySkillBalanceTests" runstate="Runnable" seed="2117784398" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000277" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1546" name="CrushingBlow_AppliesParalysisOnlyAfterAHit" fullname="EnemySkillBalanceTests.CrushingBlow_AppliesParalysisOnlyAfterAHit" methodname="CrushingBlow_AppliesParalysisOnlyAfterAHit" classname="EnemySkillBalanceTests" runstate="Runnable" seed="1801776876" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000331" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1536" name="EnemySkillType_ExistingValuesRemainStable_NewSkillsAppendAfterThem" fullname="EnemySkillBalanceTests.EnemySkillType_ExistingValuesRemainStable_NewSkillsAppendAfterThem" methodname="EnemySkillType_ExistingValuesRemainStable_NewSkillsAppendAfterThem" classname="EnemySkillBalanceTests" runstate="Runnable" seed="1377199593" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000350" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1550" name="EvadedCrushingBlow_DoesNotApplyParalysis" fullname="EnemySkillBalanceTests.EvadedCrushingBlow_DoesNotApplyParalysis" methodname="EvadedCrushingBlow_DoesNotApplyParalysis" classname="EnemySkillBalanceTests" runstate="Runnable" seed="2088346004" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000201" asserts="0">
+          <properties />
+        </test-case>
+        <test-suite type="ParameterizedMethod" id="1543" name="GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands" fullname="EnemySkillBalanceTests.GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands" classname="EnemySkillBalanceTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.001186" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1537" name="GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands(2,MeteorRain)" fullname="EnemySkillBalanceTests.GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands(2,MeteorRain)" methodname="GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands" classname="EnemySkillBalanceTests" runstate="Runnable" seed="177119081" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000131" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1538" name="GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands(3,BerserkRush)" fullname="EnemySkillBalanceTests.GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands(3,BerserkRush)" methodname="GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands" classname="EnemySkillBalanceTests" runstate="Runnable" seed="1823897597" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000079" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1539" name="GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands(4,SoulBurst)" fullname="EnemySkillBalanceTests.GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands(4,SoulBurst)" methodname="GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands" classname="EnemySkillBalanceTests" runstate="Runnable" seed="987139906" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000057" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1540" name="GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands(8,ArcaneBolt)" fullname="EnemySkillBalanceTests.GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands(8,ArcaneBolt)" methodname="GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands" classname="EnemySkillBalanceTests" runstate="Runnable" seed="1440885741" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000056" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1541" name="GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands(9,CrushingBlow)" fullname="EnemySkillBalanceTests.GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands(9,CrushingBlow)" methodname="GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands" classname="EnemySkillBalanceTests" runstate="Runnable" seed="806271054" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000068" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1542" name="GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands(10,Regeneration)" fullname="EnemySkillBalanceTests.GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands(10,Regeneration)" methodname="GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands" classname="EnemySkillBalanceTests" runstate="Runnable" seed="306821769" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000062" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-case id="1545" name="MeteorRain_DamagesEveryLivingPlayerWithMagicScaling" fullname="EnemySkillBalanceTests.MeteorRain_DamagesEveryLivingPlayerWithMagicScaling" methodname="MeteorRain_DamagesEveryLivingPlayerWithMagicScaling" classname="EnemySkillBalanceTests" runstate="Runnable" seed="446154404" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000467" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1548" name="Regeneration_HealsOnlyBelowItsHpThreshold" fullname="EnemySkillBalanceTests.Regeneration_HealsOnlyBelowItsHpThreshold" methodname="Regeneration_HealsOnlyBelowItsHpThreshold" classname="EnemySkillBalanceTests" runstate="Runnable" seed="813768867" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000322" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1549" name="SoulBurst_ConsumesSmallSelfHpAndHitsTheWholeParty" fullname="EnemySkillBalanceTests.SoulBurst_ConsumesSmallSelfHpAndHitsTheWholeParty" methodname="SoulBurst_ConsumesSmallSelfHpAndHitsTheWholeParty" classname="EnemySkillBalanceTests" runstate="Runnable" seed="243855846" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000567" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1551" name="EquipmentAvailabilityTests" fullname="EquipmentAvailabilityTests" classname="EquipmentAvailabilityTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.005278" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1552" name="EveryMarketEquipment_ReachesAStandardTownMarket" fullname="EquipmentAvailabilityTests.EveryMarketEquipment_ReachesAStandardTownMarket" methodname="EveryMarketEquipment_ReachesAStandardTownMarket" classname="EquipmentAvailabilityTests" runstate="Runnable" seed="632654979" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000910" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1553" name="Rank08Equipment_HasOneRecipePerItemAtAbyssBlacksmith" fullname="EquipmentAvailabilityTests.Rank08Equipment_HasOneRecipePerItemAtAbyssBlacksmith" methodname="Rank08Equipment_HasOneRecipePerItemAtAbyssBlacksmith" classname="EquipmentAvailabilityTests" runstate="Runnable" seed="1184932487" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.002217" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1554" name="Rank09Equipment_IsConnectedToHighestAbyssWithoutReplacingItsSet" fullname="EquipmentAvailabilityTests.Rank09Equipment_IsConnectedToHighestAbyssWithoutReplacingItsSet" methodname="Rank09Equipment_IsConnectedToHighestAbyssWithoutReplacingItsSet" classname="EquipmentAvailabilityTests" runstate="Runnable" seed="311400759" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000637" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1555" name="GameAssetRepositoryTests" fullname="GameAssetRepositoryTests" classname="GameAssetRepositoryTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.012450" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1560" name="DungeonPersistentIds_ArePresentAndUnique" fullname="GameAssetRepositoryTests.DungeonPersistentIds_ArePresentAndUnique" methodname="DungeonPersistentIds_ArePresentAndUnique" classname="GameAssetRepositoryTests" runstate="Runnable" seed="963047095" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000636" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1562" name="DungeonSpecialBossChance_IsHiddenElementLevel" fullname="GameAssetRepositoryTests.DungeonSpecialBossChance_IsHiddenElementLevel" methodname="DungeonSpecialBossChance_IsHiddenElementLevel" classname="GameAssetRepositoryTests" runstate="Runnable" seed="1962029246" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000447" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1563" name="DungeonSpecialVariantSkillPools_AreValidAndCoverNewSkills" fullname="GameAssetRepositoryTests.DungeonSpecialVariantSkillPools_AreValidAndCoverNewSkills" methodname="DungeonSpecialVariantSkillPools_AreValidAndCoverNewSkills" classname="GameAssetRepositoryTests" runstate="Runnable" seed="500850223" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.001709" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1559" name="EarlyRankClassEquipment_IsEvenlyDistributedAcrossBaseClasses" fullname="GameAssetRepositoryTests.EarlyRankClassEquipment_IsEvenlyDistributedAcrossBaseClasses" methodname="EarlyRankClassEquipment_IsEvenlyDistributedAcrossBaseClasses" classname="GameAssetRepositoryTests" runstate="Runnable" seed="1723789542" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.001656" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1564" name="GlaadAndVelmDungeons_UseDistinctRegionalEnemyRosters" fullname="GameAssetRepositoryTests.GlaadAndVelmDungeons_UseDistinctRegionalEnemyRosters" methodname="GlaadAndVelmDungeons_UseDistinctRegionalEnemyRosters" classname="GameAssetRepositoryTests" runstate="Runnable" seed="858847009" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000661" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1561" name="HighestDungeonForEachTown_IsUniqueAndUsesExpectedEquipmentRank" fullname="GameAssetRepositoryTests.HighestDungeonForEachTown_IsUniqueAndUsesExpectedEquipmentRank" methodname="HighestDungeonForEachTown_IsUniqueAndUsesExpectedEquipmentRank" classname="GameAssetRepositoryTests" runstate="Runnable" seed="1744398462" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000676" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1556" name="ItemPersistentIds_ArePresentAndUnique" fullname="GameAssetRepositoryTests.ItemPersistentIds_ArePresentAndUnique" methodname="ItemPersistentIds_ArePresentAndUnique" classname="GameAssetRepositoryTests" runstate="Runnable" seed="1959784031" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.003611" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1558" name="MercenaryArchetypePersistentIds_ArePresentAndUnique" fullname="GameAssetRepositoryTests.MercenaryArchetypePersistentIds_ArePresentAndUnique" methodname="MercenaryArchetypePersistentIds_ArePresentAndUnique" classname="GameAssetRepositoryTests" runstate="Runnable" seed="643664144" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000397" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1557" name="MercenaryPersistentIds_ArePresentAndUnique" fullname="GameAssetRepositoryTests.MercenaryPersistentIds_ArePresentAndUnique" methodname="MercenaryPersistentIds_ArePresentAndUnique" classname="GameAssetRepositoryTests" runstate="Runnable" seed="1293375477" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000723" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1565" name="VelmEnemyRoster_IsStrongerThanGlaadRosterOnAverage" fullname="GameAssetRepositoryTests.VelmEnemyRoster_IsStrongerThanGlaadRosterOnAverage" methodname="VelmEnemyRoster_IsStrongerThanGlaadRosterOnAverage" classname="GameAssetRepositoryTests" runstate="Runnable" seed="309417759" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000768" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1566" name="HealingCostServiceTests" fullname="HealingCostServiceTests" classname="HealingCostServiceTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.003498" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1572" name="CalculateFullHealCost_Incapacitated_AddsFlatRevivalCost" fullname="HealingCostServiceTests.CalculateFullHealCost_Incapacitated_AddsFlatRevivalCost" methodname="CalculateFullHealCost_Incapacitated_AddsFlatRevivalCost" classname="HealingCostServiceTests" runstate="Runnable" seed="1079988936" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000347" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1567" name="CalculateFullHealCost_NoMissingHP_IsFree" fullname="HealingCostServiceTests.CalculateFullHealCost_NoMissingHP_IsFree" methodname="CalculateFullHealCost_NoMissingHP_IsFree" classname="HealingCostServiceTests" runstate="Runnable" seed="1924820468" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000124" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1573" name="CalculateFullHealCost_OddMaxHP_AccountsForEveryMissingHP" fullname="HealingCostServiceTests.CalculateFullHealCost_OddMaxHP_AccountsForEveryMissingHP" methodname="CalculateFullHealCost_OddMaxHP_AccountsForEveryMissingHP" classname="HealingCostServiceTests" runstate="Runnable" seed="1159787248" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000129" asserts="0">
+          <properties />
+        </test-case>
+        <test-suite type="ParameterizedMethod" id="1571" name="CalculateFullHealCost_UsesProgressiveInjuryTiers" fullname="HealingCostServiceTests.CalculateFullHealCost_UsesProgressiveInjuryTiers" classname="HealingCostServiceTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.002030" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1568" name="CalculateFullHealCost_UsesProgressiveInjuryTiers(80,20,0,0,20)" fullname="HealingCostServiceTests.CalculateFullHealCost_UsesProgressiveInjuryTiers(80,20,0,0,20)" methodname="CalculateFullHealCost_UsesProgressiveInjuryTiers" classname="HealingCostServiceTests" runstate="Runnable" seed="1352676881" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000236" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1569" name="CalculateFullHealCost_UsesProgressiveInjuryTiers(60,25,15,0,55)" fullname="HealingCostServiceTests.CalculateFullHealCost_UsesProgressiveInjuryTiers(60,25,15,0,55)" methodname="CalculateFullHealCost_UsesProgressiveInjuryTiers" classname="HealingCostServiceTests" runstate="Runnable" seed="1717595913" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000053" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1570" name="CalculateFullHealCost_UsesProgressiveInjuryTiers(25,25,25,25,150)" fullname="HealingCostServiceTests.CalculateFullHealCost_UsesProgressiveInjuryTiers(25,25,25,25,150)" methodname="CalculateFullHealCost_UsesProgressiveInjuryTiers" classname="HealingCostServiceTests" runstate="Runnable" seed="195179910" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000041" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+      </test-suite>
+      <test-suite type="TestFixture" id="1574" name="HealingManagerTests" fullname="HealingManagerTests" classname="HealingManagerTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.005580" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1575" name="GetFullHealCostBreakdown_ExposesUiReadyComponents" fullname="HealingManagerTests.GetFullHealCostBreakdown_ExposesUiReadyComponents" methodname="GetFullHealCostBreakdown_ExposesUiReadyComponents" classname="HealingManagerTests" runstate="Runnable" seed="1924152008" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000731" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1577" name="TryHealFull_WhenAffordable_ChargesExactCostAndHeals" fullname="HealingManagerTests.TryHealFull_WhenAffordable_ChargesExactCostAndHeals" methodname="TryHealFull_WhenAffordable_ChargesExactCostAndHeals" classname="HealingManagerTests" runstate="Runnable" seed="1000129571" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.001629" asserts="0">
+          <properties />
+          <output><![CDATA[Paid 275 G. Current gold: 25 G
+Healed Healing Tester for 275 G.
+]]></output>
+        </test-case>
+        <test-case id="1576" name="TryHealFull_WithInsufficientGold_DoesNotChargeOrHeal" fullname="HealingManagerTests.TryHealFull_WithInsufficientGold_DoesNotChargeOrHeal" methodname="TryHealFull_WithInsufficientGold_DoesNotChargeOrHeal" classname="HealingManagerTests" runstate="Runnable" seed="1229203430" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000667" asserts="0">
+          <properties />
+          <output><![CDATA[Not enough gold.
+]]></output>
+        </test-case>
+        <test-case id="1578" name="TryHealFull_WithoutInjury_IsFreeAndReturnsFalse" fullname="HealingManagerTests.TryHealFull_WithoutInjury_IsFreeAndReturnsFalse" methodname="TryHealFull_WithoutInjury_IsFreeAndReturnsFalse" classname="HealingManagerTests" runstate="Runnable" seed="2056450706" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000361" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1579" name="HiddenIslandUnlockServiceTests" fullname="HiddenIslandUnlockServiceTests" classname="HiddenIslandUnlockServiceTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.004078" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1585" name="CanUnlock_RejectsEmptyDungeonEquipmentCatalog" fullname="HiddenIslandUnlockServiceTests.CanUnlock_RejectsEmptyDungeonEquipmentCatalog" methodname="CanUnlock_RejectsEmptyDungeonEquipmentCatalog" classname="HiddenIslandUnlockServiceTests" runstate="Runnable" seed="1867687922" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000202" asserts="0">
+          <properties />
+        </test-case>
+        <test-suite type="ParameterizedMethod" id="1584" name="CanUnlock_RequiresAllThreeConditions" fullname="HiddenIslandUnlockServiceTests.CanUnlock_RequiresAllThreeConditions" classname="HiddenIslandUnlockServiceTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.003367" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1580" name="CanUnlock_RequiresAllThreeConditions(False,9,9,3,False)" fullname="HiddenIslandUnlockServiceTests.CanUnlock_RequiresAllThreeConditions(False,9,9,3,False)" methodname="CanUnlock_RequiresAllThreeConditions" classname="HiddenIslandUnlockServiceTests" runstate="Runnable" seed="871045707" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000800" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1581" name="CanUnlock_RequiresAllThreeConditions(True,8,9,3,False)" fullname="HiddenIslandUnlockServiceTests.CanUnlock_RequiresAllThreeConditions(True,8,9,3,False)" methodname="CanUnlock_RequiresAllThreeConditions" classname="HiddenIslandUnlockServiceTests" runstate="Runnable" seed="101572089" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000091" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1582" name="CanUnlock_RequiresAllThreeConditions(True,9,9,2,False)" fullname="HiddenIslandUnlockServiceTests.CanUnlock_RequiresAllThreeConditions(True,9,9,2,False)" methodname="CanUnlock_RequiresAllThreeConditions" classname="HiddenIslandUnlockServiceTests" runstate="Runnable" seed="1111410928" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000068" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1583" name="CanUnlock_RequiresAllThreeConditions(True,9,9,3,True)" fullname="HiddenIslandUnlockServiceTests.CanUnlock_RequiresAllThreeConditions(True,9,9,3,True)" methodname="CanUnlock_RequiresAllThreeConditions" classname="HiddenIslandUnlockServiceTests" runstate="Runnable" seed="1994124014" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000043" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+      </test-suite>
+      <test-suite type="TestFixture" id="1586" name="JobChangePageUITests" fullname="JobChangePageUITests" classname="JobChangePageUITests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.004035" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1587" name="Initialize_AssignsListWithoutRecursiveCall" fullname="JobChangePageUITests.Initialize_AssignsListWithoutRecursiveCall" methodname="Initialize_AssignsListWithoutRecursiveCall" classname="JobChangePageUITests" runstate="Runnable" seed="1381627459" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.001919" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1588" name="MarketStockManagerTests" fullname="MarketStockManagerTests" classname="MarketStockManagerTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:55Z" duration="0.007367" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1589" name="GetBuyMultiplier_CalledTwiceWithSameInputs_ReturnsIdenticalValue" fullname="MarketStockManagerTests.GetBuyMultiplier_CalledTwiceWithSameInputs_ReturnsIdenticalValue" methodname="GetBuyMultiplier_CalledTwiceWithSameInputs_ReturnsIdenticalValue" classname="MarketStockManagerTests" runstate="Runnable" seed="1994680746" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000914" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1591" name="GetBuyMultiplier_DifferentSalts_ProduceNotAllIdenticalValues" fullname="MarketStockManagerTests.GetBuyMultiplier_DifferentSalts_ProduceNotAllIdenticalValues" methodname="GetBuyMultiplier_DifferentSalts_ProduceNotAllIdenticalValues" classname="MarketStockManagerTests" runstate="Runnable" seed="1657271069" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:54Z" duration="0.000988" asserts="0">
+          <properties />
+        </test-case>
+        <test-suite type="ParameterizedMethod" id="1598" name="GetBuyMultiplier_ForVariousItems_StaysWithinConfiguredRange" fullname="MarketStockManagerTests.GetBuyMultiplier_ForVariousItems_StaysWithinConfiguredRange" classname="MarketStockManagerTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-07-14 18:45:54Z" end-time="2026-07-14 18:45:55Z" duration="0.003778" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1592" name="GetBuyMultiplier_ForVariousItems_StaysWithinConfiguredRange(&quot;Iron Dagger&quot;,Equipment,Common)" fullname="MarketStockManagerTests.GetBuyMultiplier_ForVariousItems_StaysWithinConfiguredRange(&quot;Iron Dagger&quot;,Equipment,Common)" methodname="GetBuyMultiplier_ForVariousItems_StaysWithinConfiguredRange" classname="MarketStockManagerTests" runstate="Runnable" seed="214954468" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000626" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1593" name="GetBuyMultiplier_ForVariousItems_StaysWithinConfiguredRange(&quot;Iron Dagger&quot;,Equipment,Epic)" fullname="MarketStockManagerTests.GetBuyMultiplier_ForVariousItems_StaysWithinConfiguredRange(&quot;Iron Dagger&quot;,Equipment,Epic)" methodname="GetBuyMultiplier_ForVariousItems_StaysWithinConfiguredRange" classname="MarketStockManagerTests" runstate="Runnable" seed="754167543" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000187" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1594" name="GetBuyMultiplier_ForVariousItems_StaysWithinConfiguredRange(&quot;Phoenix Feather&quot;,Relic,Rare)" fullname="MarketStockManagerTests.GetBuyMultiplier_ForVariousItems_StaysWithinConfiguredRange(&quot;Phoenix Feather&quot;,Relic,Rare)" methodname="GetBuyMultiplier_ForVariousItems_StaysWithinConfiguredRange" classname="MarketStockManagerTests" runstate="Runnable" seed="2060447781" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000170" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1595" name="GetBuyMultiplier_ForVariousItems_StaysWithinConfiguredRange(&quot;Healing Draught&quot;,Consumable,Uncommon)" fullname="MarketStockManagerTests.GetBuyMultiplier_ForVariousItems_StaysWithinConfiguredRange(&quot;Healing Draught&quot;,Consumable,Uncommon)" methodname="GetBuyMultiplier_ForVariousItems_StaysWithinConfiguredRange" classname="MarketStockManagerTests" runstate="Runnable" seed="501161249" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000156" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1596" name="GetBuyMultiplier_ForVariousItems_StaysWithinConfiguredRange(&quot;Raw Ore&quot;,Material,Common)" fullname="MarketStockManagerTests.GetBuyMultiplier_ForVariousItems_StaysWithinConfiguredRange(&quot;Raw Ore&quot;,Material,Common)" methodname="GetBuyMultiplier_ForVariousItems_StaysWithinConfiguredRange" classname="MarketStockManagerTests" runstate="Runnable" seed="631896019" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000143" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1597" name="GetBuyMultiplier_ForVariousItems_StaysWithinConfiguredRange(&quot;&quot;,Equipment,Common)" fullname="MarketStockManagerTests.GetBuyMultiplier_ForVariousItems_StaysWithinConfiguredRange(&quot;&quot;,Equipment,Common)" methodname="GetBuyMultiplier_ForVariousItems_StaysWithinConfiguredRange" classname="MarketStockManagerTests" runstate="Runnable" seed="1043064521" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000174" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-case id="1590" name="GetBuyMultiplier_NullItem_ReturnsOne" fullname="MarketStockManagerTests.GetBuyMultiplier_NullItem_ReturnsOne" methodname="GetBuyMultiplier_NullItem_ReturnsOne" classname="MarketStockManagerTests" runstate="Runnable" seed="74264790" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000205" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1599" name="MinimumAndMaximumBuyMultiplier_DefaultTo_0_65And1_15" fullname="MarketStockManagerTests.MinimumAndMaximumBuyMultiplier_DefaultTo_0_65And1_15" methodname="MinimumAndMaximumBuyMultiplier_DefaultTo_0_65And1_15" classname="MarketStockManagerTests" runstate="Runnable" seed="1474324297" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000247" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1600" name="MercenaryClassProgressionTests" fullname="MercenaryClassProgressionTests" classname="MercenaryClassProgressionTests" runstate="Runnable" testcasecount="19" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.008810" total="19" passed="19" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1621" name="AddedSkillIds_AreTheFinalContiguousEnumEntries" fullname="MercenaryClassProgressionTests.AddedSkillIds_AreTheFinalContiguousEnumEntries" methodname="AddedSkillIds_AreTheFinalContiguousEnumEntries" classname="MercenaryClassProgressionTests" runstate="Runnable" seed="1201342472" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000287" asserts="0">
+          <properties />
+        </test-case>
+        <test-suite type="ParameterizedMethod" id="1613" name="AdvancedClass_HasUniqueLevel25ActiveSkill" fullname="MercenaryClassProgressionTests.AdvancedClass_HasUniqueLevel25ActiveSkill" classname="MercenaryClassProgressionTests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.005931" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1601" name="AdvancedClass_HasUniqueLevel25ActiveSkill(Knight,AegisPierce,50,1.45f)" fullname="MercenaryClassProgressionTests.AdvancedClass_HasUniqueLevel25ActiveSkill(Knight,AegisPierce,50,1.45f)" methodname="AdvancedClass_HasUniqueLevel25ActiveSkill" classname="MercenaryClassProgressionTests" runstate="Runnable" seed="634660332" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000375" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1602" name="AdvancedClass_HasUniqueLevel25ActiveSkill(Berserker,RagingCombo,55,0.55f)" fullname="MercenaryClassProgressionTests.AdvancedClass_HasUniqueLevel25ActiveSkill(Berserker,RagingCombo,55,0.55f)" methodname="AdvancedClass_HasUniqueLevel25ActiveSkill" classname="MercenaryClassProgressionTests" runstate="Runnable" seed="405632856" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000061" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1603" name="AdvancedClass_HasUniqueLevel25ActiveSkill(Sniper,ArmorBreakArrow,50,1.55f)" fullname="MercenaryClassProgressionTests.AdvancedClass_HasUniqueLevel25ActiveSkill(Sniper,ArmorBreakArrow,50,1.55f)" methodname="AdvancedClass_HasUniqueLevel25ActiveSkill" classname="MercenaryClassProgressionTests" runstate="Runnable" seed="1357123867" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000055" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1604" name="AdvancedClass_HasUniqueLevel25ActiveSkill(Ranger,GaleVolley,55,0.75f)" fullname="MercenaryClassProgressionTests.AdvancedClass_HasUniqueLevel25ActiveSkill(Ranger,GaleVolley,55,0.75f)" methodname="AdvancedClass_HasUniqueLevel25ActiveSkill" classname="MercenaryClassProgressionTests" runstate="Runnable" seed="1985155119" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000049" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1605" name="AdvancedClass_HasUniqueLevel25ActiveSkill(Sage,ArcaneBurst,50,1.45f)" fullname="MercenaryClassProgressionTests.AdvancedClass_HasUniqueLevel25ActiveSkill(Sage,ArcaneBurst,50,1.45f)" methodname="AdvancedClass_HasUniqueLevel25ActiveSkill" classname="MercenaryClassProgressionTests" runstate="Runnable" seed="258662105" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000049" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1606" name="AdvancedClass_HasUniqueLevel25ActiveSkill(Elementalist,StormCircle,60,0.75f)" fullname="MercenaryClassProgressionTests.AdvancedClass_HasUniqueLevel25ActiveSkill(Elementalist,StormCircle,60,0.75f)" methodname="AdvancedClass_HasUniqueLevel25ActiveSkill" classname="MercenaryClassProgressionTests" runstate="Runnable" seed="1653203367" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000050" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1607" name="AdvancedClass_HasUniqueLevel25ActiveSkill(Bishop,GreaterHeal,55,1.75f)" fullname="MercenaryClassProgressionTests.AdvancedClass_HasUniqueLevel25ActiveSkill(Bishop,GreaterHeal,55,1.75f)" methodname="AdvancedClass_HasUniqueLevel25ActiveSkill" classname="MercenaryClassProgressionTests" runstate="Runnable" seed="454862799" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000048" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1608" name="AdvancedClass_HasUniqueLevel25ActiveSkill(Paladin,HolyShieldBash,50,1.2f)" fullname="MercenaryClassProgressionTests.AdvancedClass_HasUniqueLevel25ActiveSkill(Paladin,HolyShieldBash,50,1.2f)" methodname="AdvancedClass_HasUniqueLevel25ActiveSkill" classname="MercenaryClassProgressionTests" runstate="Runnable" seed="645460468" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000053" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1609" name="AdvancedClass_HasUniqueLevel25ActiveSkill(Assassin,FatalFlurry,55,0.5f)" fullname="MercenaryClassProgressionTests.AdvancedClass_HasUniqueLevel25ActiveSkill(Assassin,FatalFlurry,55,0.5f)" methodname="AdvancedClass_HasUniqueLevel25ActiveSkill" classname="MercenaryClassProgressionTests" runstate="Runnable" seed="496145019" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000056" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1610" name="AdvancedClass_HasUniqueLevel25ActiveSkill(Ninja,BindingBlade,50,1.05f)" fullname="MercenaryClassProgressionTests.AdvancedClass_HasUniqueLevel25ActiveSkill(Ninja,BindingBlade,50,1.05f)" methodname="AdvancedClass_HasUniqueLevel25ActiveSkill" classname="MercenaryClassProgressionTests" runstate="Runnable" seed="720683721" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000083" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1611" name="AdvancedClass_HasUniqueLevel25ActiveSkill(Dragoon,SkySpearCombo,55,0.55f)" fullname="MercenaryClassProgressionTests.AdvancedClass_HasUniqueLevel25ActiveSkill(Dragoon,SkySpearCombo,55,0.55f)" methodname="AdvancedClass_HasUniqueLevel25ActiveSkill" classname="MercenaryClassProgressionTests" runstate="Runnable" seed="825540863" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000066" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1612" name="AdvancedClass_HasUniqueLevel25ActiveSkill(GuardianLancer,FortressPierce,50,1.4f)" fullname="MercenaryClassProgressionTests.AdvancedClass_HasUniqueLevel25ActiveSkill(GuardianLancer,FortressPierce,50,1.4f)" methodname="AdvancedClass_HasUniqueLevel25ActiveSkill" classname="MercenaryClassProgressionTests" runstate="Runnable" seed="2007535571" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000050" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-suite type="ParameterizedMethod" id="1620" name="SpecialClass_HasUniqueLevel45ActiveSkill" fullname="MercenaryClassProgressionTests.SpecialClass_HasUniqueLevel45ActiveSkill" classname="MercenaryClassProgressionTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.001815" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1614" name="SpecialClass_HasUniqueLevel45ActiveSkill(Warlord,WarfrontSmash,70,0.9f)" fullname="MercenaryClassProgressionTests.SpecialClass_HasUniqueLevel45ActiveSkill(Warlord,WarfrontSmash,70,0.9f)" methodname="SpecialClass_HasUniqueLevel45ActiveSkill" classname="MercenaryClassProgressionTests" runstate="Runnable" seed="2125182934" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000132" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1615" name="SpecialClass_HasUniqueLevel45ActiveSkill(Beastmaster,BeastKingFangs,70,0.48f)" fullname="MercenaryClassProgressionTests.SpecialClass_HasUniqueLevel45ActiveSkill(Beastmaster,BeastKingFangs,70,0.48f)" methodname="SpecialClass_HasUniqueLevel45ActiveSkill" classname="MercenaryClassProgressionTests" runstate="Runnable" seed="583905141" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000067" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1616" name="SpecialClass_HasUniqueLevel45ActiveSkill(Chronomancer,TemporalRift,65,1.6f)" fullname="MercenaryClassProgressionTests.SpecialClass_HasUniqueLevel45ActiveSkill(Chronomancer,TemporalRift,65,1.6f)" methodname="SpecialClass_HasUniqueLevel45ActiveSkill" classname="MercenaryClassProgressionTests" runstate="Runnable" seed="1351461336" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000060" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1617" name="SpecialClass_HasUniqueLevel45ActiveSkill(Saint,DivineHymn,70,1.3f)" fullname="MercenaryClassProgressionTests.SpecialClass_HasUniqueLevel45ActiveSkill(Saint,DivineHymn,70,1.3f)" methodname="SpecialClass_HasUniqueLevel45ActiveSkill" classname="MercenaryClassProgressionTests" runstate="Runnable" seed="1618833216" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000051" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1618" name="SpecialClass_HasUniqueLevel45ActiveSkill(Shadow,VoidPierce,65,1.65f)" fullname="MercenaryClassProgressionTests.SpecialClass_HasUniqueLevel45ActiveSkill(Shadow,VoidPierce,65,1.65f)" methodname="SpecialClass_HasUniqueLevel45ActiveSkill" classname="MercenaryClassProgressionTests" runstate="Runnable" seed="1130063686" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000051" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1619" name="SpecialClass_HasUniqueLevel45ActiveSkill(DragonKnight,DragonfallBreath,75,0.95f)" fullname="MercenaryClassProgressionTests.SpecialClass_HasUniqueLevel45ActiveSkill(DragonKnight,DragonfallBreath,75,0.95f)" methodname="SpecialClass_HasUniqueLevel45ActiveSkill" classname="MercenaryClassProgressionTests" runstate="Runnable" seed="1880019764" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000052" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+      </test-suite>
+      <test-suite type="TestFixture" id="1622" name="MercenaryHireManagerContractTests" fullname="MercenaryHireManagerContractTests" classname="MercenaryHireManagerContractTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.009435" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1626" name="ExclusiveContract_FailedRoll_DoesNotChargeHireCost" fullname="MercenaryHireManagerContractTests.ExclusiveContract_FailedRoll_DoesNotChargeHireCost" methodname="ExclusiveContract_FailedRoll_DoesNotChargeHireCost" classname="MercenaryHireManagerContractTests" runstate="Runnable" seed="512279713" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.001988" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1623" name="LocalContract_HasGuaranteedHireRate_AndAutoRenewsOnDayChange" fullname="MercenaryHireManagerContractTests.LocalContract_HasGuaranteedHireRate_AndAutoRenewsOnDayChange" methodname="LocalContract_HasGuaranteedHireRate_AndAutoRenewsOnDayChange" classname="MercenaryHireManagerContractTests" runstate="Runnable" seed="1736046511" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.002650" asserts="0">
+          <properties />
+          <output><![CDATA[Paid 30 G. Current gold: 70 G
+Hired Local Tester. Company mercenaries: 1
+Day advanced: 2
+Paid 10 G. Current gold: 60 G
+]]></output>
+        </test-case>
+        <test-case id="1624" name="LocalContract_WithoutRenewalGold_WaitsButRemainsHired" fullname="MercenaryHireManagerContractTests.LocalContract_WithoutRenewalGold_WaitsButRemainsHired" methodname="LocalContract_WithoutRenewalGold_WaitsButRemainsHired" classname="MercenaryHireManagerContractTests" runstate="Runnable" seed="1748203501" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.001317" asserts="0">
+          <properties />
+          <output><![CDATA[Paid 30 G. Current gold: 5 G
+Hired Local Tester. Company mercenaries: 1
+Day advanced: 2
+Not enough gold.
+]]></output>
+        </test-case>
+        <test-case id="1625" name="TryReleaseMercenary_RemovesHiredPartyMember_AndRaisesEvent" fullname="MercenaryHireManagerContractTests.TryReleaseMercenary_RemovesHiredPartyMember_AndRaisesEvent" methodname="TryReleaseMercenary_RemovesHiredPartyMember_AndRaisesEvent" classname="MercenaryHireManagerContractTests" runstate="Runnable" seed="332081546" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.001018" asserts="0">
+          <properties />
+          <output><![CDATA[Paid 30 G. Current gold: 70 G
+Hired Local Tester. Company mercenaries: 1
+]]></output>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1627" name="MercenaryPortraitProviderTests" fullname="MercenaryPortraitProviderTests" classname="MercenaryPortraitProviderTests" runstate="Runnable" testcasecount="18" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.009473" total="18" passed="18" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="ParameterizedMethod" id="1640" name="TryApply_BaseAndAdvancedClassesUseBaseSheet" fullname="MercenaryPortraitProviderTests.TryApply_BaseAndAdvancedClassesUseBaseSheet" classname="MercenaryPortraitProviderTests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.007157" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1628" name="TryApply_BaseAndAdvancedClassesUseBaseSheet(Warrior,0)" fullname="MercenaryPortraitProviderTests.TryApply_BaseAndAdvancedClassesUseBaseSheet(Warrior,0)" methodname="TryApply_BaseAndAdvancedClassesUseBaseSheet" classname="MercenaryPortraitProviderTests" runstate="Runnable" seed="2086618758" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.001181" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1629" name="TryApply_BaseAndAdvancedClassesUseBaseSheet(Knight,0)" fullname="MercenaryPortraitProviderTests.TryApply_BaseAndAdvancedClassesUseBaseSheet(Knight,0)" methodname="TryApply_BaseAndAdvancedClassesUseBaseSheet" classname="MercenaryPortraitProviderTests" runstate="Runnable" seed="49668778" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000288" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1630" name="TryApply_BaseAndAdvancedClassesUseBaseSheet(Archer,1)" fullname="MercenaryPortraitProviderTests.TryApply_BaseAndAdvancedClassesUseBaseSheet(Archer,1)" methodname="TryApply_BaseAndAdvancedClassesUseBaseSheet" classname="MercenaryPortraitProviderTests" runstate="Runnable" seed="744406187" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000209" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1631" name="TryApply_BaseAndAdvancedClassesUseBaseSheet(Ranger,1)" fullname="MercenaryPortraitProviderTests.TryApply_BaseAndAdvancedClassesUseBaseSheet(Ranger,1)" methodname="TryApply_BaseAndAdvancedClassesUseBaseSheet" classname="MercenaryPortraitProviderTests" runstate="Runnable" seed="471616254" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000168" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1632" name="TryApply_BaseAndAdvancedClassesUseBaseSheet(Mage,2)" fullname="MercenaryPortraitProviderTests.TryApply_BaseAndAdvancedClassesUseBaseSheet(Mage,2)" methodname="TryApply_BaseAndAdvancedClassesUseBaseSheet" classname="MercenaryPortraitProviderTests" runstate="Runnable" seed="2128140616" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000133" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1633" name="TryApply_BaseAndAdvancedClassesUseBaseSheet(Elementalist,2)" fullname="MercenaryPortraitProviderTests.TryApply_BaseAndAdvancedClassesUseBaseSheet(Elementalist,2)" methodname="TryApply_BaseAndAdvancedClassesUseBaseSheet" classname="MercenaryPortraitProviderTests" runstate="Runnable" seed="107081280" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000127" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1634" name="TryApply_BaseAndAdvancedClassesUseBaseSheet(Priest,3)" fullname="MercenaryPortraitProviderTests.TryApply_BaseAndAdvancedClassesUseBaseSheet(Priest,3)" methodname="TryApply_BaseAndAdvancedClassesUseBaseSheet" classname="MercenaryPortraitProviderTests" runstate="Runnable" seed="1299483642" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000126" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1635" name="TryApply_BaseAndAdvancedClassesUseBaseSheet(Paladin,3)" fullname="MercenaryPortraitProviderTests.TryApply_BaseAndAdvancedClassesUseBaseSheet(Paladin,3)" methodname="TryApply_BaseAndAdvancedClassesUseBaseSheet" classname="MercenaryPortraitProviderTests" runstate="Runnable" seed="573237949" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000123" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1636" name="TryApply_BaseAndAdvancedClassesUseBaseSheet(Rogue,4)" fullname="MercenaryPortraitProviderTests.TryApply_BaseAndAdvancedClassesUseBaseSheet(Rogue,4)" methodname="TryApply_BaseAndAdvancedClassesUseBaseSheet" classname="MercenaryPortraitProviderTests" runstate="Runnable" seed="1184276873" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000120" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1637" name="TryApply_BaseAndAdvancedClassesUseBaseSheet(Ninja,4)" fullname="MercenaryPortraitProviderTests.TryApply_BaseAndAdvancedClassesUseBaseSheet(Ninja,4)" methodname="TryApply_BaseAndAdvancedClassesUseBaseSheet" classname="MercenaryPortraitProviderTests" runstate="Runnable" seed="2126016631" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000136" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1638" name="TryApply_BaseAndAdvancedClassesUseBaseSheet(Lancer,5)" fullname="MercenaryPortraitProviderTests.TryApply_BaseAndAdvancedClassesUseBaseSheet(Lancer,5)" methodname="TryApply_BaseAndAdvancedClassesUseBaseSheet" classname="MercenaryPortraitProviderTests" runstate="Runnable" seed="1914498090" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000121" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1639" name="TryApply_BaseAndAdvancedClassesUseBaseSheet(GuardianLancer,5)" fullname="MercenaryPortraitProviderTests.TryApply_BaseAndAdvancedClassesUseBaseSheet(GuardianLancer,5)" methodname="TryApply_BaseAndAdvancedClassesUseBaseSheet" classname="MercenaryPortraitProviderTests" runstate="Runnable" seed="829516776" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000125" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-suite type="ParameterizedMethod" id="1647" name="TryApply_SpecialClassesUseSpecialSheet" fullname="MercenaryPortraitProviderTests.TryApply_SpecialClassesUseSpecialSheet" classname="MercenaryPortraitProviderTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.001619" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1641" name="TryApply_SpecialClassesUseSpecialSheet(Warlord,0)" fullname="MercenaryPortraitProviderTests.TryApply_SpecialClassesUseSpecialSheet(Warlord,0)" methodname="TryApply_SpecialClassesUseSpecialSheet" classname="MercenaryPortraitProviderTests" runstate="Runnable" seed="1476851654" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000286" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1642" name="TryApply_SpecialClassesUseSpecialSheet(Beastmaster,1)" fullname="MercenaryPortraitProviderTests.TryApply_SpecialClassesUseSpecialSheet(Beastmaster,1)" methodname="TryApply_SpecialClassesUseSpecialSheet" classname="MercenaryPortraitProviderTests" runstate="Runnable" seed="840030229" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000132" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1643" name="TryApply_SpecialClassesUseSpecialSheet(Chronomancer,2)" fullname="MercenaryPortraitProviderTests.TryApply_SpecialClassesUseSpecialSheet(Chronomancer,2)" methodname="TryApply_SpecialClassesUseSpecialSheet" classname="MercenaryPortraitProviderTests" runstate="Runnable" seed="983826851" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000124" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1644" name="TryApply_SpecialClassesUseSpecialSheet(Saint,3)" fullname="MercenaryPortraitProviderTests.TryApply_SpecialClassesUseSpecialSheet(Saint,3)" methodname="TryApply_SpecialClassesUseSpecialSheet" classname="MercenaryPortraitProviderTests" runstate="Runnable" seed="1097905260" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000120" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1645" name="TryApply_SpecialClassesUseSpecialSheet(Shadow,4)" fullname="MercenaryPortraitProviderTests.TryApply_SpecialClassesUseSpecialSheet(Shadow,4)" methodname="TryApply_SpecialClassesUseSpecialSheet" classname="MercenaryPortraitProviderTests" runstate="Runnable" seed="1153900079" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000122" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1646" name="TryApply_SpecialClassesUseSpecialSheet(DragonKnight,5)" fullname="MercenaryPortraitProviderTests.TryApply_SpecialClassesUseSpecialSheet(DragonKnight,5)" methodname="TryApply_SpecialClassesUseSpecialSheet" classname="MercenaryPortraitProviderTests" runstate="Runnable" seed="1529986047" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000117" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+      </test-suite>
+      <test-suite type="TestFixture" id="1648" name="MerchantInventoryTests" fullname="MerchantInventoryTests" classname="MerchantInventoryTests" runstate="Runnable" testcasecount="18" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.015631" total="18" passed="18" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1665" name="AddItem_CalledTwiceForSameItem_StacksIntoSingleEntry" fullname="MerchantInventoryTests.AddItem_CalledTwiceForSameItem_StacksIntoSingleEntry" methodname="AddItem_CalledTwiceForSameItem_StacksIntoSingleEntry" classname="MerchantInventoryTests" runstate="Runnable" seed="1493905211" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.002890" asserts="0">
+          <properties />
+          <output><![CDATA[Added item: Stackable Ore x3
+Added item: Stackable Ore x2
+]]></output>
+        </test-case>
+        <test-suite type="ParameterizedMethod" id="1658" name="GetSellPrice_EquipmentInstance_AtVariousEnhancementLevels_ReturnsExactHandComputedPrice" fullname="MerchantInventoryTests.GetSellPrice_EquipmentInstance_AtVariousEnhancementLevels_ReturnsExactHandComputedPrice" classname="MerchantInventoryTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.001907" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1655" name="GetSellPrice_EquipmentInstance_AtVariousEnhancementLevels_ReturnsExactHandComputedPrice(0,100)" fullname="MerchantInventoryTests.GetSellPrice_EquipmentInstance_AtVariousEnhancementLevels_ReturnsExactHandComputedPrice(0,100)" methodname="GetSellPrice_EquipmentInstance_AtVariousEnhancementLevels_ReturnsExactHandComputedPrice" classname="MerchantInventoryTests" runstate="Runnable" seed="1992096767" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000893" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1656" name="GetSellPrice_EquipmentInstance_AtVariousEnhancementLevels_ReturnsExactHandComputedPrice(5,160)" fullname="MerchantInventoryTests.GetSellPrice_EquipmentInstance_AtVariousEnhancementLevels_ReturnsExactHandComputedPrice(5,160)" methodname="GetSellPrice_EquipmentInstance_AtVariousEnhancementLevels_ReturnsExactHandComputedPrice" classname="MerchantInventoryTests" runstate="Runnable" seed="1430716120" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000316" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1657" name="GetSellPrice_EquipmentInstance_AtVariousEnhancementLevels_ReturnsExactHandComputedPrice(10,220)" fullname="MerchantInventoryTests.GetSellPrice_EquipmentInstance_AtVariousEnhancementLevels_ReturnsExactHandComputedPrice(10,220)" methodname="GetSellPrice_EquipmentInstance_AtVariousEnhancementLevels_ReturnsExactHandComputedPrice" classname="MerchantInventoryTests" runstate="Runnable" seed="1723659019" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000264" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-suite type="ParameterizedMethod" id="1654" name="GetSellPrice_EquipmentInstance_ForEachQuality_ReturnsExactHandComputedPrice" fullname="MerchantInventoryTests.GetSellPrice_EquipmentInstance_ForEachQuality_ReturnsExactHandComputedPrice" classname="MerchantInventoryTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.002132" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1649" name="GetSellPrice_EquipmentInstance_ForEachQuality_ReturnsExactHandComputedPrice(Poor,65)" fullname="MerchantInventoryTests.GetSellPrice_EquipmentInstance_ForEachQuality_ReturnsExactHandComputedPrice(Poor,65)" methodname="GetSellPrice_EquipmentInstance_ForEachQuality_ReturnsExactHandComputedPrice" classname="MerchantInventoryTests" runstate="Runnable" seed="1589659366" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000386" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1650" name="GetSellPrice_EquipmentInstance_ForEachQuality_ReturnsExactHandComputedPrice(Normal,100)" fullname="MerchantInventoryTests.GetSellPrice_EquipmentInstance_ForEachQuality_ReturnsExactHandComputedPrice(Normal,100)" methodname="GetSellPrice_EquipmentInstance_ForEachQuality_ReturnsExactHandComputedPrice" classname="MerchantInventoryTests" runstate="Runnable" seed="842030845" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000268" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1651" name="GetSellPrice_EquipmentInstance_ForEachQuality_ReturnsExactHandComputedPrice(Fine,120)" fullname="MerchantInventoryTests.GetSellPrice_EquipmentInstance_ForEachQuality_ReturnsExactHandComputedPrice(Fine,120)" methodname="GetSellPrice_EquipmentInstance_ForEachQuality_ReturnsExactHandComputedPrice" classname="MerchantInventoryTests" runstate="Runnable" seed="1180672902" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000254" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1652" name="GetSellPrice_EquipmentInstance_ForEachQuality_ReturnsExactHandComputedPrice(Rare,155)" fullname="MerchantInventoryTests.GetSellPrice_EquipmentInstance_ForEachQuality_ReturnsExactHandComputedPrice(Rare,155)" methodname="GetSellPrice_EquipmentInstance_ForEachQuality_ReturnsExactHandComputedPrice" classname="MerchantInventoryTests" runstate="Runnable" seed="1272992279" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000248" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1653" name="GetSellPrice_EquipmentInstance_ForEachQuality_ReturnsExactHandComputedPrice(Legendary,220)" fullname="MerchantInventoryTests.GetSellPrice_EquipmentInstance_ForEachQuality_ReturnsExactHandComputedPrice(Legendary,220)" methodname="GetSellPrice_EquipmentInstance_ForEachQuality_ReturnsExactHandComputedPrice" classname="MerchantInventoryTests" runstate="Runnable" seed="141783941" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000249" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-case id="1660" name="GetSellPrice_EquipmentInstance_NullBaseItem_ReturnsZero" fullname="MerchantInventoryTests.GetSellPrice_EquipmentInstance_NullBaseItem_ReturnsZero" methodname="GetSellPrice_EquipmentInstance_NullBaseItem_ReturnsZero" classname="MerchantInventoryTests" runstate="Runnable" seed="1401278646" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000220" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1659" name="GetSellPrice_EquipmentInstance_NullEquipment_ReturnsZero" fullname="MerchantInventoryTests.GetSellPrice_EquipmentInstance_NullEquipment_ReturnsZero" methodname="GetSellPrice_EquipmentInstance_NullEquipment_ReturnsZero" classname="MerchantInventoryTests" runstate="Runnable" seed="406023229" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000182" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1664" name="SellEquipmentInstance_InstanceNeverAddedToInventory_ReturnsFalse" fullname="MerchantInventoryTests.SellEquipmentInstance_InstanceNeverAddedToInventory_ReturnsFalse" methodname="SellEquipmentInstance_InstanceNeverAddedToInventory_ReturnsFalse" classname="MerchantInventoryTests" runstate="Runnable" seed="259068833" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000504" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1662" name="SellEquipmentInstance_LockedInstance_ReturnsFalse_DoesNotRemoveOrChangeGold" fullname="MerchantInventoryTests.SellEquipmentInstance_LockedInstance_ReturnsFalse_DoesNotRemoveOrChangeGold" methodname="SellEquipmentInstance_LockedInstance_ReturnsFalse_DoesNotRemoveOrChangeGold" classname="MerchantInventoryTests" runstate="Runnable" seed="714923556" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000921" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1663" name="SellEquipmentInstance_NullEquipment_ReturnsFalse" fullname="MerchantInventoryTests.SellEquipmentInstance_NullEquipment_ReturnsFalse" methodname="SellEquipmentInstance_NullEquipment_ReturnsFalse" classname="MerchantInventoryTests" runstate="Runnable" seed="1498516230" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000334" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1661" name="SellEquipmentInstance_ValidUnlockedInstance_ReturnsTrue_RemovesIt_AndCreditsExactGold" fullname="MerchantInventoryTests.SellEquipmentInstance_ValidUnlockedInstance_ReturnsTrue_RemovesIt_AndCreditsExactGold" methodname="SellEquipmentInstance_ValidUnlockedInstance_ReturnsTrue_RemovesIt_AndCreditsExactGold" classname="MerchantInventoryTests" runstate="Runnable" seed="286538928" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.001544" asserts="0">
+          <properties />
+          <output><![CDATA[Gained 120 G. Current gold: 620 G
+]]></output>
+        </test-case>
+        <test-case id="1667" name="TryRemoveItem_DrainsStackToZero_RemovesEntryFromItems" fullname="MerchantInventoryTests.TryRemoveItem_DrainsStackToZero_RemovesEntryFromItems" methodname="TryRemoveItem_DrainsStackToZero_RemovesEntryFromItems" classname="MerchantInventoryTests" runstate="Runnable" seed="105952367" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.001343" asserts="0">
+          <properties />
+          <output><![CDATA[Added item: Stackable Ore x3
+Added item: Stackable Ore x2
+]]></output>
+        </test-case>
+        <test-case id="1668" name="TryRemoveItem_MoreThanAvailable_ReturnsFalse_AndDoesNotChangeStoredAmount" fullname="MerchantInventoryTests.TryRemoveItem_MoreThanAvailable_ReturnsFalse_AndDoesNotChangeStoredAmount" methodname="TryRemoveItem_MoreThanAvailable_ReturnsFalse_AndDoesNotChangeStoredAmount" classname="MerchantInventoryTests" runstate="Runnable" seed="1031009454" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000642" asserts="0">
+          <properties />
+          <output><![CDATA[Added item: Stackable Ore x3
+]]></output>
+        </test-case>
+        <test-case id="1666" name="TryRemoveItem_PartialAmount_LeavesRemainderAndKeepsStack" fullname="MerchantInventoryTests.TryRemoveItem_PartialAmount_LeavesRemainderAndKeepsStack" methodname="TryRemoveItem_PartialAmount_LeavesRemainderAndKeepsStack" classname="MerchantInventoryTests" runstate="Runnable" seed="237325000" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000912" asserts="0">
+          <properties />
+          <output><![CDATA[Added item: Stackable Ore x3
+Added item: Stackable Ore x2
+]]></output>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1669" name="MerchantProgressionTests" fullname="MerchantProgressionTests" classname="MerchantProgressionTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.001809" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1670" name="EarnedGold_RaisesLevelAndKeepsRemainder" fullname="MerchantProgressionTests.EarnedGold_RaisesLevelAndKeepsRemainder" methodname="EarnedGold_RaisesLevelAndKeepsRemainder" classname="MerchantProgressionTests" runstate="Runnable" seed="1822063706" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000642" asserts="0">
+          <properties />
+          <output><![CDATA[Gained 750 G. Current gold: 750 G
+]]></output>
+        </test-case>
+        <test-case id="1671" name="SpendingGold_DoesNotIncreaseLifetimeEarnings" fullname="MerchantProgressionTests.SpendingGold_DoesNotIncreaseLifetimeEarnings" methodname="SpendingGold_DoesNotIncreaseLifetimeEarnings" classname="MerchantProgressionTests" runstate="Runnable" seed="1075019573" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000662" asserts="0">
+          <properties />
+          <output><![CDATA[Gained 1000 G. Current gold: 1000 G
+Paid 400 G. Current gold: 600 G
+]]></output>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1672" name="ProgressionManagerTests" fullname="ProgressionManagerTests" classname="ProgressionManagerTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.007444" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1677" name="DungeonCompletion_AdvancesBaseDayPlusEventDelays" fullname="ProgressionManagerTests.DungeonCompletion_AdvancesBaseDayPlusEventDelays" methodname="DungeonCompletion_AdvancesBaseDayPlusEventDelays" classname="ProgressionManagerTests" runstate="Runnable" seed="915731983" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.001893" asserts="0">
+          <properties />
+          <output><![CDATA[Day advanced: 4
+]]></output>
+        </test-case>
+        <test-case id="1676" name="Restore_Null_DoesNotThrowAndDoesNotChangeState" fullname="ProgressionManagerTests.Restore_Null_DoesNotThrowAndDoesNotChangeState" methodname="Restore_Null_DoesNotThrowAndDoesNotChangeState" classname="ProgressionManagerTests" runstate="Runnable" seed="1558300803" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.001369" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1673" name="Restore_ThenCreateSaveData_RoundTripsAllFields" fullname="ProgressionManagerTests.Restore_ThenCreateSaveData_RoundTripsAllFields" methodname="Restore_ThenCreateSaveData_RoundTripsAllFields" classname="ProgressionManagerTests" runstate="Runnable" seed="2118044235" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000399" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1674" name="Restore_ThenPublicGetters_ReflectRestoredValues_WhenNoMerchantDataPresent" fullname="ProgressionManagerTests.Restore_ThenPublicGetters_ReflectRestoredValues_WhenNoMerchantDataPresent" methodname="Restore_ThenPublicGetters_ReflectRestoredValues_WhenNoMerchantDataPresent" classname="ProgressionManagerTests" runstate="Runnable" seed="1685721318" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000363" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1675" name="TotalGoldEarned_ReadsMerchantDataLifetimeEarnings" fullname="ProgressionManagerTests.TotalGoldEarned_ReadsMerchantDataLifetimeEarnings" methodname="TotalGoldEarned_ReadsMerchantDataLifetimeEarnings" classname="ProgressionManagerTests" runstate="Runnable" seed="1402020931" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000910" asserts="0">
+          <properties />
+          <output><![CDATA[Gained 1234 G. Current gold: 1734 G
+]]></output>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1678" name="RoadEncounterServiceTests" fullname="RoadEncounterServiceTests" classname="RoadEncounterServiceTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.008850" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="ParameterizedMethod" id="1687" name="CreateEncounter_FallbackKeepsRouteLimit" fullname="RoadEncounterServiceTests.CreateEncounter_FallbackKeepsRouteLimit" classname="RoadEncounterServiceTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.005373" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1684" name="CreateEncounter_FallbackKeepsRouteLimit(0,1,2)" fullname="RoadEncounterServiceTests.CreateEncounter_FallbackKeepsRouteLimit(0,1,2)" methodname="CreateEncounter_FallbackKeepsRouteLimit" classname="RoadEncounterServiceTests" runstate="Runnable" seed="1925074091" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.001570" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1685" name="CreateEncounter_FallbackKeepsRouteLimit(1,2,3)" fullname="RoadEncounterServiceTests.CreateEncounter_FallbackKeepsRouteLimit(1,2,3)" methodname="CreateEncounter_FallbackKeepsRouteLimit" classname="RoadEncounterServiceTests" runstate="Runnable" seed="172480269" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000290" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1686" name="CreateEncounter_FallbackKeepsRouteLimit(5,6,5)" fullname="RoadEncounterServiceTests.CreateEncounter_FallbackKeepsRouteLimit(5,6,5)" methodname="CreateEncounter_FallbackKeepsRouteLimit" classname="RoadEncounterServiceTests" runstate="Runnable" seed="707438178" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000215" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-suite type="ParameterizedMethod" id="1683" name="CreateEncounter_UsesConfiguredRouteLimit" fullname="RoadEncounterServiceTests.CreateEncounter_UsesConfiguredRouteLimit" classname="RoadEncounterServiceTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.002894" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1679" name="CreateEncounter_UsesConfiguredRouteLimit(0,1,2)" fullname="RoadEncounterServiceTests.CreateEncounter_UsesConfiguredRouteLimit(0,1,2)" methodname="CreateEncounter_UsesConfiguredRouteLimit" classname="RoadEncounterServiceTests" runstate="Runnable" seed="1299103196" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000767" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1680" name="CreateEncounter_UsesConfiguredRouteLimit(1,2,3)" fullname="RoadEncounterServiceTests.CreateEncounter_UsesConfiguredRouteLimit(1,2,3)" methodname="CreateEncounter_UsesConfiguredRouteLimit" classname="RoadEncounterServiceTests" runstate="Runnable" seed="1496406455" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000330" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1681" name="CreateEncounter_UsesConfiguredRouteLimit(2,3,3)" fullname="RoadEncounterServiceTests.CreateEncounter_UsesConfiguredRouteLimit(2,3,3)" methodname="CreateEncounter_UsesConfiguredRouteLimit" classname="RoadEncounterServiceTests" runstate="Runnable" seed="227920677" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000292" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1682" name="CreateEncounter_UsesConfiguredRouteLimit(5,6,5)" fullname="RoadEncounterServiceTests.CreateEncounter_UsesConfiguredRouteLimit(5,6,5)" methodname="CreateEncounter_UsesConfiguredRouteLimit" classname="RoadEncounterServiceTests" runstate="Runnable" seed="7848038" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000280" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+      </test-suite>
+      <test-suite type="TestFixture" id="1688" name="RoadTravelCompletionServiceTests" fullname="RoadTravelCompletionServiceTests" classname="RoadTravelCompletionServiceTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.002927" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1691" name="CompleteDefeatKeepsCurrentTownAndDoesNotSave" fullname="RoadTravelCompletionServiceTests.CompleteDefeatKeepsCurrentTownAndDoesNotSave" methodname="CompleteDefeatKeepsCurrentTownAndDoesNotSave" classname="RoadTravelCompletionServiceTests" runstate="Runnable" seed="593891532" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000540" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1692" name="CompleteInactiveStateReturnsInvalidResult" fullname="RoadTravelCompletionServiceTests.CompleteInactiveStateReturnsInvalidResult" methodname="CompleteInactiveStateReturnsInvalidResult" classname="RoadTravelCompletionServiceTests" runstate="Runnable" seed="909725509" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000197" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1690" name="CompleteVictoryCanRequestOpeningDungeon" fullname="RoadTravelCompletionServiceTests.CompleteVictoryCanRequestOpeningDungeon" methodname="CompleteVictoryCanRequestOpeningDungeon" classname="RoadTravelCompletionServiceTests" runstate="Runnable" seed="647929490" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000175" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1689" name="CompleteVictoryUnlocksDestinationAndRequestsSave" fullname="RoadTravelCompletionServiceTests.CompleteVictoryUnlocksDestinationAndRequestsSave" methodname="CompleteVictoryUnlocksDestinationAndRequestsSave" classname="RoadTravelCompletionServiceTests" runstate="Runnable" seed="1844908581" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000222" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1693" name="RoadTravelStateTests" fullname="RoadTravelStateTests" classname="RoadTravelStateTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.002359" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1694" name="Begin_InitializesFirstEncounter" fullname="RoadTravelStateTests.Begin_InitializesFirstEncounter" methodname="Begin_InitializesFirstEncounter" classname="RoadTravelStateTests" runstate="Runnable" seed="832619392" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000213" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1696" name="Clear_ResetsState" fullname="RoadTravelStateTests.Clear_ResetsState" methodname="Clear_ResetsState" classname="RoadTravelStateTests" runstate="Runnable" seed="445451786" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000206" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1695" name="ContinueToNextEncounter_AdvancesOnlyWhileAwaitingChoice" fullname="RoadTravelStateTests.ContinueToNextEncounter_AdvancesOnlyWhileAwaitingChoice" methodname="ContinueToNextEncounter_AdvancesOnlyWhileAwaitingChoice" classname="RoadTravelStateTests" runstate="Runnable" seed="45770778" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000187" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1697" name="SaveDataMigratorTests" fullname="SaveDataMigratorTests" classname="SaveDataMigratorTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.008081" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1700" name="Migrate_CurrentData_IsIdempotent" fullname="SaveDataMigratorTests.Migrate_CurrentData_IsIdempotent" methodname="Migrate_CurrentData_IsIdempotent" classname="SaveDataMigratorTests" runstate="Runnable" seed="1740849345" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.001324" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1703" name="Migrate_FutureVersion_DoesNotDowngradeOrMutateData" fullname="SaveDataMigratorTests.Migrate_FutureVersion_DoesNotDowngradeOrMutateData" methodname="Migrate_FutureVersion_DoesNotDowngradeOrMutateData" classname="SaveDataMigratorTests" runstate="Runnable" seed="110842709" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000125" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1699" name="Migrate_LegacyAssetNames_PopulatesPersistentIds" fullname="SaveDataMigratorTests.Migrate_LegacyAssetNames_PopulatesPersistentIds" methodname="Migrate_LegacyAssetNames_PopulatesPersistentIds" classname="SaveDataMigratorTests" runstate="Runnable" seed="424000345" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.001558" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1702" name="Migrate_PreStorySave_DoesNotTreatPartialFloorAsDungeonClear" fullname="SaveDataMigratorTests.Migrate_PreStorySave_DoesNotTreatPartialFloorAsDungeonClear" methodname="Migrate_PreStorySave_DoesNotTreatPartialFloorAsDungeonClear" classname="SaveDataMigratorTests" runstate="Runnable" seed="1431899507" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000705" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1701" name="Migrate_PreStorySave_InfersCompletedMilestones" fullname="SaveDataMigratorTests.Migrate_PreStorySave_InfersCompletedMilestones" methodname="Migrate_PreStorySave_InfersCompletedMilestones" classname="SaveDataMigratorTests" runstate="Runnable" seed="53763687" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.001004" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1698" name="Migrate_PreVersion16_PopulatesProgressionAndDebt" fullname="SaveDataMigratorTests.Migrate_PreVersion16_PopulatesProgressionAndDebt" methodname="Migrate_PreVersion16_PopulatesProgressionAndDebt" classname="SaveDataMigratorTests" runstate="Runnable" seed="417543946" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000320" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1704" name="SaveManagerEquipmentTests" fullname="SaveManagerEquipmentTests" classname="SaveManagerEquipmentTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000944" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1705" name="CreateSavedEquipment_InvalidLegacyInstance_IsSkipped" fullname="SaveManagerEquipmentTests.CreateSavedEquipment_InvalidLegacyInstance_IsSkipped" methodname="CreateSavedEquipment_InvalidLegacyInstance_IsSkipped" classname="SaveManagerEquipmentTests" runstate="Runnable" seed="591752169" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000502" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1706" name="SaveManagerTitleTests" fullname="SaveManagerTitleTests" classname="SaveManagerTitleTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.011427" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1708" name="DeleteSaveData_DoesNotThrowWhenNoSaveExists" fullname="SaveManagerTitleTests.DeleteSaveData_DoesNotThrowWhenNoSaveExists" methodname="DeleteSaveData_DoesNotThrowWhenNoSaveExists" classname="SaveManagerTitleTests" runstate="Runnable" seed="1051490943" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.002384" asserts="0">
+          <properties />
+          <output><![CDATA[セーブデータを削除しました。
+セーブデータを削除しました。
+セーブデータを削除しました。
+]]></output>
+        </test-case>
+        <test-case id="1709" name="DeleteSaveData_SuppressesQuitAutoSave" fullname="SaveManagerTitleTests.DeleteSaveData_SuppressesQuitAutoSave" methodname="DeleteSaveData_SuppressesQuitAutoSave" classname="SaveManagerTitleTests" runstate="Runnable" seed="1576953905" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.004004" asserts="0">
+          <properties />
+          <output><![CDATA[セーブデータを削除しました。
+セーブデータを削除しました。
+セーブデータを削除しました。
+]]></output>
+        </test-case>
+        <test-case id="1707" name="HasSaveData_IsFalseAfterDelete" fullname="SaveManagerTitleTests.HasSaveData_IsFalseAfterDelete" methodname="HasSaveData_IsFalseAfterDelete" classname="SaveManagerTitleTests" runstate="Runnable" seed="1533122897" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000924" asserts="0">
+          <properties />
+          <output><![CDATA[セーブデータを削除しました。
+セーブデータを削除しました。
+]]></output>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1710" name="StoryProgressManagerTests" fullname="StoryProgressManagerTests" classname="StoryProgressManagerTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.006723" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1712" name="ExistingEvents_CompleteHireAndTownMilestones" fullname="StoryProgressManagerTests.ExistingEvents_CompleteHireAndTownMilestones" methodname="ExistingEvents_CompleteHireAndTownMilestones" classname="StoryProgressManagerTests" runstate="Runnable" seed="1206188012" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.003549" asserts="0">
+          <properties />
+          <output><![CDATA[Paid 10 G. Current gold: 90 G
+Hired Story Hire. Company mercenaries: 1
+]]></output>
+        </test-case>
+        <test-case id="1714" name="PendingPresentation_IsQueuedOnceAndCanBeConsumed" fullname="StoryProgressManagerTests.PendingPresentation_IsQueuedOnceAndCanBeConsumed" methodname="PendingPresentation_IsQueuedOnceAndCanBeConsumed" classname="StoryProgressManagerTests" runstate="Runnable" seed="1660730241" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000633" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1713" name="RestoreCompletedMilestones_DoesNotNotifyDuringLoad" fullname="StoryProgressManagerTests.RestoreCompletedMilestones_DoesNotNotifyDuringLoad" methodname="RestoreCompletedMilestones_DoesNotNotifyDuringLoad" classname="StoryProgressManagerTests" runstate="Runnable" seed="1441093460" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000910" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1711" name="TryComplete_NotifiesOnlyOnce_AndProvidesJapaneseStoryData" fullname="StoryProgressManagerTests.TryComplete_NotifiesOnlyOnce_AndProvidesJapaneseStoryData" methodname="TryComplete_NotifiesOnlyOnce_AndProvidesJapaneseStoryData" classname="StoryProgressManagerTests" runstate="Runnable" seed="1610359269" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000688" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1715" name="TownAvailabilityParityTests" fullname="TownAvailabilityParityTests" classname="TownAvailabilityParityTests" runstate="Runnable" testcasecount="26" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.016110" total="26" passed="26" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="ParameterizedMethod" id="1731" name="Blacksmith_UsesOneRankAboveTheTownMarket" fullname="TownAvailabilityParityTests.Blacksmith_UsesOneRankAboveTheTownMarket" classname="TownAvailabilityParityTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.004390" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1724" name="Blacksmith_UsesOneRankAboveTheTownMarket(2,2)" fullname="TownAvailabilityParityTests.Blacksmith_UsesOneRankAboveTheTownMarket(2,2)" methodname="Blacksmith_UsesOneRankAboveTheTownMarket" classname="TownAvailabilityParityTests" runstate="Runnable" seed="1788291821" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000196" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1725" name="Blacksmith_UsesOneRankAboveTheTownMarket(1,3)" fullname="TownAvailabilityParityTests.Blacksmith_UsesOneRankAboveTheTownMarket(1,3)" methodname="Blacksmith_UsesOneRankAboveTheTownMarket" classname="TownAvailabilityParityTests" runstate="Runnable" seed="2099591374" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000055" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1726" name="Blacksmith_UsesOneRankAboveTheTownMarket(0,4)" fullname="TownAvailabilityParityTests.Blacksmith_UsesOneRankAboveTheTownMarket(0,4)" methodname="Blacksmith_UsesOneRankAboveTheTownMarket" classname="TownAvailabilityParityTests" runstate="Runnable" seed="1413295163" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000042" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1727" name="Blacksmith_UsesOneRankAboveTheTownMarket(3,5)" fullname="TownAvailabilityParityTests.Blacksmith_UsesOneRankAboveTheTownMarket(3,5)" methodname="Blacksmith_UsesOneRankAboveTheTownMarket" classname="TownAvailabilityParityTests" runstate="Runnable" seed="1290321486" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000037" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1728" name="Blacksmith_UsesOneRankAboveTheTownMarket(4,6)" fullname="TownAvailabilityParityTests.Blacksmith_UsesOneRankAboveTheTownMarket(4,6)" methodname="Blacksmith_UsesOneRankAboveTheTownMarket" classname="TownAvailabilityParityTests" runstate="Runnable" seed="245683592" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000037" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1729" name="Blacksmith_UsesOneRankAboveTheTownMarket(5,7)" fullname="TownAvailabilityParityTests.Blacksmith_UsesOneRankAboveTheTownMarket(5,7)" methodname="Blacksmith_UsesOneRankAboveTheTownMarket" classname="TownAvailabilityParityTests" runstate="Runnable" seed="444016595" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000035" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1730" name="Blacksmith_UsesOneRankAboveTheTownMarket(6,8)" fullname="TownAvailabilityParityTests.Blacksmith_UsesOneRankAboveTheTownMarket(6,8)" methodname="Blacksmith_UsesOneRankAboveTheTownMarket" classname="TownAvailabilityParityTests" runstate="Runnable" seed="1668866543" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000038" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-case id="1740" name="ConfiguredDungeonLimitedDrops_MatchTheirTownRank" fullname="TownAvailabilityParityTests.ConfiguredDungeonLimitedDrops_MatchTheirTownRank" methodname="ConfiguredDungeonLimitedDrops_MatchTheirTownRank" classname="TownAvailabilityParityTests" runstate="Runnable" seed="1905143593" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000359" asserts="0">
+          <properties />
+        </test-case>
+        <test-suite type="ParameterizedMethod" id="1739" name="DungeonEquipment_UsesTwoRanksAboveTheTownMarket" fullname="TownAvailabilityParityTests.DungeonEquipment_UsesTwoRanksAboveTheTownMarket" classname="TownAvailabilityParityTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.002922" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1732" name="DungeonEquipment_UsesTwoRanksAboveTheTownMarket(2,3)" fullname="TownAvailabilityParityTests.DungeonEquipment_UsesTwoRanksAboveTheTownMarket(2,3)" methodname="DungeonEquipment_UsesTwoRanksAboveTheTownMarket" classname="TownAvailabilityParityTests" runstate="Runnable" seed="932104948" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000162" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1733" name="DungeonEquipment_UsesTwoRanksAboveTheTownMarket(1,4)" fullname="TownAvailabilityParityTests.DungeonEquipment_UsesTwoRanksAboveTheTownMarket(1,4)" methodname="DungeonEquipment_UsesTwoRanksAboveTheTownMarket" classname="TownAvailabilityParityTests" runstate="Runnable" seed="1616072252" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000050" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1734" name="DungeonEquipment_UsesTwoRanksAboveTheTownMarket(0,5)" fullname="TownAvailabilityParityTests.DungeonEquipment_UsesTwoRanksAboveTheTownMarket(0,5)" methodname="DungeonEquipment_UsesTwoRanksAboveTheTownMarket" classname="TownAvailabilityParityTests" runstate="Runnable" seed="1362925143" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000036" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1735" name="DungeonEquipment_UsesTwoRanksAboveTheTownMarket(3,6)" fullname="TownAvailabilityParityTests.DungeonEquipment_UsesTwoRanksAboveTheTownMarket(3,6)" methodname="DungeonEquipment_UsesTwoRanksAboveTheTownMarket" classname="TownAvailabilityParityTests" runstate="Runnable" seed="1723490986" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000036" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1736" name="DungeonEquipment_UsesTwoRanksAboveTheTownMarket(4,7)" fullname="TownAvailabilityParityTests.DungeonEquipment_UsesTwoRanksAboveTheTownMarket(4,7)" methodname="DungeonEquipment_UsesTwoRanksAboveTheTownMarket" classname="TownAvailabilityParityTests" runstate="Runnable" seed="517206174" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000036" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1737" name="DungeonEquipment_UsesTwoRanksAboveTheTownMarket(5,8)" fullname="TownAvailabilityParityTests.DungeonEquipment_UsesTwoRanksAboveTheTownMarket(5,8)" methodname="DungeonEquipment_UsesTwoRanksAboveTheTownMarket" classname="TownAvailabilityParityTests" runstate="Runnable" seed="1777496559" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000033" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1738" name="DungeonEquipment_UsesTwoRanksAboveTheTownMarket(6,9)" fullname="TownAvailabilityParityTests.DungeonEquipment_UsesTwoRanksAboveTheTownMarket(6,9)" methodname="DungeonEquipment_UsesTwoRanksAboveTheTownMarket" classname="TownAvailabilityParityTests" runstate="Runnable" seed="2999964" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000033" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-case id="1741" name="HiddenIsland_ExclusivelyProvidesRankTen" fullname="TownAvailabilityParityTests.HiddenIsland_ExclusivelyProvidesRankTen" methodname="HiddenIsland_ExclusivelyProvidesRankTen" classname="TownAvailabilityParityTests" runstate="Runnable" seed="1713618345" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000157" asserts="0">
+          <properties />
+        </test-case>
+        <test-suite type="ParameterizedMethod" id="1723" name="MarketRankRange_FollowsTownProgression" fullname="TownAvailabilityParityTests.MarketRankRange_FollowsTownProgression" classname="TownAvailabilityParityTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.003486" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1716" name="MarketRankRange_FollowsTownProgression(2,1)" fullname="TownAvailabilityParityTests.MarketRankRange_FollowsTownProgression(2,1)" methodname="MarketRankRange_FollowsTownProgression" classname="TownAvailabilityParityTests" runstate="Runnable" seed="45820498" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000231" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1717" name="MarketRankRange_FollowsTownProgression(1,2)" fullname="TownAvailabilityParityTests.MarketRankRange_FollowsTownProgression(1,2)" methodname="MarketRankRange_FollowsTownProgression" classname="TownAvailabilityParityTests" runstate="Runnable" seed="268073721" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000116" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1718" name="MarketRankRange_FollowsTownProgression(0,3)" fullname="TownAvailabilityParityTests.MarketRankRange_FollowsTownProgression(0,3)" methodname="MarketRankRange_FollowsTownProgression" classname="TownAvailabilityParityTests" runstate="Runnable" seed="2050023472" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000053" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1719" name="MarketRankRange_FollowsTownProgression(3,4)" fullname="TownAvailabilityParityTests.MarketRankRange_FollowsTownProgression(3,4)" methodname="MarketRankRange_FollowsTownProgression" classname="TownAvailabilityParityTests" runstate="Runnable" seed="773617792" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000037" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1720" name="MarketRankRange_FollowsTownProgression(4,5)" fullname="TownAvailabilityParityTests.MarketRankRange_FollowsTownProgression(4,5)" methodname="MarketRankRange_FollowsTownProgression" classname="TownAvailabilityParityTests" runstate="Runnable" seed="960315431" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000036" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1721" name="MarketRankRange_FollowsTownProgression(5,6)" fullname="TownAvailabilityParityTests.MarketRankRange_FollowsTownProgression(5,6)" methodname="MarketRankRange_FollowsTownProgression" classname="TownAvailabilityParityTests" runstate="Runnable" seed="1526966702" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000039" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1722" name="MarketRankRange_FollowsTownProgression(6,7)" fullname="TownAvailabilityParityTests.MarketRankRange_FollowsTownProgression(6,7)" methodname="MarketRankRange_FollowsTownProgression" classname="TownAvailabilityParityTests" runstate="Runnable" seed="916287516" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000043" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-suite type="ParameterizedMethod" id="1745" name="RankPresentation_ProvidesColoredExplicitRank" fullname="TownAvailabilityParityTests.RankPresentation_ProvidesColoredExplicitRank" classname="TownAvailabilityParityTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.003831" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1742" name="RankPresentation_ProvidesColoredExplicitRank(1)" fullname="TownAvailabilityParityTests.RankPresentation_ProvidesColoredExplicitRank(1)" methodname="RankPresentation_ProvidesColoredExplicitRank" classname="TownAvailabilityParityTests" runstate="Runnable" seed="816931553" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000856" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1743" name="RankPresentation_ProvidesColoredExplicitRank(5)" fullname="TownAvailabilityParityTests.RankPresentation_ProvidesColoredExplicitRank(5)" methodname="RankPresentation_ProvidesColoredExplicitRank" classname="TownAvailabilityParityTests" runstate="Runnable" seed="490617474" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000066" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1744" name="RankPresentation_ProvidesColoredExplicitRank(10)" fullname="TownAvailabilityParityTests.RankPresentation_ProvidesColoredExplicitRank(10)" methodname="RankPresentation_ProvidesColoredExplicitRank" classname="TownAvailabilityParityTests" runstate="Runnable" seed="1523478983" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000043" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+      </test-suite>
+      <test-suite type="TestFixture" id="1746" name="TutorialControllerTests" fullname="TutorialControllerTests" classname="TutorialControllerTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.006946" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1749" name="CompletingTutorial_SetsPreferenceAndClosesOverlay" fullname="TutorialControllerTests.CompletingTutorial_SetsPreferenceAndClosesOverlay" methodname="CompletingTutorial_SetsPreferenceAndClosesOverlay" classname="TutorialControllerTests" runstate="Runnable" seed="72778288" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.001663" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1747" name="FirstJourneyRoute_StatesRequiredActionsInOrder" fullname="TutorialControllerTests.FirstJourneyRoute_StatesRequiredActionsInOrder" methodname="FirstJourneyRoute_StatesRequiredActionsInOrder" classname="TutorialControllerTests" runstate="Runnable" seed="899414298" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000435" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1748" name="Navigation_PresentsOnboardingAndFacilityPurposes" fullname="TutorialControllerTests.Navigation_PresentsOnboardingAndFacilityPurposes" methodname="Navigation_PresentsOnboardingAndFacilityPurposes" classname="TutorialControllerTests" runstate="Runnable" seed="1837468697" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.001481" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1750" name="ResetCompletion_AllowsTutorialToRunForNewGame" fullname="TutorialControllerTests.ResetCompletion_AllowsTutorialToRunForNewGame" methodname="ResetCompletion_AllowsTutorialToRunForNewGame" classname="TutorialControllerTests" runstate="Runnable" seed="1070363441" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000328" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1751" name="UIPageRouterTests" fullname="UIPageRouterTests" classname="UIPageRouterTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.002035" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1752" name="Register_HidesPagesUntilTheyAreSelected" fullname="UIPageRouterTests.Register_HidesPagesUntilTheyAreSelected" methodname="Register_HidesPagesUntilTheyAreSelected" classname="UIPageRouterTests" runstate="Runnable" seed="372616319" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000871" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1753" name="Show_LeavesOnlySelectedPageVisible" fullname="UIPageRouterTests.Show_LeavesOnlySelectedPageVisible" methodname="Show_LeavesOnlySelectedPageVisible" classname="UIPageRouterTests" runstate="Runnable" seed="588183118" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000577" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1754" name="WorldMapServiceTests" fullname="WorldMapServiceTests" classname="WorldMapServiceTests" runstate="Runnable" testcasecount="23" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.015161" total="23" passed="23" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="ParameterizedMethod" id="1764" name="AreTownsAdjacent_UsesProgressionRoute" fullname="WorldMapServiceTests.AreTownsAdjacent_UsesProgressionRoute" classname="WorldMapServiceTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.005038" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1756" name="AreTownsAdjacent_UsesProgressionRoute(2,1,True)" fullname="WorldMapServiceTests.AreTownsAdjacent_UsesProgressionRoute(2,1,True)" methodname="AreTownsAdjacent_UsesProgressionRoute" classname="WorldMapServiceTests" runstate="Runnable" seed="1975403132" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000363" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1757" name="AreTownsAdjacent_UsesProgressionRoute(1,0,True)" fullname="WorldMapServiceTests.AreTownsAdjacent_UsesProgressionRoute(1,0,True)" methodname="AreTownsAdjacent_UsesProgressionRoute" classname="WorldMapServiceTests" runstate="Runnable" seed="1824669303" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000072" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1758" name="AreTownsAdjacent_UsesProgressionRoute(0,3,True)" fullname="WorldMapServiceTests.AreTownsAdjacent_UsesProgressionRoute(0,3,True)" methodname="AreTownsAdjacent_UsesProgressionRoute" classname="WorldMapServiceTests" runstate="Runnable" seed="1978971636" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000055" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1759" name="AreTownsAdjacent_UsesProgressionRoute(3,4,True)" fullname="WorldMapServiceTests.AreTownsAdjacent_UsesProgressionRoute(3,4,True)" methodname="AreTownsAdjacent_UsesProgressionRoute" classname="WorldMapServiceTests" runstate="Runnable" seed="428069745" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000047" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1760" name="AreTownsAdjacent_UsesProgressionRoute(4,5,True)" fullname="WorldMapServiceTests.AreTownsAdjacent_UsesProgressionRoute(4,5,True)" methodname="AreTownsAdjacent_UsesProgressionRoute" classname="WorldMapServiceTests" runstate="Runnable" seed="734603936" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000046" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1761" name="AreTownsAdjacent_UsesProgressionRoute(5,6,True)" fullname="WorldMapServiceTests.AreTownsAdjacent_UsesProgressionRoute(5,6,True)" methodname="AreTownsAdjacent_UsesProgressionRoute" classname="WorldMapServiceTests" runstate="Runnable" seed="966034953" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000041" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1762" name="AreTownsAdjacent_UsesProgressionRoute(2,0,False)" fullname="WorldMapServiceTests.AreTownsAdjacent_UsesProgressionRoute(2,0,False)" methodname="AreTownsAdjacent_UsesProgressionRoute" classname="WorldMapServiceTests" runstate="Runnable" seed="762264717" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000045" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1763" name="AreTownsAdjacent_UsesProgressionRoute(0,4,False)" fullname="WorldMapServiceTests.AreTownsAdjacent_UsesProgressionRoute(0,4,False)" methodname="AreTownsAdjacent_UsesProgressionRoute" classname="WorldMapServiceTests" runstate="Runnable" seed="677290719" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000043" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-case id="1776" name="CanEnterWorldRegion_UsesCurrentTownUnlockedTownOrGateClear" fullname="WorldMapServiceTests.CanEnterWorldRegion_UsesCurrentTownUnlockedTownOrGateClear" methodname="CanEnterWorldRegion_UsesCurrentTownUnlockedTownOrGateClear" classname="WorldMapServiceTests" runstate="Runnable" seed="1035678465" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000739" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1770" name="CreateRestoredUnlockedTownIndices_WhenLegacySave_UnlocksRouteToCurrentTown" fullname="WorldMapServiceTests.CreateRestoredUnlockedTownIndices_WhenLegacySave_UnlocksRouteToCurrentTown" methodname="CreateRestoredUnlockedTownIndices_WhenLegacySave_UnlocksRouteToCurrentTown" classname="WorldMapServiceTests" runstate="Runnable" seed="371338244" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000646" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1771" name="CreateRestoredUnlockedTownIndices_WhenModernSave_IgnoresInvalidTowns" fullname="WorldMapServiceTests.CreateRestoredUnlockedTownIndices_WhenModernSave_IgnoresInvalidTowns" methodname="CreateRestoredUnlockedTownIndices_WhenModernSave_IgnoresInvalidTowns" classname="WorldMapServiceTests" runstate="Runnable" seed="550308333" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000173" asserts="0">
+          <properties />
+        </test-case>
+        <test-suite type="ParameterizedMethod" id="1775" name="GetGateTownIndexForWorldRegion_ReturnsConfiguredGate" fullname="WorldMapServiceTests.GetGateTownIndexForWorldRegion_ReturnsConfiguredGate" classname="WorldMapServiceTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000694" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1772" name="GetGateTownIndexForWorldRegion_ReturnsConfiguredGate(1,0)" fullname="WorldMapServiceTests.GetGateTownIndexForWorldRegion_ReturnsConfiguredGate(1,0)" methodname="GetGateTownIndexForWorldRegion_ReturnsConfiguredGate" classname="WorldMapServiceTests" runstate="Runnable" seed="490056983" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000121" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1773" name="GetGateTownIndexForWorldRegion_ReturnsConfiguredGate(2,4)" fullname="WorldMapServiceTests.GetGateTownIndexForWorldRegion_ReturnsConfiguredGate(2,4)" methodname="GetGateTownIndexForWorldRegion_ReturnsConfiguredGate" classname="WorldMapServiceTests" runstate="Runnable" seed="672798674" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000045" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1774" name="GetGateTownIndexForWorldRegion_ReturnsConfiguredGate(0,-1)" fullname="WorldMapServiceTests.GetGateTownIndexForWorldRegion_ReturnsConfiguredGate(0,-1)" methodname="GetGateTownIndexForWorldRegion_ReturnsConfiguredGate" classname="WorldMapServiceTests" runstate="Runnable" seed="492232069" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000035" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-suite type="ParameterizedMethod" id="1769" name="GetNextTownToward_ReturnsNextRouteStep" fullname="WorldMapServiceTests.GetNextTownToward_ReturnsNextRouteStep" classname="WorldMapServiceTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.003295" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1765" name="GetNextTownToward_ReturnsNextRouteStep(2,0,1)" fullname="WorldMapServiceTests.GetNextTownToward_ReturnsNextRouteStep(2,0,1)" methodname="GetNextTownToward_ReturnsNextRouteStep" classname="WorldMapServiceTests" runstate="Runnable" seed="694771720" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000207" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1766" name="GetNextTownToward_ReturnsNextRouteStep(0,5,3)" fullname="WorldMapServiceTests.GetNextTownToward_ReturnsNextRouteStep(0,5,3)" methodname="GetNextTownToward_ReturnsNextRouteStep" classname="WorldMapServiceTests" runstate="Runnable" seed="334789588" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000056" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1767" name="GetNextTownToward_ReturnsNextRouteStep(6,3,5)" fullname="WorldMapServiceTests.GetNextTownToward_ReturnsNextRouteStep(6,3,5)" methodname="GetNextTownToward_ReturnsNextRouteStep" classname="WorldMapServiceTests" runstate="Runnable" seed="1326438049" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000039" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1768" name="GetNextTownToward_ReturnsNextRouteStep(3,3,-1)" fullname="WorldMapServiceTests.GetNextTownToward_ReturnsNextRouteStep(3,3,-1)" methodname="GetNextTownToward_ReturnsNextRouteStep" classname="WorldMapServiceTests" runstate="Runnable" seed="681990756" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000035" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-case id="1780" name="HiddenIsland_IsInvisibleRouteUntilConditionUnlocksTown" fullname="WorldMapServiceTests.HiddenIsland_IsInvisibleRouteUntilConditionUnlocksTown" methodname="HiddenIsland_IsInvisibleRouteUntilConditionUnlocksTown" classname="WorldMapServiceTests" runstate="Runnable" seed="243998393" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000869" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1755" name="TownData_HasExpectedProgressionAndRegions" fullname="WorldMapServiceTests.TownData_HasExpectedProgressionAndRegions" methodname="TownData_HasExpectedProgressionAndRegions" classname="WorldMapServiceTests" runstate="Runnable" seed="1857400644" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000209" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1779" name="ValidateTravelRequest_AllowsNextUnlockTravel" fullname="WorldMapServiceTests.ValidateTravelRequest_AllowsNextUnlockTravel" methodname="ValidateTravelRequest_AllowsNextUnlockTravel" classname="WorldMapServiceTests" runstate="Runnable" seed="724573888" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000252" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1778" name="ValidateTravelRequest_RejectsEmptyParty" fullname="WorldMapServiceTests.ValidateTravelRequest_RejectsEmptyParty" methodname="ValidateTravelRequest_RejectsEmptyParty" classname="WorldMapServiceTests" runstate="Runnable" seed="356025272" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000177" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1777" name="ValidateTravelRequest_RejectsNonAdjacentDestination" fullname="WorldMapServiceTests.ValidateTravelRequest_RejectsNonAdjacentDestination" methodname="ValidateTravelRequest_RejectsNonAdjacentDestination" classname="WorldMapServiceTests" runstate="Runnable" seed="535153692" result="Passed" start-time="2026-07-14 18:45:55Z" end-time="2026-07-14 18:45:55Z" duration="0.000153" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

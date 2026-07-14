@@ -177,7 +177,9 @@ public sealed class StoryProgressManager : MonoBehaviour
 
     private void HandleDungeonCompleted(bool cleared)
     {
-        if (cleared)
+        if (cleared &&
+            dungeonRunManager != null &&
+            dungeonRunManager.IsSelectedDungeonFullyCleared)
         {
             TryComplete(StoryMilestone.FirstDungeonClear);
         }

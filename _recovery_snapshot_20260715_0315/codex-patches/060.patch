@@ -1,0 +1,22 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\BattleVisualController.cs
+@@
+     private BattleManager battleManager;
+     private Font font;
+     private Coroutine playbackRoutine;
++    private Coroutine introRoutine;
+     private Text resultText;
++    private Text actionBanner;
++    private bool introPending;
++    private bool introIsBoss;
+@@
+     private void OnDestroy()
+     {
+         Unsubscribe();
+     }
++
++    private void OnEnable()
++    {
++        TryStartIntro();
++    }
+*** End Patch

@@ -114,6 +114,7 @@ public class SimpleMercenaryHireUIFactory
         button.onClick.AddListener(action);
         ApplyButtonTransitions(button);
         SetOrCreateButtonLabel(buttonRect, label, 15);
+        AudioFeedbackService.Active?.RegisterButton(button);
         return button;
     }
 
@@ -147,6 +148,7 @@ public class SimpleMercenaryHireUIFactory
         button.onClick.AddListener(action);
         ApplyButtonTransitions(button);
         SetOrCreateButtonLabel(buttonRect, label, 17);
+        AudioFeedbackService.Active?.RegisterButton(button);
         return button;
     }
 

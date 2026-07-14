@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
+  m_Name: VelmDeepforgeHexer
+  m_EditorClassIdentifier:
+  enemyName: ヴェルム深炉呪術師
+  monsterGrade: 2
+  isBoss: 0
+  category: 0
+  enemySkill: 14
+  isSpecialVariant: 0
+  specialVariantTitle:
+  maxHP: 105
+  attack: 29
+  defense: 9
+  maxMagicPower: 110
+  attackSpeed: 1.05
+  criticalRate: 0.02
+  evasionRate: 0.04
+  goldReward: 320
+  experienceMultiplier: 1.25
+  itemDrops:
+  - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
+    amount: 1
+    dropChance: 0.5

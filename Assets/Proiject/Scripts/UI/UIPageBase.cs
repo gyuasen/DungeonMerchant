@@ -188,6 +188,7 @@ public abstract class UIPageBase : MonoBehaviour
             buttonRect.gameObject.AddComponent<Button>();
         button.targetGraphic = image;
         ConfigureButton(button, font, textColor, label, action);
+        AudioFeedbackService.Active?.RegisterButton(button);
         return button;
     }
 

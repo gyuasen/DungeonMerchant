@@ -1,0 +1,29 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Dungeons\AstralDepths.asset
+@@
+-  specialBossChance: 0.08
++  specialBossChance: 0.05
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Dungeons\HighestAbyss.asset
+@@
+-  specialBossChance: 0.06
++  specialBossChance: 0.05
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Tests\EditMode\GameAssetRepositoryTests.cs
+@@
+     public void HighestDungeonForEachTown_IsUniqueAndUsesExpectedEquipmentRank()
+@@
+         }
+     }
++
++    [Test]
++    public void DungeonSpecialBossChance_IsHiddenElementLevel()
++    {
++        foreach (DungeonDataSO dungeon in
++                 GameAssetRepository.LoadAll<DungeonDataSO>())
++        {
++            Assert.That(
++                dungeon.specialBossChance,
++                Is.InRange(0f, 0.05f),
++                $"{dungeon.name} special boss chance is too high.");
++        }
++    }
+*** End Patch

@@ -1,0 +1,25 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Tests\EditMode\EnemySkillBalanceTests.cs
+@@
+     public void EnemySkillType_ExistingValuesRemainStable_NewSkillsAppendAfterThem()
+@@
+         Assert.That((int)EnemySkillType.SoulBurst, Is.EqualTo(20));
+     }
++
++    [TestCase(2, EnemySkillType.MeteorRain)]
++    [TestCase(3, EnemySkillType.BerserkRush)]
++    [TestCase(4, EnemySkillType.SoulBurst)]
++    [TestCase(8, EnemySkillType.ArcaneBolt)]
++    [TestCase(9, EnemySkillType.CrushingBlow)]
++    [TestCase(10, EnemySkillType.Regeneration)]
++    public void GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands(
++        int monsterGrade,
++        EnemySkillType expected)
++    {
++        Assert.That(
++            BattleSkillResolver.GetDefaultEnemySkill(monsterGrade),
++            Is.EqualTo(expected));
++    }
+ 
+     [Test]
+*** End Patch

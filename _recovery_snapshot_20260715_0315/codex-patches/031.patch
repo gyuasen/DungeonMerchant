@@ -1,0 +1,27 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Dungeons\HighestAbyss.asset
+@@
+-  - {fileID: 11400000, guid: 20920000000000000000000000000000, type: 2}
++  - {fileID: 11400000, guid: 10a10000000000000000000000000009, type: 2}
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Recipes\Rank08ArmorRecipe.asset
+@@
+-  resultItem: {fileID: 11400000, guid: 20810000000000000000000000000000, type: 2}
++  resultItem: {fileID: 11400000, guid: 10a10000000000000000000000000008, type: 2}
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Tests\EditMode\EquipmentAvailabilityTests.cs
+@@
+     private static readonly string[] NormalRank08Ids =
+     {
+         "item.normal.rank08",
+-        "item.normal.rank08.armor",
+         "item.normal.rank08.weapon"
++        ,"item.normal.rank08.accessory"
+@@
+-            Assert.That(recipe.goldCost, Is.EqualTo(
+-                recipe.resultItem.basePrice * 2 / 3));
++            int expectedGoldCost = recipe.resultItem.equipmentSlot == EquipmentSlot.Weapon
++                ? 550
++                : recipe.resultItem.equipmentSlot == EquipmentSlot.Armor
++                    ? 500
++                    : 600;
++            Assert.That(recipe.goldCost, Is.EqualTo(expectedGoldCost), recipe.name);
+*** End Patch

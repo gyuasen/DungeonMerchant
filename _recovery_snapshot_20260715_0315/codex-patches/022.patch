@@ -1,0 +1,36 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\NormalRank08.asset
+@@
+-  basePrice: 750
++  basePrice: 750
++  acquisitionType: 1
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\NormalRank08Accessory.asset
+@@
+-  acquisitionType: 0
++  acquisitionType: 1
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\NormalRank08Weapon.asset
+@@
+-  acquisitionType: 0
++  acquisitionType: 1
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\NormalRank09.asset
+@@
+-  basePrice: 950
++  basePrice: 950
++  acquisitionType: 2
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\NormalRank09Armor.asset
+@@
+-  acquisitionType: 0
++  acquisitionType: 2
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\GameData\Items\NormalRank09Weapon.asset
+@@
+-  acquisitionType: 0
++  acquisitionType: 2
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Dungeons\HighestAbyss.asset
+@@
+   - {fileID: 11400000, guid: a1200000000000000000000000000001, type: 2}
+   - {fileID: 11400000, guid: a1200000000000000000000000000002, type: 2}
+   - {fileID: 11400000, guid: a1200000000000000000000000000003, type: 2}
++  - {fileID: 11400000, guid: 20900000000000000000000000000000, type: 2}
++  - {fileID: 11400000, guid: 20910000000000000000000000000000, type: 2}
++  - {fileID: 11400000, guid: 20920000000000000000000000000000, type: 2}
+*** End Patch

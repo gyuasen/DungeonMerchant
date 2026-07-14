@@ -1,0 +1,12 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Battle\BattleSkillResolver.cs
+@@
+             case MercenarySkillId.FrostNova:
+             case MercenarySkillId.StormCircle:
+                 return TryUsePlayerAreaDamage(attacker, skill,
+                     BattleStatusEffect.Paralysis);
+             case MercenarySkillId.Smite:
+-                return TryUseDirectPlayerDamage(attacker, primaryTarget, skill);
++                return TryUseDirectPlayerDamage(
++                    attacker, primaryTarget, skill, out _);
+*** End Patch

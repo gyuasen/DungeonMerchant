@@ -1,0 +1,29 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Battle\BattleSkillResolver.cs
+@@
+-    private bool UseEnemyDamageSkill(BattleUnit attacker, BattleUnit target, string skillName, float power, BattleStatusEffect status)
++    private bool UseEnemySoulBurst(BattleUnit attacker)
++    {
++        if (Living(context.PlayerUnits).Count == 0)
++        {
++            return false;
++        }
++
++        int recoil = Math.Max(1, Round(attacker.MaxHP * 0.06f));
++        attacker.TakePureDamage(recoil);
++        bool used = UseEnemyAreaDamageSkill(
++            attacker,
++            "Soul Burst",
++            0.55f,
++            BattleStatusEffect.None);
++        if (used)
++        {
++            Log(
++                BattleLogFormatter.FormatRecoil(attacker.UnitName, recoil),
++                BattleLogType.Enemy);
++        }
++        return used;
++    }
++
++    private bool UseEnemyDamageSkill(BattleUnit attacker, BattleUnit target, string skillName, float power, BattleStatusEffect status)
+*** End Patch

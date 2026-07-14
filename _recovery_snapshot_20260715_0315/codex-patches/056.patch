@@ -1,0 +1,63 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\SimpleMercenaryHireUI.BattleDungeon.cs
+@@
+-        CreateText(
++        Text roadBattleTitle = CreateText(
+             roadBattlePage,
+             "街道戦闘",
+@@
+-            ParchmentTextColor);
++            new Color(1f, 0.94f, 0.76f));
++        Outline roadTitleOutline =
++            roadBattleTitle.gameObject.AddComponent<Outline>();
++        roadTitleOutline.effectColor = new Color(0f, 0f, 0f, 0.9f);
++        roadTitleOutline.effectDistance = new Vector2(1f, -1f);
+@@
+-            ParchmentTextColor);
++            new Color(1f, 0.94f, 0.76f));
++        Outline roadRouteOutline =
++            roadBattleRouteText.gameObject.AddComponent<Outline>();
++        roadRouteOutline.effectColor = new Color(0f, 0f, 0f, 0.9f);
++        roadRouteOutline.effectDistance = new Vector2(1f, -1f);
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Battle\BattleManager.cs
+@@
+         if (IsBattling)
+         {
++            ClearNextBattleBackground();
+             SendBattleMessage("すでに戦闘中です。");
+             return false;
+         }
+@@
+         if (partyMembers == null || partyMembers.Count == 0)
+         {
++            ClearNextBattleBackground();
+             SendBattleMessage("パーティーに傭兵を1人以上編成してください。");
+             return false;
+         }
+@@
+         if (BuildEnemyEncounterData().Count == 0)
+         {
++            ClearNextBattleBackground();
+             SendBattleMessage("敵データが設定されていません。");
+             return false;
+         }
+@@
+     private void RaisePresentation(BattlePresentationEvent presentationEvent)
+@@
+         BattlePresentation?.Invoke(presentationEvent);
+     }
++
++    private void ClearNextBattleBackground()
++    {
++        nextBattleBackground = null;
++        nextBattleBackgroundKey = null;
++    }
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Tests\PlayMode\BattleManagerPlayModeTests.cs
+@@
+             battleManager.BattlePresentation +=
+                 presentationEvents.Add;
++            battleManager.SetNextBattleBackground(null, "TestArena");
+@@
+             Assert.That(preparedRoster.Enemies.Count, Is.EqualTo(1));
++            Assert.That(preparedRoster.BackgroundKey, Is.EqualTo("TestArena"));
+*** End Patch

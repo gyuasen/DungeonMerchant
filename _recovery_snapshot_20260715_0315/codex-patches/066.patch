@@ -1,0 +1,24 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\BattleVisualController.cs
+@@
+         public Text Status { get; }
+         public CanvasGroup Group { get; }
++        public Outline TargetOutline { get; }
++        public int CurrentHP { get; private set; }
+@@
+             Image hpFill,
+             Text hpText,
+             Text status,
+-            CanvasGroup group)
++            CanvasGroup group,
++            Outline targetOutline)
+@@
+             Status = status;
+             Group = group;
++            TargetOutline = targetOutline;
+@@
+             int safeMaximum = Mathf.Max(1, maximum);
+             int safeCurrent = Mathf.Clamp(current, 0, safeMaximum);
++            CurrentHP = safeCurrent;
+             HPFill.fillAmount = safeCurrent / (float)safeMaximum;
+*** End Patch

@@ -1,0 +1,32 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Core\SaveManager.cs
+@@
+-    private static readonly string AutomatedTestSavePath = Path.Combine(
+-        Application.temporaryCachePath,
+-        $"dungeon-merchant-test-{Guid.NewGuid():N}.json");
++    private static string automatedTestSavePath;
+@@
+     public string SavePath => !string.IsNullOrEmpty(savePathOverride)
+         ? savePathOverride
+         : IsAutomatedTestRun()
+-            ? AutomatedTestSavePath
++            ? GetAutomatedTestSavePath()
+             : Path.Combine(Application.persistentDataPath, SaveFileName);
+@@
+     private static bool IsAutomatedTestRun()
+@@
+         return false;
+     }
++
++    private static string GetAutomatedTestSavePath()
++    {
++        if (string.IsNullOrEmpty(automatedTestSavePath))
++        {
++            automatedTestSavePath = Path.Combine(
++                Application.temporaryCachePath,
++                $"dungeon-merchant-test-{Guid.NewGuid():N}.json");
++        }
++
++        return automatedTestSavePath;
++    }
+*** End Patch

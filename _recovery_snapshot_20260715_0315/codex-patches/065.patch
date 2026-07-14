@@ -1,0 +1,65 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\BattleVisualController.cs
+@@
+     private void StopPlayback()
+     {
+         if (playbackRoutine != null)
+         {
+             StopCoroutine(playbackRoutine);
+             playbackRoutine = null;
+         }
++        if (introRoutine != null)
++        {
++            StopCoroutine(introRoutine);
++            introRoutine = null;
++        }
+         eventQueue.Clear();
+     }
++
++    private void TryStartIntro()
++    {
++        if (!introPending || !isActiveAndEnabled || resultText == null ||
++            introRoutine != null)
++        {
++            return;
++        }
++        introRoutine = StartCoroutine(PlayIntro());
++    }
++
++    private IEnumerator PlayIntro()
++    {
++        introPending = false;
++        resultText.text = introIsBoss ? "BOSS ENCOUNTER" : "ENCOUNTER";
++        resultText.color = introIsBoss
++            ? new Color(1f, 0.38f, 0.28f)
++            : new Color(1f, 0.86f, 0.38f);
++        resultText.gameObject.SetActive(true);
++        resultText.transform.SetAsLastSibling();
++        resultText.rectTransform.localScale = Vector3.one * 0.8f;
++        yield return Tween(Duration(0.18f), value =>
++        {
++            resultText.rectTransform.localScale = Vector3.one *
++                Mathf.Lerp(0.8f, 1f, value);
++        });
++        yield return Wait(0.25f);
++        resultText.gameObject.SetActive(false);
++        resultText.rectTransform.localScale = Vector3.one;
++        introRoutine = null;
++    }
++
++    private static bool HasBoss(BattlePresentationRoster roster)
++    {
++        if (roster?.Enemies == null)
++        {
++            return false;
++        }
++        foreach (BattleVisualUnitDescriptor enemy in roster.Enemies)
++        {
++            if (enemy?.EnemyData != null && enemy.EnemyData.isBoss)
++            {
++                return true;
++            }
++        }
++        return false;
++    }
+*** End Patch

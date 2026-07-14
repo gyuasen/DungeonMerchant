@@ -1,0 +1,73 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Audio\AudioFeedbackService.cs
+@@
+     private float volume = DefaultVolume;
+     private bool initialized;
++
++    public static AudioFeedbackService Active { get; private set; }
+@@
+     private void Awake()
+     {
++        Active = this;
+         Initialize();
+@@
+         registeredButtons.Clear();
++        if (Active == this)
++        {
++            Active = null;
++        }
+@@
+-            Button button = buttons[i];
+-            if (button != null && registeredButtons.Add(button))
+-            {
+-                button.onClick.AddListener(PlayButtonClick);
+-            }
++            RegisterButton(buttons[i]);
+         }
+     }
++
++    public void RegisterButton(Button button)
++    {
++        Initialize();
++        if (button != null && registeredButtons.Add(button))
++        {
++            button.onClick.AddListener(PlayButtonClick);
++        }
++    }
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\SimpleMercenaryHireUIFactory.cs
+@@
+         ApplyButtonTransitions(button);
+         SetOrCreateButtonLabel(buttonRect, label, 15);
++        AudioFeedbackService.Active?.RegisterButton(button);
+         return button;
+@@
+         ApplyButtonTransitions(button);
+         SetOrCreateButtonLabel(buttonRect, label, 17);
++        AudioFeedbackService.Active?.RegisterButton(button);
+         return button;
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Tests\EditMode\AudioFeedbackServiceTests.cs
+@@
+     public void RegisterButtonsUnder_RegistersInactiveButtonsWithoutDuplicates()
+@@
+         Assert.That(GetRegisteredButtonCount(service), Is.EqualTo(2));
+     }
++
++    [Test]
++    public void FactoryCreatedActionButton_RegistersWithActiveService()
++    {
++        AudioFeedbackService service = CreateService();
++        GameObject parentObject = new GameObject(
++            "Button Parent", typeof(RectTransform));
++        parentObject.transform.SetParent(service.transform, false);
++        Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
++        SimpleMercenaryHireUIFactory factory =
++            new SimpleMercenaryHireUIFactory(font, font);
++
++        factory.CreateActionButton(
++            parentObject.GetComponent<RectTransform>(),
++            "Test",
++            () => { });
++
++        Assert.That(GetRegisteredButtonCount(service), Is.EqualTo(1));
++    }
+*** End Patch

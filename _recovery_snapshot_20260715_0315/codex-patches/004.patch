@@ -1,0 +1,28 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\CharacterEquipmentController.cs
+@@
+-                       "3部位: 最大HP+22、攻撃速度+0.03";
++                       "3部位: 最大HP+22、攻撃速度+0.025";
+@@
+-                       "3部位: 最大HP+36、攻撃速度+0.04";
++                       "3部位: 最大HP+36、攻撃速度+0.035";
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\SimpleMercenaryHireUI.cs
+@@
+     private Font LoadUIFont()
+     {
+-        Font font = Font.CreateDynamicFontFromOSFont(
+-            new[]
+-            {
++        Font font = Resources.Load<Font>("Fonts/ZenKurenaido-Regular");
++        if (font == null)
++        {
++            font = Font.CreateDynamicFontFromOSFont(
++                new[]
++                {
+@@
+-            },
+-            16);
++                },
++                16);
++        }
+*** End Patch

@@ -1,0 +1,36 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Merchant\ProgressionManager.cs
+@@
+-        int days = 1;
++        int days = 1 + Mathf.Max(0, explorationExtraDays);
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Tests\EditMode\ProgressionManagerTests.cs
+@@
+ using System.Collections.Generic;
++using System.Reflection;
+@@
+     public void Restore_Null_DoesNotThrowAndDoesNotChangeState()
+@@
+         Assert.That(progressionManager.ProfitableDungeonClears, Is.EqualTo(4));
+     }
++
++    [Test]
++    public void DungeonCompletion_AdvancesBaseDayPlusEventDelays()
++    {
++        DayManager dayManager = root.AddComponent<DayManager>();
++        progressionManager.StartExploration();
++        progressionManager.AddExplorationDelay(2);
++
++        MethodInfo handleDungeonCompleted = typeof(ProgressionManager)
++            .GetMethod(
++                "HandleDungeonCompleted",
++                BindingFlags.Instance | BindingFlags.NonPublic);
++
++        Assert.That(handleDungeonCompleted, Is.Not.Null);
++        handleDungeonCompleted.Invoke(
++            progressionManager,
++            new object[] { false });
++
++        Assert.That(dayManager.CurrentDay, Is.EqualTo(4));
++        Assert.That(progressionManager.LastExplorationResult, Does.Contain("3日"));
++    }
+*** End Patch

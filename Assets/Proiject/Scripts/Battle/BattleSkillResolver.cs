@@ -37,6 +37,16 @@ public sealed class BattleSkillResolver
 
     public bool TryUseEnemySkill(BattleUnit attacker, BattleUnit target, EnemyDataSO data)
     {
+        return TryUseEnemySkill(attacker, target, data, out _);
+    }
+
+    public bool TryUseEnemySkill(
+        BattleUnit attacker,
+        BattleUnit target,
+        EnemyDataSO data,
+        out string skillName)
+    {
+        skillName = string.Empty;
         if (data == null || context.RandomValue() > context.EnemySkillUseChance)
         {
             return false;
@@ -44,6 +54,7 @@ public sealed class BattleSkillResolver
 
         EnemySkillType skill = data.enemySkill != EnemySkillType.None
             ? data.enemySkill : GetDefaultEnemySkill(data.monsterGrade);
+        skillName = GetEnemySkillDisplayName(skill);
         switch (skill)
         {
             case EnemySkillType.PowerStrike:
@@ -107,6 +118,34 @@ public sealed class BattleSkillResolver
                 return UseEnemySacrificialStrike(attacker, target);
             case EnemySkillType.Execute:
                 return UseEnemyExecute(attacker, target);
+            case EnemySkillType.ArcaneBolt:
+                return UseEnemyMagicDamageSkill(
+                    attacker,
+                    target,
+                    "魔弾",
+                    0.55f,
+                    0.28f,
+                    BattleStatusEffect.None);
+            case EnemySkillType.MeteorRain:
+                return UseEnemyMagicAreaDamageSkill(
+                    attacker,
+                    "星火雨",
+                    0.45f,
+                    0.12f);
+            case EnemySkillType.CrushingBlow:
+                return UseEnemyDamageSkill(
+                    attacker,
+                    target,
+                    "粉砕撃",
+                    1.15f,
+                    BattleStatusEffect.Paralysis);
+            case EnemySkillType.BerserkRush:
+                return UseEnemyMultiStrike(
+                    attacker, target, "狂乱連撃", 4, 0.38f);
+            case EnemySkillType.Regeneration:
+                return UseEnemyRegeneration(attacker);
+            case EnemySkillType.SoulBurst:
+                return UseEnemySoulBurst(attacker);
             case EnemySkillType.ToxicCloud:
                 return UseEnemyAreaDamageSkill(
                     attacker,
@@ -120,6 +159,15 @@ public sealed class BattleSkillResolver
 
     public bool TryUsePlayerSkill(BattleUnit attacker, BattleUnit primaryTarget)
     {
+        return TryUsePlayerSkill(attacker, primaryTarget, out _);
+    }
+
+    public bool TryUsePlayerSkill(
+        BattleUnit attacker,
+        BattleUnit primaryTarget,
+        out string skillName)
+    {
+        skillName = string.Empty;
         if (context.RandomValue() > context.PlayerSkillUseChance ||
             CanDefeatWithNormalAttack(attacker, primaryTarget))
         {
@@ -139,6 +187,7 @@ public sealed class BattleSkillResolver
             0,
             skills.Count - 1);
         MercenarySkillDefinition skill = skills[skillIndex];
+        skillName = skill.Name;
         switch (skill.Id)
         {
             case MercenarySkillId.Taunt:
@@ -152,19 +201,31 @@ public sealed class BattleSkillResolver
             case MercenarySkillId.PoisonBlade:
                 return TryUsePoisonBlade(attacker, primaryTarget, skill);
             case MercenarySkillId.PiercingThrust:
+            case MercenarySkillId.AegisPierce:
+            case MercenarySkillId.ArmorBreakArrow:
+            case MercenarySkillId.FortressPierce:
+            case MercenarySkillId.TemporalRift:
+            case MercenarySkillId.VoidPierce:
                 return TryUsePiercingThrust(attacker, primaryTarget, skill);
             case MercenarySkillId.ShieldBash:
+            case MercenarySkillId.HolyShieldBash:
+            case MercenarySkillId.BindingBlade:
                 return TryUseStatusDamagePlayer(attacker, primaryTarget, skill,
                     BattleStatusEffect.Paralysis);
             case MercenarySkillId.Volley:
             case MercenarySkillId.SweepingThrust:
+            case MercenarySkillId.GaleVolley:
+            case MercenarySkillId.WarfrontSmash:
+            case MercenarySkillId.DragonfallBreath:
                 return TryUsePlayerAreaDamage(attacker, skill,
                     BattleStatusEffect.None);
             case MercenarySkillId.FrostNova:
+            case MercenarySkillId.StormCircle:
                 return TryUsePlayerAreaDamage(attacker, skill,
                     BattleStatusEffect.Paralysis);
             case MercenarySkillId.Smite:
-                return TryUseDirectPlayerDamage(attacker, primaryTarget, skill);
+                return TryUseDirectPlayerDamage(
+                    attacker, primaryTarget, skill, out _);
             case MercenarySkillId.ShadowFlurry:
                 return TryUsePlayerMultiStrike(attacker, primaryTarget, skill, 2);
             case MercenarySkillId.GuardCounter:
@@ -173,10 +234,15 @@ public sealed class BattleSkillResolver
             case MercenarySkillId.VitalStrike:
             case MercenarySkillId.GuardianThrust:
             case MercenarySkillId.WarlordCommand:
-                return TryUseDirectPlayerDamage(attacker, primaryTarget, skill);
+            case MercenarySkillId.ArcaneBurst:
+                return TryUseDirectPlayerDamage(
+                    attacker, primaryTarget, skill, out _);
             case MercenarySkillId.PrayerLight:
             case MercenarySkillId.SaintsGrace:
+            case MercenarySkillId.DivineHymn:
                 return TryUsePartyHeal(attacker, skill);
+            case MercenarySkillId.GreaterHeal:
+                return TryUsePriestHeal(attacker, skill);
             case MercenarySkillId.BeastPack:
             case MercenarySkillId.DragonBreath:
                 return TryUsePlayerAreaDamage(attacker, skill,
@@ -186,6 +252,12 @@ public sealed class BattleSkillResolver
                     BattleStatusEffect.Paralysis);
             case MercenarySkillId.ShadowRend:
                 return TryUsePlayerMultiStrike(attacker, primaryTarget, skill, 3);
+            case MercenarySkillId.RagingCombo:
+            case MercenarySkillId.SkySpearCombo:
+                return TryUsePlayerMultiStrike(attacker, primaryTarget, skill, 3);
+            case MercenarySkillId.FatalFlurry:
+            case MercenarySkillId.BeastKingFangs:
+                return TryUsePlayerMultiStrike(attacker, primaryTarget, skill, 4);
             default:
                 return false;
         }
@@ -193,10 +265,62 @@ public sealed class BattleSkillResolver
 
     public static EnemySkillType GetDefaultEnemySkill(int monsterGrade)
     {
-        EnemySkillType[] lower = { EnemySkillType.PowerStrike, EnemySkillType.VenomStrike, EnemySkillType.FrostBite, EnemySkillType.DoubleStrike };
-        EnemySkillType[] upper = { EnemySkillType.ArmorPierce, EnemySkillType.FlameBreath, EnemySkillType.TripleStrike, EnemySkillType.BattleHeal, EnemySkillType.SacrificialStrike, EnemySkillType.Execute, EnemySkillType.ToxicCloud };
+        EnemySkillType[] lower =
+        {
+            EnemySkillType.PowerStrike,
+            EnemySkillType.VenomStrike,
+            EnemySkillType.FrostBite,
+            EnemySkillType.DoubleStrike,
+            EnemySkillType.ArcaneBolt,
+            EnemySkillType.CrushingBlow,
+            EnemySkillType.Regeneration
+        };
+        EnemySkillType[] upper =
+        {
+            EnemySkillType.ArmorPierce,
+            EnemySkillType.FlameBreath,
+            EnemySkillType.MeteorRain,
+            EnemySkillType.BerserkRush,
+            EnemySkillType.SoulBurst,
+            EnemySkillType.Execute,
+            EnemySkillType.TripleStrike,
+            EnemySkillType.BattleHeal,
+            EnemySkillType.SacrificialStrike,
+            EnemySkillType.ToxicCloud
+        };
         EnemySkillType[] candidates = monsterGrade <= 5 ? upper : lower;
-        return candidates[Math.Abs(monsterGrade) % candidates.Length];
+        int candidateIndex = monsterGrade <= 5
+            ? Math.Abs(monsterGrade)
+            : monsterGrade - 4;
+        return candidates[candidateIndex % candidates.Length];
+    }
+
+    public static string GetEnemySkillDisplayName(EnemySkillType skill)
+    {
+        switch (skill)
+        {
+            case EnemySkillType.PowerStrike: return "強撃";
+            case EnemySkillType.VenomStrike: return "毒牙";
+            case EnemySkillType.ParalyzingRoar: return "麻痺の咆哮";
+            case EnemySkillType.CriticalFocus: return "急所集中";
+            case EnemySkillType.DoubleStrike: return "連撃";
+            case EnemySkillType.LifeDrain: return "生命吸収";
+            case EnemySkillType.ArmorPierce: return "装甲貫通";
+            case EnemySkillType.FlameBreath: return "灼熱の息";
+            case EnemySkillType.FrostBite: return "氷結牙";
+            case EnemySkillType.TripleStrike: return "三連爪";
+            case EnemySkillType.BattleHeal: return "戦場治癒";
+            case EnemySkillType.SacrificialStrike: return "捨身撃";
+            case EnemySkillType.Execute: return "処刑";
+            case EnemySkillType.ArcaneBolt: return "魔弾";
+            case EnemySkillType.MeteorRain: return "星屑雨";
+            case EnemySkillType.CrushingBlow: return "粉砕撃";
+            case EnemySkillType.BerserkRush: return "狂乱連撃";
+            case EnemySkillType.Regeneration: return "再生";
+            case EnemySkillType.SoulBurst: return "魂爆";
+            case EnemySkillType.ToxicCloud: return "毒霧";
+            default: return string.Empty;
+        }
     }
 
     public static bool CanDefeatWithNormalAttack(BattleUnit attacker, BattleUnit target)
@@ -272,6 +396,98 @@ public sealed class BattleSkillResolver
         return true;
     }
 
+    private bool UseEnemyMagicDamageSkill(
+        BattleUnit attacker,
+        BattleUnit target,
+        string skillName,
+        float attackPower,
+        float magicPower,
+        BattleStatusEffect status)
+    {
+        if (target == null)
+        {
+            return false;
+        }
+
+        if (target.TryEvade())
+        {
+            Log(
+                BattleLogFormatter.FormatSkillEvadedWithMagic(
+                    attacker.UnitName,
+                    skillName,
+                    target.UnitName,
+                    attacker.CurrentMagicPower,
+                    attacker.MaxMagicPower),
+                BattleLogType.Enemy);
+            return true;
+        }
+
+        bool critical = attacker.RollCritical();
+        int rawDamage = Round(
+            (attacker.Attack * attackPower +
+             attacker.MaxMagicPower * magicPower) *
+            (critical ? context.CriticalDamageMultiplier : 1f));
+        int before = target.CurrentHP;
+        target.TakeDamage(rawDamage);
+        int damage = before - target.CurrentHP;
+        if (!target.IsDead && status != BattleStatusEffect.None)
+        {
+            target.ApplyStatus(status, 1);
+        }
+        Log(
+            BattleLogFormatter.FormatDamageSkillWithMagic(
+                attacker.UnitName,
+                skillName,
+                critical,
+                target.UnitName,
+                damage,
+                attacker.CurrentMagicPower,
+                attacker.MaxMagicPower),
+            BattleLogType.Enemy);
+        return true;
+    }
+
+    private bool UseEnemyMagicAreaDamageSkill(
+        BattleUnit attacker,
+        string skillName,
+        float attackPower,
+        float magicPower)
+    {
+        List<BattleUnit> targets = Living(context.PlayerUnits);
+        if (targets.Count == 0)
+        {
+            return false;
+        }
+
+        int rawDamage = Round(
+            attacker.Attack * attackPower +
+            attacker.MaxMagicPower * magicPower);
+        int damage = 0;
+        int affected = 0;
+        foreach (BattleUnit target in targets)
+        {
+            if (target.TryEvade())
+            {
+                continue;
+            }
+
+            int before = target.CurrentHP;
+            target.TakeDamage(rawDamage);
+            damage += before - target.CurrentHP;
+            affected++;
+        }
+
+        Log(
+            BattleLogFormatter.FormatAreaDamageSkill(
+                attacker.UnitName,
+                skillName,
+                affected,
+                damage,
+                string.Empty),
+            BattleLogType.Enemy);
+        return true;
+    }
+
     private bool UseEnemyMultiStrike(BattleUnit attacker, BattleUnit target, string skillName, int hitCount, float power)
     {
         int damage = 0;
@@ -301,6 +517,25 @@ public sealed class BattleSkillResolver
         int before = attacker.CurrentHP;
         attacker.Heal(Round(attacker.MaxHP * 0.28f));
         Log(BattleLogFormatter.FormatHealSkill(attacker.UnitName, "再生", attacker.CurrentHP - before), BattleLogType.Enemy);
+        return true;
+    }
+
+    private bool UseEnemyRegeneration(BattleUnit attacker)
+    {
+        if (attacker.IsDead ||
+            attacker.CurrentHP > Mathf.RoundToInt(attacker.MaxHP * 0.55f))
+        {
+            return false;
+        }
+
+        int before = attacker.CurrentHP;
+        attacker.Heal(Round(attacker.MaxHP * 0.22f));
+        Log(
+            BattleLogFormatter.FormatHealSkill(
+                attacker.UnitName,
+                "超再生",
+                attacker.CurrentHP - before),
+            BattleLogType.Enemy);
         return true;
     }
 
@@ -355,6 +590,29 @@ public sealed class BattleSkillResolver
         attacker.Heal(heal);
         Log(BattleLogFormatter.FormatLifeDrain(attacker.UnitName, critical, damage, heal), BattleLogType.Enemy);
         return true;
+    }
+
+    private bool UseEnemySoulBurst(BattleUnit attacker)
+    {
+        if (Living(context.PlayerUnits).Count == 0)
+        {
+            return false;
+        }
+
+        int recoil = Math.Max(1, Round(attacker.MaxHP * 0.06f));
+        attacker.TakePureDamage(recoil);
+        bool used = UseEnemyAreaDamageSkill(
+            attacker,
+            "魂魄爆裂",
+            0.55f,
+            BattleStatusEffect.None);
+        if (used)
+        {
+            Log(
+                BattleLogFormatter.FormatRecoil(attacker.UnitName, recoil),
+                BattleLogType.Enemy);
+        }
+        return used;
     }
 
     private bool UseEnemyDamageSkill(BattleUnit attacker, BattleUnit target, string skillName, float power, BattleStatusEffect status)
@@ -520,8 +778,10 @@ public sealed class BattleSkillResolver
     private bool TryUseDirectPlayerDamage(
         BattleUnit attacker,
         BattleUnit target,
-        MercenarySkillDefinition skill)
+        MercenarySkillDefinition skill,
+        out bool hit)
     {
+        hit = false;
         if (target == null || !attacker.TryConsumeMagicPower(skill.MagicCost))
         {
             return false;
@@ -535,6 +795,7 @@ public sealed class BattleSkillResolver
         int before = target.CurrentHP;
         target.TakeDamage(Round(attacker.CalculateDamage() * skill.Power *
             (critical ? context.CriticalDamageMultiplier : 1f)));
+        hit = true;
         Log(BattleLogFormatter.FormatDamageSkill(attacker.UnitName, skill.Name, critical,
             target.UnitName, before - target.CurrentHP, string.Empty), BattleLogType.Player);
         return true;
@@ -546,11 +807,11 @@ public sealed class BattleSkillResolver
         MercenarySkillDefinition skill,
         BattleStatusEffect status)
     {
-        if (!TryUseDirectPlayerDamage(attacker, target, skill))
+        if (!TryUseDirectPlayerDamage(attacker, target, skill, out bool hit))
         {
             return false;
         }
-        if (target != null && !target.IsDead)
+        if (hit && target != null && !target.IsDead)
         {
             target.ApplyStatus(status, 1);
         }

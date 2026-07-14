@@ -53,7 +53,25 @@ public enum MercenarySkillId
     TimeLock,
     SaintsGrace,
     ShadowRend,
-    DragonBreath
+    DragonBreath,
+    AegisPierce,
+    RagingCombo,
+    ArmorBreakArrow,
+    GaleVolley,
+    ArcaneBurst,
+    StormCircle,
+    GreaterHeal,
+    HolyShieldBash,
+    FatalFlurry,
+    BindingBlade,
+    SkySpearCombo,
+    FortressPierce,
+    WarfrontSmash,
+    BeastKingFangs,
+    TemporalRift,
+    DivineHymn,
+    VoidPierce,
+    DragonfallBreath
 }
 
 public class MercenarySkillDefinition
@@ -242,12 +260,71 @@ public static class MercenaryClassProgression
                 break;
         }
 
+        MercenarySkillDefinition advancedSkill = GetAdvancedCombatSkill(value);
+        if (advancedSkill != null)
+        {
+            skills.Add(advancedSkill);
+        }
+
         MercenarySkillDefinition specialSkill = GetSpecialCombatSkill(value);
         if (specialSkill != null)
         {
             skills.Add(specialSkill);
         }
+
+        MercenarySkillDefinition specialAdditionalSkill =
+            GetSpecialAdditionalCombatSkill(value);
+        if (specialAdditionalSkill != null)
+        {
+            skills.Add(specialAdditionalSkill);
+        }
         return skills;
+    }
+
+    private static MercenarySkillDefinition GetAdvancedCombatSkill(
+        MercenaryClass value)
+    {
+        switch (value)
+        {
+            case MercenaryClass.Knight:
+                return Skill(MercenarySkillId.AegisPierce, "イージス貫き", 50,
+                    1.45f, "防御を貫く堅牢な一撃を放つ。", 25);
+            case MercenaryClass.Berserker:
+                return Skill(MercenarySkillId.RagingCombo, "激昂連斬", 55,
+                    0.55f, "荒々しい三連撃を繰り出す。", 25);
+            case MercenaryClass.Sniper:
+                return Skill(MercenarySkillId.ArmorBreakArrow, "装甲砕き", 50,
+                    1.55f, "防御を無視する狙撃を放つ。", 25);
+            case MercenaryClass.Ranger:
+                return Skill(MercenarySkillId.GaleVolley, "疾風散射", 55,
+                    0.75f, "風をまとった矢を敵全体へ放つ。", 25);
+            case MercenaryClass.Sage:
+                return Skill(MercenarySkillId.ArcaneBurst, "秘術爆裂", 50,
+                    1.45f, "凝縮した魔力で敵一体を撃ち抜く。", 25);
+            case MercenaryClass.Elementalist:
+                return Skill(MercenarySkillId.StormCircle, "嵐の環", 60,
+                    0.75f, "敵全体を攻撃し、麻痺させる。", 25);
+            case MercenaryClass.Bishop:
+                return Skill(MercenarySkillId.GreaterHeal, "大治癒", 55,
+                    1.75f, "最も傷ついた味方を大きく回復する。", 25);
+            case MercenaryClass.Paladin:
+                return Skill(MercenarySkillId.HolyShieldBash, "聖盾撃", 50,
+                    1.2f, "敵一体を打ち据え、麻痺させる。", 25);
+            case MercenaryClass.Assassin:
+                return Skill(MercenarySkillId.FatalFlurry, "致命乱舞", 55,
+                    0.5f, "急所を狙う四連撃を放つ。", 25);
+            case MercenaryClass.Ninja:
+                return Skill(MercenarySkillId.BindingBlade, "影縫い", 50,
+                    1.05f, "敵一体を斬りつけ、麻痺させる。", 25);
+            case MercenaryClass.Dragoon:
+                return Skill(MercenarySkillId.SkySpearCombo, "天槍連舞", 55,
+                    0.55f, "跳躍から鋭い三連突きを放つ。", 25);
+            case MercenaryClass.GuardianLancer:
+                return Skill(MercenarySkillId.FortressPierce, "城塞貫通", 50,
+                    1.4f, "防御を無視する守護の突きを放つ。", 25);
+            default:
+                return null;
+        }
     }
 
     private static MercenarySkillDefinition GetSpecialCombatSkill(
@@ -273,6 +350,34 @@ public static class MercenaryClassProgression
             case MercenaryClass.DragonKnight:
                 return Skill(MercenarySkillId.DragonBreath, "竜炎の息吹", 60,
                     0.82f, "竜の炎で敵全体を焼き払う。", 40);
+            default:
+                return null;
+        }
+    }
+
+    private static MercenarySkillDefinition GetSpecialAdditionalCombatSkill(
+        MercenaryClass value)
+    {
+        switch (value)
+        {
+            case MercenaryClass.Warlord:
+                return Skill(MercenarySkillId.WarfrontSmash, "覇軍震撃", 70,
+                    0.9f, "戦場を震わせ、敵全体を打ち崩す。", 45);
+            case MercenaryClass.Beastmaster:
+                return Skill(MercenarySkillId.BeastKingFangs, "獣王連牙", 70,
+                    0.48f, "獣王の牙による四連撃を放つ。", 45);
+            case MercenaryClass.Chronomancer:
+                return Skill(MercenarySkillId.TemporalRift, "時空断層", 65,
+                    1.6f, "防御を越えて敵一体を断ち切る。", 45);
+            case MercenaryClass.Saint:
+                return Skill(MercenarySkillId.DivineHymn, "神聖詠唱", 70,
+                    1.3f, "味方全体を力強く回復する。", 45);
+            case MercenaryClass.Shadow:
+                return Skill(MercenarySkillId.VoidPierce, "虚無穿ち", 65,
+                    1.65f, "防御を無視する影の一閃を放つ。", 45);
+            case MercenaryClass.DragonKnight:
+                return Skill(MercenarySkillId.DragonfallBreath, "天竜爆炎", 75,
+                    0.95f, "天竜の炎で敵全体を焼き払う。", 45);
             default:
                 return null;
         }

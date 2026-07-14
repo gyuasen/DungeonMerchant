@@ -5,12 +5,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: NormalRank09Weapon
   persistentId: item.normal.rank09.weapon
-  itemName: 星鋼の武具
+  itemName: 深淵探索の刃
   itemType: 1
   rarity: 0
-  description: 町の市場で流通する、扱いやすい標準装備。
+  description: 深淵の魔物に抗うため、黒鉄へ魔力を通した探索者の刃。
   basePrice: 925
-  acquisitionType: 0
+  acquisitionType: 2
   equipmentSlot: 0
   requiredClass: 0
   allClassesCanEquip: 1

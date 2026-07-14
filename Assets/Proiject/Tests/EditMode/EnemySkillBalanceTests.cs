@@ -1,0 +1,230 @@
+using System;
+using System.Collections.Generic;
+using NUnit.Framework;
+using UnityEngine;
+
+public sealed class EnemySkillBalanceTests
+{
+    private readonly List<EnemyDataSO> createdData =
+        new List<EnemyDataSO>();
+
+    [TearDown]
+    public void TearDown()
+    {
+        foreach (EnemyDataSO data in createdData)
+        {
+            if (data != null)
+            {
+                UnityEngine.Object.DestroyImmediate(data);
+            }
+        }
+        createdData.Clear();
+    }
+
+    [Test]
+    public void EnemySkillType_ExistingValuesRemainStable_NewSkillsAppendAfterThem()
+    {
+        Assert.That((int)EnemySkillType.None, Is.EqualTo(0));
+        Assert.That((int)EnemySkillType.PowerStrike, Is.EqualTo(1));
+        Assert.That((int)EnemySkillType.VenomStrike, Is.EqualTo(2));
+        Assert.That((int)EnemySkillType.ParalyzingRoar, Is.EqualTo(3));
+        Assert.That((int)EnemySkillType.CriticalFocus, Is.EqualTo(4));
+        Assert.That((int)EnemySkillType.DoubleStrike, Is.EqualTo(5));
+        Assert.That((int)EnemySkillType.LifeDrain, Is.EqualTo(6));
+        Assert.That((int)EnemySkillType.ArmorPierce, Is.EqualTo(7));
+        Assert.That((int)EnemySkillType.FlameBreath, Is.EqualTo(8));
+        Assert.That((int)EnemySkillType.FrostBite, Is.EqualTo(9));
+        Assert.That((int)EnemySkillType.TripleStrike, Is.EqualTo(10));
+        Assert.That((int)EnemySkillType.BattleHeal, Is.EqualTo(11));
+        Assert.That((int)EnemySkillType.SacrificialStrike, Is.EqualTo(12));
+        Assert.That((int)EnemySkillType.Execute, Is.EqualTo(13));
+        Assert.That((int)EnemySkillType.ToxicCloud, Is.EqualTo(14));
+        Assert.That((int)EnemySkillType.ArcaneBolt, Is.EqualTo(15));
+        Assert.That((int)EnemySkillType.MeteorRain, Is.EqualTo(16));
+        Assert.That((int)EnemySkillType.CrushingBlow, Is.EqualTo(17));
+        Assert.That((int)EnemySkillType.BerserkRush, Is.EqualTo(18));
+        Assert.That((int)EnemySkillType.Regeneration, Is.EqualTo(19));
+        Assert.That((int)EnemySkillType.SoulBurst, Is.EqualTo(20));
+    }
+
+    [TestCase(2, EnemySkillType.MeteorRain)]
+    [TestCase(3, EnemySkillType.BerserkRush)]
+    [TestCase(4, EnemySkillType.SoulBurst)]
+    [TestCase(8, EnemySkillType.ArcaneBolt)]
+    [TestCase(9, EnemySkillType.CrushingBlow)]
+    [TestCase(10, EnemySkillType.Regeneration)]
+    public void GetDefaultEnemySkill_UsesNewSkillsAcrossGradeBands(
+        int monsterGrade,
+        EnemySkillType expected)
+    {
+        Assert.That(
+            BattleSkillResolver.GetDefaultEnemySkill(monsterGrade),
+            Is.EqualTo(expected));
+    }
+
+    [Test]
+    public void ArcaneBolt_UsesMaxMagicPowerAndStillUsesDefense()
+    {
+        BattleUnit attacker = Unit(
+            "arcane enemy", 200, 200, 40, 0, false, maxMagicPower: 80);
+        BattleUnit target = Unit("target", 200, 200, 10, 10, true);
+
+        Assert.That(Use(EnemySkillType.ArcaneBolt, attacker, target), Is.True);
+        Assert.That(target.CurrentHP, Is.EqualTo(166));
+    }
+
+    [Test]
+    public void MeteorRain_DamagesEveryLivingPlayerWithMagicScaling()
+    {
+        BattleUnit attacker = Unit(
+            "meteor enemy", 200, 200, 40, 0, false, maxMagicPower: 80);
+        BattleUnit first = Unit("first", 100, 100, 10, 5, true);
+        BattleUnit second = Unit("second", 100, 100, 10, 0, true);
+        BattleSkillResolver resolver = Resolver(
+            new List<BattleUnit> { first, second },
+            new List<BattleUnit> { attacker });
+
+        Assert.That(
+            resolver.TryUseEnemySkill(
+                attacker, first, Data(EnemySkillType.MeteorRain)),
+            Is.True);
+        Assert.That(first.CurrentHP, Is.EqualTo(77));
+        Assert.That(second.CurrentHP, Is.EqualTo(72));
+    }
+
+    [Test]
+    public void CrushingBlow_AppliesParalysisOnlyAfterAHit()
+    {
+        BattleUnit attacker = Unit("crusher", 200, 200, 40, 0, false);
+        BattleUnit target = Unit("target", 200, 200, 10, 5, true);
+
+        Assert.That(Use(EnemySkillType.CrushingBlow, attacker, target), Is.True);
+        Assert.That(target.CurrentHP, Is.EqualTo(159));
+        Assert.That(target.StatusEffect, Is.EqualTo(BattleStatusEffect.Paralysis));
+    }
+
+    [Test]
+    public void BerserkRush_ResolvesFourModerateHits()
+    {
+        BattleUnit attacker = Unit("berserker", 200, 200, 30, 0, false);
+        BattleUnit target = Unit("target", 200, 200, 10, 2, true);
+
+        Assert.That(Use(EnemySkillType.BerserkRush, attacker, target), Is.True);
+        Assert.That(target.CurrentHP, Is.EqualTo(164));
+    }
+
+    [Test]
+    public void Regeneration_HealsOnlyBelowItsHpThreshold()
+    {
+        BattleUnit injured = Unit("regenerator", 200, 80, 20, 0, false);
+        BattleUnit target = Unit("target", 200, 200, 10, 0, true);
+
+        Assert.That(Use(EnemySkillType.Regeneration, injured, target), Is.True);
+        Assert.That(injured.CurrentHP, Is.EqualTo(124));
+
+        BattleUnit healthy = Unit("healthy", 200, 150, 20, 0, false);
+        Assert.That(Use(EnemySkillType.Regeneration, healthy, target), Is.False);
+        Assert.That(healthy.CurrentHP, Is.EqualTo(150));
+    }
+
+    [Test]
+    public void SoulBurst_ConsumesSmallSelfHpAndHitsTheWholeParty()
+    {
+        BattleUnit attacker = Unit("soul enemy", 200, 200, 40, 0, false);
+        BattleUnit first = Unit("first", 100, 100, 10, 0, true);
+        BattleUnit second = Unit("second", 100, 100, 10, 0, true);
+        BattleSkillResolver resolver = Resolver(
+            new List<BattleUnit> { first, second },
+            new List<BattleUnit> { attacker });
+
+        Assert.That(
+            resolver.TryUseEnemySkill(
+                attacker, first, Data(EnemySkillType.SoulBurst)),
+            Is.True);
+        Assert.That(attacker.CurrentHP, Is.EqualTo(188));
+        Assert.That(first.CurrentHP, Is.EqualTo(78));
+        Assert.That(second.CurrentHP, Is.EqualTo(78));
+    }
+
+    [Test]
+    public void EvadedCrushingBlow_DoesNotApplyParalysis()
+    {
+        bool foundDeterministicEvade = false;
+        for (int seed = 0; seed < 32; seed++)
+        {
+            UnityEngine.Random.InitState(seed);
+            BattleUnit attacker = Unit("crusher", 200, 200, 40, 0, false);
+            BattleUnit target = Unit(
+                "evasive target", 200, 200, 10, 0, true,
+                evasionRate: 0.75f);
+
+            bool used = Use(
+                EnemySkillType.CrushingBlow, attacker, target);
+            if (used && target.CurrentHP == target.MaxHP)
+            {
+                foundDeterministicEvade = true;
+                Assert.That(target.StatusEffect,
+                    Is.EqualTo(BattleStatusEffect.None));
+                break;
+            }
+        }
+
+        Assert.That(foundDeterministicEvade, Is.True);
+    }
+
+    private EnemyDataSO Data(EnemySkillType skill)
+    {
+        EnemyDataSO data = ScriptableObject.CreateInstance<EnemyDataSO>();
+        data.enemySkill = skill;
+        createdData.Add(data);
+        return data;
+    }
+
+    private bool Use(EnemySkillType skill, BattleUnit attacker, BattleUnit target)
+    {
+        BattleSkillResolver resolver = Resolver(
+            new List<BattleUnit> { target },
+            new List<BattleUnit> { attacker });
+        return resolver.TryUseEnemySkill(attacker, target, Data(skill));
+    }
+
+    private static BattleSkillResolver Resolver(
+        IReadOnlyList<BattleUnit> players,
+        IReadOnlyList<BattleUnit> enemies)
+    {
+        return new BattleSkillResolver(new BattleSkillResolverContext(
+            players,
+            enemies,
+            1f,
+            1f,
+            1.5f,
+            () => 0f,
+            (message, type) => { }));
+    }
+
+    private static BattleUnit Unit(
+        string name,
+        int maxHp,
+        int currentHp,
+        int attack,
+        int defense,
+        bool player,
+        int maxMagicPower = 0,
+        float evasionRate = 0f)
+    {
+        return new BattleUnit(
+            name,
+            maxHp,
+            currentHp,
+            attack,
+            defense,
+            1f,
+            player,
+            MercenaryClass.Warrior,
+            maxMagicPower,
+            0f,
+            evasionRate,
+            BattleStatusEffect.None,
+            1);
+    }
+}

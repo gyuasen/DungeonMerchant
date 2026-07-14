@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -11,26 +11,30 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e979c614ce1242bd9c993974ec08851e, type: 3}
   m_Name: VelmBlackIronMine
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   persistentId: dungeon.VelmBlackIronMine
-  dungeonName: "ヴェルム黒鉄坑"
+  dungeonName: "\u30F4\u30A7\u30EB\u30E0\u9ED2\u9244\u5751"
   grade: 3
   worldMapIndex: 2
   nearbyTownIndex: 5
   totalFloors: 6
-  description: "黒い大地の地下へ続く古代鉱坑。魔導兵器と竜種が坑道を占拠している。"
+  description: "\u9ED2\u3044\u5927\u5730\u306E\u5730\u4E0B\u3078\u7D9A\u304F\u53E4\u4EE3\u9271\u5751\u3002\u9B54\u5C0E\u5175\u5668\u3068\u7ADC\u7A2E\u304C\u5751\u9053\u3092\u5360\u62E0\u3057\u3066\u3044\u308B\u3002"
   encounterCount: 4
   firstEncounterEnemyCount: 4
   enemyCountIncreasePerEncounter: 2
   enemyCountIncreasePerFloor: 1
   maxEnemyCountPerEncounter: 5
   normalEnemies:
-  - {fileID: 11400000, guid: f8cc8e9386e84dbd87ad119e3a14e07d, type: 2}
-  - {fileID: 11400000, guid: d5b504215a634161b572384055626995, type: 2}
-  bossEnemy: {fileID: 11400000, guid: aee8a74142e14cfa89a2f95831de161b, type: 2}
+  - {fileID: 11400000, guid: 468a04e1a343447283a3a9a3216acfb2, type: 2}
+  - {fileID: 11400000, guid: 5140b532b27b41a09dd351d628bddfc7, type: 2}
+  - {fileID: 11400000, guid: 73cf7748949b4827985f379fa5ccec12, type: 2}
+  - {fileID: 11400000, guid: 6667d25bfbf941a6a6d98c36f89540ef, type: 2}
+  bossEnemy: {fileID: 11400000, guid: 196316e2b4a94b91b5a6f79e30742a94, type: 2}
   specialVariantChance: 0.09
   specialBossChance: 0.045
-  specialVariantSkillPool: 02000000040000000500000007000000080000000a0000000c0000000d000000
+  specialVariantSkillPool: 07000000080000000a0000000c0000000d000000100000001200000014000000
+  battleBackground: {fileID: 0}
+  battleBackgroundKey: 
   floorClearGoldReward: 150
   clearGoldReward: 650
   clearItemRewards:

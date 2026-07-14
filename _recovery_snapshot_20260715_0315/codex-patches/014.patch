@@ -1,0 +1,53 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Enemies\Glaad\Grade04GlaadGaleHarpy.asset
+@@
+-  itemDrops: []
++  itemDrops:
++  - item: {fileID: 11400000, guid: 52a98352167a4bce926ac5c343b9c6e8, type: 2}
++    amount: 1
++    dropChance: 0.4
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Enemies\Glaad\Grade03GlaadFrostDrake.asset
+@@
+-  itemDrops: []
++  itemDrops:
++  - item: {fileID: 11400000, guid: 56b326c55b534ee9a072194a18894d73, type: 2}
++    amount: 1
++    dropChance: 0.5
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Enemies\Glaad\Grade03GlaadSkyWarden.asset
+@@
+-  itemDrops: []
++  itemDrops:
++  - item: {fileID: 11400000, guid: 52a98352167a4bce926ac5c343b9c6e8, type: 2}
++    amount: 1
++    dropChance: 0.55
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Enemies\Glaad\Boss02GlaadStormCastellan.asset
+@@
+-  itemDrops: []
++  itemDrops:
++  - item: {fileID: 11400000, guid: c70727ecee064ba696148e6f62cb4c9e, type: 2}
++    amount: 1
++    dropChance: 1
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Enemies\Velm\VelmBlackIronDelver.asset
+@@
+-  enemyName: Black-Iron Delver
++  enemyName: ヴェルム黒鉄掘り
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Enemies\Velm\VelmEmberforgedAutomaton.asset
+@@
+-  enemyName: Emberforged Automaton
++  enemyName: ヴェルム熾火魔導兵
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Enemies\Velm\VelmMagmaDrake.asset
+@@
+-  enemyName: Magma Drake
++  enemyName: ヴェルム溶岩竜
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Enemies\Velm\VelmDeepforgeHexer.asset
+@@
+-  enemyName: Deepforge Hexer
++  enemyName: ヴェルム深炉呪術師
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Enemies\Velm\VelmDeepforgeOverlord.asset
+@@
+-  enemyName: Deepforge Overlord
++  enemyName: ヴェルム深炉王
+@@
+-  - item: {fileID: 11400000, guid: b05c307766124497cfafe61c0a0de8ba, type: 2}
++  - item: {fileID: 11400000, guid: c70727ecee064ba696148e6f62cb4c9e, type: 2}
+*** End Patch

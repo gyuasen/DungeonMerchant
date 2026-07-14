@@ -1,0 +1,87 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\BattleVisualController.cs
+@@
+             case BattlePresentationEventType.Action:
+-                yield return AnimateAction(presentationEvent.Actor);
++                if (presentationEvent.ActionKind ==
++                        BattlePresentationActionKind.Skill &&
++                    !string.IsNullOrWhiteSpace(presentationEvent.ActionLabel))
++                {
++                    yield return ShowActionBanner(presentationEvent.ActionLabel);
++                }
++                yield return AnimateAction(
++                    presentationEvent.Actor,
++                    presentationEvent.Target);
+                 break;
+             case BattlePresentationEventType.Damage:
+-                UpdateHP(presentationEvent);
++                yield return AnimateHP(presentationEvent);
+                 yield return AnimateImpact(
+@@
+                     presentationEvent.IsCritical
+-                        ? $"会心 {presentationEvent.Amount}"
+-                        : $"-{presentationEvent.Amount}");
++                        ? $"CRITICAL {presentationEvent.Amount}"
++                        : $"-{presentationEvent.Amount}",
++                    presentationEvent.IsCritical);
+                 break;
+             case BattlePresentationEventType.Heal:
+-                UpdateHP(presentationEvent);
++                yield return AnimateHP(presentationEvent);
+                 yield return AnimateImpact(
+                     presentationEvent.Target,
+                     new Color(0.3f, 1f, 0.45f),
+-                    $"+{presentationEvent.Amount}");
++                    $"+{presentationEvent.Amount}",
++                    false);
+@@
+-    private IEnumerator AnimateAction(BattleUnit actor)
++    private IEnumerator AnimateAction(BattleUnit actor, BattleUnit target)
+@@
+-        Vector2 start = slot.Panel.anchoredPosition;
++        UnitSlot targetSlot = null;
++        if (target != null)
++        {
++            slots.TryGetValue(target, out targetSlot);
++        }
++        if (targetSlot != null)
++        {
++            targetSlot.TargetOutline.enabled = true;
++        }
++
++        Vector2 start = slot.Panel.anchoredPosition;
+@@
+         slot.Panel.anchoredPosition = start;
+         slot.Panel.localScale = Vector3.one;
++        if (targetSlot != null)
++        {
++            targetSlot.TargetOutline.enabled = false;
++        }
+@@
+         BattleUnit target,
+         Color color,
+-        string amountLabel)
++        string amountLabel,
++        bool critical)
+@@
+         Text popup = CreatePopup(slot.Panel, amountLabel, color);
+         Vector2 start = slot.Panel.anchoredPosition;
++        RectTransform battlefield = (RectTransform)transform;
++        Vector2 battlefieldStart = battlefield.anchoredPosition;
+@@
+             slot.Group.alpha = 0.55f + Mathf.Abs(Mathf.Sin(value * Mathf.PI * 3f)) * 0.45f;
+             popup.rectTransform.anchoredPosition = new Vector2(0f, value * 24f);
++            if (critical)
++            {
++                float screenShake = Mathf.Sin(value * Mathf.PI * 10f) *
++                                    (1f - value) * 7f;
++                battlefield.anchoredPosition = battlefieldStart +
++                                               Vector2.right * screenShake;
++            }
+         });
+         slot.Panel.anchoredPosition = start;
+         slot.Group.alpha = 1f;
++        battlefield.anchoredPosition = battlefieldStart;
+         Destroy(popup.gameObject);
+     }
+*** End Patch

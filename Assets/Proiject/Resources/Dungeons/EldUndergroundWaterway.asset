@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -11,18 +11,19 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e979c614ce1242bd9c993974ec08851e, type: 3}
   m_Name: EldUndergroundWaterway
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   persistentId: dungeon.EldUndergroundWaterway
-  dungeonName: エルド地下水路
+  dungeonName: "\u30A8\u30EB\u30C9\u5730\u4E0B\u6C34\u8DEF"
   grade: 0
   worldMapIndex: 0
   nearbyTownIndex: 0
   totalFloors: 3
-  description: エルド交易都市の地下に広がる、使われなくなった古い水路。
+  description: "\u30A8\u30EB\u30C9\u4EA4\u6613\u90FD\u5E02\u306E\u5730\u4E0B\u306B\u5E83\u304C\u308B\u3001\u4F7F\u308F\u308C\u306A\u304F\u306A\u3063\u305F\u53E4\u3044\u6C34\u8DEF\u3002"
   encounterCount: 3
   firstEncounterEnemyCount: 2
   enemyCountIncreasePerEncounter: 1
   enemyCountIncreasePerFloor: 1
+  maxEnemyCountPerEncounter: 5
   normalEnemies:
   - {fileID: 11400000, guid: 239a8f3917ce33c469d7359348e47b0b, type: 2}
   - {fileID: 11400000, guid: 9017a6d57352445198b657303e35421e, type: 2}
@@ -37,7 +38,9 @@ MonoBehaviour:
   bossEnemy: {fileID: 11400000, guid: 5c78c95223f24a0ea9217d76786d9044, type: 2}
   specialVariantChance: 0.06
   specialBossChance: 0.03
-  specialVariantSkillPool: 010000000200000009000000
+  specialVariantSkillPool: 0100000002000000090000000f00000011000000
+  battleBackground: {fileID: 0}
+  battleBackgroundKey: 
   floorClearGoldReward: 35
   clearGoldReward: 120
   clearItemRewards:

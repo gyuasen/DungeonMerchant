@@ -1,0 +1,30 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\Mercenary\MercenaryHireManager.cs
+@@
+-        if (!merchantData.TryPayGold(mercenary.HireCost))
++        if (!merchantData.CanPay(mercenary.HireCost))
+@@
+         if (UnityEngine.Random.value > GetSelectedContractSuccessRate())
+         {
+             return false;
+         }
++        if (!merchantData.TryPayGold(mercenary.HireCost))
++        {
++            return false;
++        }
+         mercenary.SetContract(
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\SimpleMercenaryHireUI.Title.cs
+@@
+-            new Vector2(34f, -158f),
+-            new Vector2(-34f, -190f),
++            new Vector2(34f, -190f),
++            new Vector2(-34f, -158f),
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Scripts\UI\SimpleMercenaryHireUI.BattleDungeon.cs
+@@
+-        else if (logType == BattleLogType.Player ||
+-                 logType == BattleLogType.Enemy)
++        else if ((logType == BattleLogType.Player ||
++                  logType == BattleLogType.Enemy) &&
++                 (battleManager == null ||
++                  !battleManager.IsSkippingToBattleEnd))
+*** End Patch

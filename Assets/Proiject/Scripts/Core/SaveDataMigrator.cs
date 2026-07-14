@@ -10,13 +10,18 @@ public static class SaveDataMigrator
             return null;
         }
 
+        if (data.version > GameSaveData.CurrentVersion)
+        {
+            return data;
+        }
+
         int sourceVersion = Mathf.Max(0, data.version);
         MigrateMerchantProgression(data, sourceVersion);
         MigrateDebt(data, sourceVersion);
-        MigrateStoryProgress(data, sourceVersion);
         PreserveLegacyCollectionSemantics(data, sourceVersion);
         EnsureCollections(data);
         PopulatePersistentIds(data);
+        MigrateStoryProgress(data, sourceVersion);
         data.version = GameSaveData.CurrentVersion;
         return data;
     }
@@ -85,9 +90,7 @@ public static class SaveDataMigrator
         {
             AddStoryMilestone(data, StoryMilestone.FirstMercenary);
         }
-        if (data.dungeonFloorProgress != null &&
-            data.dungeonFloorProgress.Exists(progress =>
-                progress != null && progress.clearedFloors > 0))
+        if (HasFullyClearedDungeon(data.dungeonFloorProgress))
         {
             AddStoryMilestone(data, StoryMilestone.FirstDungeonClear);
         }
@@ -99,6 +102,35 @@ public static class SaveDataMigrator
             if (data.unlockedTownIndices.Contains(WorldMapService.HiddenIslandTownIndex)) AddStoryMilestone(data, StoryMilestone.HiddenIslandReached);
         }
         if (data.remainingDebt <= 0) AddStoryMilestone(data, StoryMilestone.DebtCleared);
+    }
+
+    private static bool HasFullyClearedDungeon(
+        List<SavedDungeonFloorProgress> progressEntries)
+    {
+        if (progressEntries == null)
+        {
+            return false;
+        }
+
+        foreach (SavedDungeonFloorProgress progress in progressEntries)
+        {
+            if (progress == null || progress.clearedFloors <= 0)
+            {
+                continue;
+            }
+
+            DungeonDataSO dungeon =
+                GameAssetRepository.FindByPersistentId<DungeonDataSO>(
+                    progress.dungeonPersistentId,
+                    progress.dungeonAssetName);
+            if (dungeon != null &&
+                progress.clearedFloors >= Mathf.Max(1, dungeon.totalFloors))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static void EnsureCollections(GameSaveData data)

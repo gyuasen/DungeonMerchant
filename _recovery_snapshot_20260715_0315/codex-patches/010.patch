@@ -1,0 +1,185 @@
+*** Begin Patch
+*** Add File: C:/UnityProjects/DungeonMerchant/Assets/Proiject/Resources/Enemies/Glaad.meta
++fileFormatVersion: 2
++guid: 8a1a5d5018ae4b2a87f0082e3047ad68
++folderAsset: yes
++DefaultImporter:
++  externalObjects: {}
++  userData: 
++  assetBundleName: 
++  assetBundleVariant: 
+*** Add File: C:/UnityProjects/DungeonMerchant/Assets/Proiject/Resources/Enemies/Glaad/Grade03GlaadFrostDrake.asset
++%YAML 1.1
++%TAG !u! tag:unity3d.com,2011:
++--- !u!114 &11400000
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 0}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
++  m_Name: Grade03GlaadFrostDrake
++  m_EditorClassIdentifier:
++  enemyName: "グラード霜翼竜"
++  monsterGrade: 3
++  isBoss: 0
++  category: 0
++  enemySkill: 9
++  isSpecialVariant: 0
++  specialVariantTitle:
++  maxHP: 128
++  attack: 31
++  defense: 11
++  maxMagicPower: 70
++  attackSpeed: 1.18
++  criticalRate: 0.08
++  evasionRate: 0.06
++  goldReward: 270
++  experienceMultiplier: 1.2
++  itemDrops: []
+*** Add File: C:/UnityProjects/DungeonMerchant/Assets/Proiject/Resources/Enemies/Glaad/Grade03GlaadFrostDrake.asset.meta
++fileFormatVersion: 2
++guid: 9493c9d4e5d64634966f3bdda3c0e1ca
++NativeFormatImporter:
++  externalObjects: {}
++  mainObjectFileID: 11400000
++  userData: 
++  assetBundleName: 
++  assetBundleVariant: 
+*** Add File: C:/UnityProjects/DungeonMerchant/Assets/Proiject/Resources/Enemies/Glaad/Grade03GlaadSkyWarden.asset
++%YAML 1.1
++%TAG !u! tag:unity3d.com,2011:
++--- !u!114 &11400000
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 0}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
++  m_Name: Grade03GlaadSkyWarden
++  m_EditorClassIdentifier:
++  enemyName: "グラード天嶺衛士"
++  monsterGrade: 3
++  isBoss: 0
++  category: 0
++  enemySkill: 7
++  isSpecialVariant: 0
++  specialVariantTitle:
++  maxHP: 155
++  attack: 28
++  defense: 19
++  maxMagicPower: 35
++  attackSpeed: 0.82
++  criticalRate: 0.05
++  evasionRate: 0.02
++  goldReward: 285
++  experienceMultiplier: 1.25
++  itemDrops: []
+*** Add File: C:/UnityProjects/DungeonMerchant/Assets/Proiject/Resources/Enemies/Glaad/Grade03GlaadSkyWarden.asset.meta
++fileFormatVersion: 2
++guid: f5f268b439b8441998680c9c1a2c7a35
++NativeFormatImporter:
++  externalObjects: {}
++  mainObjectFileID: 11400000
++  userData: 
++  assetBundleName: 
++  assetBundleVariant: 
+*** Add File: C:/UnityProjects/DungeonMerchant/Assets/Proiject/Resources/Enemies/Glaad/Grade03GlaadGaleHarpy.asset
++%YAML 1.1
++%TAG !u! tag:unity3d.com,2011:
++--- !u!114 &11400000
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 0}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
++  m_Name: Grade03GlaadGaleHarpy
++  m_EditorClassIdentifier:
++  enemyName: "グラード疾風ハーピー"
++  monsterGrade: 3
++  isBoss: 0
++  category: 0
++  enemySkill: 5
++  isSpecialVariant: 0
++  specialVariantTitle:
++  maxHP: 112
++  attack: 30
++  defense: 9
++  maxMagicPower: 55
++  attackSpeed: 1.32
++  criticalRate: 0.14
++  evasionRate: 0.12
++  goldReward: 275
++  experienceMultiplier: 1.2
++  itemDrops: []
+*** Add File: C:/UnityProjects/DungeonMerchant/Assets/Proiject/Resources/Enemies/Glaad/Grade03GlaadGaleHarpy.asset.meta
++fileFormatVersion: 2
++guid: 97a4b941d2bf4f7b953a98380bff14ea
++NativeFormatImporter:
++  externalObjects: {}
++  mainObjectFileID: 11400000
++  userData: 
++  assetBundleName: 
++  assetBundleVariant: 
+*** Add File: C:/UnityProjects/DungeonMerchant/Assets/Proiject/Resources/Enemies/Glaad/Boss02GlaadStormCastellan.asset
++%YAML 1.1
++%TAG !u! tag:unity3d.com,2011:
++--- !u!114 &11400000
++MonoBehaviour:
++  m_ObjectHideFlags: 0
++  m_CorrespondingSourceObject: {fileID: 0}
++  m_PrefabInstance: {fileID: 0}
++  m_PrefabAsset: {fileID: 0}
++  m_GameObject: {fileID: 0}
++  m_Enabled: 1
++  m_EditorHideFlags: 0
++  m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
++  m_Name: Boss02GlaadStormCastellan
++  m_EditorClassIdentifier:
++  enemyName: "グラード嵐城将"
++  monsterGrade: 2
++  isBoss: 1
++  category: 0
++  enemySkill: 10
++  isSpecialVariant: 0
++  specialVariantTitle:
++  maxHP: 390
++  attack: 44
++  defense: 22
++  maxMagicPower: 100
++  attackSpeed: 1
++  criticalRate: 0.12
++  evasionRate: 0.05
++  goldReward: 800
++  experienceMultiplier: 1.8
++  itemDrops: []
+*** Add File: C:/UnityProjects/DungeonMerchant/Assets/Proiject/Resources/Enemies/Glaad/Boss02GlaadStormCastellan.asset.meta
++fileFormatVersion: 2
++guid: 3c2383c859d349a88b32dee677e8313b
++NativeFormatImporter:
++  externalObjects: {}
++  mainObjectFileID: 11400000
++  userData: 
++  assetBundleName: 
++  assetBundleVariant: 
+*** Update File: C:/UnityProjects/DungeonMerchant/Assets/Proiject/Resources/Dungeons/UpperFortress.asset
+@@
+   normalEnemies:
+-  - {fileID: 11400000, guid: f8cc8e9386e84dbd87ad119e3a14e07d, type: 2}
+-  - {fileID: 11400000, guid: d5b504215a634161b572384055626995, type: 2}
+-  bossEnemy: {fileID: 11400000, guid: aee8a74142e14cfa89a2f95831de161b, type: 2}
++  - {fileID: 11400000, guid: 9493c9d4e5d64634966f3bdda3c0e1ca, type: 2}
++  - {fileID: 11400000, guid: f5f268b439b8441998680c9c1a2c7a35, type: 2}
++  - {fileID: 11400000, guid: 97a4b941d2bf4f7b953a98380bff14ea, type: 2}
++  bossEnemy: {fileID: 11400000, guid: 3c2383c859d349a88b32dee677e8313b, type: 2}
+*** End Patch

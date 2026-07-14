@@ -1,0 +1,62 @@
+*** Begin Patch
+*** Update File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Tests\EditMode\GameAssetRepositoryTests.cs
+@@
+     public void DungeonSpecialBossChance_IsHiddenElementLevel()
+@@
+         }
+     }
++
++    [Test]
++    public void DungeonSpecialVariantSkillPools_AreValidAndCoverNewSkills()
++    {
++        HashSet<EnemySkillType> configuredSkills =
++            new HashSet<EnemySkillType>();
++
++        foreach (DungeonDataSO dungeon in
++                 GameAssetRepository.LoadAll<DungeonDataSO>())
++        {
++            Assert.That(
++                dungeon.specialVariantSkillPool,
++                Is.Not.Null.And.Not.Empty,
++                $"{dungeon.name} has no special-variant skill pool.");
++
++            HashSet<EnemySkillType> dungeonSkills =
++                new HashSet<EnemySkillType>();
++            foreach (EnemySkillType skill in dungeon.specialVariantSkillPool)
++            {
++                Assert.That(skill, Is.Not.EqualTo(EnemySkillType.None),
++                    $"{dungeon.name} contains the None skill.");
++                Assert.That(dungeonSkills.Add(skill), Is.True,
++                    $"{dungeon.name} contains duplicate skill {skill}.");
++                configuredSkills.Add(skill);
++            }
++        }
++
++        EnemySkillType[] addedSkills =
++        {
++            EnemySkillType.ArcaneBolt,
++            EnemySkillType.MeteorRain,
++            EnemySkillType.CrushingBlow,
++            EnemySkillType.BerserkRush,
++            EnemySkillType.Regeneration,
++            EnemySkillType.SoulBurst
++        };
++        foreach (EnemySkillType skill in addedSkills)
++        {
++            Assert.That(configuredSkills.Contains(skill), Is.True,
++                $"No dungeon can grant the added skill {skill}.");
++        }
++    }
+*** Add File: C:\UnityProjects\DungeonMerchant\Assets\Proiject\Tests\EditMode\MercenaryClassProgressionTests.cs.meta
++fileFormatVersion: 2
++guid: 93e7d1b8464a4e498f31832fd5c47b9a
++MonoImporter:
++  externalObjects: {}
++  serializedVersion: 2
++  defaultReferences: []
++  executionOrder: 0
++  icon: {instanceID: 0}
++  userData:
++  assetBundleName:
++  assetBundleVariant:
+*** End Patch
