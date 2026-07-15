@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class ProgressionManager : MonoBehaviour
 {
+    private static readonly int[] StorageCapacities = { 30, 60, 100, 160 };
+    private static readonly int[] StorageUpgradeCosts = { 1500, 5000, 12000, 0 };
+    private static readonly int[] StorageRequiredLevels = { 1, 4, 8, 12 };
+
     [SerializeField] private MerchantData merchantData;
     [SerializeField] private DayManager dayManager;
     [SerializeField] private MerchantInventory inventory;
@@ -22,9 +26,17 @@ public class ProgressionManager : MonoBehaviour
     public IReadOnlyList<QuestRecord> Quests => quests;
     public int StorageTier => storageTier;
     public int StorageCapacity =>
-        new[] { 30, 60, 100, 160 }[storageTier] +
+        StorageCapacities[storageTier] +
         (merchantData != null ? merchantData.GetStorageCapacityBonus() : 0);
-    public int StorageUpgradeCost => new[] { 1500, 5000, 12000, 0 }[storageTier];
+    public int StorageUpgradeCost => StorageUpgradeCosts[storageTier];
+    public bool IsStorageAtMaximumTier => storageTier >= StorageCapacities.Length - 1;
+    public int NextStorageCapacity => IsStorageAtMaximumTier
+        ? StorageCapacity
+        : StorageCapacities[storageTier + 1] +
+          (merchantData != null ? merchantData.GetStorageCapacityBonus() : 0);
+    public int NextStorageRequiredMerchantLevel => IsStorageAtMaximumTier
+        ? 0
+        : StorageRequiredLevels[storageTier + 1];
     public int StorageMaintenanceCost => storageTier >= 2
         ? 100 * (storageTier - 1)
         : 0;
@@ -90,7 +102,7 @@ public class ProgressionManager : MonoBehaviour
             return false;
         }
 
-        int requiredLevel = new[] { 1, 4, 8, 12 }[storageTier + 1];
+        int requiredLevel = NextStorageRequiredMerchantLevel;
         int cost = StorageUpgradeCost;
         if (merchantData == null ||
             merchantData.MerchantLevel < requiredLevel ||

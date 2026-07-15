@@ -46,6 +46,31 @@ public sealed class UIPageRouterTests
         Assert.That(router.CurrentPage.gameObject, Is.SameAs(secondPageObject));
     }
 
+    [Test]
+    public void Show_CurrentVisiblePage_RefreshesWithoutDeactivatingPage()
+    {
+        routerObject = new GameObject("Router");
+        UIPageRouter router = routerObject.AddComponent<UIPageRouter>();
+
+        firstPageObject = new GameObject("Tracked Page", typeof(RectTransform));
+        RectTransform pageRoot = firstPageObject.GetComponent<RectTransform>();
+        TrackingUIPage page = firstPageObject.AddComponent<TrackingUIPage>();
+        PageActivationProbe activationProbe =
+            firstPageObject.AddComponent<PageActivationProbe>();
+
+        router.Register(pageRoot);
+        router.Show(pageRoot);
+        int refreshCountAfterFirstShow = page.RefreshCount;
+        int disableCountAfterFirstShow = activationProbe.DisableCount;
+
+        router.Show(pageRoot);
+
+        Assert.That(firstPageObject.activeSelf, Is.True);
+        Assert.That(router.CurrentPage, Is.SameAs(page));
+        Assert.That(page.RefreshCount, Is.EqualTo(refreshCountAfterFirstShow + 1));
+        Assert.That(activationProbe.DisableCount, Is.EqualTo(disableCountAfterFirstShow));
+    }
+
     private UIPageRouter CreateRouterAndPages(
         out RectTransform firstPage,
         out RectTransform secondPage)
@@ -61,5 +86,25 @@ public sealed class UIPageRouterTests
         secondPage = secondPageObject.GetComponent<RectTransform>();
         secondPageObject.AddComponent<SimpleUIPage>();
         return router;
+    }
+}
+
+public sealed class TrackingUIPage : UIPageBase
+{
+    public int RefreshCount { get; private set; }
+
+    public override void Refresh()
+    {
+        RefreshCount++;
+    }
+}
+
+public sealed class PageActivationProbe : MonoBehaviour
+{
+    public int DisableCount { get; private set; }
+
+    private void OnDisable()
+    {
+        DisableCount++;
     }
 }

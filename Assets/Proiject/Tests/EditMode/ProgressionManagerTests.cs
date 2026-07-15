@@ -142,6 +142,32 @@ public sealed class ProgressionManagerTests
         Assert.That(progressionManager.ProfitableDungeonClears, Is.EqualTo(4));
     }
 
+    [TestCase(0, 30, false, 60, 4)]
+    [TestCase(1, 60, false, 100, 8)]
+    [TestCase(2, 100, false, 160, 12)]
+    [TestCase(3, 160, true, 160, 0)]
+    public void StorageProperties_ForEachTier_ReportCapacityAndNextUpgrade(
+        int tier,
+        int expectedCapacity,
+        bool expectedMaximum,
+        int expectedNextCapacity,
+        int expectedRequiredLevel)
+    {
+        progressionManager.Restore(new ProgressionSaveData
+        {
+            storageTier = tier,
+            quests = new List<QuestRecord>()
+        });
+
+        Assert.That(progressionManager.StorageTier, Is.EqualTo(tier));
+        Assert.That(progressionManager.StorageCapacity, Is.EqualTo(expectedCapacity));
+        Assert.That(progressionManager.IsStorageAtMaximumTier, Is.EqualTo(expectedMaximum));
+        Assert.That(progressionManager.NextStorageCapacity, Is.EqualTo(expectedNextCapacity));
+        Assert.That(
+            progressionManager.NextStorageRequiredMerchantLevel,
+            Is.EqualTo(expectedRequiredLevel));
+    }
+
     [Test]
     public void DungeonCompletion_AdvancesBaseDayPlusEventDelays()
     {

@@ -203,6 +203,7 @@ public sealed class BattleRewardService
         }
 
         bool droppedAnyItem = false;
+        bool rolledAnyItem = false;
         if (defeatedEnemies != null)
         {
             foreach (EnemyDataSO defeatedEnemy in defeatedEnemies)
@@ -220,7 +221,14 @@ public sealed class BattleRewardService
                         continue;
                     }
 
-                    merchantInventory.AddItem(drop.item, drop.amount);
+                    rolledAnyItem = true;
+                    if (!merchantInventory.TryAddItem(drop.item, drop.amount))
+                    {
+                        SendMessage(
+                            "倉庫が満杯のため、戦利品を受け取れませんでした。",
+                            BattleLogType.System);
+                        continue;
+                    }
                     SendMessage(
                         BattleLogFormatter.FormatItemDrop(
                             JapaneseDisplayText.GetItemName(drop.item),
@@ -231,10 +239,16 @@ public sealed class BattleRewardService
             }
         }
 
-        if (!droppedAnyItem)
+        if (!rolledAnyItem && !droppedAnyItem)
         {
             ItemDataSO fallbackItem = GetFallbackDropItem();
-            merchantInventory.AddItem(fallbackItem, 1);
+            if (!merchantInventory.TryAddItem(fallbackItem, 1))
+            {
+                SendMessage(
+                    "倉庫が満杯のため、戦利品を受け取れませんでした。",
+                    BattleLogType.System);
+                return;
+            }
             SendMessage(
                 BattleLogFormatter.FormatItemDrop(
                     JapaneseDisplayText.GetItemName(fallbackItem),

@@ -6,6 +6,8 @@ using UnityEngine.UI;
 
 public sealed class BattleVisualController : MonoBehaviour
 {
+    private const float BattleResultDisplaySeconds = 0.10f;
+
     private readonly Dictionary<BattleUnit, UnitSlot> slots =
         new Dictionary<BattleUnit, UnitSlot>();
     private readonly Queue<BattlePresentationEvent> eventQueue =
@@ -23,6 +25,20 @@ public sealed class BattleVisualController : MonoBehaviour
 
     public bool IsPresentationBusy { get; private set; }
     public event Action PresentationCompleted;
+
+    public void FinishPresentationImmediately()
+    {
+        if (!IsPresentationBusy)
+        {
+            return;
+        }
+
+        StopPlayback();
+        skipPresentationRequested = true;
+        SynchronizeSlotsToBattleState();
+
+        CompletePresentation();
+    }
 
     public void Configure(BattleManager manager, Font displayFont)
     {
@@ -290,8 +306,7 @@ public sealed class BattleVisualController : MonoBehaviour
         Image hpFill = hpFillRect.gameObject.AddComponent<Image>();
         hpFill.color = new Color(0.34f, 0.75f, 0.28f, 1f);
         hpFill.raycastTarget = false;
-        hpFill.type = Image.Type.Filled;
-        hpFill.fillMethod = Image.FillMethod.Horizontal;
+        hpFill.type = Image.Type.Simple;
 
         Text hpText = CreateText(
             "HP Text",
@@ -340,6 +355,19 @@ public sealed class BattleVisualController : MonoBehaviour
     {
         if (presentationEvent == null)
         {
+            return;
+        }
+
+        if (presentationEvent.Type == BattlePresentationEventType.BattleCompleted &&
+            !skipPresentationRequested &&
+            isActiveAndEnabled)
+        {
+            // The simulation can finish before the visual queue. Snap to its final
+            // state so the last frame does not appear frozen while the queue drains.
+            StopPlayback();
+            SynchronizeSlotsToBattleState();
+            playbackRoutine = StartCoroutine(
+                PlayImmediateBattleCompletion(presentationEvent.Victory));
             return;
         }
 
@@ -432,7 +460,7 @@ public sealed class BattleVisualController : MonoBehaviour
                 break;
             case BattlePresentationEventType.BattleCompleted:
                 ShowResult(presentationEvent.Victory);
-                yield return Wait(0.25f);
+                yield return Wait(BattleResultDisplaySeconds);
                 CompletePresentation();
                 break;
         }
@@ -583,6 +611,25 @@ public sealed class BattleVisualController : MonoBehaviour
     {
         slot.Group.alpha = 0f;
         slot.Group.blocksRaycasts = false;
+    }
+
+    private void SynchronizeSlotsToBattleState()
+    {
+        foreach (KeyValuePair<BattleUnit, UnitSlot> entry in slots)
+        {
+            BattleUnit unit = entry.Key;
+            UnitSlot slot = entry.Value;
+            if (unit == null || slot == null)
+            {
+                continue;
+            }
+
+            slot.SetHP(unit.CurrentHP, unit.MaxHP);
+            if (unit.IsDead)
+            {
+                HideDefeatedSlot(slot);
+            }
+        }
     }
 
     private void ApplyImmediately(BattlePresentationEvent presentationEvent)
@@ -807,15 +854,53 @@ public sealed class BattleVisualController : MonoBehaviour
         resultText.gameObject.SetActive(true);
         resultText.transform.SetAsLastSibling();
         resultText.rectTransform.localScale = Vector3.one * 0.8f;
-        yield return Tween(Duration(0.18f), value =>
+        yield return TweenUnpaused(Duration(0.18f), value =>
         {
             resultText.rectTransform.localScale = Vector3.one *
                 Mathf.Lerp(0.8f, 1f, value);
         });
-        yield return Wait(0.25f);
+        yield return WaitUnpaused(Duration(0.25f));
         resultText.gameObject.SetActive(false);
         resultText.rectTransform.localScale = Vector3.one;
         introRoutine = null;
+    }
+
+    private static IEnumerator WaitUnpaused(float duration)
+    {
+        float finishTime = Time.realtimeSinceStartup + Mathf.Max(0f, duration);
+        while (Time.realtimeSinceStartup < finishTime)
+        {
+            yield return null;
+        }
+    }
+
+    private IEnumerator PlayImmediateBattleCompletion(bool victory)
+    {
+        ShowResult(victory);
+        yield return WaitUnpaused(Duration(BattleResultDisplaySeconds));
+        playbackRoutine = null;
+        CompletePresentation();
+    }
+
+    private static IEnumerator TweenUnpaused(
+        float duration,
+        System.Action<float> update)
+    {
+        if (duration <= 0f)
+        {
+            update(1f);
+            yield break;
+        }
+
+        float startedAt = Time.realtimeSinceStartup;
+        float finishTime = startedAt + duration;
+        while (Time.realtimeSinceStartup < finishTime)
+        {
+            float elapsed = Time.realtimeSinceStartup - startedAt;
+            update(Mathf.Clamp01(elapsed / duration));
+            yield return null;
+        }
+        update(1f);
     }
 
     private static bool HasBoss(BattlePresentationRoster roster)
@@ -912,11 +997,17 @@ public sealed class BattleVisualController : MonoBehaviour
         {
             int safeMaximum = Mathf.Max(1, maximum);
             int safeCurrent = Mathf.Clamp(current, 0, safeMaximum);
+            float hpRatio = safeCurrent / (float)safeMaximum;
             CurrentHP = safeCurrent;
-            HPFill.fillAmount = safeCurrent / (float)safeMaximum;
-            HPFill.color = HPFill.fillAmount <= 0.25f
+            HPFill.fillAmount = hpRatio;
+            RectTransform fillRect = HPFill.rectTransform;
+            fillRect.anchorMin = Vector2.zero;
+            fillRect.anchorMax = new Vector2(hpRatio, 1f);
+            fillRect.offsetMin = Vector2.zero;
+            fillRect.offsetMax = Vector2.zero;
+            HPFill.color = hpRatio <= 0.25f
                 ? new Color(0.9f, 0.2f, 0.15f)
-                : HPFill.fillAmount <= 0.5f
+                : hpRatio <= 0.5f
                     ? new Color(0.95f, 0.65f, 0.15f)
                     : new Color(0.34f, 0.75f, 0.28f);
             HPText.text = $"HP {safeCurrent}/{safeMaximum}";

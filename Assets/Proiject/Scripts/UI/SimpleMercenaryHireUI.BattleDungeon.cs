@@ -692,6 +692,13 @@ public partial class SimpleMercenaryHireUI
         if (dungeonRunManager.IsAwaitingEventChoice)
         {
             ShowBattlePage();
+            if (battleVisualController != null &&
+                battleVisualController.IsPresentationBusy &&
+                dungeonEventPresentationCoroutine == null)
+            {
+                dungeonEventPresentationCoroutine = StartCoroutine(
+                    WaitForDungeonEventPresentationCompletion());
+            }
         }
         else if (!dungeonRunManager.IsRunning)
         {
@@ -699,6 +706,39 @@ public partial class SimpleMercenaryHireUI
         }
 
         RefreshUI();
+    }
+
+    private IEnumerator WaitForDungeonEventPresentationCompletion()
+    {
+        const float timeoutSeconds = 8f;
+        float elapsed = 0f;
+        while (dungeonRunManager.IsAwaitingEventChoice &&
+               battleVisualController != null &&
+               battleVisualController.IsPresentationBusy &&
+               elapsed < timeoutSeconds)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        if (dungeonRunManager.IsAwaitingEventChoice &&
+            battleVisualController != null &&
+            battleVisualController.IsPresentationBusy)
+        {
+            Debug.LogWarning(
+                "Battle presentation did not complete before a dungeon event. " +
+                "Finishing it immediately so exploration can continue.",
+                this);
+            battleVisualController.FinishPresentationImmediately();
+        }
+
+        if (dungeonRunManager.IsAwaitingEventChoice)
+        {
+            UpdateDungeonEventUI();
+            ShowBattlePage();
+        }
+
+        dungeonEventPresentationCoroutine = null;
     }
 
     private void HandleDungeonCompleted(bool cleared)
@@ -710,6 +750,11 @@ public partial class SimpleMercenaryHireUI
             pendingDungeonCompletionCleared = cleared;
             dungeonEventPanel?.gameObject.SetActive(false);
             ShowBattlePage();
+            if (pendingDungeonCompletionCoroutine == null)
+            {
+                pendingDungeonCompletionCoroutine = StartCoroutine(
+                    WaitForDungeonPresentationCompletion());
+            }
             return;
         }
 
@@ -720,9 +765,7 @@ public partial class SimpleMercenaryHireUI
     {
         if (hasPendingDungeonCompletion)
         {
-            bool cleared = pendingDungeonCompletionCleared;
-            hasPendingDungeonCompletion = false;
-            ShowDungeonCompletionResult(cleared);
+            CompletePendingDungeonResult();
             return;
         }
 
@@ -731,6 +774,44 @@ public partial class SimpleMercenaryHireUI
             UpdateDungeonEventUI();
             ShowBattlePage();
         }
+    }
+
+    private IEnumerator WaitForDungeonPresentationCompletion()
+    {
+        const float timeoutSeconds = 8f;
+        float elapsed = 0f;
+        while (hasPendingDungeonCompletion &&
+               battleVisualController != null &&
+               battleVisualController.IsPresentationBusy &&
+               elapsed < timeoutSeconds)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        if (hasPendingDungeonCompletion &&
+            battleVisualController != null &&
+            battleVisualController.IsPresentationBusy)
+        {
+            Debug.LogWarning(
+                "Battle presentation did not complete. " +
+                "Finishing it immediately so dungeon progression can continue.",
+                this);
+            battleVisualController.FinishPresentationImmediately();
+        }
+
+        if (hasPendingDungeonCompletion)
+        {
+            CompletePendingDungeonResult();
+        }
+        pendingDungeonCompletionCoroutine = null;
+    }
+
+    private void CompletePendingDungeonResult()
+    {
+        bool cleared = pendingDungeonCompletionCleared;
+        hasPendingDungeonCompletion = false;
+        ShowDungeonCompletionResult(cleared);
     }
 
     private void ShowDungeonCompletionResult(bool cleared)

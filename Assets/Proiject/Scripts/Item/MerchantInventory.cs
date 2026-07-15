@@ -37,17 +37,24 @@ public class MerchantInventory : MonoBehaviour
 
     public void AddItem(ItemDataSO item, int amount = 1)
     {
+        if (!TryAddItem(item, amount) && item != null && amount > 0)
+        {
+            Debug.LogWarning("Storage capacity exceeded.");
+        }
+    }
+
+    public bool TryAddItem(ItemDataSO item, int amount = 1)
+    {
         if (item == null || amount <= 0)
         {
-            return;
+            return false;
         }
 
         ResolveReferences();
         if (progressionManager != null &&
             !progressionManager.CanStore(amount))
         {
-            Debug.LogWarning("Storage capacity exceeded.");
-            return;
+            return false;
         }
 
         InventoryItemStack stack = FindStack(item);
@@ -63,6 +70,7 @@ public class MerchantInventory : MonoBehaviour
         Debug.Log($"Added item: {item.itemName} x{amount}");
         RegisterEquipmentDiscovery(item);
         InventoryChanged?.Invoke();
+        return true;
     }
 
     public void AddEquipmentInstance(EquipmentInstance equipment)

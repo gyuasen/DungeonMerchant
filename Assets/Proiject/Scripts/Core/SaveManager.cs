@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -24,6 +25,7 @@ public class SaveManager : MonoBehaviour
     private bool isLoading;
     private bool suppressAutoSaveAfterDelete;
     private string savePathOverride = string.Empty;
+    private Coroutine pendingAutoSaveCoroutine;
 
     public string SavePath => !string.IsNullOrEmpty(savePathOverride)
         ? savePathOverride
@@ -53,6 +55,7 @@ public class SaveManager : MonoBehaviour
     [ContextMenu("ゲームを保存")]
     public void SaveGame()
     {
+        CancelPendingAutoSave();
         if (isLoading || IsAutomatedTestRun())
         {
             return;
@@ -128,6 +131,7 @@ public class SaveManager : MonoBehaviour
     [ContextMenu("セーブデータを削除")]
     public void DeleteSaveData()
     {
+        CancelPendingAutoSave();
         suppressAutoSaveAfterDelete = true;
         if (File.Exists(SavePath))
         {
@@ -712,12 +716,53 @@ public class SaveManager : MonoBehaviour
         }
     }
 
-    private void HandleChanged() => SaveGame();
-    private void HandleChanged(int value) => SaveGame();
-    private void HandleMercenaryChanged(MercenaryInstance mercenary) => SaveGame();
-    private void HandleBattleCompleted(bool victory) => SaveGame();
-    private void HandleDungeonCompleted(bool cleared) => SaveGame();
-    private void HandleStoryMilestoneCompleted(StoryMilestone milestone) => SaveGame();
+    private void HandleChanged() => RequestAutoSave();
+    private void HandleChanged(int value) => RequestAutoSave();
+    private void HandleMercenaryChanged(MercenaryInstance mercenary) => RequestAutoSave();
+    private void HandleBattleCompleted(bool victory) => RequestAutoSave();
+    private void HandleDungeonCompleted(bool cleared) => RequestAutoSave();
+    private void HandleStoryMilestoneCompleted(StoryMilestone milestone) => RequestAutoSave();
+
+    private void RequestAutoSave()
+    {
+        if (isLoading || suppressAutoSaveAfterDelete ||
+            pendingAutoSaveCoroutine != null)
+        {
+            return;
+        }
+
+        if (!isActiveAndEnabled)
+        {
+            SaveGame();
+            return;
+        }
+
+        pendingAutoSaveCoroutine = StartCoroutine(SaveAfterUiTransition());
+    }
+
+    private IEnumerator SaveAfterUiTransition()
+    {
+        const float delaySeconds = 0.25f;
+        float saveAt = Time.realtimeSinceStartup + delaySeconds;
+        while (Time.realtimeSinceStartup < saveAt)
+        {
+            yield return null;
+        }
+
+        pendingAutoSaveCoroutine = null;
+        SaveGame();
+    }
+
+    private void CancelPendingAutoSave()
+    {
+        if (pendingAutoSaveCoroutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(pendingAutoSaveCoroutine);
+        pendingAutoSaveCoroutine = null;
+    }
 
     private ItemDataSO FindItem(
         string persistentId,
