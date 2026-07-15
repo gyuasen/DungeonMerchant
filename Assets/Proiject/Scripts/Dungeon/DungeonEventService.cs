@@ -77,6 +77,80 @@ public static class DungeonEventService
                 return DungeonEventChoiceResult.None;
         }
     }
+
+    public static string CreateChoicePreview(
+        DungeonEventType eventType,
+        int optionIndex,
+        int restHealAmount,
+        int treasureGoldReward,
+        int hazardDamage)
+    {
+        if (optionIndex == 2)
+        {
+            return "探索を終了し、安全に町へ戻ります。";
+        }
+
+        DungeonEventChoiceResult result = ResolveChoice(
+            eventType,
+            optionIndex,
+            restHealAmount,
+            treasureGoldReward,
+            hazardDamage);
+        string preview = string.Empty;
+        if (result.HealAmount > 0)
+        {
+            preview = $"パーティー全員のHPを{result.HealAmount}回復します。";
+        }
+        if (result.GoldAmount > 0)
+        {
+            preview += $" {result.GoldAmount} Gを獲得します。";
+        }
+        if (result.DamageAmount > 0)
+        {
+            preview += $" パーティー全員が{result.DamageAmount}ダメージを受けます。";
+        }
+        if (!string.IsNullOrEmpty(result.LimitedDropSourceLabel))
+        {
+            preview += " 限定装備を発見できる可能性があります。";
+        }
+        if (result.AddExplorationDelay)
+        {
+            preview += " 探索日数が1日増加します。";
+        }
+        else
+        {
+            preview += " 探索日数は増加しません。";
+        }
+        return preview.Trim();
+    }
+
+    public static string GetChoiceImageKey(
+        DungeonEventType eventType,
+        int optionIndex)
+    {
+        if (optionIndex == 2)
+        {
+            return "Retreat";
+        }
+
+        switch (eventType)
+        {
+            case DungeonEventType.AbandonedCamp:
+                return optionIndex == 0
+                    ? "AbandonedCamp_Rest"
+                    : "AbandonedCamp_QuickRest";
+            case DungeonEventType.TreasureCache:
+                return optionIndex == 0
+                    ? "TreasureCache_Careful"
+                    : "TreasureCache_Force";
+            case DungeonEventType.CollapsedPassage:
+                return optionIndex == 0
+                    ? "CollapsedPassage_Detour"
+                    : "CollapsedPassage_Force";
+            default:
+                return "Retreat";
+        }
+    }
 }
 
 public readonly struct DungeonEventPresentation

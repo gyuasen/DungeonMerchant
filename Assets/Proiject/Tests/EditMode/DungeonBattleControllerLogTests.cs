@@ -36,6 +36,7 @@ public sealed class DungeonBattleControllerLogTests
             null, null, null, null,
             null, null, null, null,
             null, null, null, null,
-            null, null, null, null);
+            null, null, null, null,
+            null);
     }
 }

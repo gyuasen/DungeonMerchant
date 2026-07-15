@@ -126,8 +126,10 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Button hiddenIslandRegionButton;
     private Button startBattleButton;
     private Button battleSpeedButton;
+    private Button battlePauseButton;
     private Button battleSkipButton;
     private Button roadSpeedButton;
+    private Button roadPauseButton;
     private Button roadSkipButton;
     private Button startDungeonButton;
     private Button firstDungeonEventButton;
@@ -146,6 +148,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Text dungeonStatusText;
     private Text dungeonEventTitleText;
     private Text dungeonEventDescriptionText;
+    private Text dungeonEventPreviewText;
+    private RectTransform dungeonEventPanel;
     private RectTransform dungeonResultPanel;
     private Text dungeonResultText;
     private Button dungeonNextFloorButton;
@@ -158,6 +162,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private ScrollRect battleLogScrollRect;
     private Coroutine battleLogScrollCoroutine;
     private BattleVisualController battleVisualController;
+    private bool hasPendingDungeonCompletion;
+    private bool pendingDungeonCompletionCleared;
     private DailyResultController dailyResultController;
     private HireAndPartyController hireAndPartyController;
     private EconomyController economyController;
@@ -292,6 +298,17 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
                 if (roadSpeedButton != null)
                 {
                     SetButtonLabel(roadSpeedButton, label);
+                }
+            },
+            label =>
+            {
+                if (battlePauseButton != null)
+                {
+                    SetButtonLabel(battlePauseButton, label);
+                }
+                if (roadPauseButton != null)
+                {
+                    SetButtonLabel(roadPauseButton, label);
                 }
             },
             RefreshUI);
@@ -751,6 +768,12 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         {
             battleManager.BattleMessageTyped -= HandleBattleMessage;
             battleManager.BattleCompleted -= HandleBattleCompleted;
+        }
+
+        if (battleVisualController != null)
+        {
+            battleVisualController.PresentationCompleted -=
+                HandleBattleVisualPresentationCompleted;
         }
 
         if (dungeonRunManager != null)

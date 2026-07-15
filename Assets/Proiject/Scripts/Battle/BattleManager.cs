@@ -42,6 +42,7 @@ public class BattleManager : MonoBehaviour
         new BattleStatusEffectService();
 
     public bool IsBattling { get; private set; }
+    public bool IsPaused { get; private set; }
     public bool IsSkippingToBattleEnd => skipToBattleEndRequested;
     public float BattleSpeedMultiplier { get; private set; } = 1f;
     public EnemyDataSO EnemyData => enemyData;
@@ -109,6 +110,7 @@ public class BattleManager : MonoBehaviour
 
         CreateBattleUnits(partyMembers);
         skipToBattleEndRequested = false;
+        IsPaused = false;
         IsBattling = true;
         PrepareBattleVisuals();
         StartCoroutine(BattleRoutine());
@@ -568,11 +570,26 @@ public class BattleManager : MonoBehaviour
 
     private IEnumerator WaitForActionDelay()
     {
+        while (IsBattling && IsPaused && !skipToBattleEndRequested)
+        {
+            yield return null;
+        }
+
         float remaining =
             actionDelay / Mathf.Max(1f, BattleSpeedMultiplier);
         while (remaining > 0f && !skipToBattleEndRequested)
         {
+            while (IsBattling && IsPaused && !skipToBattleEndRequested)
+            {
+                yield return null;
+            }
+
             remaining -= Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        while (IsBattling && IsPaused && !skipToBattleEndRequested)
+        {
             yield return null;
         }
     }
@@ -669,6 +686,17 @@ public class BattleManager : MonoBehaviour
         return BattleSpeedMultiplier;
     }
 
+    public bool ToggleBattlePause()
+    {
+        if (!IsBattling)
+        {
+            return false;
+        }
+
+        IsPaused = !IsPaused;
+        return IsPaused;
+    }
+
     public bool RequestSkipToBattleEnd()
     {
         if (!IsBattling || skipToBattleEndRequested)
@@ -677,6 +705,7 @@ public class BattleManager : MonoBehaviour
         }
 
         skipToBattleEndRequested = true;
+        IsPaused = false;
         RaisePresentation(new BattlePresentationEvent(
             BattlePresentationEventType.SkipRequested));
         SendBattleMessage(
@@ -719,6 +748,7 @@ public class BattleManager : MonoBehaviour
 
         IsBattling = false;
         skipToBattleEndRequested = false;
+        IsPaused = false;
         ResolveReferences();
         BattleRewardService rewardService = GetBattleRewardService();
         rewardService.ApplyBattleResultsToMercenaries(battleMercenaries, playerUnits);

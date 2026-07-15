@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -18,6 +19,10 @@ public sealed class BattleVisualController : MonoBehaviour
     private Text actionBanner;
     private bool introPending;
     private bool introIsBoss;
+    private bool skipPresentationRequested;
+
+    public bool IsPresentationBusy { get; private set; }
+    public event Action PresentationCompleted;
 
     public void Configure(BattleManager manager, Font displayFont)
     {
@@ -72,6 +77,8 @@ public sealed class BattleVisualController : MonoBehaviour
     private void HandleRosterPrepared(BattlePresentationRoster roster)
     {
         StopPlayback();
+        skipPresentationRequested = false;
+        IsPresentationBusy = true;
         slots.Clear();
         ClearChildren();
         transform.SetAsFirstSibling();
@@ -227,6 +234,7 @@ public sealed class BattleVisualController : MonoBehaviour
         {
             RawImage rawImage = portrait.gameObject.AddComponent<RawImage>();
             rawImage.color = Color.white;
+            rawImage.raycastTarget = false;
             hasImage = MercenaryPortraitProvider.TryApply(
                 rawImage,
                 descriptor.MercenaryClass);
@@ -235,6 +243,7 @@ public sealed class BattleVisualController : MonoBehaviour
         {
             Image image = portrait.gameObject.AddComponent<Image>();
             image.preserveAspect = true;
+            image.raycastTarget = false;
             image.sprite = ResolveEnemySprite(descriptor.EnemyData);
             hasImage = image.sprite != null;
             image.color = hasImage
@@ -272,13 +281,15 @@ public sealed class BattleVisualController : MonoBehaviour
         hpBackground.anchorMin = new Vector2(0.08f, 0.09f);
         hpBackground.anchorMax = new Vector2(0.92f, 0.15f);
         hpBackground.offsetMin = hpBackground.offsetMax = Vector2.zero;
-        hpBackground.gameObject.AddComponent<Image>().color =
-            new Color(0.08f, 0.04f, 0.02f, 0.95f);
+        Image hpBackgroundImage = hpBackground.gameObject.AddComponent<Image>();
+        hpBackgroundImage.color = new Color(0.08f, 0.04f, 0.02f, 0.95f);
+        hpBackgroundImage.raycastTarget = false;
 
         RectTransform hpFillRect = CreateRect("HP Fill", hpBackground);
         Stretch(hpFillRect);
         Image hpFill = hpFillRect.gameObject.AddComponent<Image>();
         hpFill.color = new Color(0.34f, 0.75f, 0.28f, 1f);
+        hpFill.raycastTarget = false;
         hpFill.type = Image.Type.Filled;
         hpFill.fillMethod = Image.FillMethod.Horizontal;
 
@@ -305,6 +316,14 @@ public sealed class BattleVisualController : MonoBehaviour
         status.rectTransform.offsetMin = status.rectTransform.offsetMax = Vector2.zero;
         status.color = new Color(1f, 0.78f, 0.3f);
 
+        UIHoverTooltipTrigger tooltipTrigger =
+            panel.gameObject.AddComponent<UIHoverTooltipTrigger>();
+        tooltipTrigger.Configure(
+            descriptor.Unit,
+            descriptor.EnemyData,
+            font,
+            (RectTransform)transform);
+
         UnitSlot slot = new UnitSlot(
             panel,
             portrait,
@@ -327,11 +346,12 @@ public sealed class BattleVisualController : MonoBehaviour
         if (presentationEvent.Type == BattlePresentationEventType.SkipRequested)
         {
             StopPlayback();
-            eventQueue.Clear();
+            skipPresentationRequested = true;
             return;
         }
 
-        if (battleManager != null && battleManager.IsSkippingToBattleEnd)
+        if (skipPresentationRequested ||
+            (battleManager != null && battleManager.IsSkippingToBattleEnd))
         {
             ApplyImmediately(presentationEvent);
             return;
@@ -413,6 +433,7 @@ public sealed class BattleVisualController : MonoBehaviour
             case BattlePresentationEventType.BattleCompleted:
                 ShowResult(presentationEvent.Victory);
                 yield return Wait(0.25f);
+                CompletePresentation();
                 break;
         }
     }
@@ -552,9 +573,16 @@ public sealed class BattleVisualController : MonoBehaviour
         }
         yield return Tween(Duration(0.22f), value =>
         {
-            slot.Group.alpha = Mathf.Lerp(1f, 0.25f, value);
+            slot.Group.alpha = Mathf.Lerp(1f, 0f, value);
             slot.Portrait.localScale = Vector3.one * Mathf.Lerp(1f, 0.75f, value);
         });
+        HideDefeatedSlot(slot);
+    }
+
+    private static void HideDefeatedSlot(UnitSlot slot)
+    {
+        slot.Group.alpha = 0f;
+        slot.Group.blocksRaycasts = false;
     }
 
     private void ApplyImmediately(BattlePresentationEvent presentationEvent)
@@ -572,12 +600,25 @@ public sealed class BattleVisualController : MonoBehaviour
         if (presentationEvent.Type == BattlePresentationEventType.Defeated &&
             slots.TryGetValue(presentationEvent.Target, out UnitSlot defeated))
         {
-            defeated.Group.alpha = 0.25f;
+            HideDefeatedSlot(defeated);
         }
         if (presentationEvent.Type == BattlePresentationEventType.BattleCompleted)
         {
             ShowResult(presentationEvent.Victory);
+            CompletePresentation();
         }
+    }
+
+    private void CompletePresentation()
+    {
+        if (!IsPresentationBusy)
+        {
+            return;
+        }
+
+        IsPresentationBusy = false;
+        skipPresentationRequested = false;
+        PresentationCompleted?.Invoke();
     }
 
     private void UpdateHP(BattlePresentationEvent presentationEvent)
@@ -806,12 +847,16 @@ public sealed class BattleVisualController : MonoBehaviour
         float remaining = Duration(baseDuration);
         while (remaining > 0f)
         {
+            while (battleManager != null && battleManager.IsPaused)
+            {
+                yield return null;
+            }
             remaining -= Time.unscaledDeltaTime;
             yield return null;
         }
     }
 
-    private static IEnumerator Tween(
+    private IEnumerator Tween(
         float duration,
         System.Action<float> update)
     {
@@ -823,6 +868,10 @@ public sealed class BattleVisualController : MonoBehaviour
         float elapsed = 0f;
         while (elapsed < duration)
         {
+            while (battleManager != null && battleManager.IsPaused)
+            {
+                yield return null;
+            }
             elapsed += Time.unscaledDeltaTime;
             update(Mathf.Clamp01(elapsed / duration));
             yield return null;

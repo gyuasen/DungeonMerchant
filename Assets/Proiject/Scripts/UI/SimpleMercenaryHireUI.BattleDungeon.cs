@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public partial class SimpleMercenaryHireUI
@@ -48,7 +49,19 @@ public partial class SimpleMercenaryHireUI
             new Vector2(1f, 1f);
         battleSpeedRect.pivot = new Vector2(1f, 1f);
         battleSpeedRect.sizeDelta = new Vector2(100f, 38f);
-        battleSpeedRect.anchoredPosition = new Vector2(-140f, -36f);
+        battleSpeedRect.anchoredPosition = new Vector2(-250f, -36f);
+
+        battlePauseButton = CreateActionButton(
+            battlePage,
+            "一時停止",
+            () => dungeonBattleController.ToggleBattlePause());
+        RectTransform battlePauseRect =
+            battlePauseButton.GetComponent<RectTransform>();
+        battlePauseRect.anchorMin = battlePauseRect.anchorMax =
+            new Vector2(1f, 1f);
+        battlePauseRect.pivot = new Vector2(1f, 1f);
+        battlePauseRect.sizeDelta = new Vector2(100f, 38f);
+        battlePauseRect.anchoredPosition = new Vector2(-140f, -36f);
 
         battleSkipButton = CreateActionButton(
             battlePage,
@@ -73,6 +86,8 @@ public partial class SimpleMercenaryHireUI
         battleVisualController.Configure(
             battleManager,
             uiBodyFont != null ? uiBodyFont : uiFont);
+        battleVisualController.PresentationCompleted +=
+            HandleBattleVisualPresentationCompleted;
 
         battleLogPanel = CreateUIObject("Battle Log", battlePage);
         battleLogPanel.anchorMin = new Vector2(0f, 0f);
@@ -120,6 +135,8 @@ public partial class SimpleMercenaryHireUI
         battleLogText.rectTransform.pivot = new Vector2(0.5f, 0.5f);
         battleLogText.rectTransform.offsetMin = new Vector2(0f, 8f);
         battleLogText.rectTransform.offsetMax = new Vector2(0f, -8f);
+
+        BuildDungeonEventOverlay();
 
         BattlePageUI pageUI =
             battlePage.GetComponent<BattlePageUI>() ??
@@ -171,6 +188,18 @@ public partial class SimpleMercenaryHireUI
         roadSpeedRect.sizeDelta = new Vector2(100f, 38f);
         roadSpeedRect.anchoredPosition = new Vector2(-270f, -4f);
 
+        roadPauseButton = CreateActionButton(
+            roadBattlePage,
+            "一時停止",
+            () => dungeonBattleController.ToggleBattlePause());
+        RectTransform roadPauseRect =
+            roadPauseButton.GetComponent<RectTransform>();
+        roadPauseRect.anchorMin = roadPauseRect.anchorMax =
+            new Vector2(1f, 1f);
+        roadPauseRect.pivot = new Vector2(1f, 1f);
+        roadPauseRect.sizeDelta = new Vector2(100f, 38f);
+        roadPauseRect.anchoredPosition = new Vector2(-380f, -4f);
+
         roadSkipButton = CreateActionButton(
             roadBattlePage,
             "結果まで",
@@ -181,7 +210,7 @@ public partial class SimpleMercenaryHireUI
             new Vector2(1f, 1f);
         roadSkipRect.pivot = new Vector2(1f, 1f);
         roadSkipRect.sizeDelta = new Vector2(100f, 38f);
-        roadSkipRect.anchoredPosition = new Vector2(-380f, -4f);
+        roadSkipRect.anchoredPosition = new Vector2(-490f, -4f);
 
         roadContinueButton =
             CreateActionButton(
@@ -256,44 +285,6 @@ public partial class SimpleMercenaryHireUI
         dungeonSelectionList.pivot = new Vector2(0.5f, 1f);
         dungeonSelectionList.anchoredPosition = new Vector2(0f, -174f);
         dungeonSelectionList.sizeDelta = new Vector2(0f, 150f);
-
-        dungeonEventTitleText = CreateText(
-            dungeonPage,
-            string.Empty,
-            24,
-            FontStyle.Bold,
-            TextAnchor.MiddleLeft,
-            new Vector2(0f, -230f),
-            new Vector2(0f, -184f),
-            ParchmentTextColor);
-
-        dungeonEventDescriptionText = CreateText(
-            dungeonPage,
-            string.Empty,
-            16,
-            FontStyle.Normal,
-            TextAnchor.UpperLeft,
-            new Vector2(0f, -300f),
-            new Vector2(0f, -238f),
-            ParchmentTextColor);
-
-        firstDungeonEventButton = CreateActionButton(
-            dungeonPage,
-            "選択肢1",
-            () => dungeonBattleController.ChooseDungeonEventOption(0));
-        PositionDungeonEventButton(firstDungeonEventButton, 0f);
-
-        secondDungeonEventButton = CreateActionButton(
-            dungeonPage,
-            "選択肢2",
-            () => dungeonBattleController.ChooseDungeonEventOption(1));
-        PositionDungeonEventButton(secondDungeonEventButton, 248f);
-
-        thirdDungeonEventButton = CreateActionButton(
-            dungeonPage,
-            "撤退",
-            () => dungeonBattleController.ChooseDungeonEventOption(2));
-        PositionDungeonEventButton(thirdDungeonEventButton, 496f);
 
         dungeonResultPanel =
             CreateUIObject("Dungeon Floor Result", dungeonPage);
@@ -370,14 +361,215 @@ public partial class SimpleMercenaryHireUI
         RefreshPage(dungeonPage);
     }
 
-    private static void PositionDungeonEventButton(Button button, float x)
+    private void BuildDungeonEventOverlay()
+    {
+        dungeonEventPanel = CreateUIObject("Dungeon Event Overlay", battlePage);
+        dungeonEventPanel.anchorMin = new Vector2(0f, 0.28f);
+        dungeonEventPanel.anchorMax = new Vector2(1f, 0.79f);
+        dungeonEventPanel.offsetMin = Vector2.zero;
+        dungeonEventPanel.offsetMax = Vector2.zero;
+
+        Image eventBackground = dungeonEventPanel.gameObject.AddComponent<Image>();
+        eventBackground.color = new Color(0.055f, 0.035f, 0.02f, 0.94f);
+        AddFantasyFrame(eventBackground, 3f);
+
+        Text eventHeader = CreateText(
+            dungeonEventPanel,
+            "探索イベント",
+            15,
+            FontStyle.Bold,
+            TextAnchor.MiddleCenter,
+            Vector2.zero,
+            Vector2.zero,
+            new Color(0.98f, 0.84f, 0.5f));
+        eventHeader.rectTransform.anchorMin = new Vector2(0.02f, 0.91f);
+        eventHeader.rectTransform.anchorMax = new Vector2(0.22f, 0.99f);
+        eventHeader.rectTransform.offsetMin = Vector2.zero;
+        eventHeader.rectTransform.offsetMax = Vector2.zero;
+        Outline headerOutline = eventHeader.gameObject.AddComponent<Outline>();
+        headerOutline.effectColor = new Color(0f, 0f, 0f, 0.85f);
+        headerOutline.effectDistance = new Vector2(1f, -1f);
+
+        dungeonEventTitleText = CreateText(
+            dungeonEventPanel,
+            string.Empty,
+            25,
+            FontStyle.Bold,
+            TextAnchor.MiddleCenter,
+            Vector2.zero,
+            Vector2.zero,
+            new Color(1f, 0.94f, 0.76f));
+        dungeonEventTitleText.rectTransform.anchorMin =
+            new Vector2(0.22f, 0.84f);
+        dungeonEventTitleText.rectTransform.anchorMax =
+            new Vector2(0.98f, 0.98f);
+        dungeonEventTitleText.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        dungeonEventTitleText.rectTransform.offsetMin = Vector2.zero;
+        dungeonEventTitleText.rectTransform.offsetMax = Vector2.zero;
+        dungeonEventTitleText.alignment = TextAnchor.MiddleCenter;
+        dungeonEventTitleText.horizontalOverflow = HorizontalWrapMode.Wrap;
+        dungeonEventTitleText.verticalOverflow = VerticalWrapMode.Overflow;
+        dungeonEventTitleText.resizeTextForBestFit = true;
+        dungeonEventTitleText.resizeTextMinSize = 16;
+        dungeonEventTitleText.resizeTextMaxSize = 25;
+
+        dungeonEventDescriptionText = CreateText(
+            dungeonEventPanel,
+            string.Empty,
+            17,
+            FontStyle.Normal,
+            TextAnchor.MiddleCenter,
+            Vector2.zero,
+            Vector2.zero,
+            Color.white);
+        dungeonEventDescriptionText.rectTransform.anchorMin =
+            new Vector2(0.05f, 0.68f);
+        dungeonEventDescriptionText.rectTransform.anchorMax =
+            new Vector2(0.95f, 0.82f);
+        dungeonEventDescriptionText.rectTransform.pivot =
+            new Vector2(0.5f, 0.5f);
+        dungeonEventDescriptionText.rectTransform.offsetMin = Vector2.zero;
+        dungeonEventDescriptionText.rectTransform.offsetMax = Vector2.zero;
+        dungeonEventDescriptionText.alignment = TextAnchor.MiddleCenter;
+        dungeonEventDescriptionText.horizontalOverflow = HorizontalWrapMode.Wrap;
+        dungeonEventDescriptionText.verticalOverflow = VerticalWrapMode.Overflow;
+        dungeonEventDescriptionText.resizeTextForBestFit = true;
+        dungeonEventDescriptionText.resizeTextMinSize = 12;
+        dungeonEventDescriptionText.resizeTextMaxSize = 17;
+
+        dungeonEventPreviewText = CreateText(
+            dungeonEventPanel,
+            string.Empty,
+            16,
+            FontStyle.Bold,
+            TextAnchor.MiddleCenter,
+            Vector2.zero,
+            Vector2.zero,
+            new Color(1f, 0.86f, 0.42f));
+        dungeonEventPreviewText.rectTransform.anchorMin =
+            new Vector2(0.04f, 0.01f);
+        dungeonEventPreviewText.rectTransform.anchorMax =
+            new Vector2(0.96f, 0.23f);
+        dungeonEventPreviewText.rectTransform.offsetMin = Vector2.zero;
+        dungeonEventPreviewText.rectTransform.offsetMax = Vector2.zero;
+
+        firstDungeonEventButton = CreateActionButton(
+            dungeonEventPanel,
+            "選択肢1",
+            () => dungeonBattleController.ChooseDungeonEventOption(0));
+        PositionDungeonEventButton(firstDungeonEventButton, 0);
+        ConfigureDungeonEventHover(firstDungeonEventButton, 0);
+
+        secondDungeonEventButton = CreateActionButton(
+            dungeonEventPanel,
+            "選択肢2",
+            () => dungeonBattleController.ChooseDungeonEventOption(1));
+        PositionDungeonEventButton(secondDungeonEventButton, 1);
+        ConfigureDungeonEventHover(secondDungeonEventButton, 1);
+
+        thirdDungeonEventButton = CreateActionButton(
+            dungeonEventPanel,
+            "撤退",
+            () => dungeonBattleController.ChooseDungeonEventOption(2));
+        PositionDungeonEventButton(thirdDungeonEventButton, 2);
+        ConfigureDungeonEventHover(thirdDungeonEventButton, 2);
+
+        dungeonEventPanel.gameObject.SetActive(false);
+    }
+
+    private static void PositionDungeonEventButton(Button button, int index)
     {
         RectTransform rect = button.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(0f, 0f);
-        rect.anchorMax = new Vector2(0f, 0f);
-        rect.pivot = new Vector2(0f, 0f);
-        rect.sizeDelta = new Vector2(228f, 52f);
-        rect.anchoredPosition = new Vector2(x, 18f);
+        float columnWidth = 1f / 3f;
+        rect.anchorMin = new Vector2(index * columnWidth + 0.025f, 0.24f);
+        rect.anchorMax = new Vector2((index + 1) * columnWidth - 0.025f, 0.66f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.sizeDelta = Vector2.zero;
+        rect.anchoredPosition = Vector2.zero;
+
+        Text label = button.GetComponentInChildren<Text>();
+        if (label != null)
+        {
+            label.fontSize = 14;
+            label.alignment = TextAnchor.MiddleCenter;
+            label.rectTransform.anchorMin = Vector2.zero;
+            label.rectTransform.anchorMax = Vector2.one;
+            label.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            label.rectTransform.offsetMin = new Vector2(12f, 14f);
+            label.rectTransform.offsetMax = new Vector2(-12f, -14f);
+            label.horizontalOverflow = HorizontalWrapMode.Wrap;
+            label.verticalOverflow = VerticalWrapMode.Overflow;
+            label.resizeTextForBestFit = true;
+            label.resizeTextMinSize = 10;
+            label.resizeTextMaxSize = 14;
+            Outline outline = label.GetComponent<Outline>() ??
+                              label.gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0f, 0f, 0f, 0.95f);
+            outline.effectDistance = new Vector2(1f, -1f);
+        }
+    }
+
+    private void ConfigureDungeonEventHover(Button button, int optionIndex)
+    {
+        EventTrigger trigger = button.GetComponent<EventTrigger>() ??
+                               button.gameObject.AddComponent<EventTrigger>();
+        trigger.triggers = new List<EventTrigger.Entry>();
+
+        EventTrigger.Entry enter = new EventTrigger.Entry
+        {
+            eventID = EventTriggerType.PointerEnter
+        };
+        enter.callback.AddListener(_ => ShowDungeonEventPreview(optionIndex));
+        trigger.triggers.Add(enter);
+
+        EventTrigger.Entry exit = new EventTrigger.Entry
+        {
+            eventID = EventTriggerType.PointerExit
+        };
+        exit.callback.AddListener(_ => HideDungeonEventPreview());
+        trigger.triggers.Add(exit);
+    }
+
+    private void ShowDungeonEventPreview(int optionIndex)
+    {
+        if (dungeonEventPreviewText != null)
+        {
+            dungeonEventPreviewText.text =
+                dungeonRunManager.GetEventOptionPreview(optionIndex);
+        }
+    }
+
+    private void HideDungeonEventPreview()
+    {
+        if (dungeonEventPreviewText != null)
+        {
+            dungeonEventPreviewText.text = string.Empty;
+        }
+    }
+
+    private void ApplyDungeonEventChoiceImage(Button button, int optionIndex)
+    {
+        Image image = button != null ? button.targetGraphic as Image : null;
+        if (image == null)
+        {
+            return;
+        }
+
+        string imageKey = dungeonRunManager.GetEventOptionImageKey(optionIndex);
+        Sprite eventSprite = Resources.Load<Sprite>($"Battle/Events/{imageKey}");
+        bool hasEventSprite = eventSprite != null;
+        image.sprite = hasEventSprite
+            ? eventSprite
+            : Resources.Load<Sprite>("UI/ParchmentPanel");
+        image.type = hasEventSprite ? Image.Type.Simple : Image.Type.Sliced;
+        image.preserveAspect = hasEventSprite;
+        image.color = hasEventSprite
+            ? Color.white
+            : optionIndex == 2
+                ? new Color(0.55f, 0.22f, 0.18f, 1f)
+                : optionIndex == 0
+                    ? new Color(0.34f, 0.48f, 0.28f, 1f)
+                    : new Color(0.46f, 0.36f, 0.20f, 1f);
     }
 
     private void ResetBattleLog()
@@ -496,11 +688,12 @@ public partial class SimpleMercenaryHireUI
 
     private void HandleDungeonStateChanged()
     {
+        UpdateDungeonEventUI();
         if (dungeonRunManager.IsAwaitingEventChoice)
         {
-            ShowDungeonPage();
+            ShowBattlePage();
         }
-        else
+        else if (!dungeonRunManager.IsRunning)
         {
             RefreshPage(dungeonPage);
         }
@@ -509,6 +702,38 @@ public partial class SimpleMercenaryHireUI
     }
 
     private void HandleDungeonCompleted(bool cleared)
+    {
+        if (battleVisualController != null &&
+            battleVisualController.IsPresentationBusy)
+        {
+            hasPendingDungeonCompletion = true;
+            pendingDungeonCompletionCleared = cleared;
+            dungeonEventPanel?.gameObject.SetActive(false);
+            ShowBattlePage();
+            return;
+        }
+
+        ShowDungeonCompletionResult(cleared);
+    }
+
+    private void HandleBattleVisualPresentationCompleted()
+    {
+        if (hasPendingDungeonCompletion)
+        {
+            bool cleared = pendingDungeonCompletionCleared;
+            hasPendingDungeonCompletion = false;
+            ShowDungeonCompletionResult(cleared);
+            return;
+        }
+
+        if (dungeonRunManager.IsAwaitingEventChoice)
+        {
+            UpdateDungeonEventUI();
+            ShowBattlePage();
+        }
+    }
+
+    private void ShowDungeonCompletionResult(bool cleared)
     {
         bool hiddenIslandUnlocked = TryUnlockHiddenIsland();
         string result = progressionManager != null
@@ -549,7 +774,8 @@ public partial class SimpleMercenaryHireUI
 
     private void UpdateDungeonEventUI()
     {
-        if (dungeonEventTitleText == null ||
+        if (dungeonEventPanel == null ||
+            dungeonEventTitleText == null ||
             dungeonEventDescriptionText == null ||
             firstDungeonEventButton == null ||
             secondDungeonEventButton == null ||
@@ -558,28 +784,32 @@ public partial class SimpleMercenaryHireUI
             return;
         }
 
-        bool showEvent = dungeonRunManager.IsAwaitingEventChoice;
+        bool showEvent =
+            dungeonRunManager.IsAwaitingEventChoice &&
+            (battleVisualController == null ||
+             !battleVisualController.IsPresentationBusy);
         if (dungeonSelectionList != null)
         {
             dungeonSelectionList.gameObject.SetActive(!dungeonRunManager.IsRunning);
         }
 
-        dungeonEventTitleText.gameObject.SetActive(showEvent);
-        dungeonEventDescriptionText.gameObject.SetActive(showEvent);
-        firstDungeonEventButton.gameObject.SetActive(showEvent);
-        secondDungeonEventButton.gameObject.SetActive(showEvent);
-        thirdDungeonEventButton.gameObject.SetActive(showEvent);
+        dungeonEventPanel.gameObject.SetActive(showEvent);
 
         if (!showEvent)
         {
             return;
         }
 
+        dungeonEventPanel.SetAsLastSibling();
         dungeonEventTitleText.text = dungeonRunManager.EventTitle;
         dungeonEventDescriptionText.text = dungeonRunManager.EventDescription;
+        HideDungeonEventPreview();
         SetButtonLabel(firstDungeonEventButton, dungeonRunManager.FirstOptionLabel);
         SetButtonLabel(secondDungeonEventButton, dungeonRunManager.SecondOptionLabel);
         SetButtonLabel(thirdDungeonEventButton, dungeonRunManager.ThirdOptionLabel);
+        ApplyDungeonEventChoiceImage(firstDungeonEventButton, 0);
+        ApplyDungeonEventChoiceImage(secondDungeonEventButton, 1);
+        ApplyDungeonEventChoiceImage(thirdDungeonEventButton, 2);
     }
 
     private static void SetButtonLabel(Button button, string label)
@@ -599,12 +829,19 @@ public partial class SimpleMercenaryHireUI
 
     private void RefreshBattlePage()
     {
+        UpdateDungeonEventUI();
         startBattleButton.interactable =
             partyManager.Members.Count > 0 && !battleManager.IsBattling;
         startBattleButton.gameObject.SetActive(false);
         battleSkipButton.interactable =
             battleManager.IsBattling &&
             !battleManager.IsSkippingToBattleEnd;
+        battlePauseButton.interactable =
+            battleManager.IsBattling &&
+            !battleManager.IsSkippingToBattleEnd;
+        SetButtonLabel(
+            battlePauseButton,
+            battleManager.IsPaused ? "再開" : "一時停止");
         statusText.text = $"戦闘参加: 傭兵{partyManager.Members.Count}人";
     }
 
@@ -628,6 +865,12 @@ public partial class SimpleMercenaryHireUI
         roadSkipButton.interactable =
             battleManager.IsBattling &&
             !battleManager.IsSkippingToBattleEnd;
+        roadPauseButton.interactable =
+            battleManager.IsBattling &&
+            !battleManager.IsSkippingToBattleEnd;
+        SetButtonLabel(
+            roadPauseButton,
+            battleManager.IsPaused ? "再開" : "一時停止");
         roadBattleRouteText.text =
             $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]} → " +
             $"{WorldMapService.TownNames[roadTravelState.DestinationTownIndex]}\n" +
