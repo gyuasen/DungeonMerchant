@@ -66,6 +66,23 @@ public class DungeonRunManager : MonoBehaviour
     public string SecondOptionLabel => eventState.Presentation.SecondOptionLabel;
     public string ThirdOptionLabel => eventState.Presentation.ThirdOptionLabel;
 
+    public string GetEventOptionPreview(int optionIndex)
+    {
+        return DungeonEventService.CreateChoicePreview(
+            eventState.Type,
+            optionIndex,
+            restHealAmount,
+            treasureGoldReward,
+            hazardDamage);
+    }
+
+    public string GetEventOptionImageKey(int optionIndex)
+    {
+        return DungeonEventService.GetChoiceImageKey(
+            eventState.Type,
+            optionIndex);
+    }
+
     public event Action<string> DungeonMessage;
     public event Action DungeonStateChanged;
     public event Action<bool> DungeonCompleted;

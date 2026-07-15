@@ -32,6 +32,7 @@ public sealed class DungeonBattleController
     private readonly Action refreshPartyStatePages;
     private readonly Action updateDungeonEventUI;
     private readonly Action<string> setSpeedButtonLabels;
+    private readonly Action<string> setPauseButtonLabels;
     private readonly Action refreshUI;
 
     private readonly List<string> battleLogLines = new List<string>();
@@ -52,6 +53,7 @@ public sealed class DungeonBattleController
         Action refreshPartyStatePages,
         Action updateDungeonEventUI,
         Action<string> setSpeedButtonLabels,
+        Action<string> setPauseButtonLabels,
         Action refreshUI)
     {
         this.battleManager = battleManager;
@@ -69,6 +71,7 @@ public sealed class DungeonBattleController
         this.refreshPartyStatePages = refreshPartyStatePages;
         this.updateDungeonEventUI = updateDungeonEventUI;
         this.setSpeedButtonLabels = setSpeedButtonLabels;
+        this.setPauseButtonLabels = setPauseButtonLabels;
         this.refreshUI = refreshUI;
     }
 
@@ -221,6 +224,20 @@ public sealed class DungeonBattleController
         setStatus($"戦闘速度を{speed:0}倍に変更しました。");
     }
 
+    public void ToggleBattlePause()
+    {
+        if (!battleManager.IsBattling)
+        {
+            setStatus("一時停止できる戦闘がありません。");
+            return;
+        }
+
+        battleManager.ToggleBattlePause();
+        bool paused = battleManager.IsPaused;
+        setPauseButtonLabels(paused ? "再開" : "一時停止");
+        setStatus(paused ? "戦闘を一時停止しました。" : "戦闘を再開しました。");
+    }
+
     public void SkipBattleToEnd()
     {
         if (!battleManager.RequestSkipToBattleEnd())
@@ -229,6 +246,7 @@ public sealed class DungeonBattleController
             return;
         }
 
+        setPauseButtonLabels("一時停止");
         setStatus("現在の戦闘を結果まで早送りします。");
     }
 
