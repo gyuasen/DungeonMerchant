@@ -11,6 +11,16 @@ public partial class SimpleMercenaryHireUI
             TextAnchor.MiddleLeft, new Vector2(0f, -30f), new Vector2(0f, 0f),
             ParchmentMutedColor);
 
+        storageCapacityText = CreateText(
+            inventoryPage,
+            string.Empty,
+            16,
+            FontStyle.Bold,
+            TextAnchor.MiddleRight,
+            new Vector2(180f, -30f),
+            new Vector2(-150f, 0f),
+            ParchmentTextColor);
+
         marketInfoText = CreateText(inventoryPage, string.Empty, 16, FontStyle.Bold,
             TextAnchor.MiddleLeft, new Vector2(0f, -70f), new Vector2(-160f, -38f),
             ParchmentTextColor);
@@ -110,6 +120,7 @@ public partial class SimpleMercenaryHireUI
             characterEquipmentController.UseConsumable,
             characterEquipmentController.ShowEquipmentDetails);
         pageRouter.Register(inventoryPage);
+        UpdateStorageCapacityText();
     }
 
     private void BuildMarketPage()
@@ -278,12 +289,44 @@ public partial class SimpleMercenaryHireUI
 
     private void ShowInventoryPage()
     {
+        UpdateStorageCapacityText();
         SwitchToPage(inventoryPage, inventoryTabButton);
         statusText.text =
             $"倉庫 {merchantInventory.GetUsedStorageSlots()}/" +
             $"{(progressionManager != null ? progressionManager.StorageCapacity : 0)}  |  " +
             $"{marketPriceManager.GetMarketSummary()}  |  " +
             $"維持費 {(progressionManager != null ? progressionManager.StorageMaintenanceCost : 0)}G/日";
+    }
+
+    private void UpdateStorageCapacityText()
+    {
+        if (storageCapacityText == null)
+        {
+            return;
+        }
+
+        int used = merchantInventory != null
+            ? merchantInventory.GetUsedStorageSlots()
+            : 0;
+        int capacity = progressionManager != null
+            ? progressionManager.StorageCapacity
+            : 0;
+        int remaining = Mathf.Max(0, capacity - used);
+        string expansion = progressionManager == null
+            ? string.Empty
+            : progressionManager.IsStorageAtMaximumTier
+                ? "最大拡張済み"
+                : $"次回 {progressionManager.NextStorageCapacity}枠 / " +
+                  $"{progressionManager.StorageUpgradeCost:N0}G / " +
+                  $"商人Lv{progressionManager.NextStorageRequiredMerchantLevel}";
+
+        storageCapacityText.text =
+            $"倉庫 {used}/{capacity}（空き {remaining}）  |  {expansion}";
+        storageCapacityText.color = capacity > 0 && remaining == 0
+            ? new Color(0.65f, 0.08f, 0.04f)
+            : remaining <= Mathf.Max(3, Mathf.CeilToInt(capacity * 0.1f))
+                ? new Color(0.72f, 0.35f, 0.04f)
+                : ParchmentTextColor;
     }
 
 }

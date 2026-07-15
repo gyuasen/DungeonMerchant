@@ -183,6 +183,7 @@ public partial class SimpleMercenaryHireUI
 
     private void RefreshUI()
     {
+        UpdateStorageCapacityText();
         if (globalMenuButton != null)
         {
             globalMenuButton.interactable = !battleManager.IsBattling;

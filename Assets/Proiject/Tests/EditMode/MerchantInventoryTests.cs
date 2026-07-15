@@ -231,6 +231,34 @@ public sealed class MerchantInventoryTests
         Assert.That(inventory.GetItemAmount(item), Is.EqualTo(3));
     }
 
+    [Test]
+    public void TryAddItem_WhenStorageHasRoom_AddsEntireAmountAndReturnsTrue()
+    {
+        root.AddComponent<ProgressionManager>();
+        ItemDataSO item = CreateItem("Stored Ore", basePrice: 10);
+
+        bool result = inventory.TryAddItem(item, 4);
+
+        Assert.That(result, Is.True);
+        Assert.That(inventory.GetItemAmount(item), Is.EqualTo(4));
+        Assert.That(inventory.GetUsedStorageSlots(), Is.EqualTo(4));
+    }
+
+    [Test]
+    public void TryAddItem_WhenAmountWouldExceedCapacity_ReturnsFalseAndAddsNothing()
+    {
+        root.AddComponent<ProgressionManager>();
+        ItemDataSO existingItem = CreateItem("Existing Ore", basePrice: 10);
+        ItemDataSO rejectedItem = CreateItem("Rejected Ore", basePrice: 10);
+        Assert.That(inventory.TryAddItem(existingItem, 30), Is.True);
+
+        bool result = inventory.TryAddItem(rejectedItem, 1);
+
+        Assert.That(result, Is.False);
+        Assert.That(inventory.GetItemAmount(rejectedItem), Is.Zero);
+        Assert.That(inventory.GetUsedStorageSlots(), Is.EqualTo(30));
+    }
+
     private ItemDataSO CreateItem(string itemName, int basePrice)
     {
         ItemDataSO item = Track(ScriptableObject.CreateInstance<ItemDataSO>());

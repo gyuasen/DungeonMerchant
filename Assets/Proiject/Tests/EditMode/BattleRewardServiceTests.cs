@@ -116,6 +116,53 @@ public sealed class BattleRewardServiceTests
         Assert.That(result, Is.EqualTo(expected));
     }
 
+    [Test]
+    public void GrantVictoryRewards_WhenStorageIsFull_LogsCapacityMessageAndDoesNotAddDrop()
+    {
+        GameObject root = Track(new GameObject("Full Storage Reward Test"));
+        MerchantData merchantData = root.AddComponent<MerchantData>();
+        MerchantInventory inventory = root.AddComponent<MerchantInventory>();
+        root.AddComponent<ProgressionManager>();
+        ItemDataSO filler = Track(CreateItem("Filler"));
+        ItemDataSO reward = Track(CreateItem("Guaranteed Reward"));
+        Assert.That(inventory.TryAddItem(filler, 30), Is.True);
+
+        EnemyDataSO enemy = Track(CreateEnemy(10, false, 1f, 0));
+        enemy.itemDrops = new[]
+        {
+            new ItemDropEntry
+            {
+                item = reward,
+                amount = 1,
+                dropChance = 1f
+            }
+        };
+        List<(string Message, BattleLogType Type)> messages =
+            new List<(string Message, BattleLogType Type)>();
+        BattleRewardService service = new BattleRewardService(
+            merchantData,
+            inventory,
+            (message, type) => messages.Add((message, type)),
+            () => 0f);
+
+        service.GrantVictoryRewards(
+            new List<EnemyDataSO> { enemy },
+            new List<MercenaryInstance>());
+
+        Assert.That(inventory.GetItemAmount(reward), Is.Zero);
+        Assert.That(inventory.GetUsedStorageSlots(), Is.EqualTo(30));
+        Assert.That(
+            messages.Exists(entry =>
+                entry.Type == BattleLogType.System &&
+                entry.Message.Contains("倉庫が満杯")),
+            Is.True);
+        Assert.That(
+            messages.Exists(entry =>
+                entry.Type == BattleLogType.Reward &&
+                entry.Message.Contains("Guaranteed Reward")),
+            Is.False);
+    }
+
     private static EnemyDataSO CreateEnemy(
         int grade,
         bool isBoss,
@@ -128,6 +175,15 @@ public sealed class BattleRewardServiceTests
         enemy.experienceMultiplier = experienceMultiplier;
         enemy.goldReward = goldReward;
         return enemy;
+    }
+
+    private static ItemDataSO CreateItem(string itemName)
+    {
+        ItemDataSO item = ScriptableObject.CreateInstance<ItemDataSO>();
+        item.name = itemName;
+        item.itemName = itemName;
+        item.itemType = ItemType.Material;
+        return item;
     }
 
     private T Track<T>(T created) where T : Object

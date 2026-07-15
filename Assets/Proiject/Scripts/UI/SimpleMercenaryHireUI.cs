@@ -154,6 +154,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Text dungeonResultText;
     private Button dungeonNextFloorButton;
     private Text marketInfoText;
+    private Text storageCapacityText;
     private Font uiFont;
     private Font uiBodyFont;
     private SimpleMercenaryHireUIFactory uiFactory;
@@ -164,6 +165,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private BattleVisualController battleVisualController;
     private bool hasPendingDungeonCompletion;
     private bool pendingDungeonCompletionCleared;
+    private Coroutine pendingDungeonCompletionCoroutine;
+    private Coroutine dungeonEventPresentationCoroutine;
     private DailyResultController dailyResultController;
     private HireAndPartyController hireAndPartyController;
     private EconomyController economyController;
@@ -207,6 +210,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             hireManager,
             partyManager,
             merchantInventory,
+            progressionManager,
             CharacterEquipmentController.GetEquipmentDisplayName);
         hireAndPartyController = new HireAndPartyController(
             hireManager,

@@ -43,6 +43,17 @@ public sealed class UIPageRouter : MonoBehaviour
 
     public void Show(RectTransform pageRoot)
     {
+        if (pageRoot != null &&
+            pages.TryGetValue(pageRoot, out UIPageBase current) &&
+            current == CurrentPage &&
+            current.IsVisible)
+        {
+            // Deactivating the already visible page stops coroutines owned by
+            // its child components, including the battle completion presentation.
+            current.Refresh();
+            return;
+        }
+
         HideAll();
         if (pageRoot != null && pages.TryGetValue(pageRoot, out UIPageBase page))
         {

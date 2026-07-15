@@ -15,6 +15,7 @@ public sealed class DailyResultController
     private readonly MercenaryHireManager hireManager;
     private readonly MercenaryPartyManager partyManager;
     private readonly MerchantInventory merchantInventory;
+    private readonly ProgressionManager progressionManager;
     private readonly Func<EquipmentInstance, string> getEquipmentDisplayName;
 
     private int dailySnapshotDay;
@@ -26,6 +27,8 @@ public sealed class DailyResultController
     private int dailySnapshotLeadership;
     private int dailySnapshotAppraisal;
     private int dailySnapshotLogistics;
+    private int dailySnapshotStorageUsed;
+    private int dailySnapshotStorageCapacity;
     private readonly Dictionary<string, DailyMercenarySnapshot>
         dailyMercenarySnapshots =
             new Dictionary<string, DailyMercenarySnapshot>();
@@ -57,12 +60,14 @@ public sealed class DailyResultController
         MercenaryHireManager hireManager,
         MercenaryPartyManager partyManager,
         MerchantInventory merchantInventory,
+        ProgressionManager progressionManager,
         Func<EquipmentInstance, string> getEquipmentDisplayName)
     {
         this.merchantData = merchantData;
         this.hireManager = hireManager;
         this.partyManager = partyManager;
         this.merchantInventory = merchantInventory;
+        this.progressionManager = progressionManager;
         this.getEquipmentDisplayName = getEquipmentDisplayName;
     }
 
@@ -136,6 +141,32 @@ public sealed class DailyResultController
         if (!hasMerchantChange)
         {
             result.AppendLine("大きな変化はありません。");
+        }
+
+        int storageUsed = merchantInventory != null
+            ? merchantInventory.GetUsedStorageSlots()
+            : 0;
+        int storageCapacity = progressionManager != null
+            ? progressionManager.StorageCapacity
+            : 0;
+        int storageRemaining = Math.Max(0, storageCapacity - storageUsed);
+        result.AppendLine();
+        result.AppendLine("【倉庫】");
+        if (dailySnapshotStorageUsed != storageUsed ||
+            dailySnapshotStorageCapacity != storageCapacity)
+        {
+            result.AppendLine(
+                $"使用量 {dailySnapshotStorageUsed}/{dailySnapshotStorageCapacity} → " +
+                $"{storageUsed}/{storageCapacity}");
+        }
+        else
+        {
+            result.AppendLine($"使用量 {storageUsed}/{storageCapacity}");
+        }
+        result.AppendLine($"空き容量 {storageRemaining}");
+        if (storageCapacity > 0 && storageRemaining == 0)
+        {
+            result.AppendLine("！倉庫が満杯です。売却または倉庫拡張を行ってください。");
         }
 
         result.AppendLine();
@@ -288,6 +319,12 @@ public sealed class DailyResultController
         dailySnapshotLeadership = merchantData.Leadership;
         dailySnapshotAppraisal = merchantData.Appraisal;
         dailySnapshotLogistics = merchantData.Logistics;
+        dailySnapshotStorageUsed = merchantInventory != null
+            ? merchantInventory.GetUsedStorageSlots()
+            : 0;
+        dailySnapshotStorageCapacity = progressionManager != null
+            ? progressionManager.StorageCapacity
+            : 0;
         dailyMercenarySnapshots.Clear();
 
         foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
