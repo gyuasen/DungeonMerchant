@@ -121,6 +121,23 @@ public sealed class SaveDataMigratorTests
     }
 
     [Test]
+    public void Migrate_Version22_AssignsAllInventoryToSavedCurrentTown()
+    {
+        GameSaveData data = new GameSaveData
+        {
+            version = 22,
+            currentTownIndex = 5
+        };
+        data.inventory.Add(new SavedInventoryItem { amount = 2 });
+        data.equipmentInventory.Add(new SavedEquipmentInstance());
+
+        SaveDataMigrator.Migrate(data);
+
+        Assert.That(data.inventory[0].townIndex, Is.EqualTo(5));
+        Assert.That(data.equipmentInventory[0].townIndex, Is.EqualTo(5));
+    }
+
+    [Test]
     public void Migrate_PreStorySave_DoesNotTreatPartialFloorAsDungeonClear()
     {
         DungeonDataSO dungeon = FirstAsset<DungeonDataSO>();

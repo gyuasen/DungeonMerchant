@@ -11,6 +11,7 @@ public sealed class InventoryPageUI : ListPageUIBase
     private Func<EquipmentInstance, bool> shouldShowEquipment;
     private Func<ItemDataSO, int> sellPriceProvider;
     private Func<ItemDataSO, float> sellMultiplierProvider;
+    private Func<ItemDataSO, float> demandMultiplierProvider;
     private Func<EquipmentInstance, string> equipmentNameProvider;
     private Func<EquipmentQuality, Color> equipmentQualityColorProvider;
     private Action<ItemDataSO> sellItemAction;
@@ -31,6 +32,7 @@ public sealed class InventoryPageUI : ListPageUIBase
         Func<EquipmentInstance, bool> equipmentFilter,
         Func<ItemDataSO, int> targetSellPriceProvider,
         Func<ItemDataSO, float> targetSellMultiplierProvider,
+        Func<ItemDataSO, float> targetDemandMultiplierProvider,
         Func<EquipmentInstance, string> targetEquipmentNameProvider,
         Func<EquipmentQuality, Color> targetEquipmentQualityColorProvider,
         Action<ItemDataSO> targetSellItemAction,
@@ -52,6 +54,7 @@ public sealed class InventoryPageUI : ListPageUIBase
         shouldShowEquipment = equipmentFilter;
         sellPriceProvider = targetSellPriceProvider;
         sellMultiplierProvider = targetSellMultiplierProvider;
+        demandMultiplierProvider = targetDemandMultiplierProvider;
         equipmentNameProvider = targetEquipmentNameProvider;
         equipmentQualityColorProvider = targetEquipmentQualityColorProvider;
         sellItemAction = targetSellItemAction;
@@ -146,6 +149,8 @@ public sealed class InventoryPageUI : ListPageUIBase
             new Vector2(-160f, -48f),
             MutedTextColor);
 
+        CreateDemandIndicator(row, item, -76f);
+
         Button sellButton = CreateActionButton(
             row,
             "売却",
@@ -237,6 +242,34 @@ public sealed class InventoryPageUI : ListPageUIBase
         return equipmentNameProvider?.Invoke(equipment) ??
                equipment.BaseItem?.itemName ??
                "不明な装備";
+    }
+
+    private void CreateDemandIndicator(
+        RectTransform row,
+        ItemDataSO item,
+        float verticalPosition)
+    {
+        float demandMultiplier = demandMultiplierProvider?.Invoke(item) ?? 1f;
+        string indicator = demandMultiplier > 1.05f ? "相場高▲" :
+            demandMultiplier < 0.95f ? "相場安▼" : string.Empty;
+        if (string.IsNullOrEmpty(indicator))
+        {
+            return;
+        }
+
+        Color indicatorColor = demandMultiplier > 1.05f
+            ? new Color(0.18f, 0.52f, 0.24f)
+            : new Color(0.72f, 0.18f, 0.12f);
+        CreateText(
+            row,
+            indicator,
+            RowFont,
+            14,
+            FontStyle.Bold,
+            TextAnchor.MiddleRight,
+            new Vector2(-150f, verticalPosition),
+            new Vector2(-18f, verticalPosition + 28f),
+            indicatorColor);
     }
 
     private static string FormatSigned(int value)

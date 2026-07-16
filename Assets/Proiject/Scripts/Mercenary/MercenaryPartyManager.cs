@@ -5,6 +5,7 @@ using UnityEngine;
 public class MercenaryPartyManager : MonoBehaviour
 {
     [SerializeField] private MercenaryHireManager hireManager;
+    [SerializeField] private TransportManager transportManager;
     [SerializeField, Min(1)] private int maxPartySize = 3;
     [SerializeField] private List<MercenaryInstance> members = new List<MercenaryInstance>();
 
@@ -43,6 +44,8 @@ public class MercenaryPartyManager : MonoBehaviour
         if (mercenary == null ||
             !mercenary.IsContractActive ||
             !IsHired(mercenary) ||
+            (transportManager != null &&
+             transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId)) ||
             Contains(mercenary) ||
             IsFull)
         {
@@ -92,6 +95,12 @@ public class MercenaryPartyManager : MonoBehaviour
         if (hireManager == null)
         {
             return false;
+        }
+
+        if (transportManager == null)
+        {
+            transportManager = GetComponent<TransportManager>() ??
+                               FindObjectOfType<TransportManager>();
         }
 
         foreach (MercenaryInstance hiredMercenary in hireManager.HiredMercenaries)

@@ -3,23 +3,37 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
+[Serializable]
+public sealed class TownInventoryBucket
+{
+    public int townIndex;
+    public List<InventoryItemStack> items = new List<InventoryItemStack>();
+    public List<EquipmentInstance> equipmentInstances =
+        new List<EquipmentInstance>();
+}
+
 public class MerchantInventory : MonoBehaviour
 {
+    private const int FallbackTownIndex = 2;
     [SerializeField] private MerchantData merchantData;
     [SerializeField] private MarketPriceManager marketPriceManager;
     [SerializeField] private ProgressionManager progressionManager;
+    [SerializeField] private TownProgressState townProgressState;
     [SerializeField] private List<ItemDataSO> enhancementMaterials =
         new List<ItemDataSO>();
     [SerializeField] private List<InventoryItemStack> items =
         new List<InventoryItemStack>();
     [SerializeField] private List<EquipmentInstance> equipmentInstances =
         new List<EquipmentInstance>();
+    [SerializeField] private List<TownInventoryBucket> townBuckets =
+        new List<TownInventoryBucket>();
     [FormerlySerializedAs("discoveredEquipmentAssetNames")]
     [SerializeField] private List<string> discoveredEquipmentPersistentIds =
         new List<string>();
 
-    public IReadOnlyList<InventoryItemStack> Items => items;
-    public IReadOnlyList<EquipmentInstance> EquipmentInstances => equipmentInstances;
+    public IReadOnlyList<InventoryItemStack> Items => CurrentBucket.items;
+    public IReadOnlyList<EquipmentInstance> EquipmentInstances =>
+        CurrentBucket.equipmentInstances;
     public IReadOnlyList<string> DiscoveredEquipmentPersistentIds =>
         discoveredEquipmentPersistentIds;
 
@@ -27,8 +41,19 @@ public class MerchantInventory : MonoBehaviour
 
     public int GetUsedStorageSlots()
     {
-        int amount = equipmentInstances.Count;
-        foreach (InventoryItemStack stack in items)
+        return GetUsedStorageSlotsIn(CurrentTownIndex);
+    }
+
+    public int GetUsedStorageSlotsIn(int townIndex)
+    {
+        TownInventoryBucket bucket = GetBucket(townIndex, false);
+        if (bucket == null)
+        {
+            return 0;
+        }
+
+        int amount = bucket.equipmentInstances.Count;
+        foreach (InventoryItemStack stack in bucket.items)
         {
             if (stack != null) amount += stack.Amount;
         }
@@ -57,10 +82,10 @@ public class MerchantInventory : MonoBehaviour
             return false;
         }
 
-        InventoryItemStack stack = FindStack(item);
+        InventoryItemStack stack = FindStack(CurrentBucket, item);
         if (stack == null)
         {
-            items.Add(new InventoryItemStack(item, amount));
+            CurrentBucket.items.Add(new InventoryItemStack(item, amount));
         }
         else
         {
@@ -88,14 +113,14 @@ public class MerchantInventory : MonoBehaviour
             return;
         }
 
-        equipmentInstances.Add(equipment);
+        CurrentBucket.equipmentInstances.Add(equipment);
         RegisterEquipmentDiscovery(equipment.BaseItem);
         InventoryChanged?.Invoke();
     }
 
     public bool TryRemoveEquipmentInstance(EquipmentInstance equipment)
     {
-        if (equipment == null || !equipmentInstances.Remove(equipment))
+        if (equipment == null || !CurrentBucket.equipmentInstances.Remove(equipment))
         {
             return false;
         }
@@ -159,7 +184,7 @@ public class MerchantInventory : MonoBehaviour
             return false;
         }
 
-        InventoryItemStack stack = FindStack(item);
+        InventoryItemStack stack = FindStack(CurrentBucket, item);
         if (stack == null || !stack.Remove(amount))
         {
             return false;
@@ -169,7 +194,7 @@ public class MerchantInventory : MonoBehaviour
 
         if (stack.Amount <= 0)
         {
-            items.Remove(stack);
+            CurrentBucket.items.Remove(stack);
         }
 
         Debug.Log($"Sold item: {item.itemName} x{amount}");
@@ -186,9 +211,12 @@ public class MerchantInventory : MonoBehaviour
             return 0;
         }
 
-        return marketPriceManager != null
+        int baseSellPrice = marketPriceManager != null
             ? marketPriceManager.GetSellPrice(item)
             : item.basePrice;
+        return Mathf.Max(
+            1,
+            Mathf.RoundToInt(baseSellPrice * GetTownDemandMultiplier(item)));
     }
 
     public int GetSellPrice(EquipmentInstance equipment)
@@ -198,12 +226,14 @@ public class MerchantInventory : MonoBehaviour
             return 0;
         }
 
+        ResolveReferences();
         return Mathf.Max(
             1,
             Mathf.RoundToInt(
-                GetSellPrice(equipment.BaseItem) *
+                GetBaseSellPrice(equipment.BaseItem) *
                 equipment.GetSellPriceQualityMultiplier() *
-                (1f + equipment.EnhancementLevel * 0.12f)));
+                (1f + equipment.EnhancementLevel * 0.12f) *
+                GetTownDemandMultiplier(equipment.BaseItem)));
     }
 
     public bool SellEquipmentInstance(EquipmentInstance equipment)
@@ -212,7 +242,7 @@ public class MerchantInventory : MonoBehaviour
         if (merchantData == null ||
             equipment == null ||
             equipment.IsLocked ||
-            !equipmentInstances.Remove(equipment))
+            !CurrentBucket.equipmentInstances.Remove(equipment))
         {
             return false;
         }
@@ -224,7 +254,7 @@ public class MerchantInventory : MonoBehaviour
 
     public int GetItemAmount(ItemDataSO item)
     {
-        InventoryItemStack stack = FindStack(item);
+        InventoryItemStack stack = FindStack(CurrentBucket, item);
         return stack != null ? stack.Amount : 0;
     }
 
@@ -240,7 +270,7 @@ public class MerchantInventory : MonoBehaviour
             return false;
         }
 
-        InventoryItemStack stack = FindStack(item);
+        InventoryItemStack stack = FindStack(CurrentBucket, item);
         if (stack == null || !stack.Remove(amount))
         {
             return false;
@@ -248,7 +278,7 @@ public class MerchantInventory : MonoBehaviour
 
         if (stack.Amount <= 0)
         {
-            items.Remove(stack);
+            CurrentBucket.items.Remove(stack);
         }
 
         InventoryChanged?.Invoke();
@@ -275,11 +305,11 @@ public class MerchantInventory : MonoBehaviour
 
         foreach (CraftingMaterialRequirement requirement in requirements)
         {
-            InventoryItemStack stack = FindStack(requirement.item);
+            InventoryItemStack stack = FindStack(CurrentBucket, requirement.item);
             stack.Remove(requirement.amount);
             if (stack.Amount <= 0)
             {
-                items.Remove(stack);
+                CurrentBucket.items.Remove(stack);
             }
         }
 
@@ -289,14 +319,22 @@ public class MerchantInventory : MonoBehaviour
 
     public void RestoreItems(IEnumerable<InventoryItemStack> restoredItems)
     {
-        items.Clear();
+        RestoreItemsIn(CurrentTownIndex, restoredItems);
+    }
+
+    public void RestoreItemsIn(
+        int townIndex,
+        IEnumerable<InventoryItemStack> restoredItems)
+    {
+        TownInventoryBucket bucket = GetBucket(townIndex, true);
+        bucket.items.Clear();
         if (restoredItems != null)
         {
             foreach (InventoryItemStack stack in restoredItems)
             {
                 if (stack?.Item != null && stack.Amount > 0)
                 {
-                    items.Add(stack);
+                    bucket.items.Add(stack);
                 }
             }
         }
@@ -307,14 +345,22 @@ public class MerchantInventory : MonoBehaviour
     public void RestoreEquipmentInstances(
         IEnumerable<EquipmentInstance> restoredEquipment)
     {
-        equipmentInstances.Clear();
+        RestoreEquipmentInstancesIn(CurrentTownIndex, restoredEquipment);
+    }
+
+    public void RestoreEquipmentInstancesIn(
+        int townIndex,
+        IEnumerable<EquipmentInstance> restoredEquipment)
+    {
+        TownInventoryBucket bucket = GetBucket(townIndex, true);
+        bucket.equipmentInstances.Clear();
         if (restoredEquipment != null)
         {
             foreach (EquipmentInstance equipment in restoredEquipment)
             {
                 if (equipment?.BaseItem != null)
                 {
-                    equipmentInstances.Add(equipment);
+                    bucket.equipmentInstances.Add(equipment);
                     RegisterEquipmentDiscovery(equipment.BaseItem);
                 }
             }
@@ -331,9 +377,12 @@ public class MerchantInventory : MonoBehaviour
         AddDiscoveredEquipmentIdentifiers(persistentIds, false);
         AddDiscoveredEquipmentIdentifiers(legacyAssetNames, true);
 
-        foreach (EquipmentInstance equipment in equipmentInstances)
+        foreach (TownInventoryBucket bucket in townBuckets)
         {
-            RegisterEquipmentDiscovery(equipment?.BaseItem);
+            foreach (EquipmentInstance equipment in bucket.equipmentInstances)
+            {
+                RegisterEquipmentDiscovery(equipment?.BaseItem);
+            }
         }
     }
 
@@ -407,9 +456,60 @@ public class MerchantInventory : MonoBehaviour
         return enhancementMaterials[materialIndex];
     }
 
-    private InventoryItemStack FindStack(ItemDataSO item)
+    public int GetItemAmountIn(int townIndex, ItemDataSO item)
     {
-        foreach (InventoryItemStack stack in items)
+        TownInventoryBucket bucket = GetBucket(townIndex, false);
+        InventoryItemStack stack = bucket == null ? null : FindStack(bucket, item);
+        return stack != null ? stack.Amount : 0;
+    }
+
+    public IReadOnlyList<InventoryItemStack> GetItemsIn(int townIndex)
+    {
+        TownInventoryBucket bucket = GetBucket(townIndex, false);
+        return bucket != null ? bucket.items : Array.Empty<InventoryItemStack>();
+    }
+
+    public IReadOnlyList<EquipmentInstance> GetEquipmentInstancesIn(int townIndex)
+    {
+        TownInventoryBucket bucket = GetBucket(townIndex, false);
+        return bucket != null
+            ? bucket.equipmentInstances
+            : Array.Empty<EquipmentInstance>();
+    }
+
+    public bool DepositItemTo(int townIndex, ItemDataSO item, int amount)
+    {
+        if (item == null || amount <= 0)
+        {
+            return false;
+        }
+
+        TownInventoryBucket bucket = GetBucket(townIndex, true);
+        InventoryItemStack stack = FindStack(bucket, item);
+        if (stack == null)
+        {
+            bucket.items.Add(new InventoryItemStack(item, amount));
+        }
+        else
+        {
+            stack.Add(amount);
+        }
+
+        RegisterEquipmentDiscovery(item);
+        InventoryChanged?.Invoke();
+        return true;
+    }
+
+    private InventoryItemStack FindStack(
+        TownInventoryBucket bucket,
+        ItemDataSO item)
+    {
+        if (bucket == null)
+        {
+            return null;
+        }
+
+        foreach (InventoryItemStack stack in bucket.items)
         {
             if (stack.Item == item)
             {
@@ -448,11 +548,91 @@ public class MerchantInventory : MonoBehaviour
                                  FindObjectOfType<ProgressionManager>();
         }
 
+        if (townProgressState == null)
+        {
+            townProgressState = GetComponent<TownProgressState>() ??
+                                FindObjectOfType<TownProgressState>();
+        }
+
         if (enhancementMaterials.Count < 5 ||
             enhancementMaterials.Exists(item => item == null))
         {
             PopulateEnhancementMaterials();
         }
+    }
+
+    private int CurrentTownIndex
+    {
+        get
+        {
+            ResolveReferences();
+            return townProgressState != null
+                ? townProgressState.CurrentTownIndex
+                : FallbackTownIndex;
+        }
+    }
+
+    private TownInventoryBucket CurrentBucket => GetBucket(CurrentTownIndex, true);
+
+    private TownInventoryBucket GetBucket(int townIndex, bool create)
+    {
+        MigrateLegacyStorage();
+        foreach (TownInventoryBucket bucket in townBuckets)
+        {
+            if (bucket != null && bucket.townIndex == townIndex)
+            {
+                return bucket;
+            }
+        }
+
+        if (!create)
+        {
+            return null;
+        }
+
+        TownInventoryBucket created = new TownInventoryBucket
+        {
+            townIndex = townIndex
+        };
+        townBuckets.Add(created);
+        return created;
+    }
+
+    private void MigrateLegacyStorage()
+    {
+        if ((items == null || items.Count == 0) &&
+            (equipmentInstances == null || equipmentInstances.Count == 0))
+        {
+            return;
+        }
+
+        TownInventoryBucket bucket = townBuckets.Find(value =>
+            value != null && value.townIndex == FallbackTownIndex);
+        if (bucket == null)
+        {
+            bucket = new TownInventoryBucket { townIndex = FallbackTownIndex };
+            townBuckets.Add(bucket);
+        }
+        bucket.items.AddRange(items);
+        bucket.equipmentInstances.AddRange(equipmentInstances);
+        items.Clear();
+        equipmentInstances.Clear();
+    }
+
+    private int GetBaseSellPrice(ItemDataSO item)
+    {
+        return marketPriceManager != null
+            ? marketPriceManager.GetSellPrice(item)
+            : item.basePrice;
+    }
+
+    private float GetTownDemandMultiplier(ItemDataSO item)
+    {
+        return townProgressState != null
+            ? WorldMapService.GetTownDemandMultiplier(
+                townProgressState.CurrentTownIndex,
+                item)
+            : 1f;
     }
 
     public void RegisterEquipmentDiscovery(ItemDataSO item)

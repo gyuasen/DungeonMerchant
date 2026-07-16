@@ -90,7 +90,7 @@ public sealed class HealPageUI : ListPageUIBase
     {
         int missingHP = missingHpProvider?.Invoke(mercenary) ?? 0;
         int healCost = healCostProvider?.Invoke(mercenary) ?? 0;
-        string condition = mercenary.IsIncapacitated ? "戦闘不能  |  " : string.Empty;
+        string condition = mercenary.IsIncapacitated ? "再活性治療対象  |  " : string.Empty;
         return
             $"{condition}HP {mercenary.CurrentHP}/{mercenary.MaxHP}  |  " +
             $"不足 {missingHP}  |  全回復 {healCost} G";

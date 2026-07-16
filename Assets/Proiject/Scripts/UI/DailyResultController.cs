@@ -40,6 +40,7 @@ public sealed class DailyResultController
         new HashSet<string>();
     private readonly List<string> dailyAcquiredEquipment =
         new List<string>();
+    private readonly List<string> dailyTransportEvents = new List<string>();
 
     private sealed class DailyMercenarySnapshot
     {
@@ -176,6 +177,7 @@ public sealed class DailyResultController
         {
             result.AppendLine("入手したアイテムはありません。");
         }
+
         else
         {
             foreach (KeyValuePair<string, int> entry in dailyAcquiredItems)
@@ -185,6 +187,20 @@ public sealed class DailyResultController
             foreach (string equipmentName in dailyAcquiredEquipment)
             {
                 result.AppendLine($"・{equipmentName}");
+            }
+        }
+
+        result.AppendLine();
+        result.AppendLine("【輸送】");
+        if (dailyTransportEvents.Count == 0)
+        {
+            result.AppendLine("輸送に関する報告はありません。");
+        }
+        else
+        {
+            foreach (string transportEvent in dailyTransportEvents)
+            {
+                result.AppendLine(transportEvent);
             }
         }
 
@@ -332,6 +348,31 @@ public sealed class DailyResultController
             CaptureMercenarySnapshot(mercenary);
         }
         ResetDailyInventoryTracking();
+        dailyTransportEvents.Clear();
+    }
+
+    public void RecordTransportEvent(TransportEvent transportEvent)
+    {
+        if (transportEvent?.Convoy == null)
+        {
+            return;
+        }
+        TransportConvoy convoy = transportEvent.Convoy;
+        string origin = GetTownName(convoy.originTownIndex);
+        string destination = GetTownName(convoy.destinationTownIndex);
+        switch (transportEvent.Type)
+        {
+            case TransportEventType.RaidRepelled:
+                dailyTransportEvents.Add($"輸送: {origin}→{destination} 襲撃を撃退");
+                break;
+            case TransportEventType.RaidLoss:
+                dailyTransportEvents.Add($"輸送: 積荷{transportEvent.LostCargo}個を損失");
+                break;
+            case TransportEventType.Arrived:
+                dailyTransportEvents.Add(
+                    $"輸送部隊が{destination}に到着、積荷{transportEvent.Gold:N0}個を倉庫へ搬入しました");
+                break;
+        }
     }
 
     public void CaptureMercenarySnapshot(MercenaryInstance mercenary)
@@ -503,5 +544,12 @@ public sealed class DailyResultController
     private static string FormatSignedValue(int value)
     {
         return value > 0 ? $"+{value}" : value.ToString();
+    }
+
+    private static string GetTownName(int townIndex)
+    {
+        return townIndex >= 0 && townIndex < WorldMapService.TownNames.Length
+            ? WorldMapService.TownNames[townIndex]
+            : "不明な町";
     }
 }

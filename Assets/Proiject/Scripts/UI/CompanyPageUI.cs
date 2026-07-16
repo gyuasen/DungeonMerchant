@@ -15,6 +15,7 @@ public sealed class CompanyPageUI : ListPageUIBase
     private Action<MercenaryInstance> showDetailsAction;
     private Action<MercenaryInstance> renewContractAction;
     private Action<MercenaryInstance> releaseContractAction;
+    private Func<MercenaryInstance, bool> isOnTransportDuty;
 
     public void Initialize(
         Text title,
@@ -61,7 +62,8 @@ public sealed class CompanyPageUI : ListPageUIBase
         Action<MercenaryInstance> targetTogglePartyAction,
         Action<MercenaryInstance> targetShowDetailsAction,
         Action<MercenaryInstance> targetRenewContractAction,
-        Action<MercenaryInstance> targetReleaseContractAction)
+        Action<MercenaryInstance> targetReleaseContractAction,
+        Func<MercenaryInstance, bool> targetIsOnTransportDuty = null)
     {
         mercenaryProvider = mercenaries;
         isInParty = targetIsInParty;
@@ -70,6 +72,7 @@ public sealed class CompanyPageUI : ListPageUIBase
         showDetailsAction = targetShowDetailsAction;
         renewContractAction = targetRenewContractAction;
         releaseContractAction = targetReleaseContractAction;
+        isOnTransportDuty = targetIsOnTransportDuty;
     }
 
     public override void Refresh()
@@ -179,7 +182,7 @@ public sealed class CompanyPageUI : ListPageUIBase
         renewRect.anchoredPosition = new Vector2(-276f, 0f);
     }
 
-    private static string BuildMercenaryDetails(MercenaryInstance mercenary)
+    private string BuildMercenaryDetails(MercenaryInstance mercenary)
     {
         string contractStatus = mercenary.ContractNeedsRenewal
             ? "更新待ち"
@@ -192,7 +195,8 @@ public sealed class CompanyPageUI : ListPageUIBase
             $"{JapaneseDisplayText.GetMercenaryClass(mercenary.MercenaryClass)}  |  " +
             $"HP {mercenary.CurrentHP}/{mercenary.MaxHP}  |  " +
             $"{JapaneseDisplayText.GetContractType(mercenary.ContractType)} " +
-            contractStatus;
+            contractStatus +
+            (isOnTransportDuty?.Invoke(mercenary) == true ? "  |  輸送任務中" : string.Empty);
     }
 
 }

@@ -40,6 +40,73 @@ public static class WorldMapService
 
     public static int WorldRegionCount => WorldRegionNames.Length;
 
+    // Demand affects only the price paid when the player sells an item.  Keep
+    // this table independent of daily market variation and Unity runtime APIs
+    // so its results remain stable and easy to test.
+    public static float GetTownDemandMultiplier(int townIndex, ItemDataSO item)
+    {
+        if (item == null)
+        {
+            return 1f;
+        }
+
+        float multiplier = GetTownDemandMultiplier(townIndex, item.itemType);
+        if (townIndex == 1 && IsLeafSpecialtyMaterial(item))
+        {
+            multiplier = 1.25f;
+        }
+
+        return ClampTownDemandMultiplier(multiplier);
+    }
+
+    public static float GetTownDemandMultiplier(int townIndex, ItemType itemType)
+    {
+        float multiplier = 1f;
+        switch (townIndex)
+        {
+            case 0: // Eld: trade hub
+                multiplier = itemType == ItemType.Equipment ? 1.15f :
+                    itemType == ItemType.Material ? 1.05f : 1f;
+                break;
+            case 2: // Sale: exports monster materials, imports consumables
+                multiplier = itemType == ItemType.Material ? 1.15f :
+                    itemType == ItemType.Consumable ? 0.85f : 1f;
+                break;
+            case 3: // Norn: inland canopy city
+                multiplier = itemType == ItemType.Material ? 1.10f :
+                    itemType == ItemType.Consumable ? 1.15f : 1f;
+                break;
+            case 4: // Glaad: mountain fortress
+                multiplier = itemType == ItemType.Material ? 1.20f :
+                    itemType == ItemType.Consumable ? 1.15f : 1f;
+                break;
+            case 5: // Velm: remote industrial city
+                multiplier = itemType == ItemType.Consumable ? 1.25f :
+                    itemType == ItemType.Equipment ? 1.10f : 1f;
+                break;
+            case 6: // Abyss: deepest frontier
+                multiplier = itemType == ItemType.Consumable ? 1.30f :
+                    itemType == ItemType.Equipment ? 1.10f : 1f;
+                break;
+            // Leaf (1) has only its named material specialties.  Astera (7)
+            // deliberately stays outside the ordinary economy.
+        }
+
+        return ClampTownDemandMultiplier(multiplier);
+    }
+
+    private static bool IsLeafSpecialtyMaterial(ItemDataSO item)
+    {
+        return item.itemType == ItemType.Material &&
+               string.Equals(item.itemName, "Bat Wing",
+                   StringComparison.Ordinal);
+    }
+
+    private static float ClampTownDemandMultiplier(float multiplier)
+    {
+        return Math.Max(0.8f, Math.Min(1.3f, multiplier));
+    }
+
     public readonly struct TravelValidationResult
     {
         public TravelValidationResult(

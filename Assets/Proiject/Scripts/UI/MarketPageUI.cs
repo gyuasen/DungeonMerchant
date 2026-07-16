@@ -10,6 +10,8 @@ public sealed class MarketPageUI : ListPageUIBase
     private Func<MarketStockEntry, bool> canBuyEntry;
     private Action<MarketStockEntry> buyAction;
     private Action<Button, MarketStockEntry> registerBuyButton;
+    private Text demandSummaryText;
+    private Func<string> demandSummaryProvider;
 
     public void ConfigureMarket(
         Font font,
@@ -23,7 +25,9 @@ public sealed class MarketPageUI : ListPageUIBase
         Func<MarketStockEntry, bool> shouldShow,
         Func<MarketStockEntry, bool> targetCanBuyEntry,
         Action<MarketStockEntry> targetBuyAction,
-        Action<Button, MarketStockEntry> targetRegisterBuyButton)
+        Action<Button, MarketStockEntry> targetRegisterBuyButton,
+        Text targetDemandSummaryText,
+        Func<string> targetDemandSummaryProvider)
     {
         Configure(
             font,
@@ -39,10 +43,17 @@ public sealed class MarketPageUI : ListPageUIBase
         canBuyEntry = targetCanBuyEntry;
         buyAction = targetBuyAction;
         registerBuyButton = targetRegisterBuyButton;
+        demandSummaryText = targetDemandSummaryText;
+        demandSummaryProvider = targetDemandSummaryProvider;
     }
 
     public override void Refresh()
     {
+        if (demandSummaryText != null)
+        {
+            demandSummaryText.text = demandSummaryProvider?.Invoke() ?? string.Empty;
+        }
+
         RebuildRows(
             stockProvider?.Invoke(),
             112f,
