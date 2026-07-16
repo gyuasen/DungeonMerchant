@@ -20,6 +20,7 @@ public static class SaveDataMigrator
         MigrateDebt(data, sourceVersion);
         PreserveLegacyCollectionSemantics(data, sourceVersion);
         EnsureCollections(data);
+        MigrateTownInventories(data, sourceVersion);
         PopulatePersistentIds(data);
         MigrateStoryProgress(data, sourceVersion);
         data.version = GameSaveData.CurrentVersion;
@@ -104,6 +105,32 @@ public static class SaveDataMigrator
         if (data.remainingDebt <= 0) AddStoryMilestone(data, StoryMilestone.DebtCleared);
     }
 
+    private static void MigrateTownInventories(
+        GameSaveData data,
+        int sourceVersion)
+    {
+        if (sourceVersion >= 23)
+        {
+            return;
+        }
+
+        foreach (SavedInventoryItem item in data.inventory)
+        {
+            if (item != null)
+            {
+                item.townIndex = data.currentTownIndex;
+            }
+        }
+
+        foreach (SavedEquipmentInstance equipment in data.equipmentInventory)
+        {
+            if (equipment != null)
+            {
+                equipment.townIndex = data.currentTownIndex;
+            }
+        }
+    }
+
     private static bool HasFullyClearedDungeon(
         List<SavedDungeonFloorProgress> progressEntries)
     {
@@ -139,6 +166,7 @@ public static class SaveDataMigrator
         data.equipmentInventory ??= new List<SavedEquipmentInstance>();
         data.hiredMercenaries ??= new List<SavedMercenary>();
         data.partyMemberIds ??= new List<string>();
+        data.transportConvoys ??= new List<SavedTransportConvoy>();
         data.discoveredEquipmentAssetNames ??= new List<string>();
         data.discoveredEquipmentPersistentIds ??= new List<string>();
         data.completedStoryMilestones ??= new List<StoryMilestone>();

@@ -19,6 +19,7 @@ public sealed class HireAndPartyController
     private readonly HealingManager healingManager;
     private readonly TownProgressState townProgressState;
     private readonly SaveManager saveManager;
+    private readonly TransportManager transportManager;
     private readonly Action<string> setStatus;
     private readonly Action refreshHirePage;
     private readonly Action refreshCompanyPage;
@@ -43,6 +44,7 @@ public sealed class HireAndPartyController
         HealingManager healingManager,
         TownProgressState townProgressState,
         SaveManager saveManager,
+        TransportManager transportManager,
         Action<string> setStatus,
         Action refreshHirePage,
         Action refreshCompanyPage,
@@ -59,6 +61,7 @@ public sealed class HireAndPartyController
         this.healingManager = healingManager;
         this.townProgressState = townProgressState;
         this.saveManager = saveManager;
+        this.transportManager = transportManager;
         this.setStatus = setStatus;
         this.refreshHirePage = refreshHirePage;
         this.refreshCompanyPage = refreshCompanyPage;
@@ -182,7 +185,10 @@ public sealed class HireAndPartyController
 
         if (!partyManager.TryAdd(mercenary))
         {
-            setStatus("パーティーは満員です。");
+            setStatus(transportManager != null &&
+                      transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId)
+                ? "輸送任務中の傭兵は編成できません"
+                : "パーティーは満員です。");
         }
     }
 

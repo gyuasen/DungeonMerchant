@@ -21,17 +21,32 @@ public class SaveManager : MonoBehaviour
     private DebtManager debtManager;
     private TownProgressState townProgressState;
     private StoryProgressManager storyProgressManager;
+    private TransportManager transportManager;
     private bool initialized;
     private bool isLoading;
     private bool suppressAutoSaveAfterDelete;
     private string savePathOverride = string.Empty;
     private Coroutine pendingAutoSaveCoroutine;
 
+    public static string DefaultSavePath => IsAutomatedTestRun()
+        ? GetAutomatedTestSavePath()
+        : Path.Combine(Application.persistentDataPath, SaveFileName);
+    public static bool SaveFileExists() => File.Exists(DefaultSavePath);
+
+    public static void DeleteSaveFileAndProgress()
+    {
+        if (File.Exists(DefaultSavePath))
+        {
+            File.Delete(DefaultSavePath);
+        }
+
+        PlayerPrefs.DeleteKey(DungeonProgressStore.UnlockedGradeSaveKey);
+        PlayerPrefs.Save();
+    }
+
     public string SavePath => !string.IsNullOrEmpty(savePathOverride)
         ? savePathOverride
-        : IsAutomatedTestRun()
-            ? GetAutomatedTestSavePath()
-            : Path.Combine(Application.persistentDataPath, SaveFileName);
+        : DefaultSavePath;
     public bool HasSaveData => File.Exists(SavePath);
 
     public void InitializeAndLoad()
@@ -133,7 +148,11 @@ public class SaveManager : MonoBehaviour
     {
         CancelPendingAutoSave();
         suppressAutoSaveAfterDelete = true;
-        if (File.Exists(SavePath))
+        if (string.IsNullOrEmpty(savePathOverride))
+        {
+            DeleteSaveFileAndProgress();
+        }
+        else if (File.Exists(SavePath))
         {
             File.Delete(SavePath);
         }
@@ -270,31 +289,40 @@ public class SaveManager : MonoBehaviour
         {
             data.discoveredEquipmentPersistentIds.AddRange(
                 merchantInventory.DiscoveredEquipmentPersistentIds);
-            foreach (InventoryItemStack stack in merchantInventory.Items)
+            for (int townIndex = 0;
+                 townIndex < WorldMapService.TownNames.Length;
+                 townIndex++)
             {
-                if (stack?.Item == null || stack.Amount <= 0)
+                foreach (InventoryItemStack stack in
+                         merchantInventory.GetItemsIn(townIndex))
                 {
-                    continue;
+                    if (stack?.Item == null || stack.Amount <= 0)
+                    {
+                        continue;
+                    }
+
+                    data.inventory.Add(new SavedInventoryItem
+                    {
+                        townIndex = townIndex,
+                        itemPersistentId = stack.Item.PersistentId,
+                        itemAssetName = stack.Item.name,
+                        itemName = stack.Item.itemName,
+                        amount = stack.Amount
+                    });
                 }
 
-                data.inventory.Add(new SavedInventoryItem
+                foreach (EquipmentInstance equipment in
+                         merchantInventory.GetEquipmentInstancesIn(townIndex))
                 {
-                    itemPersistentId = stack.Item.PersistentId,
-                    itemAssetName = stack.Item.name,
-                    itemName = stack.Item.itemName,
-                    amount = stack.Amount
-                });
-            }
-
-            foreach (EquipmentInstance equipment in merchantInventory.EquipmentInstances)
-            {
-                if (equipment?.BaseItem != null)
-                {
-                    SavedEquipmentInstance savedEquipment =
-                        CreateSavedEquipment(equipment);
-                    if (savedEquipment != null)
+                    if (equipment?.BaseItem != null)
                     {
-                        data.equipmentInventory.Add(savedEquipment);
+                        SavedEquipmentInstance savedEquipment =
+                            CreateSavedEquipment(equipment);
+                        if (savedEquipment != null)
+                        {
+                            savedEquipment.townIndex = townIndex;
+                            data.equipmentInventory.Add(savedEquipment);
+                        }
                     }
                 }
             }
@@ -391,6 +419,11 @@ public class SaveManager : MonoBehaviour
             data.progression = progressionManager.CreateSaveData();
         }
 
+        if (transportManager != null)
+        {
+            data.transportConvoys = transportManager.CreateSaveData();
+        }
+
         return data;
     }
 
@@ -416,7 +449,8 @@ public class SaveManager : MonoBehaviour
             data.currentTownIndex,
             data.unlockedTownIndices);
 
-        List<InventoryItemStack> restoredItems = new List<InventoryItemStack>();
+        Dictionary<int, List<InventoryItemStack>> restoredItems =
+            new Dictionary<int, List<InventoryItemStack>>();
         if (data.inventory != null)
         {
             foreach (SavedInventoryItem savedItem in data.inventory)
@@ -432,14 +466,32 @@ public class SaveManager : MonoBehaviour
                     savedItem.itemName);
                 if (item != null && savedItem.amount > 0)
                 {
-                    restoredItems.Add(new InventoryItemStack(item, savedItem.amount));
+                    if (!restoredItems.TryGetValue(
+                            savedItem.townIndex,
+                            out List<InventoryItemStack> townItems))
+                    {
+                        townItems = new List<InventoryItemStack>();
+                        restoredItems[savedItem.townIndex] = townItems;
+                    }
+                    townItems.Add(new InventoryItemStack(item, savedItem.amount));
                 }
             }
         }
-        merchantInventory?.RestoreItems(restoredItems);
+        if (merchantInventory != null)
+        {
+            for (int townIndex = 0;
+                 townIndex < WorldMapService.TownNames.Length;
+                 townIndex++)
+            {
+                restoredItems.TryGetValue(
+                    townIndex,
+                    out List<InventoryItemStack> townItems);
+                merchantInventory.RestoreItemsIn(townIndex, townItems);
+            }
+        }
 
-        List<EquipmentInstance> restoredEquipment =
-            new List<EquipmentInstance>();
+        Dictionary<int, List<EquipmentInstance>> restoredEquipment =
+            new Dictionary<int, List<EquipmentInstance>>();
         if (data.equipmentInventory != null)
         {
             foreach (SavedEquipmentInstance savedEquipment in data.equipmentInventory)
@@ -447,11 +499,32 @@ public class SaveManager : MonoBehaviour
                 EquipmentInstance equipment = RestoreEquipment(savedEquipment);
                 if (equipment != null)
                 {
-                    restoredEquipment.Add(equipment);
+                    if (!restoredEquipment.TryGetValue(
+                            savedEquipment.townIndex,
+                            out List<EquipmentInstance> townEquipment))
+                    {
+                        townEquipment = new List<EquipmentInstance>();
+                        restoredEquipment[savedEquipment.townIndex] =
+                            townEquipment;
+                    }
+                    townEquipment.Add(equipment);
                 }
             }
         }
-        merchantInventory?.RestoreEquipmentInstances(restoredEquipment);
+        if (merchantInventory != null)
+        {
+            for (int townIndex = 0;
+                 townIndex < WorldMapService.TownNames.Length;
+                 townIndex++)
+            {
+                restoredEquipment.TryGetValue(
+                    townIndex,
+                    out List<EquipmentInstance> townEquipment);
+                merchantInventory.RestoreEquipmentInstancesIn(
+                    townIndex,
+                    townEquipment);
+            }
+        }
         merchantInventory?.RestoreDiscoveredEquipment(
             data.discoveredEquipmentPersistentIds,
             data.discoveredEquipmentAssetNames);
@@ -501,6 +574,7 @@ public class SaveManager : MonoBehaviour
             }
         }
         partyManager?.RestoreParty(restoredParty);
+        transportManager?.Restore(data.transportConvoys, mercenaryById);
         progressionManager?.Restore(data.progression);
 
         dungeonRunManager?.RestoreProgress(
@@ -670,6 +744,7 @@ public class SaveManager : MonoBehaviour
         if (hireManager != null) hireManager.MercenaryDismissed += HandleMercenaryChanged;
         if (hireManager != null) hireManager.ContractsChanged += HandleChanged;
         if (storyProgressManager != null) storyProgressManager.MilestoneCompleted += HandleStoryMilestoneCompleted;
+        if (transportManager != null) transportManager.TransportChanged += HandleChanged;
         if (partyManager != null) partyManager.PartyChanged += HandleChanged;
         if (healingManager != null) healingManager.HealingChanged += HandleChanged;
         if (battleManager != null) battleManager.BattleCompleted += HandleBattleCompleted;
@@ -698,6 +773,7 @@ public class SaveManager : MonoBehaviour
         if (hireManager != null) hireManager.MercenaryDismissed -= HandleMercenaryChanged;
         if (hireManager != null) hireManager.ContractsChanged -= HandleChanged;
         if (storyProgressManager != null) storyProgressManager.MilestoneCompleted -= HandleStoryMilestoneCompleted;
+        if (transportManager != null) transportManager.TransportChanged -= HandleChanged;
         if (partyManager != null) partyManager.PartyChanged -= HandleChanged;
         if (healingManager != null) healingManager.HealingChanged -= HandleChanged;
         if (battleManager != null) battleManager.BattleCompleted -= HandleBattleCompleted;
@@ -832,5 +908,8 @@ public class SaveManager : MonoBehaviour
         storyProgressManager =
             GetComponent<StoryProgressManager>() ??
             FindObjectOfType<StoryProgressManager>();
+        transportManager =
+            GetComponent<TransportManager>() ??
+            FindObjectOfType<TransportManager>();
     }
 }

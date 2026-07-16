@@ -64,7 +64,7 @@ public sealed class TutorialControllerTests
         string allBodies = string.Join("\n", bodies);
         foreach (string facility in new[]
                  {
-                     "傭兵斡旋所", "商会本部", "編成所", "近隣ダンジョン",
+                     "傭兵斡旋所", "商会組合", "パーティー編成", "近隣ダンジョン",
                      "市場", "鍛冶屋", "倉庫", "治療院", "転職神殿", "全体マップ"
                  })
         {

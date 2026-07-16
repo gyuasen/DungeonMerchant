@@ -189,6 +189,8 @@
 
 **フェーズC実装状況（2026-07-13）**: C-1はUnity Test RunnerでPlayMode 1/1成功済み。C-2/C-3もコード分割と単体テスト追加まで完了し、全sln buildは警告0・エラー0。最終完了判定には、Unity Test Runnerで現行EditMode全件とPlayMode 1件の再実行が必要。
 
+**フェーズC後の再調査（2026-07-16、Claude Code）**: 7/15〜7/16にCodexが静止画戦闘演出基盤（`BattleVisualController`、`BattlePresentationEvent`等）を追加した結果、`BattleManager.cs`は602行から928行へ、`DungeonRunManager.cs`も774行へ再増加した。ソースを読んで確認した結果、**構造の劣化ではない**：増加分の大半は`RaisePresentation`（構造化演出イベント発行）呼び出しで、ダメージ計算・報酬・ログ整形・スキル解決・状態異常・フロア進行・進捗保存は引き続き`BattleRewardService`/`BattleLogFormatter`/`BattleSkillResolver`/`BattleStatusEffectService`/`DungeonProgressStore`/`DungeonEventState`/`DungeonRewardService`に分離されたまま。C-2/C-3の分割方針は維持されており、追加の分割作業は不要と判断。Unity Test RunnerはEditMode 338/338、PlayMode 8/8（2026-07-16、ユーザー確認済み）で、フェーズCは実質的に完了扱いとしてよい。
+
 ### フェーズS — 提出前仕上げ（就活ポートフォリオ提出前に完了させる。A/B/Cとは独立、最優先扱い可）
 
 背景: 本作は就活用ポートフォリオ。2026-07-12にメインセッションで提出前リスク評価を実施した。権利面の結論: マップ・羊皮紙画像はChatGPT(OpenAI)での画像生成と確認済み（権利はユーザー帰属、商用可、法的問題なし）。フォントは同梱がZen Kurenaido（SIL OFL、`Assets/Proiject/Fonts/`にOFL.txt有り）のみで、游明朝等はOSフォントの実行時読込のため再配布に非該当。残る対応は「申告の整合性」と「品質印象」。
@@ -215,3 +217,67 @@
 
 - 実装はOpus/Sonnetサブエージェントへ委譲し、メインセッションは設計・監査・レビュー（ユーザー方針）。C-2(3)のスキル解決分割のみ難度が高いためメインセッション直接実施を検討。
 - 各項目完了時にこの表の「状態」を更新し、`FROM_HOME_CHAT.md`に要約を追記。
+
+## 2026-07-16 鍛冶屋Rank2レシピ追加
+
+- ユーザー報告: 鍛冶屋にRank2装備のレシピが存在しない。調査の結果、`Resources/GameData/Blacksmith/`配下のレシピは全て`equipmentRank: 3`（6職×武器/防具/装飾品=18種）から始まっており、Rank1・Rank2にはレシピが1件も存在しなかった（Rank1/2は市場購入のみが想定だった模様）。
+- `WorldMapService.GetBlacksmithEquipmentRankRange(townIndex) = GetTownEquipmentRank(townIndex)+1`により、セイル（town index 2、進行順位置0、市場Rank1）の鍛冶屋はRank2のみ許可対象。Rank2レシピが皆無だったため、セイルの鍛冶屋が実質空になっていた。
+- 対応: 6基本職固有武器（`SteelSword`/`CompositeBow`/`ArcaneStaff`/`PriestBlessedStaff`/`RogueSwiftDagger`/`LancerSteelLance`、いずれもRank2・スロット武器）を対象に、Rank3の`GoblinHunterSwordRecipe`等と同型の`EquipmentRecipeSO`を6件新規作成（`Resources/GameData/Blacksmith/`配下）。素材は同地域（はじまりの洞窟）産の`GoblinEar`/`MonsterFang`をRank3より少なめ（4+2個）、コストは220〜240Gに設定。防具・装飾品のRank2共通装備（`NormalRank02`系）は、Rank1同様に市場購入専用のまま据え置き（Rank3以降の設計パターンと同じ）。
+- 新規GUID6件の重複なしを確認。C#コード変更なし（アセット追加のみ）のためビルド影響なし。
+- Unity上での実確認（セイル鍛冶屋タブに6件表示、製作可能）は未実施 — ユーザー確認待ち。
+
+## 2026-07-16 タイトル画面の専用シーン分離（Codex Terra実装 + Claude Codeレビュー）
+
+- タイトルを `SimpleMercenaryHireUI.Title.cs`（272行partial・ゲームシーン内オーバーレイ）から専用シーン `Assets/Proiject/Scenes/Title.unity`（ビルドindex 0）+ 独立 `TitleSceneController.cs` へ分離した。実装はCodex(GPT-5.6 Terra、MCP経由サブエージェント)、設計・レビューはClaude Codeメインセッション。
+- `TitleSceneController`: 実行時UGUI構築。背景は `Resources.Load<Sprite>("UI/TitleBackground")` を優先し、未配置時は濃紺→黒のプロシージャルグラデーション。大タイトル「傭兵商会」（游明朝72px・金茶色・影付き）+サブタイトル+メニュー4ボタン（続きから/新しく始める/設定/終了）+羊皮紙の確認/設定ウィンドウ+コピーライト表示。`UITheme`/`SimpleMercenaryHireUIFactory` の静的ヘルパーを再利用。
+- **タイトル背景画像はユーザーがChatGPTで生成し `Assets/Proiject/Resources/UI/TitleBackground.png`（1920x1080推奨、Sprite (2D and UI)設定）へ配置すれば自動反映される。**
+- `SaveManager` へ静的ヘルパー追加: `DefaultSavePath` / `SaveFileExists()` / `DeleteSaveFileAndProgress()`（タイトルシーンにはマネージャー群が無いため）。インスタンス側 `DeleteSaveData()` の挙動は維持。
+- `SimpleMercenaryHireUI.Title.cs` を削除し、ストーリー表示トリガーを `Story.cs` の OnEnable コルーチン（UI構築完了待ち→`ShowNextPendingStory()`）へ移設。`enterGameAfterSceneReload` staticフラグと「シーンリロードで新規開始」方式は廃止（タイトルシーンから `SceneManager.LoadScene("SampleScene")`）。
+- `EditorBuildSettings.asset`: Title(index 0) → SampleScene(index 1)。
+- **レビューで発見・修正した回帰**: Codex実装は `RegisterButtonsUnder(transform)`（コントローラー自身）を呼んでいたが、Title Canvasは独立シーンルートでコントローラーの子ではないため、ボタン効果音が1件も登録されなかった。canvasRootフィールドを保持して `RegisterButtonsUnder(canvasRoot)` へ修正（メインセッション直接修正）。
+- `dotnet build DungeonMerchant.sln` 警告0・エラー0。シーンYAMLのスクリプトGUID配線（TitleSceneController/AudioFeedbackService）と Title.unity.meta ⇔ EditorBuildSettings のGUID一致を確認済み。
+- Unity実確認は未実施 — 確認項目: (1)Titleシーン再生で4ボタン+グラデーション背景表示 (2)続きから→ゲーム継続 (3)新規開始→確認→セーブ削除+チュートリアル初期化+新規ストーリー表示 (4)設定の音量増減が保存される (5)ボタンクリック音が鳴る (6)ゲームシーン直接再生でも従来どおり動く（ストーリーが出るだけでタイトルは出ない）。
+
+### 2026-07-16 追記: 「タイトルから再生できない」バグ修正（メインセッション直接修正）
+
+- 原因: `DungeonMerchantBootstrap`の`[RuntimeInitializeOnLoadMethod]`は**起動時に1回だけ**発火する。(1)Titleシーンで再生するとタイトルの上にゲーム一式（全マネージャー+`SimpleMercenaryHireUI`のUI）が生成されて被さる、(2)`SceneManager.LoadScene("SampleScene")`で遷移してもブートストラップは再発火せず（`DontDestroyOnLoad`も未使用のためTitleシーンで生成された分は全滅）、遷移後のゲームシーンで`SaveManager.InitializeAndLoad()`を誰も呼ばない。
+- 修正: `DungeonMerchantBootstrap`をシーン対応化。(a)`TitleSceneController`が存在するシーンではゲーム生成をスキップ、(b)`SceneManager.sceneLoaded`（Single モードのみ）で毎シーンロード時に`EnsureRuntimeObjects`を再実行（`EnsureComponent`と`InitializeAndLoad`の`initialized`ガードにより冪等）。Editorのドメインリロード無効設定でも重複購読しないよう購読前に解除。
+- `dotnet build`警告0・エラー0。Unity実確認: Titleシーン再生→タイトルのみ表示→続きから/新規開始→ゲーム開始、の通し確認が必要。
+
+## 2026-07-16 世界観設定と都市間運搬システム設計の正本化
+
+- ユーザーが世界観設定（人類大陸/魔大陸、結界都市、ステータス=対外防護値、再活性治療、両親の商会と1億Gの債務、臨時契約者による施設利用の説明づけ）と、都市間運搬システムの段階設計（需要設定→積荷街道移動→輸送結果→経路開通→定期便）を策定した。
+- `docs/WORLDVIEW.md`（世界観の正本）と `docs/DESIGN_TRADE_LOGISTICS.md`（運搬システム設計+既存システムの世界観対応）として保存。**今後のテキスト実装・新機能設計はこの2文書と矛盾しないこと。**
+- 主な確定方針: (1)「蘇生」表記は「再活性治療」へ改名予定 (2)運搬は既存の市場・街道・傭兵・兵站を接続する機能として実装（新規戦闘システは作らない） (3)実装は優先度1（都市別需要補正）から段階的に。
+
+## 2026-07-17 世界観準拠実装・第1弾（都市別需要システム+施設整理+用語統一）
+
+- **スコープ決定（ユーザー）**: 素材鑑定所は実装しない（アイテム個別ステータスによるデータ圧迫を回避）／商人組合は独立施設にせず機能は商会本部へ集約／町マップの「編成所」は削除し編成・確認はグローバルメニューへ。`docs/DESIGN_TRADE_LOGISTICS.md`冒頭に確定事項として記録済み。
+- **都市別需要システム（優先度1、Codex Terra実装・レビュー済み）**: `WorldMapService.GetTownDemandMultiplier(townIndex, item)`を追加（itemType粗粒度+アイテム名個別上書きの静的テーブル、0.8〜1.3クランプ、Unity API非依存で決定的）。売値（アイテム・装備とも）へ現在町の需要倍率を乗算。装備売値パスは`GetBaseSellPrice`分離で倍率の二重適用を回避。`TownProgressState`不在時は1.0で既存動作維持（`MerchantInventoryTests`のピン留め値は無変更で通る）。UI: 在庫行に「相場高▲/相場安▼」、市場ヘッダーに「この町の需要」サマリー。`WorldMapServiceDemandTests`（レンジ・決定性・代表ルール・null安全）を追加。需要値: エルド=装備1.15/素材1.05、セイル=素材1.15/消耗品0.85、ノルン=素材1.10/消耗品1.15、グラード=素材1.20/消耗品1.15、ヴェルム=消耗品1.25/装備1.10、アビス=消耗品1.30/装備1.10、リーフ=Bat Wingのみ1.25、アステラ=全て1.0。
+- **編成所削除+再活性治療（Codex Luna実装・レビュー済み）**: 町マップの「編成所」ボタン削除（`ShowPartyPage`はメニューから継続使用）。チュートリアル内の編成所案内も削除しテスト更新。治療所の説明を「戦闘不能の再活性治療は…」へ、治療一覧の状態表示を「再活性治療対象」へ変更（世界観: HP=対外防護値、HP0は死亡ではない。「戦闘不能」自体は世界観準拠の用語として維持）。
+- `dotnet build`警告0・エラー0。**Unity確認項目**: (1)在庫売却価格が町ごとに変わる（セイルで素材が高く売れる等）(2)在庫行の相場表示 (3)市場ヘッダーの需要サマリー (4)町マップに編成所が無くメニューから編成できる (5)チュートリアル該当ページ (6)治療所の新表記 (7)Test Runner全緑。
+
+## 2026-07-17 商会組合への改名+輸送部隊システムv1（世界観準拠実装・第2弾）
+
+- **設計確定（ユーザー決定）**: 旧「商会本部」は主人公の商会ではなく結界都市の**商会組合**という設定に変更し改名。商会組合は商人の仕事（輸送部隊の編成・護衛設定）を行う場所とする。設計詳細は`docs/DESIGN_TRADE_LOGISTICS.md`の「輸送部隊システム v1 設計」節（今回追記）が正本。
+- **T1 改名（Codex Luna）**: 町マップボタン・チュートリアル・テストの「商会本部」→「商会組合」。
+- **T2 コア（Codex Terra、レビュー2往復）**: 新規`TransportManager`（Core層、UI非依存）。主人公と別働の輸送部隊: 目的地（解放済み・進行順経路、1セグメント=1日）、積荷（通常アイテムのみ）、護衛（最大3人・編成外・InstanceId参照）。出発時に在庫差引+輸送費（セグメント×50G×積荷数×兵站軽減、下限50%）。`DayManager.DayChanged`で日次進行、毎日25%で襲撃（乱数は`Func<float>`注入で決定的テスト可）: 護衛戦力`Σ(攻撃+防御+MaxHP/10)×Lv` vs 要求`25+通過町の進行順位置×20`。撃退=損失なし+護衛にEXP5、突破=積荷10〜50%損失+護衛HP減（下限1）。到着で目的地需要倍率込み売値で自動売却しG加算。**セーブVersion 21→22**（`SavedTransportConvoy`、復元時の欠損護衛除外）。`MercenaryPartyManager`へ輸送任務中の編成不可ガード追加。Bootstrap生成順へ組込み。**レビュー指摘で修正させた点**: (1)1行圧縮スタイル→既存規約へ全面整形、`??=`（Unityのfake-null非対応）→`if(==null)`形式へ (2)テスト2件→10件（出発拒否系/正常出発/日次進行/到着売却/セーブ往復/費用ピン留め）。
+- **T3 UI（Codex Terra）**: 作業規約どおりコントローラー抽出パターンで`TransportController`（プレーンC#、256行）+`SimpleMercenaryHireUI.Transport.cs`（構築・配線のみ199行）。商会組合ページに「輸送部隊」ボタン→羊皮紙オーバーレイ（進行中部隊一覧/目的地選択/積荷±/護衛トグル/費用・予想売却額表示/出発）。予想売却額はコアの売却式と同式で一貫。`TransportEventOccurred`→日次リザルトへ記録（撃退/損失/到着売却）。傭兵一覧へ「輸送任務中」表示、編成失敗時の専用メッセージ。イベント購読はStart/OnDestroyで対称。
+- 備考: `Assembly-CSharp.csproj`は削除済みファイル参照が残る古い状態でsln buildが通っており、slnビルド対象外のレガシー補助と判明（更新不要、Unityが再生成する）。アステラ(town7)は進行順外のため輸送の対象外（設計意図どおり）。
+- `dotnet build`警告0・エラー0。**Unity確認項目**: (1)商会組合ボタン名 (2)輸送部隊オーバーレイの編成→出発→日送りで進行→日次リザルトに襲撃/到着表示 (3)到着時の入金額が目的地需要込みか (4)輸送中傭兵の編成不可+表示 (5)セーブ/ロードで部隊が維持される (6)Test Runner全緑（EditModeにTransportManagerTests 10件追加）。
+
+## 2026-07-17 町別倉庫システム W1+W3（セーブv23）
+
+- **設計確定（ユーザー決定、docs/DESIGN_TRADE_LOGISTICS.md「町別倉庫システム設計」節が正本）**: (1)装備個体も町別倉庫 (2)遠隔売却は手数料なし・販売タイムラグ方式（距離日数後に約定日相場で約定） (3)傭兵の町間移動はパーティー同行+輸送護衛のみ。実装はW1町別化→W3輸送搬入（v23、今回完了）→W2組合の全町倉庫ビュー+遠隔売却→W4傭兵所在町（v24、未着手）。
+- **W1（Codex Terra実装・レビュー済み）**: `MerchantInventory`内部を`TownInventoryBucket`（町indexごとのアイテム+装備個体）へ分割。**既存公開APIは「現在町の倉庫」を操作するファサードとして完全維持**（市場・鍛冶・強化・戦利品・装備着脱の呼び出し箇所は無変更で町別セマンティクスへ移行）。TownProgressState不在時は町2フォールバック→既存`MerchantInventoryTests`は無変更で通る。横断API追加: `GetItemAmountIn`/`GetItemsIn`/`GetEquipmentInstancesIn`/`DepositItemTo`（容量超過許容の直接搬入）/`GetUsedStorageSlotsIn`。容量は町ごと独立。図鑑は全体共有のまま。セーブv22→v23（`SavedInventoryItem`/`SavedEquipmentInstance`に`townIndex`、旧セーブは全在庫をcurrentTownIndexへ配置する移行）。
+- **W3**: 輸送到着を「自動売却」から「目的地倉庫へ搬入」へ変更（`DepositItemTo`）。日次リザルト文言・UIラベル（予想売却額→目的地での想定価値）更新。
+- テスト: `MerchantInventoryTownTests`（町分離/町別容量+直接搬入/セーブ往復）+`SaveDataMigratorTests`にv22移行テスト追加。`TransportManagerTests`の到着テストを搬入期待へ更新。既存テストは無変更。
+- `dotnet build`警告0・エラー0。**Unity確認項目**: (1)町を移動すると在庫画面の中身が町ごとに変わる (2)旧セーブ読込で全在庫が現在町に集まっている (3)輸送到着で目的地倉庫に積荷が入る（売却されない） (4)鍛冶が現在町の素材のみ消費 (5)Test Runner全緑。
+- **次の作業: W2（商会組合の全町倉庫ビュー+遠隔売却指示・タイムラグ約定）とW4（傭兵所在町）、セーブv24。着手前にUnity実確認を推奨。**
+
+### 2026-07-17 追記: ダンジョン探索の演出・テキスト非表示バグ修正（メインセッション直接修正）
+
+- 症状: ダンジョン探索で戦闘演出・テキストが表示されない（ユーザー報告）。
+- 原因: SampleSceneには`BattleManager`コンポーネントが独立GameObjectに1つシリアライズ済みだが、`DungeonMerchantBootstrap.EnsureComponent<T>`はroot上の`GetComponent`しか確認せず**2個目のBattleManagerをrootへ追加**していた。DungeonRunManager（root側）はroot側インスタンスで戦闘を実行し、UI（`FindObjectOfType`解決）がもう片方を購読するため、演出イベント（`BattleVisualsPrepared`/`BattlePresentation`/`BattleMessageTyped`）が届かない。タイトルシーン導入によるオブジェクト生成順の変化で、従来偶然一致していた解決先が反転して顕在化したと推定。
+- 修正: `EnsureComponent<T>`を「root→**シーン全体（FindObjectOfType）**→新規追加」の順に変更。マネージャーの二重生成を系統的に防止（BattleManagerに限らず全マネージャーに適用）。
+- `dotnet build`警告0・エラー0。Unity確認: タイトル→ゲーム開始→ダンジョン探索で演出・テキスト・イベントカードが表示されること。SampleScene直接再生でも同様。**あわせてEditModeテスト全件（W1の町別倉庫テスト含む、未実行）とPlayModeテストの実行を推奨**。

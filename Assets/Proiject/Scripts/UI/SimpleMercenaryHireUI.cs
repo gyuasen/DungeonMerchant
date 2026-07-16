@@ -26,6 +26,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     [SerializeField] private RoadEncounterService roadEncounterService;
     [SerializeField] private TownProgressState townProgressState;
     [SerializeField] private StoryProgressManager storyProgressManager;
+    [SerializeField] private TransportManager transportManager;
 
     [Header("UI Prefab")]
     [SerializeField] private SimpleMercenaryHireUIView uiViewPrefab;
@@ -176,6 +177,10 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private DungeonBattleController dungeonBattleController;
     private TutorialController tutorialController;
     private AudioFeedbackService audioFeedbackService;
+    private TransportController transportController;
+    private RectTransform transportOverlay;
+    private RectTransform transportContent;
+    private Text transportFooterText;
 
     // Aliases into the shared palette (UITheme) so the many partial files
     // of this class can keep their existing short references.
@@ -220,6 +225,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             healingManager,
             townProgressState,
             saveManager,
+            transportManager,
             message => statusText.text = message,
             () => RefreshPage(hirePage),
             () => RefreshPage(companyPage),
@@ -239,6 +245,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             RefreshUI,
             label => inventoryFilterButton.GetComponentInChildren<Text>().text = label,
             label => equipmentSortButton.GetComponentInChildren<Text>().text = label);
+        transportController = new TransportController(
+            transportManager, merchantInventory, hireManager, partyManager,
+            townProgressState, marketPriceManager,
+            message => statusText.text = message,
+            RefreshTransportOverlay);
         characterEquipmentController = new CharacterEquipmentController(
             merchantData,
             merchantInventory,
@@ -399,6 +410,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         marketPriceManager.PricesChanged += HandlePricesChanged;
         marketStockManager.StockChanged += HandleMarketStockChanged;
         blacksmithManager.CraftingChanged += HandleCraftingChanged;
+        transportManager.TransportChanged += HandleTransportChanged;
+        transportManager.TransportEventOccurred += HandleTransportEvent;
         if (progressionManager != null)
         {
             progressionManager.ProgressionChanged += HandleProgressionChanged;
@@ -410,7 +423,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         dailyResultController.CaptureDailySnapshot(dayManager.CurrentDay);
         ShowGlobalMap();
         RefreshUI();
-        BuildAndShowTitleOverlay();
     }
 
     private void ResolveReferences()
@@ -586,6 +598,12 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
                 GetComponent<TownProgressState>() ??
                 FindObjectOfType<TownProgressState>();
         }
+
+        if (transportManager == null)
+        {
+            transportManager = GetComponent<TransportManager>() ??
+                               FindObjectOfType<TransportManager>();
+        }
     }
 
     private bool HasRequiredReferences()
@@ -661,6 +679,12 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         if (healingManager == null)
         {
             Debug.LogError("Simple hire UI is missing HealingManager.", this);
+            hasAllReferences = false;
+        }
+
+        if (transportManager == null)
+        {
+            Debug.LogError("Simple hire UI is missing TransportManager.", this);
             hasAllReferences = false;
         }
 
@@ -816,6 +840,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         {
             blacksmithManager.CraftingChanged -= HandleCraftingChanged;
         }
+        if (transportManager != null)
+        {
+            transportManager.TransportChanged -= HandleTransportChanged;
+            transportManager.TransportEventOccurred -= HandleTransportEvent;
+        }
         if (progressionManager != null)
         {
             progressionManager.ProgressionChanged -= HandleProgressionChanged;
@@ -966,6 +995,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         BuildTravelConfirmationOverlay();
         BuildGlobalMenuOverlay();
         BuildDailyResultOverlay();
+        BuildTransportOverlay();
         BuildTutorialOverlay();
     }
 

@@ -355,7 +355,7 @@ public partial class SimpleMercenaryHireUI
             new Vector2(110f, 54f), ShowHirePage);
         standardTownFacilityButtons.Add(hireFacilityButton);
         standardTownFacilityButtons.Add(CreateMapButton(
-            townMapPage, "商会本部", new Vector2(0f, 135f),
+            townMapPage, "商会組合", new Vector2(0f, 135f),
             new Vector2(110f, 48f), ShowCompanyPage));
         standardTownFacilityButtons.Add(CreateMapButton(
             townMapPage, "市場", new Vector2(175f, 105f),
@@ -366,9 +366,6 @@ public partial class SimpleMercenaryHireUI
         standardTownFacilityButtons.Add(CreateMapButton(
             townMapPage, "倉庫", new Vector2(-260f, -45f),
             new Vector2(100f, 48f), ShowInventoryPage));
-        standardTownFacilityButtons.Add(CreateMapButton(
-            townMapPage, "編成所", new Vector2(-105f, -20f),
-            new Vector2(100f, 48f), ShowPartyPage));
         standardTownFacilityButtons.Add(CreateMapButton(
             townMapPage, "治療院", new Vector2(235f, -42f),
             new Vector2(100f, 48f), ShowHealPage));

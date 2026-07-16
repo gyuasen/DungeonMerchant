@@ -114,6 +114,10 @@ public partial class SimpleMercenaryHireUI
             economyController.ShouldShowInventoryEquipment,
             item => merchantInventory.GetSellPrice(item),
             item => marketPriceManager.GetEffectiveSellMultiplier(item),
+            item => townProgressState != null
+                ? WorldMapService.GetTownDemandMultiplier(
+                    townProgressState.CurrentTownIndex, item)
+                : 1f,
             CharacterEquipmentController.GetEquipmentDisplayName,
             CharacterEquipmentController.GetEquipmentQualityColor,
             economyController.SellItem,
@@ -129,11 +133,21 @@ public partial class SimpleMercenaryHireUI
             TextAnchor.MiddleLeft, new Vector2(0f, -30f), new Vector2(0f, 0f),
             ParchmentMutedColor);
 
+        Text demandSummary = CreateText(
+            marketPage,
+            string.Empty,
+            15,
+            FontStyle.Normal,
+            TextAnchor.MiddleLeft,
+            new Vector2(0f, -70f),
+            new Vector2(0f, -38f),
+            ParchmentMutedColor);
+
         RectTransform viewport = CreateUIObject("Market Viewport", marketPage);
         viewport.anchorMin = new Vector2(0f, 0f);
         viewport.anchorMax = new Vector2(1f, 1f);
         viewport.offsetMin = Vector2.zero;
-        viewport.offsetMax = new Vector2(0f, -52f);
+        viewport.offsetMax = new Vector2(0f, -84f);
 
         Image viewportImage = viewport.gameObject.AddComponent<Image>();
         viewportImage.color = new Color(0f, 0f, 0f, 0.01f);
@@ -157,7 +171,7 @@ public partial class SimpleMercenaryHireUI
         MarketPageUI pageUI =
             marketPage.GetComponent<MarketPageUI>() ??
             marketPage.gameObject.AddComponent<MarketPageUI>();
-        pageUI.Initialize(title, null, marketList);
+        pageUI.Initialize(title, demandSummary, marketList);
         pageUI.ConfigureMarket(
             uiBodyFont,
             ParchmentMutedColor,
@@ -170,7 +184,9 @@ public partial class SimpleMercenaryHireUI
             EconomyController.ShouldShowMarketEntry,
             entry => marketStockManager.CanBuy(entry),
             economyController.BuyMarketItem,
-            economyController.RegisterMarketBuyButton);
+            economyController.RegisterMarketBuyButton,
+            demandSummary,
+            GetCurrentTownDemandSummary);
         pageRouter.Register(marketPage);
     }
 
@@ -327,6 +343,24 @@ public partial class SimpleMercenaryHireUI
             : remaining <= Mathf.Max(3, Mathf.CeilToInt(capacity * 0.1f))
                 ? new Color(0.72f, 0.35f, 0.04f)
                 : ParchmentTextColor;
+    }
+
+    private string GetCurrentTownDemandSummary()
+    {
+        int townIndex = townProgressState != null
+            ? townProgressState.CurrentTownIndex
+            : 2;
+        return $"この町の需要:  素材{GetDemandMarker(townIndex, ItemType.Material)}  " +
+               $"装備{GetDemandMarker(townIndex, ItemType.Equipment)}  " +
+               $"消耗品{GetDemandMarker(townIndex, ItemType.Consumable)}";
+    }
+
+    private static string GetDemandMarker(int townIndex, ItemType itemType)
+    {
+        float multiplier =
+            WorldMapService.GetTownDemandMultiplier(townIndex, itemType);
+        return multiplier > 1.05f ? "▲" :
+            multiplier < 0.95f ? "▼" : "─";
     }
 
 }

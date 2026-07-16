@@ -94,6 +94,14 @@ public partial class SimpleMercenaryHireUI
         questRect.sizeDelta = new Vector2(110f, 38f);
         questRect.anchoredPosition = new Vector2(0f, -4f);
 
+        Button transportButton =
+            CreateActionButton(companyPage, "輸送部隊", ShowTransportOverlay);
+        RectTransform transportRect = transportButton.GetComponent<RectTransform>();
+        transportRect.anchorMin = transportRect.anchorMax = new Vector2(1f, 1f);
+        transportRect.pivot = new Vector2(1f, 1f);
+        transportRect.sizeDelta = new Vector2(110f, 38f);
+        transportRect.anchoredPosition = new Vector2(-118f, -4f);
+
         RectTransform viewport = CreateUIObject("Company Viewport", companyPage);
         viewport.anchorMin = new Vector2(0f, 0f);
         viewport.anchorMax = new Vector2(1f, 1f);
@@ -177,6 +185,17 @@ public partial class SimpleMercenaryHireUI
             ShowQuestOverlay,
             null);
         ConfigureCompanyListPage(pageUI);
+        if (companyPage.Find("Transport Button") == null)
+        {
+            Button transportButton =
+                CreateActionButton(companyPage, "輸送部隊", ShowTransportOverlay);
+            transportButton.name = "Transport Button";
+            RectTransform transportRect = transportButton.GetComponent<RectTransform>();
+            transportRect.anchorMin = transportRect.anchorMax = new Vector2(1f, 1f);
+            transportRect.pivot = new Vector2(1f, 1f);
+            transportRect.sizeDelta = new Vector2(110f, 38f);
+            transportRect.anchoredPosition = new Vector2(-118f, -4f);
+        }
         companyScrollContent = pageUI.ListRoot;
         companyList = companyScrollContent;
     }
@@ -219,7 +238,7 @@ public partial class SimpleMercenaryHireUI
         Text description = CreateText(
             healPage,
             $"全回復費用: 失ったHP 1につき {healingManager.HealCostPerHP} G。" +
-            $"戦闘不能は{healingManager.IncapacitatedCostMultiplier}倍+" +
+            $"戦闘不能の再活性治療は{healingManager.IncapacitatedCostMultiplier}倍+" +
             $"{healingManager.RevivalBaseCost} G。日送りで毎日 " +
             $"{healingManager.NaturalHealPerDay} HP回復します。",
             15,
@@ -355,7 +374,8 @@ public partial class SimpleMercenaryHireUI
             hireAndPartyController.TogglePartyMember,
             ShowCharacterDetails,
             merchantStatusAndQuestController.RenewContract,
-            hireAndPartyController.ReleaseMercenary);
+            hireAndPartyController.ReleaseMercenary,
+            mercenary => transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId));
     }
 
     private void ConfigurePartyListPage(PartyPageUI pageUI)

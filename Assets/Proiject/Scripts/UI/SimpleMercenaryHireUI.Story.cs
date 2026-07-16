@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,6 +7,27 @@ public partial class SimpleMercenaryHireUI
     private RectTransform storyOverlay;
     private Text storyTitleText;
     private Text storyBodyText;
+    private Coroutine storyEntryCoroutine;
+
+    private void OnEnable()
+    {
+        if (storyEntryCoroutine == null)
+        {
+            storyEntryCoroutine = StartCoroutine(ShowInitialStoryWhenReady());
+        }
+    }
+
+    private IEnumerator ShowInitialStoryWhenReady()
+    {
+        yield return null;
+        while (overlayRoot == null || uiFactory == null)
+        {
+            yield return null;
+        }
+
+        ShowNextPendingStory();
+        storyEntryCoroutine = null;
+    }
 
     private void BuildStoryOverlay()
     {
@@ -80,8 +102,4 @@ public partial class SimpleMercenaryHireUI
         ShowNextPendingStory();
     }
 
-    private void HandleTitleEntryCompleted()
-    {
-        ShowNextPendingStory();
-    }
 }
