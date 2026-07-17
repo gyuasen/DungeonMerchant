@@ -152,6 +152,22 @@ public sealed class BattleSkillResolver
                     "毒霧",
                     0.42f,
                     BattleStatusEffect.Poison);
+            case EnemySkillType.ShadowPounce:
+                return UseEnemyMultiStrike(attacker, target, "影跳び", 2, 0.62f);
+            case EnemySkillType.HexBolt:
+                return UseEnemyMagicDamageSkill(attacker, target, "呪弾", 0.62f, 0.32f, BattleStatusEffect.Poison);
+            case EnemySkillType.Ironhide:
+                return UseEnemyBattleHeal(attacker);
+            case EnemySkillType.CleavingRush:
+                return UseEnemyAreaDamageSkill(attacker, "薙ぎ払い", 0.58f, BattleStatusEffect.None);
+            case EnemySkillType.VenomSpray:
+                return UseEnemyAreaDamageSkill(attacker, "毒液散布", 0.34f, BattleStatusEffect.Poison);
+            case EnemySkillType.PiercingShot:
+                return UseEnemyPureDamageSkill(attacker, target, "貫通射", 0.82f);
+            case EnemySkillType.BloodFrenzy:
+                return UseEnemyDamageSkill(attacker, target, "血煙の猛攻", 1.58f, BattleStatusEffect.None);
+            case EnemySkillType.Reconstitute:
+                return UseEnemyRegeneration(attacker);
             default:
                 return false;
         }
@@ -319,6 +335,14 @@ public sealed class BattleSkillResolver
             case EnemySkillType.Regeneration: return "再生";
             case EnemySkillType.SoulBurst: return "魂爆";
             case EnemySkillType.ToxicCloud: return "毒霧";
+            case EnemySkillType.ShadowPounce: return "影跳び";
+            case EnemySkillType.HexBolt: return "呪弾";
+            case EnemySkillType.Ironhide: return "鉄皮再生";
+            case EnemySkillType.CleavingRush: return "薙ぎ払い";
+            case EnemySkillType.VenomSpray: return "毒液散布";
+            case EnemySkillType.PiercingShot: return "貫通射";
+            case EnemySkillType.BloodFrenzy: return "血煙の猛攻";
+            case EnemySkillType.Reconstitute: return "再構成";
             default: return string.Empty;
         }
     }

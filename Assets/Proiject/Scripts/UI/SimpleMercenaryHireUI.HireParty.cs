@@ -101,6 +101,14 @@ public partial class SimpleMercenaryHireUI
         transportRect.pivot = new Vector2(1f, 1f);
         transportRect.sizeDelta = new Vector2(110f, 38f);
         transportRect.anchoredPosition = new Vector2(-118f, -4f);
+        Button expeditionButton = CreateActionButton(companyPage, "遠征部隊", ShowExpeditionOverlay);
+        expeditionButton.name = "Expedition Button";
+        RectTransform expeditionRect = expeditionButton.GetComponent<RectTransform>();
+        expeditionRect.anchorMin = expeditionRect.anchorMax = new Vector2(1f, 1f);
+        expeditionRect.pivot = new Vector2(1f, 1f);
+        expeditionRect.sizeDelta = new Vector2(110f, 38f);
+        expeditionRect.anchoredPosition = new Vector2(-236f, -4f);
+        expeditionButton.transform.SetAsLastSibling();
 
         RectTransform viewport = CreateUIObject("Company Viewport", companyPage);
         viewport.anchorMin = new Vector2(0f, 0f);
@@ -195,6 +203,17 @@ public partial class SimpleMercenaryHireUI
             transportRect.pivot = new Vector2(1f, 1f);
             transportRect.sizeDelta = new Vector2(110f, 38f);
             transportRect.anchoredPosition = new Vector2(-118f, -4f);
+        }
+        if (companyPage.Find("Expedition Button") == null)
+        {
+            Button expeditionButton = CreateActionButton(companyPage, "遠征部隊", ShowExpeditionOverlay);
+            expeditionButton.name = "Expedition Button";
+            RectTransform expeditionRect = expeditionButton.GetComponent<RectTransform>();
+            expeditionRect.anchorMin = expeditionRect.anchorMax = new Vector2(1f, 1f);
+            expeditionRect.pivot = new Vector2(1f, 1f);
+            expeditionRect.sizeDelta = new Vector2(110f, 38f);
+            expeditionRect.anchoredPosition = new Vector2(-236f, -4f);
+            expeditionButton.transform.SetAsLastSibling();
         }
         companyScrollContent = pageUI.ListRoot;
         companyList = companyScrollContent;
@@ -351,7 +370,7 @@ public partial class SimpleMercenaryHireUI
     {
         pageUI.ConfigureHireList(
             hireAndPartyController.ResetHireListTracking,
-            () => candidates,
+            () => mercenaryGenerator.UniqueCandidates,
             hireAndPartyController.ShouldShowFixedHireCandidate,
             () => mercenaryGenerator.Candidates,
             candidate => candidate != null,
@@ -375,7 +394,8 @@ public partial class SimpleMercenaryHireUI
             ShowCharacterDetails,
             merchantStatusAndQuestController.RenewContract,
             hireAndPartyController.ReleaseMercenary,
-            mercenary => transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId));
+            mercenary => transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId),
+            mercenary => dungeonExpeditionManager.IsMercenaryOnExpeditionDuty(mercenary.InstanceId));
     }
 
     private void ConfigurePartyListPage(PartyPageUI pageUI)

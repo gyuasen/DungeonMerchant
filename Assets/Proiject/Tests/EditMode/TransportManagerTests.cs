@@ -134,10 +134,15 @@ public sealed class TransportManagerTests
     {
         ItemDataSO item = CreateItem("Cargo", 100);
         inventory.AddItem(item, 10);
+        // 10 cargo units over 2 segments cost 1000G; the default 500G would
+        // make TryDepartConvoy fail with InsufficientGold and no convoy.
+        merchantData.SetGold(2000);
         TransportEvent occurred = null;
         transportManager.TransportEventOccurred += value => occurred = value;
         transportManager.SetRandomProvider(() => .1f);
-        transportManager.TryDepartConvoy(0, Cargo(item, 10), null);
+        Assert.That(
+            transportManager.TryDepartConvoy(0, Cargo(item, 10), null),
+            Is.EqualTo(TransportDepartureResult.Succeeded));
 
         dayManager.AdvanceDay();
 
@@ -153,8 +158,12 @@ public sealed class TransportManagerTests
         MercenaryInstance escort = CreateMercenary("weak", 1, 0, 0);
         Hire(escort);
         inventory.AddItem(item, 10);
+        // Same as the raid test above: cover the 1000G transport cost.
+        merchantData.SetGold(2000);
         transportManager.SetRandomProvider(() => .1f);
-        transportManager.TryDepartConvoy(0, Cargo(item, 10), new[] { escort });
+        Assert.That(
+            transportManager.TryDepartConvoy(0, Cargo(item, 10), new[] { escort }),
+            Is.EqualTo(TransportDepartureResult.Succeeded));
 
         dayManager.AdvanceDay();
 

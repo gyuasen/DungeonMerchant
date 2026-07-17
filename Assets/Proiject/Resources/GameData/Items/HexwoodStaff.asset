@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -11,19 +11,23 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: HexwoodStaff
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   persistentId: item.HexwoodStaff
   itemName: Hexwood Staff
   itemType: 1
   rarity: 2
+  materialClassification: 0
   description: A blacksmith-only staff infused with cursed bone and dark crystal.
   basePrice: 700
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 2
+  allClassesCanEquip: 0
   equipmentSet: 4
   equipmentRank: 3
   bonusMaxHP: 5
   bonusAttack: 20
   bonusDefense: 1
   bonusAttackSpeed: 0.05
+  consumableEffect: 0
+  consumableHealAmount: 0

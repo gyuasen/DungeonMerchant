@@ -40,6 +40,8 @@ public class BattleManager : MonoBehaviour
     private string nextBattleBackgroundKey;
     private readonly BattleStatusEffectService battleStatusEffectService =
         new BattleStatusEffectService();
+    private readonly BattleConsumableService battleConsumableService =
+        new BattleConsumableService();
 
     public bool IsBattling { get; private set; }
     public bool IsPaused { get; private set; }
@@ -420,6 +422,7 @@ public class BattleManager : MonoBehaviour
                     yield return WaitForActionDelay();
                 }
 
+                ProcessConsumableUse(unit);
                 BattleStatusEffect previousStatus = unit.StatusEffect;
                 BattleStatusEffectResult statusResult =
                     battleStatusEffectService.ProcessActionStart(unit);
@@ -566,6 +569,44 @@ public class BattleManager : MonoBehaviour
                 yield return null;
             }
         }
+    }
+
+    private void ProcessConsumableUse(BattleUnit unit)
+    {
+        if (unit == null || !unit.IsPlayerSide)
+        {
+            return;
+        }
+
+        int mercenaryIndex = playerUnits.IndexOf(unit);
+        MercenaryInstance mercenary =
+            mercenaryIndex >= 0 && mercenaryIndex < battleMercenaries.Count
+                ? battleMercenaries[mercenaryIndex]
+                : null;
+        BattleConsumableResult result =
+            battleConsumableService.ProcessActionStart(unit, mercenary);
+        if (!result.Used)
+        {
+            return;
+        }
+
+        RaisePresentation(new BattlePresentationEvent(
+            result.HealedAmount > 0
+                ? BattlePresentationEventType.Heal
+                : BattlePresentationEventType.Status,
+            unit,
+            unit,
+            result.HealedAmount,
+            unit.CurrentHP,
+            unit.MaxHP,
+            statusEffect: unit.StatusEffect,
+            actionKind: BattlePresentationActionKind.StatusEffect,
+            actionLabel: result.Item.itemName));
+        SendBattleMessage(BattleLogFormatter.FormatConsumableUse(
+            unit.UnitName,
+            result.Item.itemName,
+            result.HealedAmount),
+            BattleLogType.Player);
     }
 
     private IEnumerator WaitForActionDelay()

@@ -10,6 +10,7 @@ public class ItemDataSO : ScriptableObject, IPersistentGameAsset
     public string itemName = "Unknown Item";
     public ItemType itemType = ItemType.Material;
     public ItemRarity rarity = ItemRarity.Common;
+    public MaterialClassification materialClassification = MaterialClassification.None;
 
     [TextArea]
     public string description;
@@ -31,6 +32,7 @@ public class ItemDataSO : ScriptableObject, IPersistentGameAsset
 
     [Header("Consumable")]
     public ConsumableEffectType consumableEffect = ConsumableEffectType.None;
+    [Min(0)] public int consumableHealAmount;
 
     public bool IsEquipment => itemType == ItemType.Equipment;
     public string PersistentId =>
@@ -50,7 +52,19 @@ public enum ConsumableEffectType
     None,
     CurePoison,
     CureParalysis,
-    CureAllStatus
+    CureAllStatus,
+    HealHP,
+    BoostAttack,
+    BoostDefense,
+    RestoreMagic,
+    BoostSpeed
+}
+
+public enum MaterialClassification
+{
+    None,
+    SellOnly,
+    CraftingMaterial
 }
 
 public enum EquipmentSetId

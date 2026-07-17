@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public class GameSaveData
 {
-    public const int CurrentVersion = 23;
+    public const int CurrentVersion = 26;
 
     public int version = CurrentVersion;
     public int gold = 500;
@@ -34,9 +34,12 @@ public class GameSaveData
     public List<string> partyMemberIds = new List<string>();
     public List<SavedTransportConvoy> transportConvoys =
         new List<SavedTransportConvoy>();
+    public List<SavedDungeonExpedition> dungeonExpeditions =
+        new List<SavedDungeonExpedition>();
     public List<string> discoveredEquipmentAssetNames = new List<string>();
     public List<string> discoveredEquipmentPersistentIds =
         new List<string>();
+    public List<string> encounteredEnemyIds = new List<string>();
     public List<StoryMilestone> completedStoryMilestones =
         new List<StoryMilestone>();
     public ProgressionSaveData progression = new ProgressionSaveData();
@@ -59,6 +62,14 @@ public class SavedTransportCargo
     public string itemPersistentId;
     public string itemAssetName;
     public int amount;
+}
+
+[Serializable]
+public class SavedDungeonExpedition
+{
+    public string dungeonPersistentId;
+    public string dungeonAssetName;
+    public List<string> memberInstanceIds = new List<string>();
 }
 
 [Serializable]
@@ -103,6 +114,19 @@ public class SavedMercenary
     public string equippedAccessoryAssetName;
     public string equippedAccessoryPersistentId;
     public SavedEquipmentInstance equippedAccessoryInstance;
+    public SavedMercenaryConsumableSlot[] consumableSlots =
+        new SavedMercenaryConsumableSlot[2]
+        {
+            new SavedMercenaryConsumableSlot(),
+            new SavedMercenaryConsumableSlot()
+        };
+}
+
+[Serializable]
+public class SavedMercenaryConsumableSlot
+{
+    public string itemPersistentId;
+    public int count;
 }
 
 [Serializable]

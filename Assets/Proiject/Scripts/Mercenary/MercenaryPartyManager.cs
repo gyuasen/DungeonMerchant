@@ -6,6 +6,7 @@ public class MercenaryPartyManager : MonoBehaviour
 {
     [SerializeField] private MercenaryHireManager hireManager;
     [SerializeField] private TransportManager transportManager;
+    [SerializeField] private DungeonExpeditionManager dungeonExpeditionManager;
     [SerializeField, Min(1)] private int maxPartySize = 3;
     [SerializeField] private List<MercenaryInstance> members = new List<MercenaryInstance>();
 
@@ -46,6 +47,8 @@ public class MercenaryPartyManager : MonoBehaviour
             !IsHired(mercenary) ||
             (transportManager != null &&
              transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId)) ||
+            (dungeonExpeditionManager != null &&
+             dungeonExpeditionManager.IsMercenaryOnExpeditionDuty(mercenary.InstanceId)) ||
             Contains(mercenary) ||
             IsFull)
         {
@@ -101,6 +104,11 @@ public class MercenaryPartyManager : MonoBehaviour
         {
             transportManager = GetComponent<TransportManager>() ??
                                FindObjectOfType<TransportManager>();
+        }
+        if (dungeonExpeditionManager == null)
+        {
+            dungeonExpeditionManager = GetComponent<DungeonExpeditionManager>() ??
+                                       FindObjectOfType<DungeonExpeditionManager>();
         }
 
         foreach (MercenaryInstance hiredMercenary in hireManager.HiredMercenaries)

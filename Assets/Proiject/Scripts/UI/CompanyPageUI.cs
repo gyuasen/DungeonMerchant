@@ -16,6 +16,7 @@ public sealed class CompanyPageUI : ListPageUIBase
     private Action<MercenaryInstance> renewContractAction;
     private Action<MercenaryInstance> releaseContractAction;
     private Func<MercenaryInstance, bool> isOnTransportDuty;
+    private Func<MercenaryInstance, bool> isOnExpeditionDuty;
 
     public void Initialize(
         Text title,
@@ -63,7 +64,8 @@ public sealed class CompanyPageUI : ListPageUIBase
         Action<MercenaryInstance> targetShowDetailsAction,
         Action<MercenaryInstance> targetRenewContractAction,
         Action<MercenaryInstance> targetReleaseContractAction,
-        Func<MercenaryInstance, bool> targetIsOnTransportDuty = null)
+        Func<MercenaryInstance, bool> targetIsOnTransportDuty = null,
+        Func<MercenaryInstance, bool> targetIsOnExpeditionDuty = null)
     {
         mercenaryProvider = mercenaries;
         isInParty = targetIsInParty;
@@ -73,6 +75,7 @@ public sealed class CompanyPageUI : ListPageUIBase
         renewContractAction = targetRenewContractAction;
         releaseContractAction = targetReleaseContractAction;
         isOnTransportDuty = targetIsOnTransportDuty;
+        isOnExpeditionDuty = targetIsOnExpeditionDuty;
     }
 
     public override void Refresh()

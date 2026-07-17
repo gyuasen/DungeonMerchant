@@ -10,6 +10,7 @@ public partial class SimpleMercenaryHireUI
             GetOrCreateOverlay(
                 SimpleMercenaryHireOverlaySlot.GlobalMenu,
                 "Global Menu Overlay");
+        globalMenuOverlay.gameObject.SetActive(false);
         globalMenuOverlay.anchorMin = Vector2.zero;
         globalMenuOverlay.anchorMax = Vector2.one;
         globalMenuOverlay.offsetMin = Vector2.zero;
@@ -47,7 +48,10 @@ public partial class SimpleMercenaryHireUI
             window, "装備図鑑", new Vector2(135f, 15f),
             () => OpenGlobalMenuDestination(ShowEquipmentCollection));
         CreateGlobalMenuButton(
-            window, "商人情報", new Vector2(-135f, -50f),
+            window, "魔物図鑑", new Vector2(-135f, -50f),
+            () => OpenGlobalMenuDestination(ShowMonsterCollection));
+        CreateGlobalMenuButton(
+            window, "商人情報", new Vector2(135f, -50f),
             () => OpenGlobalMenuDestination(ShowMerchantStatusOverlay));
         CreateGlobalMenuButton(
             window, "依頼確認", new Vector2(135f, -50f),

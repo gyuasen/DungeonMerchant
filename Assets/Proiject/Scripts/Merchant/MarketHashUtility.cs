@@ -64,6 +64,17 @@ public static class MarketHashUtility
         }
     }
 
+    public static int ComputeRecruitmentSeed(int townIndex, int candidateBlock)
+    {
+        unchecked
+        {
+            int hash = 17;
+            hash = hash * 31 + townIndex;
+            hash = hash * 31 + candidateBlock;
+            return hash;
+        }
+    }
+
     private static int MixItem(int hash, ItemDataSO item)
     {
         unchecked

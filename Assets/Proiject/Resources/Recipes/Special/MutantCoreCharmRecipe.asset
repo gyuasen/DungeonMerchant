@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 20acd31e8b6f423581ac34d0952a1667, type: 3}
   m_Name: MutantCoreCharmRecipe
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   recipeName: Mutant Core Charm
   resultItem: {fileID: 11400000, guid: 6fbece8c57db44e6b1fd92249a756738, type: 2}
   resultAmount: 1
@@ -19,3 +19,5 @@ MonoBehaviour:
   materials:
   - item: {fileID: 11400000, guid: 5bd509658d3b42a7b53fca6f858d3a28, type: 2}
     amount: 6
+  - item: {fileID: 11400000, guid: 28ea52f6212db55409b8ea0e99271947, type: 2}
+    amount: 2

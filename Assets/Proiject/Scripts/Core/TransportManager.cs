@@ -78,8 +78,10 @@ public class TransportManager : MonoBehaviour
     [SerializeField] private MercenaryPartyManager partyManager;
     [SerializeField] private MarketPriceManager marketPriceManager;
     [SerializeField] private DayManager dayManager;
+    [SerializeField] private DungeonExpeditionManager dungeonExpeditionManager;
 
     private Func<float> randomValue = () => UnityEngine.Random.value;
+    private bool isDayChangedSubscribed;
 
     public IReadOnlyList<TransportConvoy> ActiveConvoys => activeConvoys;
 
@@ -89,17 +91,14 @@ public class TransportManager : MonoBehaviour
     private void OnEnable()
     {
         ResolveReferences();
-        if (dayManager != null)
-        {
-            dayManager.DayChanged += HandleDayChanged;
-        }
     }
 
     private void OnDisable()
     {
-        if (dayManager != null)
+        if (dayManager != null && isDayChangedSubscribed)
         {
             dayManager.DayChanged -= HandleDayChanged;
+            isDayChangedSubscribed = false;
         }
     }
 
@@ -330,7 +329,9 @@ public class TransportManager : MonoBehaviour
                     !escortIds.Add(escort.InstanceId) ||
                     !IsHired(escort) ||
                     (partyManager != null && partyManager.Contains(escort)) ||
-                    IsMercenaryOnTransportDuty(escort.InstanceId))
+                    IsMercenaryOnTransportDuty(escort.InstanceId) ||
+                    (dungeonExpeditionManager != null &&
+                     dungeonExpeditionManager.IsMercenaryOnExpeditionDuty(escort.InstanceId)))
                 {
                     return TransportDepartureResult.InvalidEscort;
                 }
@@ -627,5 +628,26 @@ public class TransportManager : MonoBehaviour
         {
             dayManager = FindObjectOfType<DayManager>();
         }
+        if (dungeonExpeditionManager == null)
+        {
+            dungeonExpeditionManager = GetComponent<DungeonExpeditionManager>();
+        }
+        if (dungeonExpeditionManager == null)
+        {
+            dungeonExpeditionManager = FindObjectOfType<DungeonExpeditionManager>();
+        }
+        EnsureDayChangedSubscription();
+    }
+
+    private void EnsureDayChangedSubscription()
+    {
+        if (dayManager == null)
+        {
+            return;
+        }
+
+        dayManager.DayChanged -= HandleDayChanged;
+        dayManager.DayChanged += HandleDayChanged;
+        isDayChangedSubscribed = true;
     }
 }

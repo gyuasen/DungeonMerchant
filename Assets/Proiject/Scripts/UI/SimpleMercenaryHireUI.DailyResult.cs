@@ -11,6 +11,7 @@ public partial class SimpleMercenaryHireUI
             GetOrCreateOverlay(
                 SimpleMercenaryHireOverlaySlot.DailyResult,
                 "Daily Result Overlay");
+        dailyResultOverlay.gameObject.SetActive(false);
         dailyResultOverlay.anchorMin = Vector2.zero;
         dailyResultOverlay.anchorMax = Vector2.one;
         dailyResultOverlay.offsetMin = Vector2.zero;
@@ -90,11 +91,7 @@ public partial class SimpleMercenaryHireUI
 
     private void HandleDayChanged(int currentDay)
     {
-        if (TownServicePolicy.IsHiringAvailable(townProgressState.CurrentTownIndex))
-        {
-            mercenaryGenerator.GenerateCandidates();
-        }
-        else
+        if (!TownServicePolicy.IsHiringAvailable(townProgressState.CurrentTownIndex))
         {
             mercenaryGenerator.ClearCandidates();
         }

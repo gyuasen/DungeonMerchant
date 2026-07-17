@@ -11,8 +11,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 20acd31e8b6f423581ac34d0952a1667, type: 3}
   m_Name: Rank08WeaponRecipe
-  m_EditorClassIdentifier:
-  recipeName: 黒鉄の遠征剣
+  m_EditorClassIdentifier: 
+  recipeName: "\u9ED2\u9244\u306E\u9060\u5F81\u5263"
   resultItem: {fileID: 11400000, guid: 20800000000000000000000000000000, type: 2}
   resultAmount: 1
   goldCost: 550
@@ -21,3 +21,5 @@ MonoBehaviour:
     amount: 4
   - item: {fileID: 11400000, guid: 45cd44ad792545fc8055a50332882b9d, type: 2}
     amount: 2
+  - item: {fileID: 11400000, guid: c01daff2d8c8d0843b566ee23e07360b, type: 2}
+    amount: 3

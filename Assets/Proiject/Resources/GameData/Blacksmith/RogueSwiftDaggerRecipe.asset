@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 20acd31e8b6f423581ac34d0952a1667, type: 3}
   m_Name: RogueSwiftDaggerRecipe
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   recipeName: Swift Dagger
   resultItem: {fileID: 11400000, guid: 4cad5f70a2c94d86ebfd53c7b2e1a45d, type: 2}
   resultAmount: 1
@@ -21,3 +21,5 @@ MonoBehaviour:
     amount: 4
   - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
     amount: 2
+  - item: {fileID: 11400000, guid: 1fc113ba3d7d962469a4a11a773064b9, type: 2}
+    amount: 1

@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
+  m_Name: enemy_job_goblin_veteran
+  m_EditorClassIdentifier: 
+  persistentId: enemy.job.goblin_veteran
+  enemyName: "\u30B4\u30D6\u30EA\u30F3\u30D9\u30C6\u30E9\u30F3"
+  monsterGrade: 9
+  isBoss: 0
+  category: 0
+  enemySkill: 5
+  isSpecialVariant: 0
+  specialVariantTitle: 
+  battleSprite: {fileID: 0}
+  battleVisualKey: Grade09_goblin_veteran
+  maxHP: 34
+  attack: 9
+  defense: 2
+  maxMagicPower: 25
+  attackSpeed: 1.35
+  criticalRate: 0
+  evasionRate: 0
+  goldReward: 75
+  experienceMultiplier: 1
+  itemDrops:
+  - item: {fileID: 11400000, guid: 57356d96cb1541f5a8cc6f35b4533638, type: 2}
+    amount: 1
+    dropChance: 0.75

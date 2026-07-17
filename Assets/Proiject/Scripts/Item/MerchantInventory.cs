@@ -500,6 +500,19 @@ public class MerchantInventory : MonoBehaviour
         return true;
     }
 
+    public void DepositEquipmentTo(int townIndex, EquipmentInstance equipment)
+    {
+        if (equipment?.BaseItem == null)
+        {
+            return;
+        }
+
+        TownInventoryBucket bucket = GetBucket(townIndex, true);
+        bucket.equipmentInstances.Add(equipment);
+        RegisterEquipmentDiscovery(equipment.BaseItem);
+        InventoryChanged?.Invoke();
+    }
+
     private InventoryItemStack FindStack(
         TownInventoryBucket bucket,
         ItemDataSO item)

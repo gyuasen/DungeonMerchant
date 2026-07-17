@@ -21,10 +21,9 @@ public sealed class RuntimeUIPlayModeTests
 
         Assert.That(ui, Is.Not.Null, "Runtime UI was not bootstrapped.");
 
-        RectTransform titleOverlay =
-            GetPrivateField<RectTransform>(ui, "titleOverlay");
-        Assert.That(titleOverlay, Is.Not.Null);
-        Assert.That(titleOverlay.gameObject.activeSelf, Is.True);
+        // The title screen moved to its own scene (Title.unity +
+        // TitleSceneController); the game-scene UI no longer owns a title
+        // overlay, so only the primary pages are asserted here.
 
         foreach (string fieldName in new[]
                  {

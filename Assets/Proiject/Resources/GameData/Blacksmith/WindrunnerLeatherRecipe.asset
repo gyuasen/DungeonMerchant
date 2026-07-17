@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 20acd31e8b6f423581ac34d0952a1667, type: 3}
   m_Name: WindrunnerLeatherRecipe
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   recipeName: Windrunner Leather
   resultItem: {fileID: 11400000, guid: 2b487a7660844ba4b45f7381bec56e0a, type: 2}
   resultAmount: 1
@@ -21,3 +21,5 @@ MonoBehaviour:
     amount: 5
   - item: {fileID: 11400000, guid: 56b326c55b534ee9a072194a18894d73, type: 2}
     amount: 2
+  - item: {fileID: 11400000, guid: 28ea52f6212db55409b8ea0e99271947, type: 2}
+    amount: 1

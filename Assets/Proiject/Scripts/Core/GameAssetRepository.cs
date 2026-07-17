@@ -38,12 +38,26 @@ public static class GameAssetRepository
         string legacyAssetName = null)
         where T : Object
     {
-        foreach (T asset in Resources.LoadAll<T>(string.Empty))
+        if (!string.IsNullOrWhiteSpace(persistentId))
         {
-            if (asset is IPersistentGameAsset persistentAsset &&
-                persistentAsset.PersistentId == persistentId)
+            foreach (T asset in Resources.LoadAll<T>(string.Empty))
             {
-                return asset;
+                if (asset is IPersistentGameAsset persistentAsset &&
+                    persistentAsset.PersistentId == persistentId)
+                {
+                    return asset;
+                }
+            }
+
+            // Save/restore tests and runtime-created content can hold transient
+            // ScriptableObjects that do not live under a Resources folder.
+            foreach (T asset in Resources.FindObjectsOfTypeAll<T>())
+            {
+                if (asset is IPersistentGameAsset persistentAsset &&
+                    persistentAsset.PersistentId == persistentId)
+                {
+                    return asset;
+                }
             }
         }
 

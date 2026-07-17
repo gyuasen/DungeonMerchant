@@ -139,6 +139,7 @@ public sealed class HireAndPartyController
         }
 
         hiredCandidates.Add(candidate);
+        mercenaryGenerator.RemoveUniqueCandidate(candidate);
         setStatus($"{candidate.mercenaryName}が商会に加わりました。");
         refreshHirePage();
         refreshUI();

@@ -561,6 +561,15 @@ public class DungeonRunManager : MonoBehaviour
                 restHealAmount,
                 treasureGoldReward,
                 hazardDamage);
+        if (eventType == DungeonEventType.MineralVein ||
+            eventType == DungeonEventType.HerbGrove ||
+            eventType == DungeonEventType.QualityGrove)
+        {
+            result = DungeonEnvironmentEventService.ResolveEnvironmentalChoice(
+                eventType,
+                optionIndex,
+                dungeonData.grade);
+        }
 
         if (result.HealAmount > 0)
         {
@@ -575,6 +584,11 @@ public class DungeonRunManager : MonoBehaviour
         if (result.GoldAmount > 0)
         {
             GrantGold(result.GoldAmount);
+        }
+
+        if (result.MaterialItem != null && result.MaterialAmount > 0)
+        {
+            merchantInventory?.TryAddItem(result.MaterialItem, result.MaterialAmount);
         }
 
         if (!string.IsNullOrEmpty(result.LimitedDropSourceLabel))
@@ -770,5 +784,8 @@ public enum DungeonEventType
     None,
     AbandonedCamp,
     TreasureCache,
-    CollapsedPassage
+    CollapsedPassage,
+    MineralVein,
+    HerbGrove,
+    QualityGrove
 }

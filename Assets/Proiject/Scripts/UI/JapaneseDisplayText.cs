@@ -74,8 +74,22 @@ public static class JapaneseDisplayText
             return "不明なアイテム";
         }
 
+        foreach (BalanceExpansionEquipmentDefinition definition in
+                 BalanceExpansionDefinition.Equipment)
+        {
+            if (item.itemName == definition.EnglishName)
+            {
+                return definition.JapaneseName;
+            }
+        }
+
         switch (item.itemName)
         {
+            case "Low Grade Mutant Core": return "低級変異核";
+            case "Lower Grade Mutant Core": return "下級変異核";
+            case "Middle Grade Mutant Core": return "中級変異核";
+            case "Upper Grade Mutant Core": return "上級変異核";
+            case "Highest Grade Mutant Core": return "最上級変異核";
             case "Monster Fang": return "魔物の牙";
             case "Goblin Ear": return "ゴブリンの耳";
             case "Bat Wing": return "コウモリの翼";
@@ -165,6 +179,15 @@ public static class JapaneseDisplayText
 
     public static string GetEnemyName(string enemyName)
     {
+        foreach (BalanceExpansionEnemyDefinition definition in
+                 BalanceExpansionDefinition.Enemies)
+        {
+            if (enemyName == definition.EnglishName)
+            {
+                return definition.JapaneseName;
+            }
+        }
+
         switch (enemyName)
         {
             case "Slime": return "スライム";

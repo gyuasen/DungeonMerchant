@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
@@ -29,6 +30,12 @@ public class MercenaryInstance
     [SerializeField] private EquipmentInstance equippedArmorInstance;
     [SerializeField] private ItemDataSO equippedAccessory;
     [SerializeField] private EquipmentInstance equippedAccessoryInstance;
+    [SerializeField] private MercenaryConsumableSlot[] consumableSlots =
+        new MercenaryConsumableSlot[2]
+        {
+            new MercenaryConsumableSlot(),
+            new MercenaryConsumableSlot()
+        };
 
     public string InstanceId => instanceId;
     public MercenaryDataSO BaseData => baseData;
@@ -97,6 +104,8 @@ public class MercenaryInstance
         equippedAccessoryInstance;
     public bool IsUnique => baseData != null;
     public bool IsIncapacitated => currentHP <= 0;
+    public IReadOnlyList<MercenaryConsumableSlot> ConsumableSlots =>
+        consumableSlots;
 
     public MercenaryInstance(MercenaryDataSO mercenaryData)
     {
@@ -199,6 +208,72 @@ public class MercenaryInstance
     public void RestoreStatusEffect(BattleStatusEffect effect)
     {
         statusEffect = effect;
+    }
+
+    public bool TryLoadConsumable(int slotIndex, ItemDataSO item, int amount)
+    {
+        EnsureConsumableSlots();
+        if (slotIndex < 0 || slotIndex >= consumableSlots.Length ||
+            item == null || item.itemType != ItemType.Consumable || amount <= 0)
+        {
+            return false;
+        }
+
+        MercenaryConsumableSlot slot = consumableSlots[slotIndex];
+        if (slot.Item != null && slot.Item != item)
+        {
+            return false;
+        }
+
+        int added = Mathf.Min(amount, MercenaryConsumableSlot.MaxCount - slot.Count);
+        if (added <= 0)
+        {
+            return false;
+        }
+
+        slot.Set(item, slot.Count + added);
+        return true;
+    }
+
+    public ItemDataSO RemoveConsumableSlot(int slotIndex, out int amount)
+    {
+        EnsureConsumableSlots();
+        amount = 0;
+        if (slotIndex < 0 || slotIndex >= consumableSlots.Length)
+        {
+            return null;
+        }
+
+        MercenaryConsumableSlot slot = consumableSlots[slotIndex];
+        ItemDataSO item = slot.Item;
+        amount = slot.Count;
+        slot.Clear();
+        return item;
+    }
+
+    public bool TryConsumeConsumable(ItemDataSO item)
+    {
+        EnsureConsumableSlots();
+        foreach (MercenaryConsumableSlot slot in consumableSlots)
+        {
+            if (slot.Item == item && slot.TryConsume())
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public void RestoreConsumableSlot(int slotIndex, ItemDataSO item, int amount)
+    {
+        EnsureConsumableSlots();
+        if (slotIndex < 0 || slotIndex >= consumableSlots.Length)
+        {
+            return;
+        }
+
+        consumableSlots[slotIndex].Set(item, amount);
     }
 
     public bool CanPromote =>
@@ -408,6 +483,34 @@ public class MercenaryInstance
         }
 
         currentHP = Mathf.Clamp(currentHP, 0, MaxHP);
+    }
+
+    private void EnsureConsumableSlots()
+    {
+        if (consumableSlots != null && consumableSlots.Length == 2 &&
+            consumableSlots[0] != null && consumableSlots[1] != null)
+        {
+            return;
+        }
+
+        MercenaryConsumableSlot[] restored = consumableSlots;
+        consumableSlots = new MercenaryConsumableSlot[2]
+        {
+            new MercenaryConsumableSlot(),
+            new MercenaryConsumableSlot()
+        };
+        if (restored == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < Mathf.Min(restored.Length, consumableSlots.Length); i++)
+        {
+            if (restored[i] != null)
+            {
+                consumableSlots[i].Set(restored[i].Item, restored[i].Count);
+            }
+        }
     }
 
     public int AddExperience(int amount)

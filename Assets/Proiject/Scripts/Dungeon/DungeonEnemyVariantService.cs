@@ -7,7 +7,8 @@ public static class DungeonEnemyVariantService
         EnemyDataSO source,
         IReadOnlyList<EnemySkillType> skillPool,
         DungeonGrade dungeonGrade,
-        bool isBossVariant)
+        bool isBossVariant,
+        System.Func<float> randomValueProvider = null)
     {
         if (source == null || skillPool == null || skillPool.Count == 0)
         {
@@ -22,15 +23,21 @@ public static class DungeonEnemyVariantService
 
         EnemyDataSO variant = Object.Instantiate(source);
         variant.name = $"{source.name} Special Variant";
+        variant.runtimeSourcePersistentId = source.PersistentId;
         variant.hideFlags = HideFlags.DontSave;
         variant.isSpecialVariant = true;
-        variant.enemySkill = skills[Random.Range(0, skills.Count)];
+        System.Func<float> random = randomValueProvider ?? (() => Random.value);
+        int skillIndex = Mathf.Clamp(
+            Mathf.FloorToInt(random() * skills.Count),
+            0,
+            skills.Count - 1);
+        variant.enemySkill = skills[skillIndex];
         variant.specialVariantTitle =
             GetSpecialVariantTitle(variant.enemySkill, isBossVariant);
 
         ApplyBaseVariantBonus(variant, source, isBossVariant);
         ApplySpecialSkillStatBonus(variant);
-        AddSpecialVariantMaterialDrop(variant, isBossVariant);
+        AddSpecialVariantMaterialDrop(variant, dungeonGrade, isBossVariant);
         if (isBossVariant)
         {
             AddSpecialJobCertificateDrop(variant, dungeonGrade);
@@ -74,10 +81,11 @@ public static class DungeonEnemyVariantService
 
     private static void AddSpecialVariantMaterialDrop(
         EnemyDataSO variant,
+        DungeonGrade dungeonGrade,
         bool isBossVariant)
     {
         ItemDataSO material = Resources.Load<ItemDataSO>(
-            "Items/Special/MutantCore");
+            GetMutantCoreResourcePath(dungeonGrade));
         if (variant == null || material == null)
         {
             return;
@@ -96,6 +104,18 @@ public static class DungeonEnemyVariantService
             dropChance = isBossVariant ? 1f : 0.5f
         });
         variant.itemDrops = drops.ToArray();
+    }
+
+    private static string GetMutantCoreResourcePath(DungeonGrade dungeonGrade)
+    {
+        switch (dungeonGrade)
+        {
+            case DungeonGrade.Lower: return "Items/Special/LowerGradeMutantCore";
+            case DungeonGrade.Middle: return "Items/Special/MiddleGradeMutantCore";
+            case DungeonGrade.Upper: return "Items/Special/UpperGradeMutantCore";
+            case DungeonGrade.Highest: return "Items/Special/HighestGradeMutantCore";
+            default: return "Items/Special/MutantCore";
+        }
     }
 
     private static void AddSpecialJobCertificateDrop(

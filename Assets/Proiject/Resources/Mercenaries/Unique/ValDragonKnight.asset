@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -11,9 +11,9 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: de912b2128fc8ae41be1a8be596f5b30, type: 3}
   m_Name: ValDragonKnight
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   persistentId: mercenary.ValDragonKnight
-  mercenaryName: "ヴァル"
+  mercenaryName: "\u30F4\u30A1\u30EB"
   mercenaryClass: 5
   contractType: 0
   maxHP: 96
@@ -23,7 +23,7 @@ MonoBehaviour:
   attackSpeed: 1.18
   hireCost: 175
   uniqueSkillUnlockLevel: 8
-  uniqueSkillName: "天翔の竜槍"
+  uniqueSkillName: "\u5929\u7FD4\u306E\u7ADC\u69CD"
   uniqueSkillBonusMaxHP: 12
   uniqueSkillBonusAttack: 7
   uniqueSkillBonusDefense: 2

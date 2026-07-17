@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -11,9 +11,9 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: de912b2128fc8ae41be1a8be596f5b30, type: 3}
   m_Name: FioBeastmaster
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   persistentId: mercenary.FioBeastmaster
-  mercenaryName: "フィオ"
+  mercenaryName: "\u30D5\u30A3\u30AA"
   mercenaryClass: 1
   contractType: 0
   maxHP: 78
@@ -23,7 +23,7 @@ MonoBehaviour:
   attackSpeed: 1.42
   hireCost: 165
   uniqueSkillUnlockLevel: 8
-  uniqueSkillName: "疾風の相棒"
+  uniqueSkillName: "\u75BE\u98A8\u306E\u76F8\u68D2"
   uniqueSkillBonusMaxHP: 4
   uniqueSkillBonusAttack: 4
   uniqueSkillBonusDefense: 0

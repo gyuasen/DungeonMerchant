@@ -84,6 +84,9 @@ public sealed class MerchantInventoryTownTests
     private ItemDataSO CreateItem(string itemName)
     {
         ItemDataSO item = ScriptableObject.CreateInstance<ItemDataSO>();
+        // PersistentId falls back to Object.name; without it the save
+        // round-trip cannot resolve this runtime-created item on restore.
+        item.name = itemName;
         item.itemName = itemName;
         createdObjects.Add(item);
         return item;

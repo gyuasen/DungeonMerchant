@@ -28,6 +28,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9493c9d4e5d64634966f3bdda3c0e1ca, type: 2}
   - {fileID: 11400000, guid: f5f268b439b8441998680c9c1a2c7a35, type: 2}
   - {fileID: 11400000, guid: 97a4b941d2bf4f7b953a98380bff14ea, type: 2}
+  - {fileID: 11400000, guid: 18f0700b7be372341a2ec3ec93db6f16, type: 2}
+  - {fileID: 11400000, guid: fbb3ffb57e9e5de489e4d593447d033f, type: 2}
+  - {fileID: 11400000, guid: b0101cb80e7eece4eaafc84f4cf73f77, type: 2}
+  - {fileID: 11400000, guid: fc7d27aa9b5f3984798133b0cc93d871, type: 2}
+  - {fileID: 11400000, guid: 165f004be0abb0240a1ce2e81d495f89, type: 2}
   bossEnemy: {fileID: 11400000, guid: 3c2383c859d349a88b32dee677e8313b, type: 2}
   specialVariantChance: 0.09
   specialBossChance: 0.045

@@ -3,9 +3,10 @@ using UnityEngine;
 [CreateAssetMenu(
     fileName = "EnemyData",
     menuName = "DungeonMerchant/Enemy Data")]
-public class EnemyDataSO : ScriptableObject
+public class EnemyDataSO : ScriptableObject, IPersistentGameAsset
 {
     [Header("Basic Info")]
+    [SerializeField] private string persistentId;
     public string enemyName;
     [Range(1, 10)] public int monsterGrade = 10;
     public bool isBoss;
@@ -33,6 +34,11 @@ public class EnemyDataSO : ScriptableObject
     public int goldReward = 50;
     [Min(1f)] public float experienceMultiplier = 1f;
     public ItemDropEntry[] itemDrops;
+
+    [System.NonSerialized] public string runtimeSourcePersistentId;
+
+    public string PersistentId =>
+        string.IsNullOrWhiteSpace(persistentId) ? name : persistentId;
 }
 
 public enum EnemyCategory

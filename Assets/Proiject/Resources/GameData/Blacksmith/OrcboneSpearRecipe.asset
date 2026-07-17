@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 20acd31e8b6f423581ac34d0952a1667, type: 3}
   m_Name: OrcboneSpearRecipe
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   recipeName: Orcbone Spear
   resultItem: {fileID: 11400000, guid: bde9b26d084d49ad97296a9c22fd4ee0, type: 2}
   resultAmount: 1
@@ -21,3 +21,5 @@ MonoBehaviour:
     amount: 5
   - item: {fileID: 11400000, guid: 6c4764172bbd4245ab4c951ba5b53403, type: 2}
     amount: 2
+  - item: {fileID: 11400000, guid: 28ea52f6212db55409b8ea0e99271947, type: 2}
+    amount: 1

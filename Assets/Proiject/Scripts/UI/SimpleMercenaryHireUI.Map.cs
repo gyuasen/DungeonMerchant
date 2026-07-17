@@ -134,6 +134,7 @@ public partial class SimpleMercenaryHireUI
             GetOrCreateOverlay(
                 SimpleMercenaryHireOverlaySlot.TravelConfirmation,
                 "Travel Confirmation Overlay");
+        travelConfirmationOverlay.gameObject.SetActive(false);
         travelConfirmationOverlay.anchorMin = Vector2.zero;
         travelConfirmationOverlay.anchorMax = Vector2.one;
         travelConfirmationOverlay.offsetMin = Vector2.zero;
@@ -352,30 +353,37 @@ public partial class SimpleMercenaryHireUI
         standardTownFacilityButtons.Clear();
         hireFacilityButton = CreateMapButton(
             townMapPage, "酒場\n雇用", new Vector2(-255f, 105f),
-            new Vector2(110f, 54f), ShowHirePage);
+            new Vector2(110f, 54f),
+            () => OpenFacilityWithGreeting(FacilityGreetingController.TavernKey, ShowHirePage));
         standardTownFacilityButtons.Add(hireFacilityButton);
         standardTownFacilityButtons.Add(CreateMapButton(
             townMapPage, "商会組合", new Vector2(0f, 135f),
-            new Vector2(110f, 48f), ShowCompanyPage));
+            new Vector2(110f, 48f),
+            () => OpenFacilityWithGreeting(FacilityGreetingController.GuildKey, ShowCompanyPage)));
         standardTownFacilityButtons.Add(CreateMapButton(
             townMapPage, "市場", new Vector2(175f, 105f),
-            new Vector2(100f, 48f), ShowMarketPage));
+            new Vector2(100f, 48f),
+            () => OpenFacilityWithGreeting(FacilityGreetingController.MarketKey, ShowMarketPage)));
         CreateMapButton(
             townMapPage, "鍛冶屋", new Vector2(290f, 75f),
-            new Vector2(100f, 48f), ShowBlacksmithPage);
+            new Vector2(100f, 48f),
+            () => OpenFacilityWithGreeting(FacilityGreetingController.BlacksmithKey, ShowBlacksmithPage));
         standardTownFacilityButtons.Add(CreateMapButton(
             townMapPage, "倉庫", new Vector2(-260f, -45f),
-            new Vector2(100f, 48f), ShowInventoryPage));
+            new Vector2(100f, 48f),
+            () => OpenFacilityWithGreeting(FacilityGreetingController.WarehouseKey, ShowInventoryPage)));
         standardTownFacilityButtons.Add(CreateMapButton(
             townMapPage, "治療院", new Vector2(235f, -42f),
-            new Vector2(100f, 48f), ShowHealPage));
+            new Vector2(100f, 48f),
+            () => OpenFacilityWithGreeting(FacilityGreetingController.ClinicKey, ShowHealPage)));
         CreateMapButton(
             townMapPage, "近隣ダンジョン", new Vector2(0f, -172f),
             new Vector2(150f, 52f),
             () => dungeonBattleController.OpenNearbyDungeon());
         jobFacilityButton = CreateMapButton(
             townMapPage, "転職神殿", new Vector2(105f, -105f),
-            new Vector2(110f, 48f), ShowJobChangePage);
+            new Vector2(110f, 48f),
+            () => OpenFacilityWithGreeting(FacilityGreetingController.TempleKey, ShowJobChangePage));
         standardTownFacilityButtons.Add(jobFacilityButton);
         Button continentButton = CreateMapButton(
             townMapPage, "← 地域マップへ", new Vector2(-300f, -172f),

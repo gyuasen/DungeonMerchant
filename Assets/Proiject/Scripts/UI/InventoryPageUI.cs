@@ -138,6 +138,11 @@ public sealed class InventoryPageUI : ListPageUIBase
             $"{JapaneseDisplayText.GetItemRarity(item.rarity)}  |  " +
             $"{JapaneseDisplayText.GetItemType(item.itemType)}  |  基準 {item.basePrice} G  |  " +
             $"本日 {sellPrice} G ({percent}%)";
+        string classificationTag = MaterialCatalog.GetClassificationTag(item);
+        if (!string.IsNullOrEmpty(classificationTag))
+        {
+            details = "[" + classificationTag + "] " + details;
+        }
         CreateText(
             row,
             details,

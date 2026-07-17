@@ -120,7 +120,15 @@ public class EquipmentInstance
 
     public static EquipmentInstance CreateRandom(ItemDataSO baseItem)
     {
-        EquipmentQuality quality = RollQuality();
+        return CreateRandom(baseItem, () => UnityEngine.Random.value);
+    }
+
+    public static EquipmentInstance CreateRandom(
+        ItemDataSO baseItem,
+        Func<float> randomValue)
+    {
+        Func<float> provider = randomValue ?? (() => UnityEngine.Random.value);
+        EquipmentQuality quality = RollQuality(provider);
         int modifierCount = GetModifierCount(quality);
         bool allowNegative = quality == EquipmentQuality.Poor;
         List<EquipmentModifierType> availableTypes =
@@ -135,12 +143,12 @@ public class EquipmentInstance
 
         for (int i = 0; i < modifierCount && availableTypes.Count > 0; i++)
         {
-            int index = UnityEngine.Random.Range(0, availableTypes.Count);
+            int index = GetRandomIndex(provider, availableTypes.Count);
             EquipmentModifierType type = availableTypes[index];
             availableTypes.RemoveAt(index);
             modifiers.Add(new EquipmentModifier(
                 type,
-                RollModifierValue(type, quality, allowNegative)));
+                RollModifierValue(type, quality, allowNegative, provider)));
         }
 
         return new EquipmentInstance(baseItem, quality, modifiers);
@@ -169,9 +177,9 @@ public class EquipmentInstance
         return value * (1f + enhancementLevel * 0.1f);
     }
 
-    private static EquipmentQuality RollQuality()
+    private static EquipmentQuality RollQuality(Func<float> randomValue)
     {
-        int roll = UnityEngine.Random.Range(0, 100);
+        int roll = GetRandomIndex(randomValue, 100);
         if (roll < 15) return EquipmentQuality.Poor;
         if (roll < 55) return EquipmentQuality.Normal;
         if (roll < 80) return EquipmentQuality.Fine;
@@ -194,7 +202,8 @@ public class EquipmentInstance
     private static float RollModifierValue(
         EquipmentModifierType type,
         EquipmentQuality quality,
-        bool allowNegative)
+        bool allowNegative,
+        Func<float> randomValue)
     {
         float qualityScale = quality == EquipmentQuality.Legendary
             ? 1.5f
@@ -205,20 +214,33 @@ public class EquipmentInstance
         switch (type)
         {
             case EquipmentModifierType.MaxHP:
-                value = UnityEngine.Random.Range(8, 21) * qualityScale;
+                value = GetRandomRange(randomValue, 8f, 21f) * qualityScale;
                 break;
             case EquipmentModifierType.AttackSpeed:
-                value = UnityEngine.Random.Range(0.03f, 0.11f) * qualityScale;
+                value = GetRandomRange(randomValue, 0.03f, 0.11f) * qualityScale;
                 break;
             default:
-                value = UnityEngine.Random.Range(2, 7) * qualityScale;
+                value = GetRandomRange(randomValue, 2f, 7f) * qualityScale;
                 break;
         }
 
-        if (allowNegative && UnityEngine.Random.value < 0.7f)
+        if (allowNegative && randomValue() < 0.7f)
         {
             value *= -1f;
         }
         return value;
+    }
+
+    private static int GetRandomIndex(Func<float> randomValue, int count)
+    {
+        return Mathf.Clamp(Mathf.FloorToInt(randomValue() * count), 0, count - 1);
+    }
+
+    private static float GetRandomRange(
+        Func<float> randomValue,
+        float minimum,
+        float maximum)
+    {
+        return Mathf.Lerp(minimum, maximum, Mathf.Clamp01(randomValue()));
     }
 }
