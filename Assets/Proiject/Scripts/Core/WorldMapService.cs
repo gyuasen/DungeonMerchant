@@ -55,6 +55,10 @@ public static class WorldMapService
         {
             multiplier = 1.25f;
         }
+        if ((townIndex == 4 || townIndex == 5) && IsMineralMaterial(item))
+        {
+            multiplier = 1.20f;
+        }
 
         return ClampTownDemandMultiplier(multiplier);
     }
@@ -100,6 +104,13 @@ public static class WorldMapService
         return item.itemType == ItemType.Material &&
                string.Equals(item.itemName, "Bat Wing",
                    StringComparison.Ordinal);
+    }
+
+    private static bool IsMineralMaterial(ItemDataSO item)
+    {
+        return item.itemType == ItemType.Material &&
+               (item.PersistentId == "item.material.iron_ore" ||
+                item.PersistentId == "item.material.silver_ore");
     }
 
     private static float ClampTownDemandMultiplier(float multiplier)

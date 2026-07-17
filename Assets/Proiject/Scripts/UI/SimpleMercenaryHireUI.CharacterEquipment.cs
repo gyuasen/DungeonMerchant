@@ -9,6 +9,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         equipmentDetailOverlay = GetOrCreateOverlay(
             SimpleMercenaryHireOverlaySlot.EquipmentDetail,
             "Equipment Detail Overlay");
+        equipmentDetailOverlay.gameObject.SetActive(false);
         equipmentDetailOverlay.anchorMin = Vector2.zero;
         equipmentDetailOverlay.anchorMax = Vector2.one;
         equipmentDetailOverlay.offsetMin = Vector2.zero;
@@ -78,6 +79,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             GetOrCreateOverlay(
                 SimpleMercenaryHireOverlaySlot.EquipmentCollection,
                 "Equipment Collection Overlay");
+        equipmentCollectionOverlay.gameObject.SetActive(false);
         equipmentCollectionOverlay.anchorMin = Vector2.zero;
         equipmentCollectionOverlay.anchorMax = Vector2.one;
         equipmentCollectionOverlay.offsetMin = Vector2.zero;
@@ -97,33 +99,13 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             new Vector2(28f, -64f), new Vector2(-120f, -20f),
             ParchmentTextColor);
 
-        RectTransform viewport = CreateUIObject("Collection Viewport", window);
-        viewport.anchorMin = Vector2.zero;
-        viewport.anchorMax = Vector2.one;
-        viewport.offsetMin = new Vector2(28f, 28f);
-        viewport.offsetMax = new Vector2(-28f, -82f);
-        viewport.gameObject.AddComponent<Image>().color =
-            new Color(0f, 0f, 0f, 0.12f);
-        Mask mask = viewport.gameObject.AddComponent<Mask>();
-        mask.showMaskGraphic = false;
-
-        equipmentCollectionContent =
-            CreateUIObject("Collection Content", viewport);
-        equipmentCollectionContent.anchorMin = new Vector2(0f, 1f);
-        equipmentCollectionContent.anchorMax = new Vector2(1f, 1f);
-        equipmentCollectionContent.pivot = new Vector2(0.5f, 1f);
-        equipmentCollectionText = CreateText(
-            equipmentCollectionContent, string.Empty, 16, FontStyle.Normal,
-            TextAnchor.UpperLeft, new Vector2(12f, 12f),
-            new Vector2(-12f, -12f), ParchmentTextColor);
-        equipmentCollectionText.supportRichText = true;
-
-        ScrollRect scroll = viewport.gameObject.AddComponent<ScrollRect>();
-        scroll.content = equipmentCollectionContent;
-        scroll.viewport = viewport;
-        scroll.horizontal = false;
-        scroll.vertical = true;
-        scroll.movementType = ScrollRect.MovementType.Clamped;
+        RectTransform bookRoot = CreateUIObject("Equipment Codex Book", window);
+        bookRoot.anchorMin = Vector2.zero;
+        bookRoot.anchorMax = Vector2.one;
+        bookRoot.offsetMin = new Vector2(28f, 28f);
+        bookRoot.offsetMax = new Vector2(-28f, -82f);
+        equipmentCodexBook = bookRoot.gameObject.AddComponent<BookPageUI>();
+        equipmentCodexBook.Initialize("装備図鑑", uiFont, uiBodyFont);
 
         Button closeButton =
             CreateActionButton(window, "閉じる", HideEquipmentCollection);
@@ -140,6 +122,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         characterDetailOverlay = GetOrCreateOverlay(
             SimpleMercenaryHireOverlaySlot.CharacterDetail,
             "Character Detail Overlay");
+        characterDetailOverlay.gameObject.SetActive(false);
         characterDetailOverlay.anchorMin = Vector2.zero;
         characterDetailOverlay.anchorMax = Vector2.one;
         characterDetailOverlay.offsetMin = Vector2.zero;
@@ -462,6 +445,11 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
 
         ClearChildren(characterEquipmentList);
         float top = 0f;
+        for (int slotIndex = 0; slotIndex < selectedMercenary.ConsumableSlots.Count; slotIndex++)
+        {
+            CreateConsumableSlotRow(slotIndex, top);
+            top -= 76f;
+        }
         foreach (EquipmentSlot slot in
                  System.Enum.GetValues(typeof(EquipmentSlot)))
         {
@@ -510,6 +498,22 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             top -= 116f;
         }
 
+        foreach (InventoryItemStack stack in merchantInventory.Items)
+        {
+            ItemDataSO item = stack?.Item;
+            if (item == null || stack.Amount <= 0 ||
+                item.itemType != ItemType.Consumable)
+            {
+                continue;
+            }
+
+            for (int slotIndex = 0; slotIndex < selectedMercenary.ConsumableSlots.Count; slotIndex++)
+            {
+                CreateConsumableLoadRow(slotIndex, item, top);
+                top -= 76f;
+            }
+        }
+
         if (top == 0f)
         {
             CreateText(
@@ -531,6 +535,82 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             characterEquipmentScrollRect.StopMovement();
             characterEquipmentScrollRect.verticalNormalizedPosition = 1f;
         }
+    }
+
+    private void CreateConsumableSlotRow(int slotIndex, float top)
+    {
+        MercenaryConsumableSlot slot =
+            characterEquipmentController.SelectedDetailMercenary.ConsumableSlots[slotIndex];
+        RectTransform row = CreateUIObject(
+            $"Consumable Slot {slotIndex + 1}",
+            characterEquipmentList);
+        row.anchorMin = new Vector2(0f, 1f);
+        row.anchorMax = new Vector2(1f, 1f);
+        row.pivot = new Vector2(0.5f, 1f);
+        row.offsetMin = new Vector2(0f, top - 66f);
+        row.offsetMax = new Vector2(0f, top);
+        row.gameObject.AddComponent<Image>().color = RowColor;
+        string itemText = slot.IsEmpty
+            ? "空"
+            : $"{JapaneseDisplayText.GetItemName(slot.Item)} x{slot.Count}/5";
+        CreateText(
+            row,
+            $"<b>消耗品スロット {slotIndex + 1}</b>  {itemText}",
+            15,
+            FontStyle.Normal,
+            TextAnchor.MiddleLeft,
+            new Vector2(12f, -56f),
+            new Vector2(-96f, -10f),
+            Color.white);
+        Button button = CreateActionButton(
+            row,
+            "取り外し",
+            () => characterEquipmentController.UnloadConsumable(slotIndex));
+        button.interactable = !slot.IsEmpty;
+        RectTransform buttonRect = button.GetComponent<RectTransform>();
+        buttonRect.sizeDelta = new Vector2(76f, 40f);
+        buttonRect.anchoredPosition = new Vector2(-8f, 0f);
+    }
+
+    private void CreateConsumableLoadRow(
+        int slotIndex,
+        ItemDataSO item,
+        float top)
+    {
+        MercenaryConsumableSlot slot =
+            characterEquipmentController.SelectedDetailMercenary.ConsumableSlots[slotIndex];
+        if (!slot.IsEmpty && slot.Item != item)
+        {
+            return;
+        }
+
+        RectTransform row = CreateUIObject(
+            $"Load {item.itemName} Slot {slotIndex + 1}",
+            characterEquipmentList);
+        row.anchorMin = new Vector2(0f, 1f);
+        row.anchorMax = new Vector2(1f, 1f);
+        row.pivot = new Vector2(0.5f, 1f);
+        row.offsetMin = new Vector2(0f, top - 66f);
+        row.offsetMax = new Vector2(0f, top);
+        row.gameObject.AddComponent<Image>().color = RowColor;
+        CreateText(
+            row,
+            $"{JapaneseDisplayText.GetItemName(item)}  倉庫 {merchantInventory.GetItemAmount(item)}\n" +
+            $"消耗品スロット {slotIndex + 1}へ1個装填",
+            14,
+            FontStyle.Normal,
+            TextAnchor.MiddleLeft,
+            new Vector2(12f, -56f),
+            new Vector2(-96f, -8f),
+            Color.white);
+        Button button = CreateActionButton(
+            row,
+            "装填",
+            () => characterEquipmentController.LoadConsumable(slotIndex, item));
+        button.interactable = slot.Count < MercenaryConsumableSlot.MaxCount;
+        RectTransform buttonRect = button.GetComponent<RectTransform>();
+        buttonRect.sizeDelta = new Vector2(76f, 40f);
+        buttonRect.anchoredPosition = new Vector2(-8f, 0f);
     }
 
     private void CreateEquipmentOptionRow(ItemDataSO item, bool isEquipped, float top)
@@ -669,17 +749,48 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
 
     private void ShowEquipmentCollection()
     {
-        equipmentCollectionText.text =
-            characterEquipmentController.BuildEquipmentCollectionText(
-                out int lineCount);
-        float height = Mathf.Max(430f, 76f + lineCount * 28f);
-        equipmentCollectionContent.sizeDelta = new Vector2(0f, height);
-        equipmentCollectionText.rectTransform.anchorMin = Vector2.zero;
-        equipmentCollectionText.rectTransform.anchorMax = Vector2.one;
-        equipmentCollectionText.rectTransform.offsetMin = new Vector2(12f, 12f);
-        equipmentCollectionText.rectTransform.offsetMax = new Vector2(-12f, -12f);
+        List<BookPageUI.Entry> entries = new List<BookPageUI.Entry>();
+        foreach (ItemDataSO item in GameAssetRepository.LoadAll<ItemDataSO>())
+        {
+            if (item == null || !item.IsEquipment)
+            {
+                continue;
+            }
+
+            bool discovered = merchantInventory != null &&
+                merchantInventory.HasDiscoveredEquipment(item);
+            entries.Add(new BookPageUI.Entry
+            {
+                Name = JapaneseDisplayText.GetItemName(item) + "  " +
+                    EquipmentRankPresentation.GetRichText(item),
+                Detail = BuildEquipmentCodexDetail(item),
+                Sprite = Resources.Load<Sprite>("UI/Codex/Equipment/" + item.name),
+                Discovered = discovered
+            });
+        }
+
+        entries.Sort((left, right) => string.Compare(left.Name, right.Name, System.StringComparison.Ordinal));
+        equipmentCodexBook.SetEntries(entries);
         equipmentCollectionOverlay.SetAsLastSibling();
         equipmentCollectionOverlay.gameObject.SetActive(true);
+    }
+
+    private static string BuildEquipmentCodexDetail(ItemDataSO item)
+    {
+        string target = item.allClassesCanEquip
+            ? "全職業"
+            : JapaneseDisplayText.GetMercenaryClass(item.requiredClass);
+        return string.Format(
+            "{0} / {1}\n{2}  Rank {3}\nHP {4:+#;-#;0}  攻 {5:+#;-#;0}  防 {6:+#;-#;0}  速 {7:+0.##;-0.##;0}\n基本価格 {8} G",
+            JapaneseDisplayText.GetEquipmentSlot(item.equipmentSlot),
+            target,
+            EquipmentRankPresentation.GetRichText(item),
+            item.equipmentRank,
+            item.bonusMaxHP,
+            item.bonusAttack,
+            item.bonusDefense,
+            item.bonusAttackSpeed,
+            item.basePrice);
     }
 
     private void HideEquipmentCollection()

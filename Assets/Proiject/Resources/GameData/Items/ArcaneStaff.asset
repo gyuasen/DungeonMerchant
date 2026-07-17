@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -11,17 +11,23 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: ArcaneStaff
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   persistentId: item.ArcaneStaff
   itemName: Arcane Staff
   itemType: 1
   rarity: 1
+  materialClassification: 0
   description: A staff engraved with runes that amplify arcane power.
   basePrice: 360
+  acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 2
+  allClassesCanEquip: 0
+  equipmentSet: 0
   equipmentRank: 2
   bonusMaxHP: 3
   bonusAttack: 12
   bonusDefense: 0
   bonusAttackSpeed: 0.03
+  consumableEffect: 0
+  consumableHealAmount: 0

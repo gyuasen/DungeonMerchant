@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 20acd31e8b6f423581ac34d0952a1667, type: 3}
   m_Name: GoblinHunterSwordRecipe
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   recipeName: Goblin Hunter Sword
   resultItem: {fileID: 11400000, guid: 4ecbaf5854ae47e1bf3a12a84c57f441, type: 2}
   resultAmount: 1
@@ -21,3 +21,5 @@ MonoBehaviour:
     amount: 5
   - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
     amount: 3
+  - item: {fileID: 11400000, guid: 28ea52f6212db55409b8ea0e99271947, type: 2}
+    amount: 1

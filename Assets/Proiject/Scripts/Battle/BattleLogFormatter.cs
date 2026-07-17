@@ -5,6 +5,16 @@
 /// </summary>
 public static class BattleLogFormatter
 {
+    public static string FormatConsumableUse(
+        string unitName,
+        string itemName,
+        int healed)
+    {
+        return healed > 0
+            ? $"{unitName}は{itemName}を使った！ HP+{healed}"
+            : $"{unitName}は{itemName}を使った！";
+    }
+
     public static string FormatBattleStart(int playerCount, int enemyCount)
     {
         return $"戦闘開始: 傭兵{playerCount}人 vs 敵{enemyCount}体";

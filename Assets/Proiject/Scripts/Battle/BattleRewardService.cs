@@ -20,6 +20,20 @@ public sealed class BattleRewardService
     private readonly Func<float> randomValueProvider;
     private ItemDataSO fallbackDropItem;
 
+    public sealed class VictoryRewardCalculation
+    {
+        public int Gold { get; }
+        public int ExperiencePerMercenary { get; }
+        public IReadOnlyList<ItemDropEntry> ItemDrops { get; }
+
+        public VictoryRewardCalculation(int gold, int experiencePerMercenary, IReadOnlyList<ItemDropEntry> itemDrops)
+        {
+            Gold = gold;
+            ExperiencePerMercenary = experiencePerMercenary;
+            ItemDrops = itemDrops;
+        }
+    }
+
     public BattleRewardService(
         MerchantData targetMerchantData,
         MerchantInventory targetMerchantInventory,
@@ -70,13 +84,74 @@ public sealed class BattleRewardService
         IReadOnlyList<EnemyDataSO> defeatedEnemies,
         IReadOnlyList<MercenaryInstance> battleMercenaries)
     {
-        int totalGoldReward = CalculateGoldReward(defeatedEnemies);
-        merchantData?.AddGold(totalGoldReward);
+        VictoryRewardCalculation calculation = CalculateVictoryRewards(
+            defeatedEnemies,
+            battleMercenaries == null ? 0 : battleMercenaries.Count,
+            randomValueProvider,
+            GetFallbackDropItem());
+        merchantData?.AddGold(calculation.Gold);
         SendMessage(
-            BattleLogFormatter.FormatVictoryGold(totalGoldReward),
+            BattleLogFormatter.FormatVictoryGold(calculation.Gold),
             BattleLogType.Reward);
-        GrantExperienceRewards(defeatedEnemies, battleMercenaries);
-        GrantItemRewards(defeatedEnemies);
+        GrantExperienceRewards(calculation.ExperiencePerMercenary, battleMercenaries);
+        GrantItemRewards(calculation.ItemDrops);
+    }
+
+    public static VictoryRewardCalculation CalculateVictoryRewards(
+        IReadOnlyList<EnemyDataSO> defeatedEnemies,
+        int mercenaryCount,
+        Func<float> randomValueProvider,
+        ItemDataSO fallbackItem)
+    {
+        List<ItemDropEntry> drops = CalculateItemDrops(
+            defeatedEnemies,
+            randomValueProvider,
+            fallbackItem);
+        return new VictoryRewardCalculation(
+            CalculateGoldReward(defeatedEnemies),
+            CalculateExperiencePerMercenary(
+                CalculateExperienceReward(defeatedEnemies),
+                mercenaryCount),
+            drops);
+    }
+
+    public static List<ItemDropEntry> CalculateItemDrops(
+        IReadOnlyList<EnemyDataSO> defeatedEnemies,
+        Func<float> randomValueProvider,
+        ItemDataSO fallbackItem)
+    {
+        Func<float> random = randomValueProvider ?? (() => UnityEngine.Random.value);
+        List<ItemDropEntry> result = new List<ItemDropEntry>();
+        if (defeatedEnemies != null)
+        {
+            foreach (EnemyDataSO enemy in defeatedEnemies)
+            {
+                if (enemy == null)
+                {
+                    continue;
+                }
+                if (enemy.itemDrops != null)
+                {
+                    foreach (ItemDropEntry drop in enemy.itemDrops)
+                    {
+                        if (drop != null && drop.item != null && drop.amount > 0 && random() <= drop.dropChance)
+                        {
+                            result.Add(drop);
+                        }
+                    }
+                }
+                ItemDataSO magicStone = MaterialCatalog.GetMagicStoneForEnemyGrade(enemy.monsterGrade);
+                if (magicStone != null && (enemy.isBoss || random() <= MaterialCatalog.MagicStoneDropChance))
+                {
+                    result.Add(new ItemDropEntry { item = magicStone, amount = enemy.isBoss ? 2 : 1, dropChance = 1f });
+                }
+            }
+        }
+        if (result.Count == 0 && fallbackItem != null)
+        {
+            result.Add(new ItemDropEntry { item = fallbackItem, amount = 1, dropChance = 1f });
+        }
+        return result;
     }
 
     public static int CalculateGoldReward(IReadOnlyList<EnemyDataSO> defeatedEnemies)
@@ -148,17 +223,13 @@ public sealed class BattleRewardService
     }
 
     private void GrantExperienceRewards(
-        IReadOnlyList<EnemyDataSO> defeatedEnemies,
+        int experiencePerMercenary,
         IReadOnlyList<MercenaryInstance> battleMercenaries)
     {
         if (battleMercenaries == null || battleMercenaries.Count == 0)
         {
             return;
         }
-
-        int experiencePerMercenary = CalculateExperiencePerMercenary(
-            CalculateExperienceReward(defeatedEnemies),
-            battleMercenaries.Count);
 
         foreach (MercenaryInstance mercenary in battleMercenaries)
         {
@@ -194,7 +265,38 @@ public sealed class BattleRewardService
         }
     }
 
-    private void GrantItemRewards(IReadOnlyList<EnemyDataSO> defeatedEnemies)
+    private void GrantItemRewards(IReadOnlyList<ItemDropEntry> drops)
+    {
+        if (merchantInventory == null)
+        {
+            return;
+        }
+        if (drops == null)
+        {
+            return;
+        }
+        foreach (ItemDropEntry drop in drops)
+        {
+            if (drop != null && drop.item != null && drop.amount > 0)
+            {
+                if (!merchantInventory.TryAddItem(drop.item, drop.amount))
+                {
+                    SendMessage(
+                        "倉庫が満杯のため、戦利品を受け取れませんでした。",
+                        BattleLogType.System);
+                    continue;
+                }
+
+                SendMessage(
+                    BattleLogFormatter.FormatItemDrop(
+                        JapaneseDisplayText.GetItemName(drop.item),
+                        drop.amount),
+                    BattleLogType.Reward);
+            }
+        }
+    }
+
+    private void GrantItemRewardsLegacy(IReadOnlyList<EnemyDataSO> defeatedEnemies)
     {
         if (merchantInventory == null)
         {

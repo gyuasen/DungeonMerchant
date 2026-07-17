@@ -12,9 +12,9 @@ public class BattleUnit
     public int MaxMagicPower { get; private set; }
     public int CurrentMagicPower { get; private set; }
 
-    public int Attack { get; private set; }
-    public int Defense { get; private set; }
-    public float AttackSpeed { get; private set; }
+    public int Attack => Mathf.RoundToInt(baseAttack * (1f + attackBonusPercent));
+    public int Defense => Mathf.RoundToInt(baseDefense * (1f + defenseBonusPercent));
+    public float AttackSpeed => baseAttackSpeed * (1f + speedBonusPercent);
     public float CriticalRate { get; private set; }
     public float EvasionRate { get; private set; }
     public int TauntTurns { get; private set; }
@@ -22,10 +22,19 @@ public class BattleUnit
     public int StatusTurns { get; private set; }
     private float criticalRateBonus;
     private int criticalRateBonusTurns;
+    private readonly int baseAttack;
+    private readonly int baseDefense;
+    private readonly float baseAttackSpeed;
+    private float attackBonusPercent;
+    private float defenseBonusPercent;
+    private float speedBonusPercent;
 
     public bool IsDead => CurrentHP <= 0;
     public bool IsTaunting => !IsDead && TauntTurns > 0;
     public int EffectiveDefense => Defense;
+    public float AttackBonusPercent => attackBonusPercent;
+    public float DefenseBonusPercent => defenseBonusPercent;
+    public float SpeedBonusPercent => speedBonusPercent;
     public string StatusSummary
     {
         get
@@ -66,9 +75,9 @@ public class BattleUnit
         Level = Mathf.Max(1, level);
         MaxHP = maxHP;
         CurrentHP = Mathf.Clamp(currentHP, 0, maxHP);
-        Attack = attack;
-        Defense = defense;
-        AttackSpeed = attackSpeed;
+        baseAttack = attack;
+        baseDefense = defense;
+        baseAttackSpeed = attackSpeed;
         CriticalRate = Mathf.Clamp(criticalRate, 0f, 0.75f);
         EvasionRate = Mathf.Clamp(evasionRate, 0f, 0.75f);
         MaxMagicPower = Mathf.Max(0, maxMagicPower);
@@ -160,6 +169,19 @@ public class BattleUnit
         return true;
     }
 
+    public bool CureStatus(BattleStatusEffect effect)
+    {
+        if (StatusEffect == BattleStatusEffect.None ||
+            (effect != BattleStatusEffect.None && StatusEffect != effect))
+        {
+            return false;
+        }
+
+        StatusEffect = BattleStatusEffect.None;
+        StatusTurns = 0;
+        return true;
+    }
+
     public int EstimateDamageTaken(int damage)
     {
         return Mathf.Max(1, damage - EffectiveDefense);
@@ -179,6 +201,21 @@ public class BattleUnit
 
         CurrentMagicPower =
             Mathf.Min(MaxMagicPower, CurrentMagicPower + amount);
+    }
+
+    public void BoostAttackForBattle(float percent)
+    {
+        attackBonusPercent = Mathf.Max(attackBonusPercent, Mathf.Max(0f, percent));
+    }
+
+    public void BoostDefenseForBattle(float percent)
+    {
+        defenseBonusPercent = Mathf.Max(defenseBonusPercent, Mathf.Max(0f, percent));
+    }
+
+    public void BoostSpeedForBattle(float percent)
+    {
+        speedBonusPercent = Mathf.Max(speedBonusPercent, Mathf.Max(0f, percent));
     }
 
     public bool TryConsumeMagicPower(int cost)

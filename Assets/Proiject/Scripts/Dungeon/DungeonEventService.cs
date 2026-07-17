@@ -6,7 +6,7 @@ public static class DungeonEventService
     {
         return (DungeonEventType)Random.Range(
             (int)DungeonEventType.AbandonedCamp,
-            (int)DungeonEventType.CollapsedPassage + 1);
+            (int)DungeonEventType.QualityGrove + 1);
     }
 
     public static DungeonEventPresentation CreatePresentation(
@@ -39,6 +39,12 @@ public static class DungeonEventService
                     "安全に迂回 / +1日",
                     $"強行突破 HP-{hazardDamage} / 日数増加なし",
                     "撤退");
+            case DungeonEventType.MineralVein:
+                return new DungeonEventPresentation("鉱脈を見つけた", "採掘できる鉱脈が露出している。", "慎重に採掘する", "急いで採掘する", "撤退");
+            case DungeonEventType.HerbGrove:
+                return new DungeonEventPresentation("薬草の群生地を見つけた", "薬効のある草が群生している。", "丁寧に採取する", "急いで採取する", "撤退");
+            case DungeonEventType.QualityGrove:
+                return new DungeonEventPresentation("良質な木立を見つけた", "加工に適した木材が手に入りそうだ。", "慎重に伐採する", "急いで伐採する", "撤退");
             default:
                 return DungeonEventPresentation.Empty;
         }
@@ -147,10 +153,40 @@ public static class DungeonEventService
                 return optionIndex == 0
                     ? "CollapsedPassage_Detour"
                     : "CollapsedPassage_Force";
+            case DungeonEventType.MineralVein:
+                return optionIndex == 0 ? "MineralVein_Careful" : "MineralVein_Quick";
+            case DungeonEventType.HerbGrove:
+                return optionIndex == 0 ? "HerbGrove_Careful" : "HerbGrove_Quick";
+            case DungeonEventType.QualityGrove:
+                return optionIndex == 0 ? "QualityGrove_Careful" : "QualityGrove_Quick";
             default:
                 return "Retreat";
         }
     }
+}
+
+public static class DungeonEnvironmentEventService
+{
+public static DungeonEventChoiceResult ResolveEnvironmentalChoice(
+    DungeonEventType eventType,
+    int optionIndex,
+    DungeonGrade dungeonGrade)
+{
+    if (optionIndex == 2)
+    {
+        return DungeonEventChoiceResult.None;
+    }
+
+    bool highGrade = dungeonGrade >= DungeonGrade.Upper;
+    string path = eventType == DungeonEventType.MineralVein
+        ? highGrade ? "GameData/Items/SilverOre" : "GameData/Items/IronOre"
+        : eventType == DungeonEventType.HerbGrove
+            ? highGrade ? "GameData/Items/AntidoteHerb" : "GameData/Items/MedicinalHerb"
+            : highGrade ? "GameData/Items/Spiritwood" : "GameData/Items/Hardwood";
+    ItemDataSO item = Resources.Load<ItemDataSO>(path);
+    int amount = (optionIndex == 0 ? 2 : 1) + (int)dungeonGrade;
+    return DungeonEventChoiceResult.Material(item, amount, optionIndex == 0);
+}
 }
 
 public readonly struct DungeonEventPresentation
@@ -194,19 +230,25 @@ public readonly struct DungeonEventChoiceResult
     public readonly int GoldAmount;
     public readonly bool AddExplorationDelay;
     public readonly string LimitedDropSourceLabel;
+    public readonly ItemDataSO MaterialItem;
+    public readonly int MaterialAmount;
 
     private DungeonEventChoiceResult(
         int healAmount,
         int damageAmount,
         int goldAmount,
         bool addExplorationDelay,
-        string limitedDropSourceLabel)
+        string limitedDropSourceLabel,
+        ItemDataSO materialItem = null,
+        int materialAmount = 0)
     {
         HealAmount = healAmount;
         DamageAmount = damageAmount;
         GoldAmount = goldAmount;
         AddExplorationDelay = addExplorationDelay;
         LimitedDropSourceLabel = limitedDropSourceLabel;
+        MaterialItem = materialItem;
+        MaterialAmount = materialAmount;
     }
 
     public static DungeonEventChoiceResult Heal(
@@ -250,5 +292,20 @@ public readonly struct DungeonEventChoiceResult
     public static DungeonEventChoiceResult Delay()
     {
         return new DungeonEventChoiceResult(0, 0, 0, true, null);
+    }
+
+    public static DungeonEventChoiceResult Material(
+        ItemDataSO item,
+        int amount,
+        bool addExplorationDelay)
+    {
+        return new DungeonEventChoiceResult(
+            0,
+            0,
+            0,
+            addExplorationDelay,
+            null,
+            item,
+            Mathf.Max(1, amount));
     }
 }

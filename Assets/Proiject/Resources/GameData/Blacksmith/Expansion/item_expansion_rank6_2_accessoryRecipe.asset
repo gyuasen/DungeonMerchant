@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20acd31e8b6f423581ac34d0952a1667, type: 3}
+  m_Name: item_expansion_rank6_2_accessoryRecipe
+  m_EditorClassIdentifier: 
+  recipeName: "\u6DF1\u68EE\u306E\u9B54\u6676\u73E0"
+  resultItem: {fileID: 11400000, guid: df810badbd0b2c843a8403aed11f6f6f, type: 2}
+  resultAmount: 1
+  goldCost: 540
+  materials:
+  - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
+    amount: 6
+  - item: {fileID: 11400000, guid: 41759c6c3b674e80badbff072ddc6b6d, type: 2}
+    amount: 3
+  - item: {fileID: 11400000, guid: 3693d3aa73216dc44a3c3e7d77c1419f, type: 2}
+    amount: 2

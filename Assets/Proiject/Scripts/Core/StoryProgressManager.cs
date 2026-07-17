@@ -127,9 +127,10 @@ public sealed class StoryProgressManager : MonoBehaviour
         {
             case StoryMilestone.OpeningDebtNotice:
                 return new StoryMilestoneInfo(
-                    "第一章　借金まみれの傭兵商会",
-                    "先代が残した一億Gの借用証書。その返済期限は、容赦なく迫っていた。\n\n" +
-                    "港町セイルの小さな商会から、あなたの再建が始まる。傭兵を集め、危険な依頼を成功させ、失われた信用を取り戻そう。");
+                    "第一章　魔大陸、再建の始まり",
+                    "両親は輸送事故で意識不明となり、商会は取り潰された。残されたのは一億ゴールドの債務と、治療を待つ二人だけ。\n\n" +
+                    "あなたは両親の原点、魔大陸へ渡った。旧取引先の臨時契約者たちは救いの手を差し出さない。だが、仕事と報酬を示せば取引には応じる。\n\n" +
+                    "わずかな資金で傭兵を雇い、最初の探索隊を編成しよう。素材を利益に変え、両親と商会を取り戻すために。");
             case StoryMilestone.FirstMercenary:
                 return new StoryMilestoneInfo(
                     "最初の契約書",

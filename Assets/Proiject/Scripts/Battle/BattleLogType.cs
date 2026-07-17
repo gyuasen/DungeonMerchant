@@ -35,5 +35,13 @@ public enum EnemySkillType
     CrushingBlow = 17,
     BerserkRush = 18,
     Regeneration = 19,
-    SoulBurst = 20
+    SoulBurst = 20,
+    ShadowPounce = 21,
+    HexBolt = 22,
+    Ironhide = 23,
+    CleavingRush = 24,
+    VenomSpray = 25,
+    PiercingShot = 26,
+    BloodFrenzy = 27,
+    Reconstitute = 28
 }

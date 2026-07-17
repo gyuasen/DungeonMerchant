@@ -93,44 +93,44 @@ public partial class SimpleMercenaryHireUI
             Destroy(transportContent.GetChild(i).gameObject);
         }
         float top = -12f;
-        CreateTransportSection("進行中の輸送部隊", ref top);
+        CreateScrollSection(transportContent, "進行中の輸送部隊", ref top);
         bool hasConvoy = false;
         foreach (TransportConvoy convoy in transportController.ActiveConvoys)
         {
             hasConvoy = true;
-            CreateTransportLabel(transportController.BuildConvoyText(convoy), ref top);
+            CreateScrollLabel(transportContent, transportController.BuildConvoyText(convoy), ref top);
         }
-        if (!hasConvoy) CreateTransportLabel("進行中の部隊はいません", ref top);
-        CreateTransportSection("新規編成", ref top);
-        CreateTransportLabel("目的地", ref top);
+        if (!hasConvoy) CreateScrollLabel(transportContent, "進行中の部隊はいません", ref top);
+        CreateScrollSection(transportContent, "新規編成", ref top);
+        CreateScrollLabel(transportContent, "目的地", ref top);
         for (int i = 0; i < WorldMapService.TownNames.Length; i++)
         {
             if (!transportController.IsDestinationAvailable(i)) continue;
             int townIndex = i;
-            CreateTransportButton(
+            CreateScrollButton(transportContent,
                 (transportController.DestinationTownIndex == i ? "● " : "○ ") +
                 WorldMapService.TownNames[i], () => transportController.SelectDestination(townIndex), ref top);
         }
-        CreateTransportLabel("積荷（通常アイテム）", ref top);
+        CreateScrollLabel(transportContent, "積荷（通常アイテム）", ref top);
         bool hasCargo = false;
         foreach (InventoryItemStack stack in transportController.GetCargoCandidates())
         {
             hasCargo = true;
-            CreateCargoRow(stack, ref top);
+            CreateCargoRow(transportContent, stack, ref top);
         }
-        if (!hasCargo) CreateTransportLabel("輸送できる在庫がありません", ref top);
-        CreateTransportLabel("護衛（最大3人）", ref top);
+        if (!hasCargo) CreateScrollLabel(transportContent, "輸送できる在庫がありません", ref top);
+        CreateScrollLabel(transportContent, "護衛（最大3人）", ref top);
         bool hasEscort = false;
         foreach (MercenaryInstance mercenary in transportController.GetAvailableEscorts())
         {
             hasEscort = true;
             MercenaryInstance selected = mercenary;
-            CreateTransportButton(
+            CreateScrollButton(transportContent,
                 (transportController.IsEscortSelected(mercenary) ? "● " : "○ ") +
                 mercenary.MercenaryName + "  Lv" + mercenary.Level,
                 () => transportController.ToggleEscort(selected), ref top);
         }
-        if (!hasEscort) CreateTransportLabel("割り当て可能な傭兵はいません", ref top);
+        if (!hasEscort) CreateScrollLabel(transportContent, "割り当て可能な傭兵はいません", ref top);
         transportContent.sizeDelta = new Vector2(0f, Mathf.Max(420f, -top + 12f));
         if (transportFooterText != null)
         {
@@ -139,24 +139,34 @@ public partial class SimpleMercenaryHireUI
         }
     }
 
-    private void CreateTransportSection(string text, ref float top)
+    private void CreateScrollSection(
+        RectTransform content,
+        string text,
+        ref float top)
     {
-        Text label = CreateText(transportContent, text, 19, FontStyle.Bold,
+        Text label = CreateText(content, text, 19, FontStyle.Bold,
             TextAnchor.MiddleLeft, new Vector2(14f, top - 30f), new Vector2(-14f, top),
             ParchmentTextColor);
         top -= 38f;
     }
 
-    private void CreateTransportLabel(string text, ref float top)
+    private void CreateScrollLabel(
+        RectTransform content,
+        string text,
+        ref float top)
     {
-        CreateText(transportContent, text, 15, FontStyle.Normal, TextAnchor.MiddleLeft,
+        CreateText(content, text, 15, FontStyle.Normal, TextAnchor.MiddleLeft,
             new Vector2(22f, top - 28f), new Vector2(-22f, top), ParchmentMutedColor);
         top -= 32f;
     }
 
-    private void CreateTransportButton(string text, UnityEngine.Events.UnityAction action, ref float top)
+    private void CreateScrollButton(
+        RectTransform content,
+        string text,
+        UnityEngine.Events.UnityAction action,
+        ref float top)
     {
-        Button button = CreateActionButton(transportContent, text, action);
+        Button button = CreateActionButton(content, text, action);
         RectTransform rect = button.GetComponent<RectTransform>();
         rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
         rect.pivot = new Vector2(0f, 1f);
@@ -165,14 +175,21 @@ public partial class SimpleMercenaryHireUI
         top -= 34f;
     }
 
-    private void CreateCargoRow(InventoryItemStack stack, ref float top)
+    private void CreateCargoRow(
+        RectTransform content,
+        InventoryItemStack stack,
+        ref float top)
     {
         ItemDataSO item = stack.Item;
         int amount = transportController.GetSelectedCargoAmount(item);
-        CreateTransportLabel(JapaneseDisplayText.GetItemName(item) + "  在庫" + stack.Amount + "  選択" + amount, ref top);
+        CreateScrollLabel(
+            content,
+            JapaneseDisplayText.GetItemName(item) + "  在庫" + stack.Amount +
+            "  選択" + amount,
+            ref top);
         float rowTop = top + 30f;
-        Button minus = CreateActionButton(transportContent, "－", () => transportController.ChangeCargo(item, stack.Amount, -1));
-        Button plus = CreateActionButton(transportContent, "＋", () => transportController.ChangeCargo(item, stack.Amount, 1));
+        Button minus = CreateActionButton(content, "－", () => transportController.ChangeCargo(item, stack.Amount, -1));
+        Button plus = CreateActionButton(content, "＋", () => transportController.ChangeCargo(item, stack.Amount, 1));
         RectTransform minusRect = minus.GetComponent<RectTransform>();
         minusRect.anchorMin = minusRect.anchorMax = new Vector2(0f, 1f);
         minusRect.pivot = new Vector2(0f, 1f);

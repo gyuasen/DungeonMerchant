@@ -22,6 +22,8 @@ public class SaveManager : MonoBehaviour
     private TownProgressState townProgressState;
     private StoryProgressManager storyProgressManager;
     private TransportManager transportManager;
+    private DungeonExpeditionManager dungeonExpeditionManager;
+    private MonsterCodexManager monsterCodexManager;
     private bool initialized;
     private bool isLoading;
     private bool suppressAutoSaveAfterDelete;
@@ -58,7 +60,14 @@ public class SaveManager : MonoBehaviour
 
         ResolveReferences();
         bool hasExistingSave = File.Exists(SavePath);
-        LoadGame();
+        if (hasExistingSave)
+        {
+            LoadGame();
+        }
+        else
+        {
+            ApplySaveData(new GameSaveData());
+        }
         Subscribe();
         if (!hasExistingSave)
         {
@@ -398,7 +407,8 @@ public class SaveManager : MonoBehaviour
                         mercenary.EquippedAccessoryInstance != null
                             ? CreateSavedEquipment(
                                 mercenary.EquippedAccessoryInstance)
-                            : null
+                            : null,
+                    consumableSlots = CreateSavedConsumableSlots(mercenary)
                 });
             }
         }
@@ -422,6 +432,15 @@ public class SaveManager : MonoBehaviour
         if (transportManager != null)
         {
             data.transportConvoys = transportManager.CreateSaveData();
+        }
+        if (dungeonExpeditionManager != null)
+        {
+            data.dungeonExpeditions = dungeonExpeditionManager.CreateSaveData();
+        }
+        if (monsterCodexManager != null)
+        {
+            data.encounteredEnemyIds.AddRange(
+                monsterCodexManager.EncounteredEnemyIds);
         }
 
         return data;
@@ -528,6 +547,7 @@ public class SaveManager : MonoBehaviour
         merchantInventory?.RestoreDiscoveredEquipment(
             data.discoveredEquipmentPersistentIds,
             data.discoveredEquipmentAssetNames);
+        monsterCodexManager?.RestoreEncounteredEnemies(data.encounteredEnemyIds);
 
         List<MercenaryInstance> restoredMercenaries = new List<MercenaryInstance>();
         if (data.hiredMercenaries != null)
@@ -575,6 +595,7 @@ public class SaveManager : MonoBehaviour
         }
         partyManager?.RestoreParty(restoredParty);
         transportManager?.Restore(data.transportConvoys, mercenaryById);
+        dungeonExpeditionManager?.Restore(data.dungeonExpeditions, mercenaryById);
         progressionManager?.Restore(data.progression);
 
         dungeonRunManager?.RestoreProgress(
@@ -638,7 +659,52 @@ public class SaveManager : MonoBehaviour
         mercenary.RestoreContractState(
             saved.contractEndDay,
             saved.contractNeedsRenewal);
+        RestoreMercenaryConsumableSlots(mercenary, saved.consumableSlots);
         return mercenary;
+    }
+
+    private static SavedMercenaryConsumableSlot[] CreateSavedConsumableSlots(
+        MercenaryInstance mercenary)
+    {
+        SavedMercenaryConsumableSlot[] savedSlots =
+            new SavedMercenaryConsumableSlot[2];
+        for (int i = 0; i < savedSlots.Length; i++)
+        {
+            MercenaryConsumableSlot slot = mercenary.ConsumableSlots[i];
+            savedSlots[i] = new SavedMercenaryConsumableSlot
+            {
+                itemPersistentId = slot.Item != null ? slot.Item.PersistentId : string.Empty,
+                count = slot.Count
+            };
+        }
+
+        return savedSlots;
+    }
+
+    private static void RestoreMercenaryConsumableSlots(
+        MercenaryInstance mercenary,
+        SavedMercenaryConsumableSlot[] savedSlots)
+    {
+        if (savedSlots == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < Mathf.Min(2, savedSlots.Length); i++)
+        {
+            SavedMercenaryConsumableSlot savedSlot = savedSlots[i];
+            ItemDataSO item = savedSlot == null
+                ? null
+                : GameAssetRepository.FindByPersistentId<ItemDataSO>(
+                    savedSlot.itemPersistentId,
+                    string.Empty);
+            mercenary.RestoreConsumableSlot(
+                i,
+                item != null && item.itemType == ItemType.Consumable
+                    ? item
+                    : null,
+                savedSlot != null ? savedSlot.count : 0);
+        }
     }
 
     private void RestoreMercenaryEquipment(
@@ -745,6 +811,7 @@ public class SaveManager : MonoBehaviour
         if (hireManager != null) hireManager.ContractsChanged += HandleChanged;
         if (storyProgressManager != null) storyProgressManager.MilestoneCompleted += HandleStoryMilestoneCompleted;
         if (transportManager != null) transportManager.TransportChanged += HandleChanged;
+        if (dungeonExpeditionManager != null) dungeonExpeditionManager.ExpeditionChanged += HandleChanged;
         if (partyManager != null) partyManager.PartyChanged += HandleChanged;
         if (healingManager != null) healingManager.HealingChanged += HandleChanged;
         if (battleManager != null) battleManager.BattleCompleted += HandleBattleCompleted;
@@ -774,6 +841,7 @@ public class SaveManager : MonoBehaviour
         if (hireManager != null) hireManager.ContractsChanged -= HandleChanged;
         if (storyProgressManager != null) storyProgressManager.MilestoneCompleted -= HandleStoryMilestoneCompleted;
         if (transportManager != null) transportManager.TransportChanged -= HandleChanged;
+        if (dungeonExpeditionManager != null) dungeonExpeditionManager.ExpeditionChanged -= HandleChanged;
         if (partyManager != null) partyManager.PartyChanged -= HandleChanged;
         if (healingManager != null) healingManager.HealingChanged -= HandleChanged;
         if (battleManager != null) battleManager.BattleCompleted -= HandleBattleCompleted;
@@ -911,5 +979,11 @@ public class SaveManager : MonoBehaviour
         transportManager =
             GetComponent<TransportManager>() ??
             FindObjectOfType<TransportManager>();
+        dungeonExpeditionManager =
+            GetComponent<DungeonExpeditionManager>() ??
+            FindObjectOfType<DungeonExpeditionManager>();
+        monsterCodexManager =
+            GetComponent<MonsterCodexManager>() ??
+            FindObjectOfType<MonsterCodexManager>();
     }
 }

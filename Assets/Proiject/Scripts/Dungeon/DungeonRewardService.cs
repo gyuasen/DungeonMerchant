@@ -68,14 +68,37 @@ public sealed class DungeonRewardService
         string sourceLabel)
     {
         if (merchantInventory == null ||
-            dungeonData?.limitedEquipmentDrops == null ||
-            dungeonData.limitedEquipmentDrops.Length == 0 ||
             chance <= 0f ||
             UnityEngine.Random.value > chance)
         {
             return;
         }
 
+        EquipmentInstance equipment = TryCreateLimitedEquipment(
+            dungeonData,
+            () => UnityEngine.Random.value);
+        if (equipment == null)
+        {
+            return;
+        }
+
+        merchantInventory.AddEquipmentInstance(equipment);
+        SendMessage(
+            $"{sourceLabel}: [{JapaneseDisplayText.GetEquipmentQuality(equipment.Quality)}] " +
+            $"{JapaneseDisplayText.GetItemName(equipment.BaseItem)}");
+    }
+
+    public static EquipmentInstance TryCreateLimitedEquipment(
+        DungeonDataSO dungeonData,
+        Func<float> randomValue)
+    {
+        if (dungeonData?.limitedEquipmentDrops == null ||
+            dungeonData.limitedEquipmentDrops.Length == 0)
+        {
+            return null;
+        }
+
+        Func<float> provider = randomValue ?? (() => UnityEngine.Random.value);
         List<ItemDataSO> validDrops = new List<ItemDataSO>();
         foreach (ItemDataSO item in dungeonData.limitedEquipmentDrops)
         {
@@ -91,15 +114,14 @@ public sealed class DungeonRewardService
 
         if (validDrops.Count == 0)
         {
-            return;
+            return null;
         }
 
-        ItemDataSO drop = validDrops[UnityEngine.Random.Range(0, validDrops.Count)];
-        EquipmentInstance equipment = EquipmentInstance.CreateRandom(drop);
-        merchantInventory.AddEquipmentInstance(equipment);
-        SendMessage(
-            $"{sourceLabel}: [{JapaneseDisplayText.GetEquipmentQuality(equipment.Quality)}] " +
-            $"{JapaneseDisplayText.GetItemName(drop)}");
+        int index = Mathf.Clamp(
+            Mathf.FloorToInt(provider() * validDrops.Count),
+            0,
+            validDrops.Count - 1);
+        return EquipmentInstance.CreateRandom(validDrops[index], provider);
     }
 
     private void SendMessage(string message)

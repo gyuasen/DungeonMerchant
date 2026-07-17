@@ -2,9 +2,17 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 20acd31e8b6f423581ac34d0952a1667, type: 3}
   m_Name: MythicArmorRecipe
-  recipeName: 神話の星鋼鎧
+  m_EditorClassIdentifier: 
+  recipeName: "\u795E\u8A71\u306E\u661F\u92FC\u93A7"
   resultItem: {fileID: 11400000, guid: 21010000000000000000000000000000, type: 2}
   resultAmount: 1
   goldCost: 6500
@@ -12,4 +20,6 @@ MonoBehaviour:
   - item: {fileID: 11400000, guid: 2b860c96bd5b422a96eeb09fe1ebe386, type: 2}
     amount: 10
   - item: {fileID: 11400000, guid: 1197351783f64fca9a1ff0565309b19d, type: 2}
+    amount: 3
+  - item: {fileID: 11400000, guid: 141f2c65ec01c264594b6efc14eafaeb, type: 2}
     amount: 3

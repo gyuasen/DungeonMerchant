@@ -25,6 +25,7 @@ public enum SimpleMercenaryHireOverlaySlot
     CharacterDetail,
     EquipmentDetail,
     EquipmentCollection,
+    MonsterCollection,
     MerchantStatus,
     Quest,
     TravelConfirmation,

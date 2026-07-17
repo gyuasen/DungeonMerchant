@@ -21,6 +21,7 @@ public static class SaveDataMigrator
         PreserveLegacyCollectionSemantics(data, sourceVersion);
         EnsureCollections(data);
         MigrateTownInventories(data, sourceVersion);
+        MigrateMercenaryConsumables(data, sourceVersion);
         PopulatePersistentIds(data);
         MigrateStoryProgress(data, sourceVersion);
         data.version = GameSaveData.CurrentVersion;
@@ -131,6 +132,28 @@ public static class SaveDataMigrator
         }
     }
 
+    private static void MigrateMercenaryConsumables(
+        GameSaveData data,
+        int sourceVersion)
+    {
+        if (sourceVersion >= 26 || data.hiredMercenaries == null)
+        {
+            return;
+        }
+
+        foreach (SavedMercenary mercenary in data.hiredMercenaries)
+        {
+            if (mercenary != null)
+            {
+                mercenary.consumableSlots = new SavedMercenaryConsumableSlot[2]
+                {
+                    new SavedMercenaryConsumableSlot(),
+                    new SavedMercenaryConsumableSlot()
+                };
+            }
+        }
+    }
+
     private static bool HasFullyClearedDungeon(
         List<SavedDungeonFloorProgress> progressEntries)
     {
@@ -162,15 +185,20 @@ public static class SaveDataMigrator
 
     private static void EnsureCollections(GameSaveData data)
     {
-        data.inventory ??= new List<SavedInventoryItem>();
-        data.equipmentInventory ??= new List<SavedEquipmentInstance>();
-        data.hiredMercenaries ??= new List<SavedMercenary>();
-        data.partyMemberIds ??= new List<string>();
-        data.transportConvoys ??= new List<SavedTransportConvoy>();
-        data.discoveredEquipmentAssetNames ??= new List<string>();
-        data.discoveredEquipmentPersistentIds ??= new List<string>();
-        data.completedStoryMilestones ??= new List<StoryMilestone>();
-        data.progression ??= new ProgressionSaveData();
+        if (data.inventory == null) data.inventory = new List<SavedInventoryItem>();
+        if (data.equipmentInventory == null) data.equipmentInventory = new List<SavedEquipmentInstance>();
+        if (data.hiredMercenaries == null) data.hiredMercenaries = new List<SavedMercenary>();
+        if (data.partyMemberIds == null) data.partyMemberIds = new List<string>();
+        if (data.transportConvoys == null) data.transportConvoys = new List<SavedTransportConvoy>();
+        if (data.dungeonExpeditions == null)
+        {
+            data.dungeonExpeditions = new List<SavedDungeonExpedition>();
+        }
+        if (data.discoveredEquipmentAssetNames == null) data.discoveredEquipmentAssetNames = new List<string>();
+        if (data.discoveredEquipmentPersistentIds == null) data.discoveredEquipmentPersistentIds = new List<string>();
+        if (data.encounteredEnemyIds == null) data.encounteredEnemyIds = new List<string>();
+        if (data.completedStoryMilestones == null) data.completedStoryMilestones = new List<StoryMilestone>();
+        if (data.progression == null) data.progression = new ProgressionSaveData();
     }
 
     private static void PopulatePersistentIds(GameSaveData data)
@@ -253,6 +281,25 @@ public static class SaveDataMigrator
         PopulateEquipmentId(mercenary.equippedWeaponInstance);
         PopulateEquipmentId(mercenary.equippedArmorInstance);
         PopulateEquipmentId(mercenary.equippedAccessoryInstance);
+        if (mercenary.consumableSlots == null)
+        {
+            mercenary.consumableSlots = new SavedMercenaryConsumableSlot[2]
+            {
+                new SavedMercenaryConsumableSlot(),
+                new SavedMercenaryConsumableSlot()
+            };
+        }
+
+        foreach (SavedMercenaryConsumableSlot slot in mercenary.consumableSlots)
+        {
+            if (slot != null)
+            {
+                slot.itemPersistentId = ResolvePersistentId<ItemDataSO>(
+                    slot.itemPersistentId,
+                    string.Empty);
+                slot.count = Mathf.Clamp(slot.count, 0, MercenaryConsumableSlot.MaxCount);
+            }
+        }
     }
 
     private static void PopulateEquipmentId(SavedEquipmentInstance equipment)

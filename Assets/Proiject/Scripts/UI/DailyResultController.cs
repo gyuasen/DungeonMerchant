@@ -375,6 +375,34 @@ public sealed class DailyResultController
         }
     }
 
+    public void RecordExpeditionEvent(ExpeditionEvent expeditionEvent)
+    {
+        if (expeditionEvent?.Expedition?.dungeon == null)
+        {
+            return;
+        }
+        string dungeonName = expeditionEvent.Expedition.dungeon.dungeonName;
+        if (expeditionEvent.Type == ExpeditionEventType.Failed)
+        {
+            dailyTransportEvents.Add("遠征: " + dungeonName + " を周回できず、隊員が負傷");
+            return;
+        }
+        dailyTransportEvents.Add("遠征: " + dungeonName + " を周回、" + expeditionEvent.Gold + "Gと素材を獲得");
+    }
+
+    public void RecordExpeditionLimitedEquipment(EquipmentInstance equipment)
+    {
+        if (equipment?.BaseItem == null)
+        {
+            return;
+        }
+
+        dailyTransportEvents.Add(
+            "遠征: 限定装備『" +
+            JapaneseDisplayText.GetItemName(equipment.BaseItem) +
+            "』を持ち帰った！");
+    }
+
     public void CaptureMercenarySnapshot(MercenaryInstance mercenary)
     {
         if (mercenary == null ||

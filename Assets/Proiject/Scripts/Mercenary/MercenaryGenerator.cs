@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class MercenaryGenerator : MonoBehaviour
 {
+    public const int CandidateSlotCount = 6;
+    public const int CandidateRefreshIntervalDays = 3;
+    public const int MaximumUniqueCandidateCount = 2;
+    public const float UniqueCandidateSlotChance = 0.2f;
     private static readonly string[] FallbackNames =
     {
         "Alden", "Brina", "Cato", "Daria", "Elric",
@@ -37,23 +41,32 @@ public class MercenaryGenerator : MonoBehaviour
         new List<MercenaryArchetypeSO>();
 
     [Header("Generation Settings")]
-    [SerializeField, Min(1)] private int candidateCount = 5;
     [SerializeField] private bool avoidDuplicateNames = true;
     [SerializeField] private bool generateOnAwake = true;
+    [SerializeField] private DayManager dayManager;
+    [SerializeField] private MercenaryHireManager hireManager;
+    [SerializeField] private List<MercenaryDataSO> uniqueCandidatePool =
+        new List<MercenaryDataSO>();
 
     [Header("Generated Candidates")]
     [SerializeField] private List<MercenaryInstance> candidates =
         new List<MercenaryInstance>();
+    [SerializeField] private List<MercenaryDataSO> uniqueCandidates =
+        new List<MercenaryDataSO>();
 
     private readonly List<MercenaryArchetypeSO> runtimeFallbackArchetypes =
         new List<MercenaryArchetypeSO>();
     private int currentTownIndex = 2;
+    private bool isDayChangedSubscribed;
 
     public IReadOnlyList<MercenaryInstance> Candidates => candidates;
+    public IReadOnlyList<MercenaryDataSO> UniqueCandidates => uniqueCandidates;
     public int CurrentMinimumLevel => TownMinimumLevels[currentTownIndex];
     public int CurrentMaximumLevel => TownMaximumLevels[currentTownIndex];
 
     public event Action CandidatesChanged;
+
+    public int CurrentCandidateBlock => GetCurrentDay() / CandidateRefreshIntervalDays;
 
     public void SetTownIndex(int townIndex, bool regenerate = true)
     {
@@ -67,17 +80,54 @@ public class MercenaryGenerator : MonoBehaviour
 
     public void ClearCandidates()
     {
-        if (candidates.Count == 0)
+        if (candidates.Count == 0 && uniqueCandidates.Count == 0)
         {
             return;
         }
         candidates.Clear();
+        uniqueCandidates.Clear();
         CandidatesChanged?.Invoke();
     }
 
     private void Awake()
     {
+        ResolveReferences();
         if (generateOnAwake)
+        {
+            GenerateCandidates();
+        }
+    }
+
+    private void OnEnable()
+    {
+        ResolveReferences();
+    }
+
+    private void OnDisable()
+    {
+        if (dayManager != null && isDayChangedSubscribed)
+        {
+            dayManager.DayChanged -= HandleDayChanged;
+            isDayChangedSubscribed = false;
+        }
+    }
+
+    public void SetUniqueCandidatePool(
+        IEnumerable<MercenaryDataSO> uniqueCandidates,
+        bool regenerate = true)
+    {
+        uniqueCandidatePool.Clear();
+        if (uniqueCandidates != null)
+        {
+            foreach (MercenaryDataSO candidate in uniqueCandidates)
+            {
+                if (candidate != null && !uniqueCandidatePool.Contains(candidate))
+                {
+                    uniqueCandidatePool.Add(candidate);
+                }
+            }
+        }
+        if (regenerate)
         {
             GenerateCandidates();
         }
@@ -86,20 +136,32 @@ public class MercenaryGenerator : MonoBehaviour
     [ContextMenu("Generate Candidates")]
     public void GenerateCandidates()
     {
+        // Public entry point: resolve the day manager (and the DayChanged
+        // subscription) here as well, so candidate blocks advance even when
+        // Awake/OnEnable never ran for this component (EditMode tests add
+        // components on an inactive GameObject).
+        ResolveReferences();
         List<string> availableNames = ParseNames();
         List<MercenaryArchetypeSO> availableArchetypes = GetAvailableArchetypes();
+        System.Random random = new System.Random(
+            MarketHashUtility.ComputeRecruitmentSeed(
+                currentTownIndex,
+                CurrentCandidateBlock));
         candidates.Clear();
+        uniqueCandidates.Clear();
 
         if (availableNames.Count == 0)
         {
             availableNames.AddRange(FallbackNames);
         }
 
-        int amount = avoidDuplicateNames
-            ? Mathf.Min(candidateCount, availableNames.Count)
-            : candidateCount;
+        GenerateUniqueCandidates(random);
+        int amount = CandidateSlotCount - uniqueCandidates.Count;
+        amount = avoidDuplicateNames
+            ? Mathf.Min(amount, availableNames.Count)
+            : amount;
         List<MercenaryArchetypeSO> generationArchetypes =
-            BuildGenerationArchetypeList(availableArchetypes, amount);
+            BuildGenerationArchetypeList(availableArchetypes, amount, random);
 
         for (int i = 0; i < amount; i++)
         {
@@ -109,13 +171,12 @@ public class MercenaryGenerator : MonoBehaviour
                 continue;
             }
 
-            string generatedName = TakeRandomName(availableNames);
+            string generatedName = TakeRandomName(availableNames, random);
             MercenaryInstance candidate =
-                CreateMercenary(archetype, generatedName);
+                CreateMercenary(archetype, generatedName, random);
             int minimumLevel = TownMinimumLevels[currentTownIndex];
             int maximumLevel = TownMaximumLevels[currentTownIndex];
-            int generatedLevel = UnityEngine.Random.Range(
-                minimumLevel, maximumLevel + 1);
+            int generatedLevel = random.Next(minimumLevel, maximumLevel + 1);
             candidate.PrepareAsRecruit(
                 generatedLevel,
                 TownHireCostMultipliers[currentTownIndex]);
@@ -127,7 +188,8 @@ public class MercenaryGenerator : MonoBehaviour
 
     private List<MercenaryArchetypeSO> BuildGenerationArchetypeList(
         List<MercenaryArchetypeSO> availableArchetypes,
-        int amount)
+        int amount,
+        System.Random random)
     {
         List<MercenaryArchetypeSO> result = new List<MercenaryArchetypeSO>();
 
@@ -136,7 +198,7 @@ public class MercenaryGenerator : MonoBehaviour
                 MercenaryClassProgression.GetBaseClasses());
         for (int i = baseClasses.Count - 1; i > 0; i--)
         {
-            int swapIndex = UnityEngine.Random.Range(0, i + 1);
+            int swapIndex = random.Next(0, i + 1);
             MercenaryClass temporary = baseClasses[i];
             baseClasses[i] = baseClasses[swapIndex];
             baseClasses[swapIndex] = temporary;
@@ -159,12 +221,12 @@ public class MercenaryGenerator : MonoBehaviour
 
         while (result.Count < amount)
         {
-            result.Add(GetRandomArchetype(availableArchetypes));
+            result.Add(GetRandomArchetype(availableArchetypes, random));
         }
 
         for (int i = result.Count - 1; i > 0; i--)
         {
-            int swapIndex = UnityEngine.Random.Range(0, i + 1);
+            int swapIndex = random.Next(0, i + 1);
             MercenaryArchetypeSO temporary = result[i];
             result[i] = result[swapIndex];
             result[swapIndex] = temporary;
@@ -184,19 +246,114 @@ public class MercenaryGenerator : MonoBehaviour
         return true;
     }
 
+    public bool RemoveUniqueCandidate(MercenaryDataSO candidate)
+    {
+        if (candidate == null || !uniqueCandidates.Remove(candidate))
+        {
+            return false;
+        }
+        CandidatesChanged?.Invoke();
+        return true;
+    }
+
+    private void GenerateUniqueCandidates(System.Random random)
+    {
+        List<MercenaryDataSO> availableCandidates =
+            new List<MercenaryDataSO>();
+        foreach (MercenaryDataSO candidate in uniqueCandidatePool)
+        {
+            if (candidate != null && !IsUniqueMercenaryHired(candidate))
+            {
+                availableCandidates.Add(candidate);
+            }
+        }
+
+        for (int slot = 0;
+             slot < MaximumUniqueCandidateCount && availableCandidates.Count > 0;
+             slot++)
+        {
+            if (random.NextDouble() >= UniqueCandidateSlotChance)
+            {
+                continue;
+            }
+
+            int index = random.Next(0, availableCandidates.Count);
+            uniqueCandidates.Add(availableCandidates[index]);
+            availableCandidates.RemoveAt(index);
+        }
+    }
+
+    private bool IsUniqueMercenaryHired(MercenaryDataSO candidate)
+    {
+        if (hireManager == null)
+        {
+            return false;
+        }
+
+        foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
+        {
+            if (mercenary != null && mercenary.BaseData == candidate)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void HandleDayChanged(int currentDay)
+    {
+        if (currentDay % CandidateRefreshIntervalDays == 0)
+        {
+            GenerateCandidates();
+        }
+    }
+
+    private int GetCurrentDay()
+    {
+        return dayManager != null ? dayManager.CurrentDay : 1;
+    }
+
+    private void ResolveReferences()
+    {
+        if (dayManager == null)
+        {
+            dayManager = GetComponent<DayManager>() ??
+                         FindObjectOfType<DayManager>();
+        }
+        if (hireManager == null)
+        {
+            hireManager = GetComponent<MercenaryHireManager>() ??
+                          FindObjectOfType<MercenaryHireManager>();
+        }
+        EnsureDayChangedSubscription();
+    }
+
+    private void EnsureDayChangedSubscription()
+    {
+        if (dayManager == null)
+        {
+            return;
+        }
+
+        dayManager.DayChanged -= HandleDayChanged;
+        dayManager.DayChanged += HandleDayChanged;
+        isDayChangedSubscribed = true;
+    }
+
     private MercenaryInstance CreateMercenary(
         MercenaryArchetypeSO archetype,
-        string generatedName)
+        string generatedName,
+        System.Random random)
     {
         return new MercenaryInstance(
             archetype,
             generatedName,
-            VaryInt(archetype.baseMaxHP, archetype.statVariation, 1),
-            VaryInt(archetype.baseAttack, archetype.statVariation, 0),
-            VaryInt(archetype.baseDefense, archetype.statVariation, 0),
-            VaryInt(archetype.baseMaxMagicPower, archetype.statVariation, 0),
-            VaryFloat(archetype.baseAttackSpeed, archetype.statVariation, 0.1f),
-            VaryInt(archetype.baseHireCost, archetype.hireCostVariation, 0));
+            VaryInt(archetype.baseMaxHP, archetype.statVariation, 1, random),
+            VaryInt(archetype.baseAttack, archetype.statVariation, 0, random),
+            VaryInt(archetype.baseDefense, archetype.statVariation, 0, random),
+            VaryInt(archetype.baseMaxMagicPower, archetype.statVariation, 0, random),
+            VaryFloat(archetype.baseAttackSpeed, archetype.statVariation, 0.1f, random),
+            VaryInt(archetype.baseHireCost, archetype.hireCostVariation, 0, random));
     }
 
     private List<string> ParseNames()
@@ -260,14 +417,15 @@ public class MercenaryGenerator : MonoBehaviour
     }
 
     private MercenaryArchetypeSO GetRandomArchetype(
-        List<MercenaryArchetypeSO> availableArchetypes)
+        List<MercenaryArchetypeSO> availableArchetypes,
+        System.Random random)
     {
         if (availableArchetypes == null || availableArchetypes.Count == 0)
         {
             return null;
         }
 
-        int index = UnityEngine.Random.Range(0, availableArchetypes.Count);
+        int index = random.Next(0, availableArchetypes.Count);
         return availableArchetypes[index];
     }
 
@@ -345,9 +503,9 @@ public class MercenaryGenerator : MonoBehaviour
         return fallback;
     }
 
-    private string TakeRandomName(List<string> availableNames)
+    private string TakeRandomName(List<string> availableNames, System.Random random)
     {
-        int index = UnityEngine.Random.Range(0, availableNames.Count);
+        int index = random.Next(0, availableNames.Count);
         string selectedName = availableNames[index];
 
         if (avoidDuplicateNames)
@@ -358,15 +516,29 @@ public class MercenaryGenerator : MonoBehaviour
         return selectedName;
     }
 
-    private static int VaryInt(int baseValue, float variation, int minimum)
+    private static int VaryInt(
+        int baseValue,
+        float variation,
+        int minimum,
+        System.Random random)
     {
-        float multiplier = UnityEngine.Random.Range(1f - variation, 1f + variation);
+        float multiplier = Mathf.Lerp(
+            1f - variation,
+            1f + variation,
+            (float)random.NextDouble());
         return Mathf.Max(minimum, Mathf.RoundToInt(baseValue * multiplier));
     }
 
-    private static float VaryFloat(float baseValue, float variation, float minimum)
+    private static float VaryFloat(
+        float baseValue,
+        float variation,
+        float minimum,
+        System.Random random)
     {
-        float multiplier = UnityEngine.Random.Range(1f - variation, 1f + variation);
+        float multiplier = Mathf.Lerp(
+            1f - variation,
+            1f + variation,
+            (float)random.NextDouble());
         return Mathf.Max(minimum, baseValue * multiplier);
     }
 }

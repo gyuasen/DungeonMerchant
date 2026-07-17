@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
+  m_Name: enemy_job_wyvern_ironwing
+  m_EditorClassIdentifier: 
+  persistentId: enemy.job.wyvern_ironwing
+  enemyName: "\u30EF\u30A4\u30D0\u30FC\u30F3\u9244\u7FFC"
+  monsterGrade: 3
+  isBoss: 0
+  category: 0
+  enemySkill: 28
+  isSpecialVariant: 0
+  specialVariantTitle: 
+  battleSprite: {fileID: 0}
+  battleVisualKey: Grade03_wyvern_ironwing
+  maxHP: 133
+  attack: 26
+  defense: 17
+  maxMagicPower: 60
+  attackSpeed: 1
+  criticalRate: 0
+  evasionRate: 0
+  goldReward: 300
+  experienceMultiplier: 1
+  itemDrops:
+  - item: {fileID: 11400000, guid: 45cd44ad792545fc8055a50332882b9d, type: 2}
+    amount: 1
+    dropChance: 0.45

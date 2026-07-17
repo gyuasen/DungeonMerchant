@@ -27,6 +27,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     [SerializeField] private TownProgressState townProgressState;
     [SerializeField] private StoryProgressManager storyProgressManager;
     [SerializeField] private TransportManager transportManager;
+    [SerializeField] private DungeonExpeditionManager dungeonExpeditionManager;
 
     [Header("UI Prefab")]
     [SerializeField] private SimpleMercenaryHireUIView uiViewPrefab;
@@ -64,11 +65,13 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Button equipmentLockButton;
     private RectTransform questOverlay;
     private RectTransform questList;
+    private RectTransform questDetailWindow;
     private RectTransform merchantStatusOverlay;
     private RectTransform merchantSkillList;
     private RectTransform equipmentCollectionOverlay;
-    private RectTransform equipmentCollectionContent;
-    private Text equipmentCollectionText;
+    private BookPageUI equipmentCodexBook;
+    private RectTransform monsterCollectionOverlay;
+    private BookPageUI monsterCodexBook;
     private RectTransform travelConfirmationOverlay;
     private RectTransform globalMenuOverlay;
     private RectTransform dailyResultOverlay;
@@ -178,9 +181,19 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private TutorialController tutorialController;
     private AudioFeedbackService audioFeedbackService;
     private TransportController transportController;
+    private FacilityGreetingController facilityGreetingController;
+    private RectTransform facilityGreetingOverlay;
+    private Text facilityGreetingTitle;
+    private Text facilityGreetingDialogue;
+    private Image facilityGreetingPortrait;
+    private string pendingFacilityKey;
+    private System.Action pendingFacilityDestination;
     private RectTransform transportOverlay;
     private RectTransform transportContent;
     private Text transportFooterText;
+    private ExpeditionController expeditionController;
+    private RectTransform expeditionOverlay;
+    private RectTransform expeditionContent;
 
     // Aliases into the shared palette (UITheme) so the many partial files
     // of this class can keep their existing short references.
@@ -250,6 +263,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             townProgressState, marketPriceManager,
             message => statusText.text = message,
             RefreshTransportOverlay);
+        facilityGreetingController = new FacilityGreetingController();
+        expeditionController = new ExpeditionController(
+            dungeonExpeditionManager, dungeonRunManager, hireManager,
+            partyManager, transportManager, message => statusText.text = message,
+            RefreshExpeditionOverlay);
         characterEquipmentController = new CharacterEquipmentController(
             merchantData,
             merchantInventory,
@@ -412,6 +430,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         blacksmithManager.CraftingChanged += HandleCraftingChanged;
         transportManager.TransportChanged += HandleTransportChanged;
         transportManager.TransportEventOccurred += HandleTransportEvent;
+        dungeonExpeditionManager.ExpeditionChanged += HandleExpeditionChanged;
+        dungeonExpeditionManager.ExpeditionEventOccurred += HandleExpeditionEvent;
         if (progressionManager != null)
         {
             progressionManager.ProgressionChanged += HandleProgressionChanged;
@@ -604,6 +624,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             transportManager = GetComponent<TransportManager>() ??
                                FindObjectOfType<TransportManager>();
         }
+        if (dungeonExpeditionManager == null)
+        {
+            dungeonExpeditionManager = GetComponent<DungeonExpeditionManager>() ??
+                                       FindObjectOfType<DungeonExpeditionManager>();
+        }
     }
 
     private bool HasRequiredReferences()
@@ -687,6 +712,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             Debug.LogError("Simple hire UI is missing TransportManager.", this);
             hasAllReferences = false;
         }
+        if (dungeonExpeditionManager == null)
+        {
+            Debug.LogError("Simple hire UI is missing DungeonExpeditionManager.", this);
+            hasAllReferences = false;
+        }
 
         return hasAllReferences;
     }
@@ -740,6 +770,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         {
             AddUniqueCandidate(candidate);
         }
+
+        mercenaryGenerator.SetUniqueCandidatePool(candidates);
 
         if (candidates.Count == 0)
         {
@@ -844,6 +876,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         {
             transportManager.TransportChanged -= HandleTransportChanged;
             transportManager.TransportEventOccurred -= HandleTransportEvent;
+        }
+        if (dungeonExpeditionManager != null)
+        {
+            dungeonExpeditionManager.ExpeditionChanged -= HandleExpeditionChanged;
+            dungeonExpeditionManager.ExpeditionEventOccurred -= HandleExpeditionEvent;
         }
         if (progressionManager != null)
         {
@@ -990,12 +1027,15 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         BuildCharacterDetailOverlay();
         BuildEquipmentDetailOverlay();
         BuildEquipmentCollectionOverlay();
+        BuildMonsterCollectionOverlay();
         BuildQuestOverlay();
         BuildMerchantStatusOverlay();
         BuildTravelConfirmationOverlay();
         BuildGlobalMenuOverlay();
         BuildDailyResultOverlay();
+        BuildFacilityGreetingOverlay();
         BuildTransportOverlay();
+        BuildExpeditionOverlay();
         BuildTutorialOverlay();
     }
 

@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20acd31e8b6f423581ac34d0952a1667, type: 3}
+  m_Name: item_expansion_rank7_1_armorRecipe
+  m_EditorClassIdentifier: 
+  recipeName: "\u7070\u7FFC\u9C57\u306E\u5C04\u624B\u5916\u5957"
+  resultItem: {fileID: 11400000, guid: 284699f07a74d6140b3daa66f632b888, type: 2}
+  resultAmount: 1
+  goldCost: 610
+  materials:
+  - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
+    amount: 7
+  - item: {fileID: 11400000, guid: 41759c6c3b674e80badbff072ddc6b6d, type: 2}
+    amount: 4
+  - item: {fileID: 11400000, guid: c01daff2d8c8d0843b566ee23e07360b, type: 2}
+    amount: 3

@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 20acd31e8b6f423581ac34d0952a1667, type: 3}
   m_Name: VenomFangDaggerRecipe
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   recipeName: Venom Fang Dagger
   resultItem: {fileID: 11400000, guid: 8678c74c1b3b45d8afb088fdceb7981a, type: 2}
   resultAmount: 1
@@ -21,3 +21,5 @@ MonoBehaviour:
     amount: 5
   - item: {fileID: 11400000, guid: 57356d96cb1541f5a8cc6f35b4533638, type: 2}
     amount: 3
+  - item: {fileID: 11400000, guid: 28ea52f6212db55409b8ea0e99271947, type: 2}
+    amount: 1

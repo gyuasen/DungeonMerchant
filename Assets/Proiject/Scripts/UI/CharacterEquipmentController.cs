@@ -156,6 +156,54 @@ public sealed class CharacterEquipmentController
         saveEquipmentChanges();
     }
 
+    public void LoadConsumable(int slotIndex, ItemDataSO item)
+    {
+        if (SelectedDetailMercenary == null || item == null ||
+            item.itemType != ItemType.Consumable ||
+            !merchantInventory.HasItem(item) ||
+            !SelectedDetailMercenary.TryLoadConsumable(slotIndex, item, 1))
+        {
+            return;
+        }
+
+        if (!merchantInventory.TryRemoveItem(item))
+        {
+            SelectedDetailMercenary.RemoveConsumableSlot(slotIndex, out int amount);
+            if (amount > 1)
+            {
+                SelectedDetailMercenary.TryLoadConsumable(slotIndex, item, amount - 1);
+            }
+            return;
+        }
+
+        setStatus($"{SelectedDetailMercenary.MercenaryName}に{item.itemName}を装填しました。");
+        showCharacterDetails(SelectedDetailMercenary);
+        refreshInventoryPage();
+        saveEquipmentChanges();
+    }
+
+    public void UnloadConsumable(int slotIndex)
+    {
+        if (SelectedDetailMercenary == null)
+        {
+            return;
+        }
+
+        ItemDataSO item = SelectedDetailMercenary.RemoveConsumableSlot(
+            slotIndex,
+            out int amount);
+        if (item == null || amount <= 0)
+        {
+            return;
+        }
+
+        merchantInventory.AddItem(item, amount);
+        setStatus($"{item.itemName} x{amount}を倉庫へ戻しました。");
+        showCharacterDetails(SelectedDetailMercenary);
+        refreshInventoryPage();
+        saveEquipmentChanges();
+    }
+
     public void EquipSelectedEquipment(EquipmentInstance equipment)
     {
         if (SelectedDetailMercenary == null ||

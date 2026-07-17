@@ -31,6 +31,41 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 94a47f6354a346ef8d1eb79b9a91d1f9, type: 2}
   - {fileID: 11400000, guid: f582ec2d17a04ed58896adafab76f9d8, type: 2}
   - {fileID: 11400000, guid: 4b0f0259490840e4805032822bd20f56, type: 2}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 11400000, guid: efcf20d0df8b43345a567c0139ff3732, type: 2}
+  - {fileID: 11400000, guid: bf8f5eafd9a14854f8f1b7e1e8f341cd, type: 2}
+  - {fileID: 11400000, guid: 0a3e320b88816cc4d85948fd4a351d61, type: 2}
+  - {fileID: 11400000, guid: 711c5ec16c41c2846ab210d82e6a93dc, type: 2}
+  - {fileID: 11400000, guid: f8710f8949cde994b8bc4cea2905804e, type: 2}
   bossEnemy: {fileID: 11400000, guid: 539900f1ce594749a2cf45d334448c8b, type: 2}
   specialVariantChance: 0.08
   specialBossChance: 0.04

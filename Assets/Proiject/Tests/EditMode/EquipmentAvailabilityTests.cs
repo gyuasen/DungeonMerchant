@@ -103,7 +103,7 @@ public sealed class EquipmentAvailabilityTests
     public void Rank09Equipment_IsConnectedToHighestAbyssWithoutReplacingItsSet()
     {
         DungeonDataSO abyss =
-            Resources.Load<DungeonDataSO>("Dungeons/HighestAbyss");
+            Resources.Load<DungeonDataSO>("Dungeons/FinalBlackSoilAbyss");
         Assert.That(abyss, Is.Not.Null);
         Assert.That(abyss.nearbyTownIndex, Is.EqualTo(6));
         Assert.That(abyss.limitedEquipmentDrops, Is.Not.Null);

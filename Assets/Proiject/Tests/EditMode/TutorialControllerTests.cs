@@ -25,8 +25,8 @@ public sealed class TutorialControllerTests
         string route = TutorialController.FirstJourneyRoute;
 
         int townMap = route.IndexOf("町マップ");
-        int hire = route.IndexOf("傭兵斡旋所");
-        int party = route.IndexOf("傭兵一覧／メニューで編成");
+        int hire = route.IndexOf("酒場");
+        int party = route.IndexOf("パーティー編成");
         int dungeon = route.IndexOf("近隣ダンジョン");
 
         Assert.That(townMap, Is.GreaterThanOrEqualTo(0));
@@ -55,17 +55,20 @@ public sealed class TutorialControllerTests
         CollectionAssert.IsSubsetOf(
             new[]
             {
-                "1. 町マップを開く",
-                "2. 傭兵斡旋所で雇う",
-                "3. 傭兵一覧／メニューで編成",
-                "4. 近隣ダンジョンへ"
+                "商会を再建する理由",
+                "最初の探索隊を編成する",
+                "結界都市の施設",
+                "探索と戦闘",
+                "装備と成長",
+                "日数と経営"
             },
             titles);
         string allBodies = string.Join("\n", bodies);
         foreach (string facility in new[]
                  {
-                     "傭兵斡旋所", "商会組合", "パーティー編成", "近隣ダンジョン",
-                     "市場", "鍛冶屋", "倉庫", "治療院", "転職神殿", "全体マップ"
+                     "酒場", "市場", "鍛冶屋", "倉庫", "治療院", "商会組合",
+                     "輸送部隊", "遠征部隊", "パーティー編成", "近隣ダンジョン",
+                     "転職神殿"
                  })
         {
             StringAssert.Contains(facility, allBodies);

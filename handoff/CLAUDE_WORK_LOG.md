@@ -281,3 +281,84 @@
 - 原因: SampleSceneには`BattleManager`コンポーネントが独立GameObjectに1つシリアライズ済みだが、`DungeonMerchantBootstrap.EnsureComponent<T>`はroot上の`GetComponent`しか確認せず**2個目のBattleManagerをrootへ追加**していた。DungeonRunManager（root側）はroot側インスタンスで戦闘を実行し、UI（`FindObjectOfType`解決）がもう片方を購読するため、演出イベント（`BattleVisualsPrepared`/`BattlePresentation`/`BattleMessageTyped`）が届かない。タイトルシーン導入によるオブジェクト生成順の変化で、従来偶然一致していた解決先が反転して顕在化したと推定。
 - 修正: `EnsureComponent<T>`を「root→**シーン全体（FindObjectOfType）**→新規追加」の順に変更。マネージャーの二重生成を系統的に防止（BattleManagerに限らず全マネージャーに適用）。
 - `dotnet build`警告0・エラー0。Unity確認: タイトル→ゲーム開始→ダンジョン探索で演出・テキスト・イベントカードが表示されること。SampleScene直接再生でも同様。**あわせてEditModeテスト全件（W1の町別倉庫テスト含む、未実行）とPlayModeテストの実行を推奨**。
+
+## 2026-07-17 遠征部隊システムv1（踏破済みダンジョンの自動周回、セーブv24）
+
+- Codex Terra実装・レビュー済み（テスト不足を1往復で追完させ7件に）。輸送部隊と同型パターン。
+- 新規`DungeonExpeditionManager`: 完全踏破済みダンジョンのみ対象（隠しダンジョンは対象外）、隊員1〜3人（雇用済み・編成外・輸送外・他遠征外）、呼び戻しまで毎日自動周回。成功=clearGoldRewardの50%+通常敵素材1〜2種を近隣町倉庫へ搬入+隊員EXP5。失敗=HP減少（下限1）・報酬なし。**限定装備・特殊個体・特殊ボス・転職証は構造的に発生不可**（ボス除外+装備品除外のドロップ選定）。要求戦力: 低級60/下級120/中級200/上級300/最上級420。
+- 輸送⇔遠征⇔編成の三者相互排他。セーブv23→v24（`SavedDungeonExpedition`）。UI: 商会組合「遠征部隊」ボタン→編成/一覧/呼び戻しオーバーレイ（`ExpeditionController`+partial、コントローラー抽出パターン）。日次リザルト連携あり。CompanyPageUIに「遠征任務中」表示。
+- `docs/DESIGN_TRADE_LOGISTICS.md`に設計節追加済み。`dotnet build`警告0・エラー0、テスト7件。
+- **Unity確認項目**: 踏破済みダンジョンで遠征編成→日送りで日次リザルトに周回結果→近隣町倉庫に素材→呼び戻しで解放→セーブ/ロード維持→Test Runner全緑。
+
+### 2026-07-17 追記: 遠征部隊に限定装備ドロップを追加（Codex Terra、ユーザー決定）
+
+- 遠征の日次周回成功時に`bossLimitedDropChance × 0.5`（定数`LimitedDropRateMultiplier`、テストでピン留め）で限定装備を抽選。個体生成は`DungeonRewardService.TryCreateLimitedEquipment`（static化して手動探索と共有、重複コピーなし）。入手装備は近隣町倉庫へ搬入（新API `MerchantInventory.DepositEquipmentTo`、容量超過許容・図鑑登録あり）。日次リザルトに表示。特殊ボス・転職証・特殊個体は引き続き対象外。テスト計9件。`dotnet build`警告0・エラー0。
+
+### 2026-07-17 追記: 遠征UI空白バグの根本解決（Sol監査→Terra修正）
+
+- 症状: 遠征オーバーレイの中身が完全空白（Terraの2回の修正では未解決）。Codex Sol（read-only監査）が根本原因を特定: 遠征Refreshが輸送専用ヘルパー`CreateTransportSection/Label/Button`（親=`transportContent`固定）を流用しており、全行が非表示の輸送オーバーレイ配下へ生成されていた（例外なし=Console無エラーと整合）。
+- 修正: 行生成ヘルパーを親content引数を取る`CreateScrollSection/Label/Button`へ共通化し、輸送=transportContent/遠征=expeditionContentを明示。積荷±ボタン行も引数化。build警告0・エラー0。
+- 教訓: サブエージェント実装のUI流用部は「親Transform固定のヘルパー流用」を要チェック。監査はSol起用が有効だった。
+
+### 2026-07-17 追記: 遠征報酬v2（通常戦闘同等）+変異核5等級化（Codex Terra、ユーザー決定）
+
+- 遠征成功時の報酬を簡易式から「手動1フロア相当のシミュレート」へ変更: 遭遇3〜5回×手動と同式の敵数、通常敵抽選、特殊個体（specialVariantChance、手動と同確率）。報酬計算は`BattleRewardService.CalculateVictoryRewards`をstatic切り出しして手動戦闘と完全共有（ゴールド・ドロップテーブル・等級二乗経験値・均等配分が同一結果）。アイテムは近隣町倉庫へ、旧clearGoldReward50%ボーナスとEXP5固定は廃止。ボス/特殊ボス/転職証/固有遺物は対象外のまま、限定装備0.5倍率維持。
+- 変異核を5等級化（強化鉱石の前例踏襲）: 既存MutantCoreはGUID/persistentId維持で表示名「低級変異核」へ、下級〜最上級の4アセット新規（`Resources/Items/Special/`、persistentId=item.LowerGradeMutantCore等）。特殊個体はダンジョン等級対応の核をドロップ（確率は従来どおり通常50%/特殊ボス100%）。変異核の護符レシピは既存参照（低級6個）のまま=リバランスは別途ユーザー判断。
+- テスト11件、`dotnet build`警告0・エラー0。Unity確認: 遠征の日次報酬量が手動探索と同水準か、特殊個体経由で等級別変異核が近隣町倉庫に入るか、手動戦闘の報酬が変わっていないか（共有化の回帰確認）、Test Runner全緑。
+
+## 2026-07-17 世界観準拠の一括実装（テキスト/雇用/施設案内/図鑑/依頼掲示板、セーブv25）
+
+すべてCodex Terraへ委譲しメインセッションがレビュー。`dotnet build`は各段階で警告0・エラー0。
+- **チュートリアル・開始文言の世界観化**: 6ページ+第1章をWORLDVIEW.md準拠で全面改稿（結界都市/商会組合/再活性治療/対外防護値/テーマ引用）。レビューで「商会組合で編成」の事実誤りを検出→メニュー「パーティー編成」導線へ修正。
+- **雇用リニューアル**: 候補6枠固定、未雇用固有+量産型のランダム混成（固有最大2枠・枠あたり20%）、3日ごと更新（`CandidateRefreshIntervalDays=3`、(町,日ブロック)シードの決定的抽選=セーブ変更不要）。固有の常時表示を廃止。テスト4件。
+- **施設従業員の案内UI**: 町マップ7施設のボタン→従業員挨拶オーバーレイ→入る/戻る。同日同施設2回目以降はスキップ。挨拶文は施設ごと3種の日替わり決定的抽選、世界観§10（臨時契約者）のトーン。立ち絵は`UI/Staff/{施設キー}`配置で自動反映（Tavern/Guild/Market/Blacksmith/Warehouse/Clinic/Temple）。`FacilityGreetingController`+partial。
+- **図鑑リニューアル+魔物図鑑**: 共通`BookPageUI`（羊皮紙見開き、1見開き4件、ページ送り、未発見=？？？、画像プレースホルダー）。装備図鑑は`UI/Codex/Equipment/{アセット名}`で画像配置可（規約はdocs/CODEX_BOOK_UI.md）。魔物図鑑新設: `MonsterCodexManager`（Core）が接敵時に記録（特殊個体は元敵、仮スライム除外）、**セーブv25**（encounteredEnemyIds）、メニューに追加、画像は戦闘用スプライト再利用。テスト5件。
+- **依頼掲示板UI**: 依頼一覧を木板+貼り紙グリッド（4列、±3度の決定的回転、特殊依頼は金色紙）へ。クリックで詳細モーダル。依頼ロジック無変更。背景は`UI/QuestBoard`配置で差し替え可。
+- **Unity確認項目（未実施・まとめて）**: 新チュートリアル/開始文言、雇用6枠と3日更新、施設案内の表示とスキップ、装備/魔物図鑑の見開き表示とページ送り、接敵記録、依頼掲示板、旧セーブ(v23以前)読込、Test Runner全緑。
+- **バックログ登録**: アイテム素材の大分類（売却用/材料）+魔石5等級+環境素材+消耗品の傭兵所持、モンスター大拡充（役割特化・色違い/装備差分・ジョブ持ち=ランク+1相当）。詳細は`docs/DESIGN_TRADE_LOGISTICS.md`のバックログ節。**着手は現行分のUnity確認とコミット後を推奨。**
+
+### 2026-07-17 追記: 装備図鑑が空白で最前面に残るバグ修正（Sol監査→Terra修正）
+
+- 原因: `BookPageUI`がUnity 2022.3では無効な組み込みフォント名`Arial.ttf`をロードし初期化中に例外→`BuildUI`全体が中断し、装備図鑑オーバーレイが非表示化前に表示されたまま残存（魔物図鑑以降のUI構築も未到達）。副次バグ: `BookPageUI.CreateText`のアンカー範囲破棄と負のsizeDelta。
+- 修正: フォントを`Initialize`引数で受け取りUI既存フォントを注入（フォールバックはLegacyRuntime.ttf）。オーバーレイは構築冒頭で非表示化する方式へ統一（途中例外への耐性）。CreateTextのアンカー/オフセット修正。旧リスト図鑑の残骸削除。build 0/0。
+- 教訓を作業規約へ: **実行時にしか失敗しないUnity API（GetBuiltinResource等)をサブエージェント実装で使う場合、既存コードで実績のある呼び方（LegacyRuntime.ttf等）に限定させる。オーバーレイ構築は冒頭SetActive(false)を必須とする。**
+
+## 2026-07-17 バグ修正2件+戦闘中消費アイテム(v26)+バランス拡充(生成待ち)
+
+- **図鑑文字見切れ修正**（Sol監査→Terra修正）: BookPageUIのテキスト幅不足（166px）が原因。ページ330px化・画像64px・本文幅218pxへ。魔物ドロップ表示は2件+…に制限。
+- **依頼掲示板空白修正**（Sol監査→Terra修正）: Viewportの透明Image+通常Maskで配下が全クリップされるUnity UIの罠。RectMask2Dへ置換。※木目背景は`Resources/UI/QuestBoard.png`配置で有効化（未配置時は茶色ベタ、仕様どおり）。
+- **戦闘中消費アイテム（セーブv26、Terra）**: 傭兵に消耗品2スロット（各5個）。装備タブで現在町倉庫と装填/取り外し。戦闘中は自動使用（1行動1個: 毒→解毒薬、麻痺→麻痺治し、HP40%未満→回復薬・小さい方優先。使用後も通常行動）。新アイテム: 回復薬(item.HealingPotion, HP+40, 120G)/上回復薬(item.GreaterHealingPotion, HP+100, 280G)、市場の消耗品抽選対象。`BattleConsumableService`+テスト。
+- **バランス拡充（スキル/モンスター/装備、Terra実装・アセット生成待ち）**: 敵スキル8種（影跳び/呪弾/鉄皮再生/薙ぎ払い/毒液散布/貫通射/血煙の猛攻/再構成※高ランク限定の再生系は世界観配慮で「再構成」名）、役割特化派生敵20体（色違い/ジョブ持ち方式、元種+1等級相当）、Rank4〜7職業別装備12点+鍛冶レシピ。定義は`BalanceExpansionDefinition.cs`に集約（生成器/日本語表示/テスト共用）。**ユーザー作業: Unityメニュー`DungeonMerchant > Build Balance Expansion Assets`を実行してアセット生成**。生成後、Sol（別エージェント）による世界観整合性監査を実施予定（ユーザー指示: 追加と監査を別エージェントで）。
+- 全段階で`dotnet build`警告0・エラー0。
+
+## 2026-07-17 アイテム拡充3点セット（Codex Terra、生成待ち）
+
+- **Rank4〜7職業系統別の防具12+装飾品12**: 武器12点と対に。Rank4-5=市場、6-7=鍛冶。名前は地域素材準拠のファンタジー名へ改名済み（青鋼の胸甲/樹冠織の重鎧/黒鉄炉心の重甲等、Rank6=ノルン系/7=ヴェルム系）。BalanceExpansionDefinitionに統合（既存メニュー1回で武器12+防具装飾24+消耗品5を生成）。
+- **戦闘用消耗品5種**: 攻撃薬/防御薬(各+20%、初行動で自動使用、1戦闘持続)/魔力活性薬(魔力30%未満で+50)/韋駄天薬(速度+15%)/上解毒薬(毒麻痺両対応、単体薬優先)。BattleConsumableServiceの自動使用ルール拡張+BattleUnit一時バフ。
+- **素材大分類改修**: ItemDataSOに分類enum(売却用/材料)。在庫行にタグ表示。**魔石5等級**新設: ドロップはアセット編集でなくBattleRewardServiceの共通ルール(敵等級→対応魔石30%、ボス確定2個)、**全鍛冶レシピに成果物ランク対応の魔石を必須追加**(Rank1-2=低級…9-10=最上級)。**環境素材6種**(鉄/銀鉱石、薬草/毒消し草、堅木/霊木材)+ダンジョンイベント3種(鉱脈/群生地/木立、慎重=多め+遅延/急ぐ=少なめ)。都市需要上書き(薬草→リーフ1.25、鉱物→グラード/ヴェルム1.2)。セーブ変更なし。
+- **ユーザー実行手順(Unity)**: (1)`DungeonMerchant > Build Balance Expansion Assets`(敵20/武器12/防具装飾24/消耗品5+回復薬類) (2)`DungeonMerchant > Trade Materials > Apply Classification And Recipes`(魔石・環境素材11アセット生成+既存素材の分類設定+全レシピへ魔石追加) (3)EditModeテスト全件実行。
+- 生成完了後にSol世界観整合性監査を実施予定。全段階build警告0・エラー0。
+
+### 2026-07-18 追記: 生成後のEditMode失敗16→14→修正（Terra）
+
+- 16失敗の内訳と対処: (1)倉庫満杯時に戦利品が無言消失する本番バグ→満杯ログ追加・報酬表示抑止 (2)環境素材イベントが抽選範囲外で発生しない本番バグ→修正 (3)魔石ロール追加による遠征テストの乱数ズレ→テスト更新 (4)FacilityGreetingの日替わりハッシュ不具合→ハッシュ+日循環オフセットへ (5)GlaadSkyFortress.assetのnormalEnemiesにnull30件混入（旧名UpperFortress由来）→アセット修正+生成器に互換処理とnull防止 (6)グラード派生ワイバーンの数値がヴェルム>グラードの地域前提を破壊→調整（グラード平均HP117/攻26.4、ヴェルム122.5/28.8） (7)満杯テストのログ文言追従。UpperFortress.asset→GlaadSkyFortress.assetへgit mvで改名済み（内部名不一致警告の解消）。
+- 再生成は不要（生成済みアセット直接修正+生成器側も同修正）。ユーザーによるEditMode再実行待ち。
+
+### 2026-07-18 追記: 残6失敗のSol精密監査で決着
+
+- Sol机上トレースの結論: **6件中5件はUnityの古いコンパイル結果によるもの**（テストDLL 01:11:18 < 最終修正ソース 01:14:47-49 のタイムスタンプ物証。現ソースのトレースでは5件は到達不能な失敗値）。実バグは1件のみ: 遠征テストのフィクスチャが町2ダンジョンに装備Rank1を設定しており、現行の町別ダンジョンランク制約（IsDungeonEquipmentRankAllowed=完全一致）で限定ドロップ候補が0件になる→テスト側を`WorldMapService.GetDungeonEquipmentRank(2)`導出へ修正（メインセッション直接、1行+コメント）。
+- 教訓: Unityテスト失敗の報告を受けたら、**まずテストDLLとソースのタイムスタンプ比較で「再コンパイル済みか」を確認**してから修正に入る（2巡の空振り修正の主因は古いバイナリ実行だった）。
+
+### 2026-07-18 追記: 残失敗の真因確定と修正（メインセッション直接）
+
+- Solの「古いバイナリ」判定は部分的に誤り。**輸送・雇用候補・町別倉庫のテスト群はUnityでの実行が今回が初**（実装以降dotnet buildのコンパイル確認のみ）で、初実行で真のバグが顕在化した。
+- 確定した真因と修正:
+  1. **輸送2件=テスト不備**: 積荷10個×2区間の輸送費1000Gが初期所持金500Gを超え`InsufficientGold`で出発失敗→部隊不在でNRE/Index例外。テストにSetGold(2000)+出発成功アサート追加。
+  2. **雇用候補2件=本番の堅牢性不足**: EditModeテストのライフサイクル（inactiveでAddComponent→SetActive）では`MercenaryGenerator`のAwake/OnEnable由来のdayManager解決・DayChanged購読が成立せず、日次再抽選が一切走らない（固有出現も進まない）。`GenerateCandidates()`冒頭に`ResolveReferences()`を追加（公開APIで参照解決する既存パターンに統一）。
+  3. **町別倉庫セーブ往復=テスト不備**: ランタイム生成アイテムに`Object.name`未設定→`PersistentId`（name フォールバック）が空→復元で解決不能。テストの`CreateItem`で`item.name`設定。
+  4. 遠征限定ドロップ=フィクスチャのRank1が町別ランク制約と矛盾（修正済み・前回）。EquipmentAvailabilityTestsの`Dungeons/HighestAbyss`ロードパスをリネーム追従で`FinalBlackSoilAbyss`へ。
+- 教訓: **サブエージェント実装のテストは「dotnet buildが通る」だけではUnity実行の保証にならない。大きな機能追加後は早期にUnity Test Runner実行をユーザーへ依頼する**。
+
+### 2026-07-18 追記: 「新しく始める」の状態リセット確実化（Terra）
+
+- セーブ無しの`InitializeAndLoad()`が既定`GameSaveData`を`ApplySaveData`経路へ適用し、全マネージャー（所持金/日数/借金/町/在庫/装備/傭兵/編成/輸送/遠征/図鑑/進行/ダンジョン/物語）を明示的に初期化する方式へ。シーン残存値やロード漏れによる新規ゲームへの状態持ち越しを構造的に防止。「続きから」は無変更。副産物: 図鑑データが復元時に混入するバグも修正。PlayerPrefs/static総点検で他の残存なし。`SaveManagerNewGameResetTests`追加。build 0/0。

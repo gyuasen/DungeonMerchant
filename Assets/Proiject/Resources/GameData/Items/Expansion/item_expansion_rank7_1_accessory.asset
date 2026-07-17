@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
+  m_Name: item_expansion_rank7_1_accessory
+  m_EditorClassIdentifier: 
+  persistentId: item.expansion.rank7.1.accessory
+  itemName: "\u7089\u706B\u9DF9\u306E\u773C\u98FE\u308A"
+  itemType: 1
+  rarity: 0
+  materialClassification: 0
+  description: Rank 7 Archer Accessory
+  basePrice: 700
+  acquisitionType: 1
+  equipmentSlot: 2
+  requiredClass: 1
+  allClassesCanEquip: 0
+  equipmentSet: 0
+  equipmentRank: 7
+  bonusMaxHP: 21
+  bonusAttack: 3
+  bonusDefense: 1
+  bonusAttackSpeed: 0.055
+  consumableEffect: 0
+  consumableHealAmount: 0

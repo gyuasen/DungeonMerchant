@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
+  m_Name: item_expansion_rank4_2_accessory
+  m_EditorClassIdentifier: 
+  persistentId: item.expansion.rank4.2.accessory
+  itemName: "\u6708\u77F3\u306E\u6307\u8F2A"
+  itemType: 1
+  rarity: 0
+  materialClassification: 0
+  description: Rank 4 Mage Accessory
+  basePrice: 520
+  acquisitionType: 0
+  equipmentSlot: 2
+  requiredClass: 2
+  allClassesCanEquip: 0
+  equipmentSet: 0
+  equipmentRank: 4
+  bonusMaxHP: 12
+  bonusAttack: 6
+  bonusDefense: 1
+  bonusAttackSpeed: 0.022
+  consumableEffect: 0
+  consumableHealAmount: 0
