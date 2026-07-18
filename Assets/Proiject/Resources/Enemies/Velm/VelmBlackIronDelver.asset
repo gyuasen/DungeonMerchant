@@ -29,6 +29,6 @@ MonoBehaviour:
   goldReward: 255
   experienceMultiplier: 1.2
   itemDrops:
-  - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
+  - item: {fileID: 11400000, guid: cd2a3b4c5d6e7f8091a2b3c4d5e6f7a8, type: 2}
     amount: 1
     dropChance: 0.5

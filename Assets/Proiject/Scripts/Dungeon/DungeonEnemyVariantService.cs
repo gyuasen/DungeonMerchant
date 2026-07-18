@@ -106,7 +106,7 @@ public static class DungeonEnemyVariantService
         variant.itemDrops = drops.ToArray();
     }
 
-    private static string GetMutantCoreResourcePath(DungeonGrade dungeonGrade)
+    public static string GetMutantCoreResourcePath(DungeonGrade dungeonGrade)
     {
         switch (dungeonGrade)
         {

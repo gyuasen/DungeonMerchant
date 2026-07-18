@@ -34,6 +34,16 @@ public sealed class TradeMaterialTests
     }
 
     [Test]
+    public void EveryRecipe_UsesOnlyCraftingMaterials()
+    {
+        foreach (string guid in AssetDatabase.FindAssets("t:EquipmentRecipeSO"))
+        {
+            EquipmentRecipeSO recipe = AssetDatabase.LoadAssetAtPath<EquipmentRecipeSO>(AssetDatabase.GUIDToAssetPath(guid));
+            Assert.That(recipe.materials, Is.All.Matches<CraftingMaterialRequirement>(requirement => requirement.item != null && requirement.item.materialClassification == MaterialClassification.CraftingMaterial), recipe.name);
+        }
+    }
+
+    [Test]
     public void EnvironmentalEvent_HighestGradeUsesCentralRegionMaterialAndBonus()
     {
         DungeonEventChoiceResult result = DungeonEnvironmentEventService.ResolveEnvironmentalChoice(DungeonEventType.MineralVein, 0, DungeonGrade.Highest);

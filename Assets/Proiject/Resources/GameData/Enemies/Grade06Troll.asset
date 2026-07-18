@@ -23,6 +23,6 @@ MonoBehaviour:
   attackSpeed: 0.7
   goldReward: 115
   itemDrops:
-  - item: {fileID: 11400000, guid: 02cca79ae8434c1eb64f32d3d4d206a0, type: 2}
+  - item: {fileID: 11400000, guid: ab2a3b4c5d6e7f8091a2b3c4d5e6f7a8, type: 2}
     amount: 1
     dropChance: 0.65
