@@ -11,12 +11,13 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: LancerSpear
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   persistentId: item.lancer.spear
-  itemName: 新兵の槍
+  itemName: "\u65B0\u5175\u306E\u69CD"
   itemType: 1
   rarity: 0
-  description: 前線での基礎訓練に使われる、丈夫な槍。
+  materialClassification: 0
+  description: "\u524D\u7DDA\u3067\u306E\u57FA\u790E\u8A13\u7DF4\u306B\u4F7F\u308F\u308C\u308B\u3001\u4E08\u592B\u306A\u69CD\u3002"
   basePrice: 120
   acquisitionType: 0
   equipmentSlot: 0
@@ -24,7 +25,9 @@ MonoBehaviour:
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 1
-  bonusMaxHP: 5
+  bonusMaxHP: 2
   bonusAttack: 4
-  bonusDefense: 1
-  bonusAttackSpeed: 0
+  bonusDefense: 0
+  bonusAttackSpeed: 0.008
+  consumableEffect: 0
+  consumableHealAmount: 0

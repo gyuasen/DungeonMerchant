@@ -161,10 +161,16 @@ public class EquipmentInstance
         {
             if (modifier != null && modifier.type == type)
             {
-                total += modifier.value;
+                total += modifier.value * GetModifierRankScale();
             }
         }
         return total;
+    }
+
+    private float GetModifierRankScale()
+    {
+        int rank = baseItem == null ? 1 : Mathf.Clamp(baseItem.equipmentRank, 1, 10);
+        return 0.40f + 0.06f * rank;
     }
 
     private int ScaleInt(int value)
@@ -217,7 +223,12 @@ public class EquipmentInstance
                 value = GetRandomRange(randomValue, 8f, 21f) * qualityScale;
                 break;
             case EquipmentModifierType.AttackSpeed:
-                value = GetRandomRange(randomValue, 0.03f, 0.11f) * qualityScale;
+                float speedMaximum = quality == EquipmentQuality.Legendary
+                    ? 0.10f
+                    : quality == EquipmentQuality.Rare
+                        ? 0.085f
+                        : 0.07f;
+                value = GetRandomRange(randomValue, 0.03f, speedMaximum);
                 break;
             default:
                 value = GetRandomRange(randomValue, 2f, 7f) * qualityScale;

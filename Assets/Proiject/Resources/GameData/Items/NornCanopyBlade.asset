@@ -2,14 +2,23 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: NornCanopyBlade
+  m_EditorClassIdentifier: 
   persistentId: item.dungeon.norn_canopy_blade
-  itemName: ノルン樹冠刃
+  itemName: "\u30CE\u30EB\u30F3\u6A39\u51A0\u5203"
   itemType: 1
   rarity: 3
-  description: 樹冠迷宮の硬木と鉱石を鍛え合わせた、全職向けの軽やかな刃。
-  basePrice: 1800
+  materialClassification: 0
+  description: "\u6A39\u51A0\u8FF7\u5BAE\u306E\u786C\u6728\u3068\u9271\u77F3\u3092\u935B\u3048\u5408\u308F\u305B\u305F\u3001\u5168\u8077\u5411\u3051\u306E\u8EFD\u3084\u304B\u306A\u5203\u3002"
+  basePrice: 2300
   acquisitionType: 2
   equipmentSlot: 0
   requiredClass: 0
@@ -18,6 +27,7 @@ MonoBehaviour:
   equipmentRank: 6
   bonusMaxHP: 16
   bonusAttack: 22
-  bonusDefense: 4
-  bonusAttackSpeed: 0.03
+  bonusDefense: 5
+  bonusAttackSpeed: 0.035
   consumableEffect: 0
+  consumableHealAmount: 0

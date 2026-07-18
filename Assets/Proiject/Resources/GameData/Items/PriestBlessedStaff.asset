@@ -11,20 +11,23 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: PriestBlessedStaff
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   persistentId: item.priest.blessed_staff
-  itemName: 祝福の司祭杖
+  itemName: "\u795D\u798F\u306E\u53F8\u796D\u6756"
   itemType: 1
   rarity: 1
-  description: 祝福の力を高め、祈りを素早く届ける司祭杖。
-  basePrice: 360
+  materialClassification: 0
+  description: "\u795D\u798F\u306E\u529B\u3092\u9AD8\u3081\u3001\u7948\u308A\u3092\u7D20\u65E9\u304F\u5C4A\u3051\u308B\u53F8\u796D\u6756\u3002"
+  basePrice: 220
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 3
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 2
-  bonusMaxHP: 3
-  bonusAttack: 12
-  bonusDefense: 0
-  bonusAttackSpeed: 0.03
+  bonusMaxHP: 4
+  bonusAttack: 7
+  bonusDefense: 1
+  bonusAttackSpeed: 0.013499999
+  consumableEffect: 0
+  consumableHealAmount: 0

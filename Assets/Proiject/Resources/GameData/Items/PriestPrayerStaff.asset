@@ -11,20 +11,23 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: PriestPrayerStaff
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   persistentId: item.priest.prayer_staff
-  itemName: 見習いの祈祷杖
+  itemName: "\u898B\u7FD2\u3044\u306E\u7948\u7977\u6756"
   itemType: 1
   rarity: 0
-  description: 初歩の祈りを安定して届けるための杖。
-  basePrice: 130
+  materialClassification: 0
+  description: "\u521D\u6B69\u306E\u7948\u308A\u3092\u5B89\u5B9A\u3057\u3066\u5C4A\u3051\u308B\u305F\u3081\u306E\u6756\u3002"
+  basePrice: 120
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 3
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 1
-  bonusMaxHP: 0
-  bonusAttack: 6
+  bonusMaxHP: 2
+  bonusAttack: 4
   bonusDefense: 0
-  bonusAttackSpeed: 0
+  bonusAttackSpeed: 0.009
+  consumableEffect: 0
+  consumableHealAmount: 0

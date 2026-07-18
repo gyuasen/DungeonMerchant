@@ -11,22 +11,26 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Grade03GlaadSkyWarden
-  m_EditorClassIdentifier:
-  enemyName: "グラード天嶺衛士"
+  m_EditorClassIdentifier: 
+  persistentId: 
+  enemyName: "\u30B0\u30E9\u30FC\u30C9\u5929\u5DBA\u885B\u58EB"
   monsterGrade: 3
   isBoss: 0
   category: 0
   enemySkill: 7
   isSpecialVariant: 0
-  specialVariantTitle:
-  maxHP: 115
-  attack: 25
-  defense: 12
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 737
+  attack: 78
+  defense: 44
   maxMagicPower: 35
   attackSpeed: 0.82
   criticalRate: 0.05
   evasionRate: 0.02
-  goldReward: 250
+  goldReward: 611
   experienceMultiplier: 1.15
   itemDrops:
   - item: {fileID: 11400000, guid: 52a98352167a4bce926ac5c343b9c6e8, type: 2}

@@ -2,22 +2,33 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: NormalRank10Accessory
+  m_EditorClassIdentifier: 
   persistentId: item.normal.rank10.accessory
-  itemName: 神話の星環護符
+  itemName: "\u795E\u8A71\u306E\u661F\u74B0\u8B77\u7B26"
   itemType: 1
   rarity: 3
-  description: アステラ秘匿都市の炉でのみ刻印できる、Rank 10の星環護符。
-  basePrice: 10000
+  materialClassification: 0
+  description: "\u30A2\u30B9\u30C6\u30E9\u79D8\u533F\u90FD\u5E02\u306E\u7089\u3067\u306E\u307F\u523B\u5370\u3067\u304D\u308B\u3001Rank
+    10\u306E\u661F\u74B0\u8B77\u7B26\u3002"
+  basePrice: 26800
   acquisitionType: 1
   equipmentSlot: 2
   requiredClass: 0
   allClassesCanEquip: 1
   equipmentSet: 0
   equipmentRank: 10
-  bonusMaxHP: 55
+  bonusMaxHP: 45
   bonusAttack: 14
   bonusDefense: 14
-  bonusAttackSpeed: 0.07
+  bonusAttackSpeed: 0.06
   consumableEffect: 0
+  consumableHealAmount: 0

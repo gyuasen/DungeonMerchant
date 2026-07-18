@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 1
   materialClassification: 0
   description: A layered bow with greater power and firing speed.
-  basePrice: 340
+  basePrice: 220
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 1
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 2
-  bonusMaxHP: 4
+  bonusMaxHP: 3
   bonusAttack: 8
   bonusDefense: 1
-  bonusAttackSpeed: 0.15
+  bonusAttackSpeed: 0.022499999
   consumableEffect: 0
   consumableHealAmount: 0

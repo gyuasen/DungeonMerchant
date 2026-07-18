@@ -2,14 +2,23 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: AstralAegis
+  m_EditorClassIdentifier: 
   persistentId: item.hidden.astral_aegis
-  itemName: 星界の守護衣
+  itemName: "\u661F\u754C\u306E\u5B88\u8B77\u8863"
   itemType: 1
   rarity: 3
-  description: 中央島を守った古代守護者の外装を再構成した防具。
-  basePrice: 4400
+  materialClassification: 0
+  description: "\u4E2D\u592E\u5CF6\u3092\u5B88\u3063\u305F\u53E4\u4EE3\u5B88\u8B77\u8005\u306E\u5916\u88C5\u3092\u518D\u69CB\u6210\u3057\u305F\u9632\u5177\u3002"
+  basePrice: 31500
   acquisitionType: 2
   equipmentSlot: 1
   requiredClass: 0
@@ -17,7 +26,8 @@ MonoBehaviour:
   equipmentSet: 10
   equipmentRank: 10
   bonusMaxHP: 110
-  bonusAttack: 0
-  bonusDefense: 25
-  bonusAttackSpeed: 0
+  bonusAttack: 10
+  bonusDefense: 28
+  bonusAttackSpeed: 0.055
   consumableEffect: 0
+  consumableHealAmount: 0

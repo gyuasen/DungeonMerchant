@@ -20,16 +20,17 @@ MonoBehaviour:
   enemySkill: 21
   isSpecialVariant: 0
   specialVariantTitle: 
+  combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
   battleVisualKey: Grade05_orc_rider
-  maxHP: 78
-  attack: 22
-  defense: 6
+  maxHP: 212
+  attack: 34
+  defense: 16
   maxMagicPower: 90
-  attackSpeed: 1.35
+  attackSpeed: 1.6200001
   criticalRate: 0
   evasionRate: 0.08
-  goldReward: 180
+  goldReward: 299
   experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: 02cca79ae8434c1eb64f32d3d4d206a0, type: 2}

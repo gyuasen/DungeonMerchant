@@ -11,18 +11,27 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Grade06MarshLizard
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
+  persistentId: 
   enemyName: Marsh Lizard
   monsterGrade: 6
   isBoss: 0
+  category: 0
   enemySkill: 14
-  maxHP: 59
-  attack: 14
-  defense: 5
+  isSpecialVariant: 0
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 150
+  attack: 24
+  defense: 11
   maxMagicPower: 45
   attackSpeed: 1.15
+  criticalRate: 0
   evasionRate: 0.06
-  goldReward: 115
+  goldReward: 209
+  experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: fa1a2b3c4d5e6f708192a3b4c5d6e7f8, type: 2}
     amount: 1

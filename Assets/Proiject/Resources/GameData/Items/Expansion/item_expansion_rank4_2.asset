@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 4 Mage Weapon
-  basePrice: 560
+  basePrice: 720
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 2
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 4
-  bonusMaxHP: 1
-  bonusAttack: 13
-  bonusDefense: 0
-  bonusAttackSpeed: 0
+  bonusMaxHP: 6
+  bonusAttack: 19
+  bonusDefense: 2
+  bonusAttackSpeed: 0.025
   consumableEffect: 0
   consumableHealAmount: 0

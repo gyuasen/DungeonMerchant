@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: A feather charm favored by novice archers.
-  basePrice: 115
+  basePrice: 110
   acquisitionType: 0
   equipmentSlot: 2
   requiredClass: 1
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 1
-  bonusMaxHP: 0
+  bonusMaxHP: 3
   bonusAttack: 2
-  bonusDefense: 0
-  bonusAttackSpeed: 0.04
+  bonusDefense: 1
+  bonusAttackSpeed: 0.015
   consumableEffect: 0
   consumableHealAmount: 0

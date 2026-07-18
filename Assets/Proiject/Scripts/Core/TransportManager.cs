@@ -385,16 +385,9 @@ public class TransportManager : MonoBehaviour
             convoy.originTownIndex,
             convoy.destinationTownIndex,
             travelled + 1);
-        int required = 25 + Mathf.Max(
-            0,
-            WorldMapService.GetTownProgressionPosition(town)) * 20;
-        int strength = 0;
+        int required = GetRaidRequiredStrength(town);
         List<MercenaryInstance> escorts = GetEscorts(convoy);
-        foreach (MercenaryInstance escort in escorts)
-        {
-            strength += (escort.Attack + escort.Defense + escort.MaxHP / 10) *
-                        escort.Level;
-        }
+        int strength = CombatPowerCalculator.Calculate(escorts);
 
         if (strength >= required)
         {
@@ -437,6 +430,13 @@ public class TransportManager : MonoBehaviour
             convoy,
             0,
             lost));
+    }
+
+    public int GetRaidRequiredStrength(int townIndex)
+    {
+        return 100 + Mathf.Max(
+            0,
+            WorldMapService.GetTownProgressionPosition(townIndex)) * 100;
     }
 
     private int DepositCargo(TransportConvoy convoy)

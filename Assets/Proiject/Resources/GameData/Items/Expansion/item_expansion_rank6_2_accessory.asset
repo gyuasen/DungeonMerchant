@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 6 Mage Accessory
-  basePrice: 640
+  basePrice: 2100
   acquisitionType: 1
   equipmentSlot: 2
   requiredClass: 2
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 6
-  bonusMaxHP: 13
-  bonusAttack: 9
-  bonusDefense: 1
-  bonusAttackSpeed: 0.028
+  bonusMaxHP: 14
+  bonusAttack: 11
+  bonusDefense: 4
+  bonusAttackSpeed: 0.035
   consumableEffect: 0
   consumableHealAmount: 0

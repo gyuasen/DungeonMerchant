@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 4 Warrior Weapon
-  basePrice: 560
+  basePrice: 720
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 0
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 4
-  bonusMaxHP: 16
-  bonusAttack: 14
-  bonusDefense: 0
-  bonusAttackSpeed: 0
+  bonusMaxHP: 10
+  bonusAttack: 13
+  bonusDefense: 4
+  bonusAttackSpeed: 0.020000001
   consumableEffect: 0
   consumableHealAmount: 0

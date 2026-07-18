@@ -2,22 +2,32 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: AbyssFang
+  m_EditorClassIdentifier: 
   persistentId: item.dungeon.abyss_fang
-  itemName: 深淵竜牙
+  itemName: "\u6DF1\u6DF5\u7ADC\u7259"
   itemType: 1
   rarity: 3
-  description: アビスの主から削り出された漆黒の武具。
-  basePrice: 3000
+  materialClassification: 0
+  description: "\u30A2\u30D3\u30B9\u306E\u4E3B\u304B\u3089\u524A\u308A\u51FA\u3055\u308C\u305F\u6F06\u9ED2\u306E\u6B66\u5177\u3002"
+  basePrice: 13000
   acquisitionType: 2
   equipmentSlot: 0
   requiredClass: 0
   allClassesCanEquip: 1
   equipmentSet: 9
   equipmentRank: 9
-  bonusMaxHP: 20
-  bonusAttack: 25
-  bonusDefense: 3
-  bonusAttackSpeed: 0.03
+  bonusMaxHP: 22
+  bonusAttack: 28
+  bonusDefense: 8
+  bonusAttackSpeed: 0.05
   consumableEffect: 0
+  consumableHealAmount: 0

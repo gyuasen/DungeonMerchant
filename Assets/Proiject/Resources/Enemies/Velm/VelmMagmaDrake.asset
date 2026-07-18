@@ -11,22 +11,26 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: VelmMagmaDrake
-  m_EditorClassIdentifier:
-  enemyName: ヴェルム溶岩竜
+  m_EditorClassIdentifier: 
+  persistentId: 
+  enemyName: "\u30F4\u30A7\u30EB\u30E0\u6EB6\u5CA9\u7ADC"
   monsterGrade: 2
   isBoss: 0
   category: 0
   enemySkill: 8
   isSpecialVariant: 0
-  specialVariantTitle:
-  maxHP: 130
-  attack: 34
-  defense: 10
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 1417
+  attack: 121
+  defense: 74
   maxMagicPower: 75
   attackSpeed: 1.1
   criticalRate: 0.06
   evasionRate: 0.02
-  goldReward: 280
+  goldReward: 874
   experienceMultiplier: 1.25
   itemDrops:
   - item: {fileID: 11400000, guid: cd2a3b4c5d6e7f8091a2b3c4d5e6f7a8, type: 2}

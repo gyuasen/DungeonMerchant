@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 7 Mage Armor
-  basePrice: 640
+  basePrice: 4500
   acquisitionType: 1
   equipmentSlot: 1
   requiredClass: 2
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 7
-  bonusMaxHP: 49
-  bonusAttack: 4
-  bonusDefense: 14
-  bonusAttackSpeed: 0
+  bonusMaxHP: 46
+  bonusAttack: 8
+  bonusDefense: 12
+  bonusAttackSpeed: 0.035
   consumableEffect: 0
   consumableHealAmount: 0

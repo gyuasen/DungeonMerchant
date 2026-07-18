@@ -4,18 +4,18 @@ using NUnit.Framework;
 
 public sealed class MercenaryClassProgressionTests
 {
-    [TestCase(MercenaryClass.Knight, MercenarySkillId.AegisPierce, 50, 1.45f)]
+    [TestCase(MercenaryClass.Knight, MercenarySkillId.AegisPierce, 50, 0.75f)]
     [TestCase(MercenaryClass.Berserker, MercenarySkillId.RagingCombo, 55, 0.55f)]
-    [TestCase(MercenaryClass.Sniper, MercenarySkillId.ArmorBreakArrow, 50, 1.55f)]
+    [TestCase(MercenaryClass.Sniper, MercenarySkillId.ArmorBreakArrow, 50, 0.80f)]
     [TestCase(MercenaryClass.Ranger, MercenarySkillId.GaleVolley, 55, 0.75f)]
     [TestCase(MercenaryClass.Sage, MercenarySkillId.ArcaneBurst, 50, 1.45f)]
-    [TestCase(MercenaryClass.Elementalist, MercenarySkillId.StormCircle, 60, 0.75f)]
-    [TestCase(MercenaryClass.Bishop, MercenarySkillId.GreaterHeal, 55, 1.75f)]
-    [TestCase(MercenaryClass.Paladin, MercenarySkillId.HolyShieldBash, 50, 1.2f)]
-    [TestCase(MercenaryClass.Assassin, MercenarySkillId.FatalFlurry, 55, 0.5f)]
+    [TestCase(MercenaryClass.Elementalist, MercenarySkillId.StormCircle, 60, 0.65f)]
+    [TestCase(MercenaryClass.Bishop, MercenarySkillId.GreaterHeal, 55, 1.55f)]
+    [TestCase(MercenaryClass.Paladin, MercenarySkillId.HolyShieldBash, 50, 1.10f)]
+    [TestCase(MercenaryClass.Assassin, MercenarySkillId.FatalFlurry, 55, 0.45f)]
     [TestCase(MercenaryClass.Ninja, MercenarySkillId.BindingBlade, 50, 1.05f)]
     [TestCase(MercenaryClass.Dragoon, MercenarySkillId.SkySpearCombo, 55, 0.55f)]
-    [TestCase(MercenaryClass.GuardianLancer, MercenarySkillId.FortressPierce, 50, 1.4f)]
+    [TestCase(MercenaryClass.GuardianLancer, MercenarySkillId.FortressPierce, 50, 0.72f)]
     public void AdvancedClass_HasUniqueLevel25ActiveSkill(
         MercenaryClass mercenaryClass,
         MercenarySkillId expectedId,
@@ -26,12 +26,12 @@ public sealed class MercenaryClassProgressionTests
             expectedPower);
     }
 
-    [TestCase(MercenaryClass.Warlord, MercenarySkillId.WarfrontSmash, 70, 0.9f)]
-    [TestCase(MercenaryClass.Beastmaster, MercenarySkillId.BeastKingFangs, 70, 0.48f)]
-    [TestCase(MercenaryClass.Chronomancer, MercenarySkillId.TemporalRift, 65, 1.6f)]
-    [TestCase(MercenaryClass.Saint, MercenarySkillId.DivineHymn, 70, 1.3f)]
-    [TestCase(MercenaryClass.Shadow, MercenarySkillId.VoidPierce, 65, 1.65f)]
-    [TestCase(MercenaryClass.DragonKnight, MercenarySkillId.DragonfallBreath, 75, 0.95f)]
+    [TestCase(MercenaryClass.Warlord, MercenarySkillId.WarfrontSmash, 70, 0.75f)]
+    [TestCase(MercenaryClass.Beastmaster, MercenarySkillId.BeastKingFangs, 70, 0.44f)]
+    [TestCase(MercenaryClass.Chronomancer, MercenarySkillId.TemporalRift, 65, 0.82f)]
+    [TestCase(MercenaryClass.Saint, MercenarySkillId.DivineHymn, 70, 1.0f)]
+    [TestCase(MercenaryClass.Shadow, MercenarySkillId.VoidPierce, 65, 0.85f)]
+    [TestCase(MercenaryClass.DragonKnight, MercenarySkillId.DragonfallBreath, 75, 0.78f)]
     public void SpecialClass_HasUniqueLevel45ActiveSkill(
         MercenaryClass mercenaryClass,
         MercenarySkillId expectedId,

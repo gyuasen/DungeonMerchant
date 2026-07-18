@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: A simple staff that stabilizes basic magic.
-  basePrice: 130
+  basePrice: 120
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 2
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 1
-  bonusMaxHP: 0
-  bonusAttack: 6
+  bonusMaxHP: 2
+  bonusAttack: 5
   bonusDefense: 0
-  bonusAttackSpeed: 0
+  bonusAttackSpeed: 0.01
   consumableEffect: 0
   consumableHealAmount: 0

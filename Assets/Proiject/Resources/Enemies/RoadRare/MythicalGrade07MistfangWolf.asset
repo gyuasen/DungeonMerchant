@@ -11,16 +11,25 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: MythicalGrade07MistfangWolf
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
+  persistentId: 
   enemyName: Mistfang Wolf
   monsterGrade: 7
   isBoss: 0
   category: 1
-  maxHP: 75
+  enemySkill: 0
+  isSpecialVariant: 0
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 95
   attack: 15
-  defense: 5
+  defense: 7
   maxMagicPower: 50
   attackSpeed: 1.35
-  goldReward: 160
+  criticalRate: 0
+  evasionRate: 0
+  goldReward: 146
   experienceMultiplier: 3
   itemDrops: []

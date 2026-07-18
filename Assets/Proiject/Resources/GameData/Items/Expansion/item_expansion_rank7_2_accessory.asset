@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 7 Mage Accessory
-  basePrice: 700
+  basePrice: 3800
   acquisitionType: 1
   equipmentSlot: 2
   requiredClass: 2
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 7
-  bonusMaxHP: 15
-  bonusAttack: 10
-  bonusDefense: 1
-  bonusAttackSpeed: 0.031
+  bonusMaxHP: 16
+  bonusAttack: 12
+  bonusDefense: 5
+  bonusAttackSpeed: 0.04
   consumableEffect: 0
   consumableHealAmount: 0

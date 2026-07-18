@@ -11,17 +11,27 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Grade06Troll
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
+  persistentId: 
   enemyName: Troll
   monsterGrade: 6
   isBoss: 0
+  category: 0
   enemySkill: 11
-  maxHP: 76
-  attack: 16
-  defense: 4
+  isSpecialVariant: 0
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 150
+  attack: 24
+  defense: 11
   maxMagicPower: 35
   attackSpeed: 0.7
-  goldReward: 115
+  criticalRate: 0
+  evasionRate: 0
+  goldReward: 209
+  experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: ab2a3b4c5d6e7f8091a2b3c4d5e6f7a8, type: 2}
     amount: 1

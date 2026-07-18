@@ -2,14 +2,23 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: VelmEmberCore
+  m_EditorClassIdentifier: 
   persistentId: item.dungeon.velm_ember_core
-  itemName: ヴェルム熾火核
+  itemName: "\u30F4\u30A7\u30EB\u30E0\u71BE\u706B\u6838"
   itemType: 1
   rarity: 3
-  description: 黒鉄坑の溶鉱炉に残った核。全職の力を均等に引き出す装身具。
-  basePrice: 2750
+  materialClassification: 0
+  description: "\u9ED2\u9244\u5751\u306E\u6EB6\u9271\u7089\u306B\u6B8B\u3063\u305F\u6838\u3002\u5168\u8077\u306E\u529B\u3092\u5747\u7B49\u306B\u5F15\u304D\u51FA\u3059\u88C5\u8EAB\u5177\u3002"
+  basePrice: 6800
   acquisitionType: 2
   equipmentSlot: 2
   requiredClass: 0
@@ -19,5 +28,6 @@ MonoBehaviour:
   bonusMaxHP: 30
   bonusAttack: 12
   bonusDefense: 10
-  bonusAttackSpeed: 0.04
+  bonusAttackSpeed: 0.045
   consumableEffect: 0
+  consumableHealAmount: 0

@@ -11,15 +11,19 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Grade10BlueSlime
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
+  persistentId: 
   enemyName: Blue Slime
   monsterGrade: 10
   isBoss: 0
   category: 0
   enemySkill: 0
   isSpecialVariant: 0
-  specialVariantTitle:
-  maxHP: 18
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 24
   attack: 5
   defense: 1
   maxMagicPower: 30

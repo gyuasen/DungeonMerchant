@@ -20,16 +20,17 @@ MonoBehaviour:
   enemySkill: 27
   isSpecialVariant: 0
   specialVariantTitle: 
+  combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
   battleVisualKey: Grade05_orc_berserker
-  maxHP: 78
-  attack: 26
-  defense: 6
+  maxHP: 225
+  attack: 41
+  defense: 16
   maxMagicPower: 90
-  attackSpeed: 1.15
+  attackSpeed: 1.2074999
   criticalRate: 0
   evasionRate: 0
-  goldReward: 180
+  goldReward: 299
   experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: 02cca79ae8434c1eb64f32d3d4d206a0, type: 2}

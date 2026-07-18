@@ -139,26 +139,18 @@ public class DungeonExpeditionManager : MonoBehaviour
         }
         switch (dungeon.grade)
         {
-            case DungeonGrade.Low: return 60;
-            case DungeonGrade.Lower: return 120;
-            case DungeonGrade.Middle: return 200;
-            case DungeonGrade.Upper: return 300;
-            case DungeonGrade.Highest: return 420;
-            default: return 420;
+            case DungeonGrade.Low: return 100;
+            case DungeonGrade.Lower: return 220;
+            case DungeonGrade.Middle: return 420;
+            case DungeonGrade.Upper: return 750;
+            case DungeonGrade.Highest: return 1200;
+            default: return 1200;
         }
     }
 
     public int GetExpeditionStrength(DungeonExpedition expedition)
     {
-        int strength = 0;
-        foreach (MercenaryInstance member in GetMembers(expedition))
-        {
-            if (member.CurrentHP > 0)
-            {
-                strength += (member.Attack + member.Defense + member.MaxHP / 10) * member.Level;
-            }
-        }
-        return strength;
+        return CombatPowerCalculator.Calculate(GetMembers(expedition));
     }
 
     public List<SavedDungeonExpedition> CreateSaveData()

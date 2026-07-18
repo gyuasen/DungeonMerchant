@@ -70,7 +70,7 @@ public sealed class EnemySkillBalanceTests
         BattleUnit target = Unit("target", 200, 200, 10, 10, true);
 
         Assert.That(Use(EnemySkillType.ArcaneBolt, attacker, target), Is.True);
-        Assert.That(target.CurrentHP, Is.EqualTo(166));
+        Assert.That(target.CurrentHP, Is.EqualTo(160));
     }
 
     [Test]
@@ -88,7 +88,7 @@ public sealed class EnemySkillBalanceTests
             resolver.TryUseEnemySkill(
                 attacker, first, Data(EnemySkillType.MeteorRain)),
             Is.True);
-        Assert.That(first.CurrentHP, Is.EqualTo(77));
+        Assert.That(first.CurrentHP, Is.EqualTo(73));
         Assert.That(second.CurrentHP, Is.EqualTo(72));
     }
 
@@ -99,7 +99,7 @@ public sealed class EnemySkillBalanceTests
         BattleUnit target = Unit("target", 200, 200, 10, 5, true);
 
         Assert.That(Use(EnemySkillType.CrushingBlow, attacker, target), Is.True);
-        Assert.That(target.CurrentHP, Is.EqualTo(159));
+        Assert.That(target.CurrentHP, Is.EqualTo(156));
         Assert.That(target.StatusEffect, Is.EqualTo(BattleStatusEffect.Paralysis));
     }
 
@@ -110,7 +110,7 @@ public sealed class EnemySkillBalanceTests
         BattleUnit target = Unit("target", 200, 200, 10, 2, true);
 
         Assert.That(Use(EnemySkillType.BerserkRush, attacker, target), Is.True);
-        Assert.That(target.CurrentHP, Is.EqualTo(164));
+        Assert.That(target.CurrentHP, Is.EqualTo(156));
     }
 
     [Test]
@@ -120,7 +120,7 @@ public sealed class EnemySkillBalanceTests
         BattleUnit target = Unit("target", 200, 200, 10, 0, true);
 
         Assert.That(Use(EnemySkillType.Regeneration, injured, target), Is.True);
-        Assert.That(injured.CurrentHP, Is.EqualTo(124));
+        Assert.That(injured.CurrentHP, Is.EqualTo(104));
 
         BattleUnit healthy = Unit("healthy", 200, 150, 20, 0, false);
         Assert.That(Use(EnemySkillType.Regeneration, healthy, target), Is.False);

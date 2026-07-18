@@ -11,20 +11,23 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: PriestVestment
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   persistentId: item.priest.vestment
-  itemName: 見習いの司祭衣
+  itemName: "\u898B\u7FD2\u3044\u306E\u53F8\u796D\u8863"
   itemType: 1
   rarity: 0
-  description: 祈り手の動きを妨げない、柔らかな司祭衣。
-  basePrice: 155
+  materialClassification: 0
+  description: "\u7948\u308A\u624B\u306E\u52D5\u304D\u3092\u59A8\u3052\u306A\u3044\u3001\u67D4\u3089\u304B\u306A\u53F8\u796D\u8863\u3002"
+  basePrice: 130
   acquisitionType: 0
   equipmentSlot: 1
   requiredClass: 3
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 1
-  bonusMaxHP: 6
-  bonusAttack: 2
-  bonusDefense: 2
-  bonusAttackSpeed: 0
+  bonusMaxHP: 9
+  bonusAttack: 0
+  bonusDefense: 3
+  bonusAttackSpeed: 0.0045
+  consumableEffect: 0
+  consumableHealAmount: 0

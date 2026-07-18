@@ -2,14 +2,24 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: NormalRank10Armor
+  m_EditorClassIdentifier: 
   persistentId: item.normal.rank10.armor
-  itemName: 神話の星鋼鎧
+  itemName: "\u795E\u8A71\u306E\u661F\u92FC\u93A7"
   itemType: 1
   rarity: 3
-  description: アステラ秘匿都市の炉でのみ鍛えられる、星鋼製のRank 10防具。
-  basePrice: 9500
+  materialClassification: 0
+  description: "\u30A2\u30B9\u30C6\u30E9\u79D8\u533F\u90FD\u5E02\u306E\u7089\u3067\u306E\u307F\u935B\u3048\u3089\u308C\u308B\u3001\u661F\u92FC\u88FD\u306ERank
+    10\u9632\u5177\u3002"
+  basePrice: 31500
   acquisitionType: 1
   equipmentSlot: 1
   requiredClass: 0
@@ -17,7 +27,8 @@ MonoBehaviour:
   equipmentSet: 0
   equipmentRank: 10
   bonusMaxHP: 110
-  bonusAttack: 0
+  bonusAttack: 10
   bonusDefense: 28
-  bonusAttackSpeed: 0
+  bonusAttackSpeed: 0.055
   consumableEffect: 0
+  consumableHealAmount: 0

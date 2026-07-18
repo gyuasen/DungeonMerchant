@@ -12,16 +12,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Grade04DarkMage
   m_EditorClassIdentifier: 
+  persistentId: 
   enemyName: Dark Mage
   monsterGrade: 4
-  enemySkill: 14
   isBoss: 0
-  maxHP: 78
-  attack: 22
-  defense: 6
+  category: 0
+  enemySkill: 14
+  isSpecialVariant: 0
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 430
+  attack: 54
+  defense: 29
   maxMagicPower: 90
   attackSpeed: 1.15
-  goldReward: 180
+  criticalRate: 0
+  evasionRate: 0
+  goldReward: 427
+  experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: 52a98352167a4bce926ac5c343b9c6e8, type: 2}
     amount: 1

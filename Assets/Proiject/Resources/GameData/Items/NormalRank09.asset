@@ -2,18 +2,32 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: NormalRank09
+  m_EditorClassIdentifier: 
   persistentId: item.normal.rank09
-  itemName: 深淵探索の護符
+  itemName: "\u6DF1\u6DF5\u63A2\u7D22\u306E\u8B77\u7B26"
   itemType: 1
   rarity: 0
-  description: 終焉の黒土で拾われた欠片を封じた、深淵探索者の護符。
-  basePrice: 950
+  materialClassification: 0
+  description: "\u7D42\u7109\u306E\u9ED2\u571F\u3067\u62FE\u308F\u308C\u305F\u6B20\u7247\u3092\u5C01\u3058\u305F\u3001\u6DF1\u6DF5\u63A2\u7D22\u8005\u306E\u8B77\u7B26\u3002"
+  basePrice: 12200
   acquisitionType: 2
   equipmentSlot: 2
   requiredClass: 0
   allClassesCanEquip: 1
+  equipmentSet: 0
   equipmentRank: 9
-  bonusMaxHP: 28
+  bonusMaxHP: 34
   bonusAttack: 13
+  bonusDefense: 11
+  bonusAttackSpeed: 0.05
+  consumableEffect: 0
+  consumableHealAmount: 0

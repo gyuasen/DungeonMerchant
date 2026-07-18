@@ -2,14 +2,23 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: VelmDeepforgeArmor
+  m_EditorClassIdentifier: 
   persistentId: item.dungeon.velm_deepforge_armor
-  itemName: ヴェルム深鍛鎧
+  itemName: "\u30F4\u30A7\u30EB\u30E0\u6DF1\u935B\u93A7"
   itemType: 1
   rarity: 3
-  description: 地底炉の熱で鍛え直された黒鉄鎧。すべての職に堅牢な守りを与える。
-  basePrice: 2950
+  materialClassification: 0
+  description: "\u5730\u5E95\u7089\u306E\u71B1\u3067\u935B\u3048\u76F4\u3055\u308C\u305F\u9ED2\u9244\u93A7\u3002\u3059\u3079\u3066\u306E\u8077\u306B\u5805\u7262\u306A\u5B88\u308A\u3092\u4E0E\u3048\u308B\u3002"
+  basePrice: 8000
   acquisitionType: 2
   equipmentSlot: 1
   requiredClass: 0
@@ -17,7 +26,8 @@ MonoBehaviour:
   equipmentSet: 8
   equipmentRank: 8
   bonusMaxHP: 76
-  bonusAttack: 4
+  bonusAttack: 7
   bonusDefense: 20
-  bonusAttackSpeed: 0.015
+  bonusAttackSpeed: 0.04
   consumableEffect: 0
+  consumableHealAmount: 0

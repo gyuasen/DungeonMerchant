@@ -2,22 +2,32 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: AstralEdge
+  m_EditorClassIdentifier: 
   persistentId: item.hidden.astral_edge
-  itemName: 星界断ち
+  itemName: "\u661F\u754C\u65AD\u3061"
   itemType: 1
   rarity: 3
-  description: 中央島の深層でのみ発見される、星光を帯びた秘剣。
-  basePrice: 4200
+  materialClassification: 0
+  description: "\u4E2D\u592E\u5CF6\u306E\u6DF1\u5C64\u3067\u306E\u307F\u767A\u898B\u3055\u308C\u308B\u3001\u661F\u5149\u3092\u5E2F\u3073\u305F\u79D8\u5263\u3002"
+  basePrice: 28600
   acquisitionType: 2
   equipmentSlot: 0
   requiredClass: 0
   allClassesCanEquip: 1
   equipmentSet: 10
   equipmentRank: 10
-  bonusMaxHP: 15
-  bonusAttack: 30
-  bonusDefense: 4
-  bonusAttackSpeed: 0.04
+  bonusMaxHP: 28
+  bonusAttack: 34
+  bonusDefense: 10
+  bonusAttackSpeed: 0.06
   consumableEffect: 0
+  consumableHealAmount: 0

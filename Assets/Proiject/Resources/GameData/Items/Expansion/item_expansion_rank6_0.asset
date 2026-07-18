@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 6 Warrior Weapon
-  basePrice: 750
+  basePrice: 2300
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 0
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 6
-  bonusMaxHP: 24
-  bonusAttack: 20
-  bonusDefense: 0
-  bonusAttackSpeed: 0
+  bonusMaxHP: 14
+  bonusAttack: 17
+  bonusDefense: 6
+  bonusAttackSpeed: 0.028
   consumableEffect: 0
   consumableHealAmount: 0

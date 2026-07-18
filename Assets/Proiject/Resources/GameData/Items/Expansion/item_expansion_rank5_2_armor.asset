@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 5 Mage Armor
-  basePrice: 530
+  basePrice: 1400
   acquisitionType: 0
   equipmentSlot: 1
   requiredClass: 2
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 5
-  bonusMaxHP: 35
-  bonusAttack: 4
-  bonusDefense: 10
-  bonusAttackSpeed: 0
+  bonusMaxHP: 28
+  bonusAttack: 5
+  bonusDefense: 9
+  bonusAttackSpeed: 0.025
   consumableEffect: 0
   consumableHealAmount: 0

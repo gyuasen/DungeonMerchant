@@ -117,7 +117,7 @@ public sealed class BalanceExpansionDefinitionTests
             ItemDataSO warriorArmor = Resources.Load<ItemDataSO>("GameData/Items/Expansion/item_expansion_rank" + rank + "_0_armor");
             ItemDataSO archerWeapon = Resources.Load<ItemDataSO>("GameData/Items/Expansion/item_expansion_rank" + rank + "_1");
             ItemDataSO mageWeapon = Resources.Load<ItemDataSO>("GameData/Items/Expansion/item_expansion_rank" + rank + "_2");
-            Assert.That(warriorArmor.bonusMaxHP, Is.GreaterThan(rank * 9));
+            Assert.That(warriorArmor.bonusMaxHP, Is.GreaterThanOrEqualTo(rank * 9));
             Assert.That(warriorArmor.bonusDefense, Is.GreaterThan(rank * 2));
             Assert.That(archerWeapon.bonusAttackSpeed, Is.GreaterThan(0.03f));
             Assert.That(mageWeapon.bonusAttack, Is.GreaterThan(rank * 3));

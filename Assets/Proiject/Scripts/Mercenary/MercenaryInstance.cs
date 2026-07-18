@@ -764,10 +764,10 @@ public class MercenaryInstance
         if (GetEquippedSetCount(EquipmentSetId.AncientGuardian) >= 2) bonus += 30;
         if (GetEquippedSetCount(EquipmentSetId.Vanguard) >= 2) bonus += 20;
         if (GetEquippedSetCount(EquipmentSetId.OniHunter) >= 2) bonus += 10;
-        if (GetEquippedSetCount(EquipmentSetId.NornCanopy) >= 2) bonus += 16;
+        if (GetEquippedSetCount(EquipmentSetId.NornCanopy) >= 2) bonus += 20;
         if (GetEquippedSetCount(EquipmentSetId.GlaadSkyFortress) >= 3) bonus += 22;
         if (GetEquippedSetCount(EquipmentSetId.VelmBlackIron) >= 2) bonus += 28;
-        if (GetEquippedSetCount(EquipmentSetId.AbyssThrone) >= 3) bonus += 36;
+        if (GetEquippedSetCount(EquipmentSetId.AbyssThrone) >= 3) bonus += 45;
         if (GetEquippedSetCount(EquipmentSetId.AstralDepths) >= 2) bonus += 45;
         return bonus;
     }
@@ -777,10 +777,10 @@ public class MercenaryInstance
         int bonus = 0;
         if (GetEquippedSetCount(EquipmentSetId.AncientGuardian) >= 3) bonus += 12;
         if (GetEquippedSetCount(EquipmentSetId.Vanguard) >= 3) bonus += 8;
-        if (GetEquippedSetCount(EquipmentSetId.Windstalker) >= 2) bonus += 5;
-        if (GetEquippedSetCount(EquipmentSetId.Windstalker) >= 3) bonus += 10;
-        if (GetEquippedSetCount(EquipmentSetId.ArcaneSage) >= 2) bonus += 10;
-        if (GetEquippedSetCount(EquipmentSetId.ArcaneSage) >= 3) bonus += 15;
+        if (GetEquippedSetCount(EquipmentSetId.Windstalker) >= 2) bonus += 4;
+        if (GetEquippedSetCount(EquipmentSetId.Windstalker) >= 3) bonus += 7;
+        if (GetEquippedSetCount(EquipmentSetId.ArcaneSage) >= 2) bonus += 8;
+        if (GetEquippedSetCount(EquipmentSetId.ArcaneSage) >= 3) bonus += 10;
         if (GetEquippedSetCount(EquipmentSetId.OniHunter) >= 2) bonus += 3;
         if (GetEquippedSetCount(EquipmentSetId.OniHunter) >= 3) bonus += 5;
         if (GetEquippedSetCount(EquipmentSetId.NornCanopy) >= 3) bonus += 4;
@@ -797,10 +797,10 @@ public class MercenaryInstance
         if (GetEquippedSetCount(EquipmentSetId.AncientGuardian) >= 2) bonus += 8;
         if (GetEquippedSetCount(EquipmentSetId.Vanguard) >= 2) bonus += 10;
         if (GetEquippedSetCount(EquipmentSetId.OniHunter) >= 3) bonus += 2;
-        if (GetEquippedSetCount(EquipmentSetId.NornCanopy) >= 2) bonus += 4;
+        if (GetEquippedSetCount(EquipmentSetId.NornCanopy) >= 2) bonus += 5;
         if (GetEquippedSetCount(EquipmentSetId.GlaadSkyFortress) >= 2) bonus += 6;
         if (GetEquippedSetCount(EquipmentSetId.VelmBlackIron) >= 3) bonus += 8;
-        if (GetEquippedSetCount(EquipmentSetId.AbyssThrone) >= 2) bonus += 7;
+        if (GetEquippedSetCount(EquipmentSetId.AbyssThrone) >= 2) bonus += 8;
         if (GetEquippedSetCount(EquipmentSetId.AstralDepths) >= 3) bonus += 10;
         return bonus;
     }
@@ -808,9 +808,9 @@ public class MercenaryInstance
     private float GetSetBonusAttackSpeed()
     {
         float bonus = 0f;
-        if (GetEquippedSetCount(EquipmentSetId.AncientGuardian) >= 3) bonus += 0.08f;
-        if (GetEquippedSetCount(EquipmentSetId.Windstalker) >= 2) bonus += 0.08f;
-        if (GetEquippedSetCount(EquipmentSetId.Windstalker) >= 3) bonus += 0.06f;
+        if (GetEquippedSetCount(EquipmentSetId.AncientGuardian) >= 3) bonus += 0.05f;
+        if (GetEquippedSetCount(EquipmentSetId.Windstalker) >= 2) bonus += 0.05f;
+        if (GetEquippedSetCount(EquipmentSetId.Windstalker) >= 3) bonus += 0.04f;
         if (GetEquippedSetCount(EquipmentSetId.ArcaneSage) >= 3) bonus += 0.04f;
         if (GetEquippedSetCount(EquipmentSetId.NornCanopy) >= 3) bonus += 0.02f;
         if (GetEquippedSetCount(EquipmentSetId.GlaadSkyFortress) >= 3) bonus += 0.025f;

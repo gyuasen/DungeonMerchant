@@ -20,16 +20,17 @@ MonoBehaviour:
   enemySkill: 27
   isSpecialVariant: 0
   specialVariantTitle: 
+  combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
   battleVisualKey: Grade07_skeleton_reaper
-  maxHP: 65
-  attack: 19
-  defense: 5
+  maxHP: 86
+  attack: 17
+  defense: 6
   maxMagicPower: 40
-  attackSpeed: 0.95
+  attackSpeed: 0.99749994
   criticalRate: 0.07
   evasionRate: 0.02
-  goldReward: 115
+  goldReward: 146
   experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: f66e9fe18b5c428a86a912bdf72fc5ba, type: 2}

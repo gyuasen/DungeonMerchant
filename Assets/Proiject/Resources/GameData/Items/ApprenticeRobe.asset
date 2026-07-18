@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: A simple robe issued to apprentice mages.
-  basePrice: 155
+  basePrice: 130
   acquisitionType: 0
   equipmentSlot: 1
   requiredClass: 2
@@ -26,8 +26,8 @@ MonoBehaviour:
   equipmentSet: 0
   equipmentRank: 1
   bonusMaxHP: 6
-  bonusAttack: 2
+  bonusAttack: 0
   bonusDefense: 2
-  bonusAttackSpeed: 0
+  bonusAttackSpeed: 0.005
   consumableEffect: 0
   consumableHealAmount: 0

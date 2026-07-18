@@ -11,13 +11,14 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: LancerChainmail
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   persistentId: item.lancer.chainmail
-  itemName: 槍兵の鎖帷子
+  itemName: "\u69CD\u5175\u306E\u9396\u5E37\u5B50"
   itemType: 1
   rarity: 0
-  description: 槍を構える兵士のために編まれた鎖帷子。
-  basePrice: 150
+  materialClassification: 0
+  description: "\u69CD\u3092\u69CB\u3048\u308B\u5175\u58EB\u306E\u305F\u3081\u306B\u7DE8\u307E\u308C\u305F\u9396\u5E37\u5B50\u3002"
+  basePrice: 130
   acquisitionType: 0
   equipmentSlot: 1
   requiredClass: 5
@@ -26,5 +27,7 @@ MonoBehaviour:
   equipmentRank: 1
   bonusMaxHP: 10
   bonusAttack: 0
-  bonusDefense: 5
-  bonusAttackSpeed: 0
+  bonusDefense: 4
+  bonusAttackSpeed: 0.004
+  consumableEffect: 0
+  consumableHealAmount: 0

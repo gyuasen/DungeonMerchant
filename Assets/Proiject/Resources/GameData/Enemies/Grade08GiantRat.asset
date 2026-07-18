@@ -11,22 +11,26 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Grade08GiantRat
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
+  persistentId: 
   enemyName: Giant Rat
   monsterGrade: 8
   isBoss: 0
   category: 0
   enemySkill: 0
   isSpecialVariant: 0
-  specialVariantTitle:
-  maxHP: 31
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 60
   attack: 10
-  defense: 1
+  defense: 4
   maxMagicPower: 25
   attackSpeed: 1.45
   criticalRate: 0.03
   evasionRate: 0.08
-  goldReward: 75
+  goldReward: 102
   experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: af1a2b3c4d5e6f708192a3b4c5d6e7f8, type: 2}

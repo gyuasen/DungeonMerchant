@@ -11,22 +11,26 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Grade06Lizardman
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
+  persistentId: 
   enemyName: Lizardman
   monsterGrade: 6
   isBoss: 0
   category: 0
   enemySkill: 9
   isSpecialVariant: 0
-  specialVariantTitle:
-  maxHP: 56
-  attack: 15
-  defense: 6
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 150
+  attack: 24
+  defense: 11
   maxMagicPower: 35
   attackSpeed: 1.05
   criticalRate: 0.05
   evasionRate: 0.03
-  goldReward: 115
+  goldReward: 209
   experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: fa1a2b3c4d5e6f708192a3b4c5d6e7f8, type: 2}

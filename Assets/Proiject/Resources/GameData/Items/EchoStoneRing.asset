@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 2
   materialClassification: 0
   description: A stone ring that resonates with sounds deep underground.
-  basePrice: 480
+  basePrice: 650
   acquisitionType: 2
   equipmentSlot: 2
   requiredClass: 0
   allClassesCanEquip: 1
   equipmentSet: 0
   equipmentRank: 4
-  bonusMaxHP: 7
-  bonusAttack: 4
-  bonusDefense: 3
-  bonusAttackSpeed: 0.02
+  bonusMaxHP: 12
+  bonusAttack: 6
+  bonusDefense: 4
+  bonusAttackSpeed: 0.025
   consumableEffect: 0
   consumableHealAmount: 0

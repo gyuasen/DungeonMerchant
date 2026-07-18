@@ -2,14 +2,23 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: AstralCore
+  m_EditorClassIdentifier: 
   persistentId: item.hidden.astral_core
-  itemName: 星環の核
+  itemName: "\u661F\u74B0\u306E\u6838"
   itemType: 1
   rarity: 3
-  description: 中央島の動力源から分離した、脈動する星の護符。
-  basePrice: 4600
+  materialClassification: 0
+  description: "\u4E2D\u592E\u5CF6\u306E\u52D5\u529B\u6E90\u304B\u3089\u5206\u96E2\u3057\u305F\u3001\u8108\u52D5\u3059\u308B\u661F\u306E\u8B77\u7B26\u3002"
+  basePrice: 26800
   acquisitionType: 2
   equipmentSlot: 2
   requiredClass: 0
@@ -17,7 +26,8 @@ MonoBehaviour:
   equipmentSet: 10
   equipmentRank: 10
   bonusMaxHP: 50
-  bonusAttack: 12
-  bonusDefense: 12
+  bonusAttack: 14
+  bonusDefense: 14
   bonusAttackSpeed: 0.06
   consumableEffect: 0
+  consumableHealAmount: 0

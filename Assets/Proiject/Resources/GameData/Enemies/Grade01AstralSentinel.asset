@@ -11,21 +11,25 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Grade01AstralSentinel
-  m_EditorClassIdentifier:
-  enemyName: 星環の守衛
+  m_EditorClassIdentifier: 
+  persistentId: 
+  enemyName: "\u661F\u74B0\u306E\u5B88\u885B"
   monsterGrade: 1
   isBoss: 0
   category: 0
   enemySkill: 7
   isSpecialVariant: 0
-  specialVariantTitle:
-  maxHP: 260
-  attack: 42
-  defense: 28
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 2400
+  attack: 160
+  defense: 105
   maxMagicPower: 80
   attackSpeed: 0.85
   criticalRate: 0.08
   evasionRate: 0.03
-  goldReward: 650
+  goldReward: 1250
   experienceMultiplier: 1.4
   itemDrops: []

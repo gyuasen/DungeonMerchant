@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 7 Archer Armor
-  basePrice: 640
+  basePrice: 4500
   acquisitionType: 1
   equipmentSlot: 1
   requiredClass: 1
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 7
-  bonusMaxHP: 49
-  bonusAttack: 0
-  bonusDefense: 14
-  bonusAttackSpeed: 0.03
+  bonusMaxHP: 53
+  bonusAttack: 6
+  bonusDefense: 13
+  bonusAttackSpeed: 0.052500002
   consumableEffect: 0
   consumableHealAmount: 0

@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 1
   materialClassification: 0
   description: A well-forged steel sword for experienced warriors.
-  basePrice: 320
+  basePrice: 220
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 2
-  bonusMaxHP: 10
-  bonusAttack: 8
-  bonusDefense: 2
-  bonusAttackSpeed: 0.02
+  bonusMaxHP: 5
+  bonusAttack: 7
+  bonusDefense: 1
+  bonusAttackSpeed: 0.012
   consumableEffect: 0
   consumableHealAmount: 0

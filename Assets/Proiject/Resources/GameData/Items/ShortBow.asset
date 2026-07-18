@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: A light bow suitable for novice archers.
-  basePrice: 125
+  basePrice: 120
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 1
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 1
-  bonusMaxHP: 0
+  bonusMaxHP: 2
   bonusAttack: 4
   bonusDefense: 0
-  bonusAttackSpeed: 0.08
+  bonusAttackSpeed: 0.015
   consumableEffect: 0
   consumableHealAmount: 0

@@ -2,17 +2,32 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: NormalRank02
+  m_EditorClassIdentifier: 
   persistentId: item.normal.rank02
   itemName: Traveler Guard II
   itemType: 1
   rarity: 0
+  materialClassification: 0
   description: Standard market equipment for every basic class.
-  basePrice: 145
+  basePrice: 240
+  acquisitionType: 0
   equipmentSlot: 1
   requiredClass: 0
   allClassesCanEquip: 1
+  equipmentSet: 0
   equipmentRank: 2
-  bonusMaxHP: 8
-  bonusDefense: 3
+  bonusMaxHP: 12
+  bonusAttack: 1
+  bonusDefense: 4
+  bonusAttackSpeed: 0.01
+  consumableEffect: 0
+  consumableHealAmount: 0

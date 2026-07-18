@@ -2,14 +2,23 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: AbyssSeal
+  m_EditorClassIdentifier: 
   persistentId: item.dungeon.abyss_seal
-  itemName: 深淵王の印
+  itemName: "\u6DF1\u6DF5\u738B\u306E\u5370"
   itemType: 1
   rarity: 3
-  description: アビスの支配者だけが持つ、闇を封じた護符。
-  basePrice: 3400
+  materialClassification: 0
+  description: "\u30A2\u30D3\u30B9\u306E\u652F\u914D\u8005\u3060\u3051\u304C\u6301\u3064\u3001\u95C7\u3092\u5C01\u3058\u305F\u8B77\u7B26\u3002"
+  basePrice: 12200
   acquisitionType: 2
   equipmentSlot: 2
   requiredClass: 0
@@ -17,7 +26,8 @@ MonoBehaviour:
   equipmentSet: 9
   equipmentRank: 9
   bonusMaxHP: 38
-  bonusAttack: 10
-  bonusDefense: 10
+  bonusAttack: 12
+  bonusDefense: 11
   bonusAttackSpeed: 0.05
   consumableEffect: 0
+  consumableHealAmount: 0

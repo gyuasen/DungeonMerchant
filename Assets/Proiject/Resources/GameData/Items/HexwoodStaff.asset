@@ -25,9 +25,9 @@ MonoBehaviour:
   allClassesCanEquip: 0
   equipmentSet: 4
   equipmentRank: 3
-  bonusMaxHP: 5
+  bonusMaxHP: 6
   bonusAttack: 20
-  bonusDefense: 1
+  bonusDefense: 2
   bonusAttackSpeed: 0.05
   consumableEffect: 0
   consumableHealAmount: 0

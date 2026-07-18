@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 2
   materialClassification: 0
   description: A massive hammer recovered from the sealed mine.
-  basePrice: 520
+  basePrice: 720
   acquisitionType: 2
   equipmentSlot: 0
   requiredClass: 0
@@ -26,8 +26,8 @@ MonoBehaviour:
   equipmentSet: 0
   equipmentRank: 4
   bonusMaxHP: 8
-  bonusAttack: 10
+  bonusAttack: 14
   bonusDefense: 3
-  bonusAttackSpeed: 0
+  bonusAttackSpeed: 0.025
   consumableEffect: 0
   consumableHealAmount: 0

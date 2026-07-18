@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 2
   materialClassification: 0
   description: An ancient mantle woven with protective runes.
-  basePrice: 920
+  basePrice: 1400
   acquisitionType: 2
   equipmentSlot: 1
   requiredClass: 0
   allClassesCanEquip: 1
   equipmentSet: 0
   equipmentRank: 5
-  bonusMaxHP: 24
-  bonusAttack: 3
-  bonusDefense: 10
-  bonusAttackSpeed: 0.02
+  bonusMaxHP: 38
+  bonusAttack: 4
+  bonusDefense: 12
+  bonusAttackSpeed: 0.025
   consumableEffect: 0
   consumableHealAmount: 0

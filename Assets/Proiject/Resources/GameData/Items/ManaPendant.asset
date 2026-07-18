@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: A small pendant that helps focus magical power.
-  basePrice: 120
+  basePrice: 110
   acquisitionType: 0
   equipmentSlot: 2
   requiredClass: 2
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 1
-  bonusMaxHP: 0
-  bonusAttack: 4
-  bonusDefense: 0
+  bonusMaxHP: 2
+  bonusAttack: 3
+  bonusDefense: 1
   bonusAttackSpeed: 0.01
   consumableEffect: 0
   consumableHealAmount: 0

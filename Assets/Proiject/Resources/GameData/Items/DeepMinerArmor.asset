@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 2
   materialClassification: 0
   description: Sturdy armor once worn by miners in monster-infested tunnels.
-  basePrice: 560
+  basePrice: 780
   acquisitionType: 2
   equipmentSlot: 1
   requiredClass: 0
   allClassesCanEquip: 1
   equipmentSet: 0
   equipmentRank: 4
-  bonusMaxHP: 18
-  bonusAttack: 0
-  bonusDefense: 8
-  bonusAttackSpeed: 0
+  bonusMaxHP: 30
+  bonusAttack: 3
+  bonusDefense: 10
+  bonusAttackSpeed: 0.02
   consumableEffect: 0
   consumableHealAmount: 0

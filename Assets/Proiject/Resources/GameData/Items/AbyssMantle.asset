@@ -2,14 +2,23 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: AbyssMantle
+  m_EditorClassIdentifier: 
   persistentId: item.dungeon.abyss_mantle
-  itemName: 深淵竜鱗衣
+  itemName: "\u6DF1\u6DF5\u7ADC\u9C57\u8863"
   itemType: 1
   rarity: 3
-  description: 深淵竜の鱗が幾重にも重なった黒き防具。
-  basePrice: 3200
+  materialClassification: 0
+  description: "\u6DF1\u6DF5\u7ADC\u306E\u9C57\u304C\u5E7E\u91CD\u306B\u3082\u91CD\u306A\u3063\u305F\u9ED2\u304D\u9632\u5177\u3002"
+  basePrice: 14300
   acquisitionType: 2
   equipmentSlot: 1
   requiredClass: 0
@@ -17,7 +26,8 @@ MonoBehaviour:
   equipmentSet: 9
   equipmentRank: 9
   bonusMaxHP: 95
-  bonusAttack: 0
+  bonusAttack: 8
   bonusDefense: 22
-  bonusAttackSpeed: 0
+  bonusAttackSpeed: 0.045
   consumableEffect: 0
+  consumableHealAmount: 0

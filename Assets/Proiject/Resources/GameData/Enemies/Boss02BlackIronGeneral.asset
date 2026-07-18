@@ -12,16 +12,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Boss02BlackIronGeneral
   m_EditorClassIdentifier: 
+  persistentId: 
   enemyName: Black Iron General
   monsterGrade: 2
-  enemySkill: 7
   isBoss: 1
-  maxHP: 320
-  attack: 36
-  defense: 18
+  category: 0
+  enemySkill: 7
+  isSpecialVariant: 0
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 5400
+  attack: 155
+  defense: 84
   maxMagicPower: 70
-  attackSpeed: 1
-  goldReward: 600
+  attackSpeed: 1.05
+  criticalRate: 0
+  evasionRate: 0
+  goldReward: 874
+  experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: c70727ecee064ba696148e6f62cb4c9e, type: 2}
     amount: 1

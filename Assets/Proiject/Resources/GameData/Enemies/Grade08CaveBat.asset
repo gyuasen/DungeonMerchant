@@ -12,15 +12,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Grade08CaveBat
   m_EditorClassIdentifier: 
+  persistentId: 
   enemyName: Cave Bat
   monsterGrade: 8
   isBoss: 0
-  maxHP: 34
-  attack: 9
-  defense: 2
+  category: 0
+  enemySkill: 0
+  isSpecialVariant: 0
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 60
+  attack: 10
+  defense: 4
   maxMagicPower: 25
   attackSpeed: 1.35
-  goldReward: 75
+  criticalRate: 0
+  evasionRate: 0
+  goldReward: 102
+  experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: 57356d96cb1541f5a8cc6f35b4533638, type: 2}
     amount: 1

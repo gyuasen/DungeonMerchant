@@ -38,19 +38,19 @@ public sealed class BattleRewardServiceTests
         int result = BattleRewardService.CalculateExperienceReward(
             new List<EnemyDataSO> { normal, boss });
 
-        Assert.That(result, Is.EqualTo(265));
+        Assert.That(result, Is.EqualTo(390));
     }
 
     [TestCase(10, 50)]
-    [TestCase(9, 75)]
-    [TestCase(8, 110)]
-    [TestCase(7, 155)]
-    [TestCase(6, 210)]
-    [TestCase(5, 275)]
-    [TestCase(4, 350)]
-    [TestCase(3, 435)]
-    [TestCase(2, 530)]
-    [TestCase(1, 635)]
+[TestCase(9, 90)]
+[TestCase(8, 160)]
+[TestCase(7, 260)]
+[TestCase(6, 390)]
+[TestCase(5, 550)]
+[TestCase(4, 740)]
+[TestCase(3, 960)]
+[TestCase(2, 1210)]
+[TestCase(1, 1490)]
     public void CalculateBaseExperienceReward_UsesFlattenedGradeCurve(
         int grade,
         int expected)

@@ -15,15 +15,23 @@ MonoBehaviour:
   persistentId: enemy.normal.wyvern
   enemyName: Wyvern
   monsterGrade: 3
-  enemySkill: 8
   isBoss: 0
+  category: 0
+  enemySkill: 8
+  isSpecialVariant: 0
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
   battleVisualKey: Grade03_wyvern
-  maxHP: 110
-  attack: 26
-  defense: 10
+  maxHP: 737
+  attack: 78
+  defense: 44
   maxMagicPower: 45
   attackSpeed: 1.2
-  goldReward: 230
+  criticalRate: 0
+  evasionRate: 0
+  goldReward: 611
+  experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: 56b326c55b534ee9a072194a18894d73, type: 2}
     amount: 1

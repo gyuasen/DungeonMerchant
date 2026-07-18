@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 4 Warrior Armor
-  basePrice: 475
+  basePrice: 780
   acquisitionType: 0
   equipmentSlot: 1
   requiredClass: 0
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 4
-  bonusMaxHP: 44
-  bonusAttack: 0
-  bonusDefense: 10
-  bonusAttackSpeed: 0
+  bonusMaxHP: 36
+  bonusAttack: 3
+  bonusDefense: 12
+  bonusAttackSpeed: 0.016
   consumableEffect: 0
   consumableHealAmount: 0

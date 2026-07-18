@@ -2,14 +2,23 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: GlaadSummitSigil
+  m_EditorClassIdentifier: 
   persistentId: item.dungeon.glaad_summit_sigil
-  itemName: グラード峰頂印
+  itemName: "\u30B0\u30E9\u30FC\u30C9\u5CF0\u9802\u5370"
   itemType: 1
   rarity: 3
-  description: 吹雪を越えた者だけが得る印章。全職の攻防を高める。
-  basePrice: 2220
+  materialClassification: 0
+  description: "\u5439\u96EA\u3092\u8D8A\u3048\u305F\u8005\u3060\u3051\u304C\u5F97\u308B\u5370\u7AE0\u3002\u5168\u8077\u306E\u653B\u9632\u3092\u9AD8\u3081\u308B\u3002"
+  basePrice: 3800
   acquisitionType: 2
   equipmentSlot: 2
   requiredClass: 0
@@ -19,5 +28,6 @@ MonoBehaviour:
   bonusMaxHP: 24
   bonusAttack: 10
   bonusDefense: 8
-  bonusAttackSpeed: 0.035
+  bonusAttackSpeed: 0.04
   consumableEffect: 0
+  consumableHealAmount: 0
