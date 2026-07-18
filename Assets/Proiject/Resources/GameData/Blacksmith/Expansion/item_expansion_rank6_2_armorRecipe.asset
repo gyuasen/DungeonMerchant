@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20acd31e8b6f423581ac34d0952a1667, type: 3}
   m_Name: item_expansion_rank6_2_armorRecipe
   m_EditorClassIdentifier: 
-  recipeName: "\u82D4\u7D0B\u306E\u79D8\u8853\u8863"
+  recipeName: Rank 6 Mage Armor
   resultItem: {fileID: 11400000, guid: f0ba725f1badabb4b9378236de5f7c79, type: 2}
   resultAmount: 1
   goldCost: 540

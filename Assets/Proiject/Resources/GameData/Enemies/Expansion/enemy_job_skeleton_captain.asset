@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: enemy_job_skeleton_captain
   m_EditorClassIdentifier: 
   persistentId: enemy.job.skeleton_captain
-  enemyName: "\u30B9\u30B1\u30EB\u30C8\u30F3\u968A\u9577"
+  enemyName: Skeleton Captain
   monsterGrade: 7
   isBoss: 0
   category: 0

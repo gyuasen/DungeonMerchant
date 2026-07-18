@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: enemy_job_orc_rider
   m_EditorClassIdentifier: 
   persistentId: enemy.job.orc_rider
-  enemyName: "\u30AA\u30FC\u30AF\u30E9\u30A4\u30C0\u30FC"
+  enemyName: Orc Rider
   monsterGrade: 5
   isBoss: 0
   category: 0

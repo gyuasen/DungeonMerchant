@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: enemy_job_skeleton_guard
   m_EditorClassIdentifier: 
   persistentId: enemy.job.skeleton_guard
-  enemyName: "\u30B9\u30B1\u30EB\u30C8\u30F3\u30AC\u30FC\u30C9"
+  enemyName: Skeleton Guard
   monsterGrade: 7
   isBoss: 0
   category: 0

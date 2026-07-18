@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_rank5_2
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank5.2
-  itemName: "\u9752\u6676\u306E\u5100\u6756"
+  itemName: Rank 5 Mage Weapon
   itemType: 1
   rarity: 0
   materialClassification: 0
@@ -25,8 +25,8 @@ MonoBehaviour:
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 5
-  bonusMaxHP: 2
-  bonusAttack: 15
+  bonusMaxHP: 1
+  bonusAttack: 16
   bonusDefense: 0
   bonusAttackSpeed: 0
   consumableEffect: 0

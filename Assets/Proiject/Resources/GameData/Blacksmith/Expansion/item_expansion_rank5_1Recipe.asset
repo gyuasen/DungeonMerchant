@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20acd31e8b6f423581ac34d0952a1667, type: 3}
   m_Name: item_expansion_rank5_1Recipe
   m_EditorClassIdentifier: 
-  recipeName: "\u98A8\u5207\u308A\u306E\u8907\u5408\u5F13"
+  recipeName: Rank 5 Archer Weapon
   resultItem: {fileID: 11400000, guid: 6844276d90583a34bb257f3705c4a3d8, type: 2}
   resultAmount: 1
   goldCost: 470

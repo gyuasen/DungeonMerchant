@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: enemy_job_orc_berserker
   m_EditorClassIdentifier: 
   persistentId: enemy.job.orc_berserker
-  enemyName: "\u30AA\u30FC\u30AF\u30D0\u30FC\u30B5\u30FC\u30AB\u30FC"
+  enemyName: Orc Berserker
   monsterGrade: 5
   isBoss: 0
   category: 0

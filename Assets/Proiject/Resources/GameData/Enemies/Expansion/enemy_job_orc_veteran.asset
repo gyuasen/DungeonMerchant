@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: enemy_job_orc_veteran
   m_EditorClassIdentifier: 
   persistentId: enemy.job.orc_veteran
-  enemyName: "\u30AA\u30FC\u30AF\u53E4\u53C2\u5175"
+  enemyName: Orc Veteran
   monsterGrade: 5
   isBoss: 0
   category: 0

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_rank6_1
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank6.1
-  itemName: "\u30CE\u30EB\u30F3\u679D\u89D2\u5F13"
+  itemName: Rank 6 Archer Weapon
   itemType: 1
   rarity: 0
   materialClassification: 0
@@ -28,6 +28,6 @@ MonoBehaviour:
   bonusMaxHP: 2
   bonusAttack: 18
   bonusDefense: 0
-  bonusAttackSpeed: 0.03
+  bonusAttackSpeed: 0.06
   consumableEffect: 0
   consumableHealAmount: 0

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_rank7_1_armor
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank7.1.armor
-  itemName: "\u7070\u7FFC\u9C57\u306E\u5C04\u624B\u5916\u5957"
+  itemName: Rank 7 Archer Armor
   itemType: 1
   rarity: 0
   materialClassification: 0
@@ -25,9 +25,9 @@ MonoBehaviour:
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 7
-  bonusMaxHP: 63
+  bonusMaxHP: 49
   bonusAttack: 0
   bonusDefense: 14
-  bonusAttackSpeed: 0
+  bonusAttackSpeed: 0.03
   consumableEffect: 0
   consumableHealAmount: 0

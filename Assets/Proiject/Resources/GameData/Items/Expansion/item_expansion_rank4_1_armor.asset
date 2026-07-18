@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_rank4_1_armor
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank4.1.armor
-  itemName: "\u72E9\u4EBA\u306E\u7FBD\u5916\u5957"
+  itemName: Rank 4 Archer Armor
   itemType: 1
   rarity: 0
   materialClassification: 0
@@ -25,9 +25,9 @@ MonoBehaviour:
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 4
-  bonusMaxHP: 36
+  bonusMaxHP: 28
   bonusAttack: 0
   bonusDefense: 8
-  bonusAttackSpeed: 0
+  bonusAttackSpeed: 0.03
   consumableEffect: 0
   consumableHealAmount: 0

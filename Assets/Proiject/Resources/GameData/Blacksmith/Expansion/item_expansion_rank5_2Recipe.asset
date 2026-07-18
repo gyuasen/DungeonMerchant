@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20acd31e8b6f423581ac34d0952a1667, type: 3}
   m_Name: item_expansion_rank5_2Recipe
   m_EditorClassIdentifier: 
-  recipeName: "\u9752\u6676\u306E\u5100\u6756"
+  recipeName: Rank 5 Mage Weapon
   resultItem: {fileID: 11400000, guid: cea20550cd3b1364a859ea74a9b448de, type: 2}
   resultAmount: 1
   goldCost: 470

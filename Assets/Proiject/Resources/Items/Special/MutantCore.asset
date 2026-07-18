@@ -16,8 +16,8 @@ MonoBehaviour:
   itemName: Low Grade Mutant Core
   itemType: 0
   rarity: 2
-  materialClassification: 0
-  description: "\u7279\u6B8A\u500B\u4F53\u306E\u4F53\u5185\u3067\u51DD\u7E2E\u3055\u308C\u305F\u4E0D\u5B89\u5B9A\u306A\u9B54\u529B\u6838\u3002\u7279\u6B8A\u88C5\u5099\u306E\u935B\u9020\u306B\u4F7F\u7528\u3059\u308B\u3002"
+  materialClassification: 2
+  description: 特殊個体の体内で凝縮した魔力の核。武具に異質な力を与える。
   basePrice: 240
   acquisitionType: 2
   equipmentSlot: 0

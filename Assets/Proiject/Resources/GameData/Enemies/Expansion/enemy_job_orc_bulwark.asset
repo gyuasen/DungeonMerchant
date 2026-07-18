@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: enemy_job_orc_bulwark
   m_EditorClassIdentifier: 
   persistentId: enemy.job.orc_bulwark
-  enemyName: "\u30AA\u30FC\u30AF\u30D6\u30EB\u30EF\u30FC\u30AF"
+  enemyName: Orc Bulwark
   monsterGrade: 5
   isBoss: 0
   category: 0

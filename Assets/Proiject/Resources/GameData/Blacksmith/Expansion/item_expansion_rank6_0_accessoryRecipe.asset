@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20acd31e8b6f423581ac34d0952a1667, type: 3}
   m_Name: item_expansion_rank6_0_accessoryRecipe
   m_EditorClassIdentifier: 
-  recipeName: "\u30CE\u30EB\u30F3\u7425\u73C0\u306E\u8B77\u7AE0"
+  recipeName: Rank 6 Warrior Accessory
   resultItem: {fileID: 11400000, guid: 65ea9fa333d8a564faae669222bc2e6a, type: 2}
   resultAmount: 1
   goldCost: 540

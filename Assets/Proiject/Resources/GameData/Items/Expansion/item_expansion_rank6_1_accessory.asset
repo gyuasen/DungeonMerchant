@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_rank6_1_accessory
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank6.1.accessory
-  itemName: "\u6A39\u970A\u306E\u7FBD\u6839\u98FE\u308A"
+  itemName: Rank 6 Archer Accessory
   itemType: 1
   rarity: 0
   materialClassification: 0
@@ -25,9 +25,9 @@ MonoBehaviour:
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 6
-  bonusMaxHP: 18
+  bonusMaxHP: 12
   bonusAttack: 3
   bonusDefense: 1
-  bonusAttackSpeed: 0.049999997
+  bonusAttackSpeed: 0.07
   consumableEffect: 0
   consumableHealAmount: 0

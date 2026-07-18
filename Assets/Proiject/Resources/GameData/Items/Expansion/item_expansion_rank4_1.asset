@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_rank4_1
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank4.1
-  itemName: "\u72E9\u4EBA\u306E\u9577\u5F13"
+  itemName: Rank 4 Archer Weapon
   itemType: 1
   rarity: 0
   materialClassification: 0
@@ -28,6 +28,6 @@ MonoBehaviour:
   bonusMaxHP: 2
   bonusAttack: 12
   bonusDefense: 0
-  bonusAttackSpeed: 0.03
+  bonusAttackSpeed: 0.06
   consumableEffect: 0
   consumableHealAmount: 0

@@ -10,7 +10,8 @@ MonoBehaviour:
   itemName: Middle Grade Mutant Core
   itemType: 0
   rarity: 2
-  description: 中級ダンジョンの特殊個体から採取される変異核。
+  materialClassification: 2
+  description: 濃密な魔力を湛えた変異核。武具に強い異質の力を与える。
   basePrice: 900
   acquisitionType: 2
   equipmentSlot: 0

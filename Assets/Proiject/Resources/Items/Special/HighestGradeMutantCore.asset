@@ -10,7 +10,8 @@ MonoBehaviour:
   itemName: Highest Grade Mutant Core
   itemType: 0
   rarity: 3
-  description: 最上級ダンジョンの特殊個体から採取される変異核。
+  materialClassification: 2
+  description: 極限まで練り上げられた変異核。武具に伝説級の異質な力を与える。
   basePrice: 2700
   acquisitionType: 2
   equipmentSlot: 0

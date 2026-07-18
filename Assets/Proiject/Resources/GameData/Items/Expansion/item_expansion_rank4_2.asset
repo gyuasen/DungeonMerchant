@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_rank4_2
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank4.2
-  itemName: "\u7070\u68A3\u306E\u9B54\u6756"
+  itemName: Rank 4 Mage Weapon
   itemType: 1
   rarity: 0
   materialClassification: 0
@@ -25,8 +25,8 @@ MonoBehaviour:
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 4
-  bonusMaxHP: 2
-  bonusAttack: 12
+  bonusMaxHP: 1
+  bonusAttack: 13
   bonusDefense: 0
   bonusAttackSpeed: 0
   consumableEffect: 0

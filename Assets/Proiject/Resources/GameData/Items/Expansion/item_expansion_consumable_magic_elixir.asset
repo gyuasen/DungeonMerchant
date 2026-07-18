@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_consumable_magic_elixir
   m_EditorClassIdentifier: 
   persistentId: item.expansion.consumable.magic_elixir
-  itemName: "\u9B54\u529B\u6D3B\u6027\u85AC"
+  itemName: Magic Elixir
   itemType: 3
   rarity: 0
   materialClassification: 0

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: enemy_job_orc_shaman
   m_EditorClassIdentifier: 
   persistentId: enemy.job.orc_shaman
-  enemyName: "\u30AA\u30FC\u30AF\u30B7\u30E3\u30FC\u30DE\u30F3"
+  enemyName: Orc Shaman
   monsterGrade: 5
   isBoss: 0
   category: 0

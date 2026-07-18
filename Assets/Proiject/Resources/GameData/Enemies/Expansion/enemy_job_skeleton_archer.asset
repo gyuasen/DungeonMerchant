@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: enemy_job_skeleton_archer
   m_EditorClassIdentifier: 
   persistentId: enemy.job.skeleton_archer
-  enemyName: "\u30B9\u30B1\u30EB\u30C8\u30F3\u30A2\u30FC\u30C1\u30E3\u30FC"
+  enemyName: Skeleton Archer
   monsterGrade: 7
   isBoss: 0
   category: 0

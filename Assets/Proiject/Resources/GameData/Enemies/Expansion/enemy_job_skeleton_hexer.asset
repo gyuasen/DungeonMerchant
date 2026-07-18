@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: enemy_job_skeleton_hexer
   m_EditorClassIdentifier: 
   persistentId: enemy.job.skeleton_hexer
-  enemyName: "\u30B9\u30B1\u30EB\u30C8\u30F3\u546A\u8853\u5E2B"
+  enemyName: Skeleton Hexer
   monsterGrade: 7
   isBoss: 0
   category: 0
