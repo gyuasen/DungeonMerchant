@@ -1,7 +1,42 @@
 using NUnit.Framework;
+using UnityEngine;
 
 public sealed class DungeonEventServiceTests
 {
+    [TestCase(0, DungeonEventType.MineralVein, "item.material.iron_ore", 0)]
+    [TestCase(0, DungeonEventType.HerbGrove, "item.material.medicinal_herb", 0)]
+    [TestCase(0, DungeonEventType.QualityGrove, "item.material.hardwood", 0)]
+    [TestCase(1, DungeonEventType.MineralVein, "item.material.silver_ore", 0)]
+    [TestCase(1, DungeonEventType.HerbGrove, "item.material.medicinal_herb", 0)]
+    [TestCase(1, DungeonEventType.QualityGrove, "item.material.spiritwood", 0)]
+    [TestCase(2, DungeonEventType.MineralVein, "item.material.silver_ore", 1)]
+    [TestCase(2, DungeonEventType.HerbGrove, "item.material.antidote_herb", 1)]
+    [TestCase(2, DungeonEventType.QualityGrove, "item.material.spiritwood", 1)]
+    [TestCase(3, DungeonEventType.MineralVein, "item.material.silver_ore", 2)]
+    [TestCase(3, DungeonEventType.HerbGrove, "item.material.antidote_herb", 2)]
+    [TestCase(3, DungeonEventType.QualityGrove, "item.material.spiritwood", 2)]
+    public void EnvironmentalEvent_UsesPinnedMaterialForDungeonRegion(
+        int worldMapIndex,
+        DungeonEventType eventType,
+        string expectedPersistentId,
+        int expectedAmountBonus)
+    {
+        DungeonDataSO dungeon = ScriptableObject.CreateInstance<DungeonDataSO>();
+        dungeon.worldMapIndex = worldMapIndex;
+        dungeon.nearbyTownIndex = 0;
+        dungeon.grade = DungeonGrade.Middle;
+
+        DungeonEventChoiceResult result =
+            DungeonEnvironmentEventService.ResolveEnvironmentalChoice(
+                eventType,
+                0,
+                dungeon);
+
+        Assert.That(result.MaterialItem.PersistentId, Is.EqualTo(expectedPersistentId));
+        Assert.That(result.MaterialAmount, Is.EqualTo(4 + expectedAmountBonus));
+        Object.DestroyImmediate(dungeon);
+    }
+
     [TestCase(DungeonEventType.AbandonedCamp, 0, "HPを40回復")]
     [TestCase(DungeonEventType.TreasureCache, 1, "20 G")]
     [TestCase(DungeonEventType.CollapsedPassage, 1, "15ダメージ")]

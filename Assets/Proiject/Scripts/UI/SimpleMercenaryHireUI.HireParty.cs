@@ -109,6 +109,13 @@ public partial class SimpleMercenaryHireUI
         expeditionRect.sizeDelta = new Vector2(110f, 38f);
         expeditionRect.anchoredPosition = new Vector2(-236f, -4f);
         expeditionButton.transform.SetAsLastSibling();
+        Button remoteSaleButton = CreateActionButton(companyPage, "全町倉庫", ShowRemoteSaleOverlay);
+        remoteSaleButton.name = "Remote Sale Button";
+        RectTransform remoteSaleRect = remoteSaleButton.GetComponent<RectTransform>();
+        remoteSaleRect.anchorMin = remoteSaleRect.anchorMax = new Vector2(1f, 1f);
+        remoteSaleRect.pivot = new Vector2(1f, 1f);
+        remoteSaleRect.sizeDelta = new Vector2(110f, 38f);
+        remoteSaleRect.anchoredPosition = new Vector2(-354f, -4f);
 
         RectTransform viewport = CreateUIObject("Company Viewport", companyPage);
         viewport.anchorMin = new Vector2(0f, 0f);
@@ -214,6 +221,16 @@ public partial class SimpleMercenaryHireUI
             expeditionRect.sizeDelta = new Vector2(110f, 38f);
             expeditionRect.anchoredPosition = new Vector2(-236f, -4f);
             expeditionButton.transform.SetAsLastSibling();
+        }
+        if (companyPage.Find("Remote Sale Button") == null)
+        {
+            Button remoteSaleButton = CreateActionButton(companyPage, "全町倉庫", ShowRemoteSaleOverlay);
+            remoteSaleButton.name = "Remote Sale Button";
+            RectTransform remoteSaleRect = remoteSaleButton.GetComponent<RectTransform>();
+            remoteSaleRect.anchorMin = remoteSaleRect.anchorMax = new Vector2(1f, 1f);
+            remoteSaleRect.pivot = new Vector2(1f, 1f);
+            remoteSaleRect.sizeDelta = new Vector2(110f, 38f);
+            remoteSaleRect.anchoredPosition = new Vector2(-354f, -4f);
         }
         companyScrollContent = pageUI.ListRoot;
         companyList = companyScrollContent;
@@ -409,7 +426,7 @@ public partial class SimpleMercenaryHireUI
     private void ConfigureHealListPage(HealPageUI pageUI)
     {
         pageUI.ConfigureHealList(
-            () => hireManager.HiredMercenaries,
+            () => healingManager.GetMercenariesAtCurrentTown(),
             mercenary => healingManager.GetMissingHP(mercenary),
             mercenary => healingManager.GetFullHealCost(mercenary),
             mercenary => healingManager.CanHeal(mercenary),

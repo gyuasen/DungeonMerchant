@@ -34,11 +34,11 @@ public sealed class TradeMaterialTests
     }
 
     [Test]
-    public void EnvironmentalEvent_HighestGradeUsesUpperMaterialAndDeterministicAmount()
+    public void EnvironmentalEvent_HighestGradeUsesCentralRegionMaterialAndBonus()
     {
         DungeonEventChoiceResult result = DungeonEnvironmentEventService.ResolveEnvironmentalChoice(DungeonEventType.MineralVein, 0, DungeonGrade.Highest);
         Assert.That(result.MaterialItem.PersistentId, Is.EqualTo("item.material.silver_ore"));
-        Assert.That(result.MaterialAmount, Is.EqualTo(6));
+        Assert.That(result.MaterialAmount, Is.EqualTo(7));
         Assert.That(result.AddExplorationDelay, Is.True);
     }
 }

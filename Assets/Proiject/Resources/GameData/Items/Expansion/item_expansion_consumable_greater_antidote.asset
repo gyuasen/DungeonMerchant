@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 3
   rarity: 0
   materialClassification: 0
-  description: Greater Antidote
+  description: \u30EA\u30FC\u30D5\u306E\u85AC\u5E2B\u304C\u9B54\u7269\u306E\u6BD2\u817A\u3092\u6D44\u3081\u3066\u7CBE\u88FD\u3057\u305F\u4E0A\u8CEA\u306A\u89E3\u6BD2\u85AC\u3002
   basePrice: 220
   acquisitionType: 0
   equipmentSlot: 0

@@ -22,6 +22,7 @@ public class MercenaryInstance
     [SerializeField] private float attackSpeed;
     [SerializeField] private BattleStatusEffect statusEffect;
     [SerializeField] private int hireCost;
+    [SerializeField] private int currentTownIndex;
     [SerializeField] private int contractEndDay;
     [SerializeField] private bool contractNeedsRenewal;
     [SerializeField] private ItemDataSO equippedWeapon;
@@ -81,6 +82,7 @@ public class MercenaryInstance
     public BattleStatusEffect StatusEffect => statusEffect;
     public bool HasStatusEffect => statusEffect != BattleStatusEffect.None;
     public int HireCost => hireCost;
+    public int CurrentTownIndex => currentTownIndex;
     public int ContractEndDay => contractEndDay;
     public bool ContractNeedsRenewal => contractNeedsRenewal;
     public bool IsContractActive => !contractNeedsRenewal;
@@ -208,6 +210,12 @@ public class MercenaryInstance
     public void RestoreStatusEffect(BattleStatusEffect effect)
     {
         statusEffect = effect;
+    }
+
+    public void SetCurrentTownIndex(int townIndex)
+    {
+        currentTownIndex = Mathf.Clamp(
+            townIndex, 0, WorldMapService.TownNames.Length - 1);
     }
 
     public bool TryLoadConsumable(int slotIndex, ItemDataSO item, int amount)

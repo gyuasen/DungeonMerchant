@@ -28,6 +28,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     [SerializeField] private StoryProgressManager storyProgressManager;
     [SerializeField] private TransportManager transportManager;
     [SerializeField] private DungeonExpeditionManager dungeonExpeditionManager;
+    [SerializeField] private RemoteSaleManager remoteSaleManager;
 
     [Header("UI Prefab")]
     [SerializeField] private SimpleMercenaryHireUIView uiViewPrefab;
@@ -78,6 +79,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform dailyResultContent;
     private Text dailyResultText;
     private RectTransform tutorialOverlay;
+    private RectTransform remoteSaleOverlay;
+    private RectTransform remoteSaleContent;
     private Text tutorialStepText;
     private Text tutorialTitleText;
     private Text tutorialBodyText;
@@ -159,6 +162,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Button dungeonNextFloorButton;
     private Text marketInfoText;
     private Text storageCapacityText;
+    private RemoteSaleController remoteSaleController;
     private Font uiFont;
     private Font uiBodyFont;
     private SimpleMercenaryHireUIFactory uiFactory;
@@ -263,6 +267,12 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             townProgressState, marketPriceManager,
             message => statusText.text = message,
             RefreshTransportOverlay);
+        remoteSaleController = new RemoteSaleController(
+            remoteSaleManager,
+            merchantInventory,
+            townProgressState,
+            message => statusText.text = message,
+            RefreshRemoteSaleOverlay);
         facilityGreetingController = new FacilityGreetingController();
         expeditionController = new ExpeditionController(
             dungeonExpeditionManager, dungeonRunManager, hireManager,
@@ -430,6 +440,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         blacksmithManager.CraftingChanged += HandleCraftingChanged;
         transportManager.TransportChanged += HandleTransportChanged;
         transportManager.TransportEventOccurred += HandleTransportEvent;
+        remoteSaleManager.RemoteSaleChanged += HandleRemoteSaleChanged;
+        remoteSaleManager.RemoteSaleEventOccurred += HandleRemoteSaleEvent;
         dungeonExpeditionManager.ExpeditionChanged += HandleExpeditionChanged;
         dungeonExpeditionManager.ExpeditionEventOccurred += HandleExpeditionEvent;
         if (progressionManager != null)
@@ -624,6 +636,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             transportManager = GetComponent<TransportManager>() ??
                                FindObjectOfType<TransportManager>();
         }
+        if (remoteSaleManager == null)
+        {
+            remoteSaleManager = GetComponent<RemoteSaleManager>() ??
+                                FindObjectOfType<RemoteSaleManager>();
+        }
         if (dungeonExpeditionManager == null)
         {
             dungeonExpeditionManager = GetComponent<DungeonExpeditionManager>() ??
@@ -710,6 +727,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         if (transportManager == null)
         {
             Debug.LogError("Simple hire UI is missing TransportManager.", this);
+            hasAllReferences = false;
+        }
+        if (remoteSaleManager == null)
+        {
+            Debug.LogError("Simple hire UI is missing RemoteSaleManager.", this);
             hasAllReferences = false;
         }
         if (dungeonExpeditionManager == null)
@@ -877,6 +899,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             transportManager.TransportChanged -= HandleTransportChanged;
             transportManager.TransportEventOccurred -= HandleTransportEvent;
         }
+        if (remoteSaleManager != null)
+        {
+            remoteSaleManager.RemoteSaleChanged -= HandleRemoteSaleChanged;
+            remoteSaleManager.RemoteSaleEventOccurred -= HandleRemoteSaleEvent;
+        }
         if (dungeonExpeditionManager != null)
         {
             dungeonExpeditionManager.ExpeditionChanged -= HandleExpeditionChanged;
@@ -1035,6 +1062,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         BuildDailyResultOverlay();
         BuildFacilityGreetingOverlay();
         BuildTransportOverlay();
+        BuildRemoteSaleOverlay();
         BuildExpeditionOverlay();
         BuildTutorialOverlay();
     }

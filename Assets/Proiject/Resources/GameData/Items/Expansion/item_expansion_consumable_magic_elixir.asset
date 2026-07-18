@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 3
   rarity: 0
   materialClassification: 0
-  description: Magic Elixir
+  description: \u30EA\u30FC\u30D5\u306E\u932C\u91D1\u8853\u5E2B\u304C\u9B54\u7269\u306E\u9B54\u529B\u817A\u3092\u6F84\u307E\u305B\u305F\u6D3B\u6027\u85AC\u3002
   basePrice: 220
   acquisitionType: 0
   equipmentSlot: 0

@@ -500,6 +500,29 @@ public class MerchantInventory : MonoBehaviour
         return true;
     }
 
+    public bool TryRemoveItemFrom(int townIndex, ItemDataSO item, int amount)
+    {
+        if (item == null || amount <= 0)
+        {
+            return false;
+        }
+
+        TownInventoryBucket bucket = GetBucket(townIndex, false);
+        InventoryItemStack stack = bucket == null ? null : FindStack(bucket, item);
+        if (stack == null || !stack.Remove(amount))
+        {
+            return false;
+        }
+
+        if (stack.Amount <= 0)
+        {
+            bucket.items.Remove(stack);
+        }
+
+        InventoryChanged?.Invoke();
+        return true;
+    }
+
     public void DepositEquipmentTo(int townIndex, EquipmentInstance equipment)
     {
         if (equipment?.BaseItem == null)
@@ -511,6 +534,21 @@ public class MerchantInventory : MonoBehaviour
         bucket.equipmentInstances.Add(equipment);
         RegisterEquipmentDiscovery(equipment.BaseItem);
         InventoryChanged?.Invoke();
+    }
+
+    public bool TryRemoveEquipmentInstanceFrom(
+        int townIndex,
+        EquipmentInstance equipment)
+    {
+        TownInventoryBucket bucket = GetBucket(townIndex, false);
+        if (equipment == null || bucket == null ||
+            !bucket.equipmentInstances.Remove(equipment))
+        {
+            return false;
+        }
+
+        InventoryChanged?.Invoke();
+        return true;
     }
 
     private InventoryItemStack FindStack(

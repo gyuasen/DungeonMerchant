@@ -22,6 +22,7 @@ public static class SaveDataMigrator
         EnsureCollections(data);
         MigrateTownInventories(data, sourceVersion);
         MigrateMercenaryConsumables(data, sourceVersion);
+        MigrateMercenaryLocations(data, sourceVersion);
         PopulatePersistentIds(data);
         MigrateStoryProgress(data, sourceVersion);
         data.version = GameSaveData.CurrentVersion;
@@ -154,6 +155,24 @@ public static class SaveDataMigrator
         }
     }
 
+    private static void MigrateMercenaryLocations(
+        GameSaveData data,
+        int sourceVersion)
+    {
+        if (sourceVersion >= 28 || data.hiredMercenaries == null)
+        {
+            return;
+        }
+
+        foreach (SavedMercenary mercenary in data.hiredMercenaries)
+        {
+            if (mercenary != null)
+            {
+                mercenary.townIndex = data.currentTownIndex;
+            }
+        }
+    }
+
     private static bool HasFullyClearedDungeon(
         List<SavedDungeonFloorProgress> progressEntries)
     {
@@ -190,6 +209,7 @@ public static class SaveDataMigrator
         if (data.hiredMercenaries == null) data.hiredMercenaries = new List<SavedMercenary>();
         if (data.partyMemberIds == null) data.partyMemberIds = new List<string>();
         if (data.transportConvoys == null) data.transportConvoys = new List<SavedTransportConvoy>();
+        if (data.remoteSaleOrders == null) data.remoteSaleOrders = new List<SavedRemoteSaleOrder>();
         if (data.dungeonExpeditions == null)
         {
             data.dungeonExpeditions = new List<SavedDungeonExpedition>();

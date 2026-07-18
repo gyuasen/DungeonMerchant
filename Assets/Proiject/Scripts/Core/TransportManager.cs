@@ -328,6 +328,7 @@ public class TransportManager : MonoBehaviour
                 if (escort == null ||
                     !escortIds.Add(escort.InstanceId) ||
                     !IsHired(escort) ||
+                    escort.CurrentTownIndex != townProgressState.CurrentTownIndex ||
                     (partyManager != null && partyManager.Contains(escort)) ||
                     IsMercenaryOnTransportDuty(escort.InstanceId) ||
                     (dungeonExpeditionManager != null &&
@@ -358,6 +359,7 @@ public class TransportManager : MonoBehaviour
             if (convoy.remainingDays == 0)
             {
                 int depositedCargo = DepositCargo(convoy);
+                UpdateEscortLocations(convoy);
                 TransportEventOccurred?.Invoke(new TransportEvent(
                     TransportEventType.Arrived,
                     convoy,
@@ -462,6 +464,14 @@ public class TransportManager : MonoBehaviour
         }
 
         return deposited;
+    }
+
+    private void UpdateEscortLocations(TransportConvoy convoy)
+    {
+        foreach (MercenaryInstance escort in GetEscorts(convoy))
+        {
+            escort.SetCurrentTownIndex(convoy.destinationTownIndex);
+        }
     }
 
     private int CalculateSegments(int origin, int destination)

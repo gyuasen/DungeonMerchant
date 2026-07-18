@@ -568,7 +568,7 @@ public class DungeonRunManager : MonoBehaviour
             result = DungeonEnvironmentEventService.ResolveEnvironmentalChoice(
                 eventType,
                 optionIndex,
-                dungeonData.grade);
+                dungeonData);
         }
 
         if (result.HealAmount > 0)

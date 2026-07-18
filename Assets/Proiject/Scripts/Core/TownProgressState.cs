@@ -6,6 +6,7 @@ public class TownProgressState : MonoBehaviour
 {
     [SerializeField] private int currentTownIndex = 2;
     [SerializeField] private int viewedWorldMapIndex;
+    [SerializeField] private MercenaryPartyManager partyManager;
 
     private readonly HashSet<int> unlockedTownIndices = new HashSet<int> { 2 };
 
@@ -76,6 +77,8 @@ public class TownProgressState : MonoBehaviour
         }
 
         currentTownIndex = clampedTownIndex;
+        ResolveReferences();
+        partyManager?.UpdateMemberLocations(currentTownIndex);
         TownProgressChanged?.Invoke();
     }
 
@@ -99,5 +102,14 @@ public class TownProgressState : MonoBehaviour
 
         unlockedTownIndices.Add(currentTownIndex);
         viewedWorldMapIndex = CurrentWorldMapIndex;
+    }
+
+    private void ResolveReferences()
+    {
+        if (partyManager == null)
+        {
+            partyManager = GetComponent<MercenaryPartyManager>() ??
+                           FindObjectOfType<MercenaryPartyManager>();
+        }
     }
 }
