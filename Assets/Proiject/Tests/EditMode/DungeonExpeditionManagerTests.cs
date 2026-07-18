@@ -287,6 +287,7 @@ public sealed class DungeonExpeditionManagerTests
     private MercenaryInstance Hire(string id, int hp, int attack, int defense)
     {
         MercenaryInstance member = MercenaryInstance.CreateRestored(id, null, null, id, MercenaryClass.Warrior, MercenaryContractType.Local, 1, 0, hp, hp, attack, defense, 0, 1f, 0);
+        member.SetCurrentTownIndex(townProgress.CurrentTownIndex);
         hire.RestoreHiredMercenaries(new[] { member });
         return member;
     }

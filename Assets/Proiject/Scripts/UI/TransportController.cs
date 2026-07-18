@@ -72,6 +72,9 @@ public sealed class TransportController
         foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
         {
             if (mercenary != null && mercenary.IsContractActive &&
+                (townProgressState == null ||
+                 mercenary.CurrentTownIndex ==
+                 townProgressState.CurrentTownIndex) &&
                 (partyManager == null || !partyManager.Contains(mercenary)) &&
                 (transportManager == null ||
                  !transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId)))

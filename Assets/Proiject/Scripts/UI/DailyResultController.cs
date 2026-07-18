@@ -375,6 +375,21 @@ public sealed class DailyResultController
         }
     }
 
+    public void RecordRemoteSaleEvent(RemoteSaleEvent remoteSaleEvent)
+    {
+        if (remoteSaleEvent == null || remoteSaleEvent.Order == null)
+        {
+            return;
+        }
+        RemoteSaleOrder order = remoteSaleEvent.Order;
+        string town = GetTownName(order.TownIndex);
+        string itemName = order.IsEquipment
+            ? JapaneseDisplayText.GetItemName(order.Equipment.BaseItem)
+            : JapaneseDisplayText.GetItemName(order.Item) + "×" + order.Amount;
+        dailyTransportEvents.Add("遠隔売却: " + town + "で" + itemName + "を" +
+            remoteSaleEvent.Gold + "Gで売却");
+    }
+
     public void RecordExpeditionEvent(ExpeditionEvent expeditionEvent)
     {
         if (expeditionEvent?.Expedition?.dungeon == null)

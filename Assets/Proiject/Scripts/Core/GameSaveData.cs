@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public class GameSaveData
 {
-    public const int CurrentVersion = 26;
+    public const int CurrentVersion = 28;
 
     public int version = CurrentVersion;
     public int gold = 500;
@@ -36,6 +36,8 @@ public class GameSaveData
         new List<SavedTransportConvoy>();
     public List<SavedDungeonExpedition> dungeonExpeditions =
         new List<SavedDungeonExpedition>();
+    public List<SavedRemoteSaleOrder> remoteSaleOrders =
+        new List<SavedRemoteSaleOrder>();
     public List<string> discoveredEquipmentAssetNames = new List<string>();
     public List<string> discoveredEquipmentPersistentIds =
         new List<string>();
@@ -65,6 +67,17 @@ public class SavedTransportCargo
 }
 
 [Serializable]
+public class SavedRemoteSaleOrder
+{
+    public int townIndex;
+    public int remainingDays;
+    public string itemPersistentId;
+    public string itemAssetName;
+    public int amount;
+    public SavedEquipmentInstance equipment;
+}
+
+[Serializable]
 public class SavedDungeonExpedition
 {
     public string dungeonPersistentId;
@@ -85,6 +98,7 @@ public class SavedInventoryItem
 [Serializable]
 public class SavedMercenary
 {
+    public int townIndex;
     public string instanceId;
     public string baseDataAssetName;
     public string baseDataPersistentId;

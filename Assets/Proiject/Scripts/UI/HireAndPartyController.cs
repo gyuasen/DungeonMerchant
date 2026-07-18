@@ -186,7 +186,11 @@ public sealed class HireAndPartyController
 
         if (!partyManager.TryAdd(mercenary))
         {
-            setStatus(transportManager != null &&
+            setStatus(townProgressState != null &&
+                      mercenary.CurrentTownIndex !=
+                      townProgressState.CurrentTownIndex
+                ? $"{mercenary.MercenaryName}は別の町にいます"
+                : transportManager != null &&
                       transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId)
                 ? "輸送任務中の傭兵は編成できません"
                 : "パーティーは満員です。");

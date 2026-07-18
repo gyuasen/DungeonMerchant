@@ -273,6 +273,32 @@ public static class JapaneseDisplayText
         return $"{grade}等級{categoryLabel}{bossLabel}";
     }
 
+    public static string GetMonsterCategory(EnemyCategory value)
+    {
+        switch (value)
+        {
+            case EnemyCategory.Normal:
+                return "通常種";
+            case EnemyCategory.MythicalBeast:
+                return "魔獣";
+            default:
+                return value.ToString();
+        }
+    }
+
+    public static string GetMonsterGradeWithStrengthHint(EnemyDataSO enemy)
+    {
+        int grade = enemy == null
+            ? 10
+            : UnityEngine.Mathf.Clamp(enemy.monsterGrade, 1, 10);
+        string strengthHint = grade == 1
+            ? "最強"
+            : grade == 10
+                ? "最弱"
+                : "上位";
+        return $"{GetMonsterGrade(enemy)}（{strengthHint}）";
+    }
+
     public static string GetBattleStatus(BattleStatusEffect status)
     {
         switch (status)

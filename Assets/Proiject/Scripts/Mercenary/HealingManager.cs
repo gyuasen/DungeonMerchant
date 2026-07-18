@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class HealingManager : MonoBehaviour
@@ -7,6 +8,7 @@ public class HealingManager : MonoBehaviour
     [SerializeField] private MerchantData merchantData;
     [SerializeField] private MercenaryHireManager hireManager;
     [SerializeField] private DayManager dayManager;
+    [SerializeField] private TownProgressState townProgressState;
 
     [Header("Healing Settings")]
     [SerializeField, Min(0)] private int naturalHealPerDay = 10;
@@ -23,6 +25,7 @@ public class HealingManager : MonoBehaviour
         ResolveReferences();
         if (dayManager != null)
         {
+            dayManager.DayChanged -= HandleDayChanged;
             dayManager.DayChanged += HandleDayChanged;
         }
     }
@@ -68,6 +71,7 @@ public class HealingManager : MonoBehaviour
         int cost = GetFullHealCost(mercenary);
         return merchantData != null &&
                mercenary != null &&
+               IsAtCurrentTown(mercenary) &&
                cost > 0 &&
                merchantData.CanPay(cost);
     }
@@ -77,6 +81,11 @@ public class HealingManager : MonoBehaviour
         ResolveReferences();
 
         if (merchantData == null || mercenary == null)
+        {
+            return false;
+        }
+
+        if (!IsAtCurrentTown(mercenary))
         {
             return false;
         }
@@ -96,6 +105,29 @@ public class HealingManager : MonoBehaviour
         Debug.Log($"Healed {mercenary.MercenaryName} for {cost} G.");
         HealingChanged?.Invoke();
         return true;
+    }
+
+    public IEnumerable<MercenaryInstance> GetMercenariesAtCurrentTown()
+    {
+        ResolveReferences();
+        if (hireManager == null)
+        {
+            yield break;
+        }
+
+        foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
+        {
+            if (mercenary != null && IsAtCurrentTown(mercenary))
+            {
+                yield return mercenary;
+            }
+        }
+    }
+
+    private bool IsAtCurrentTown(MercenaryInstance mercenary)
+    {
+        return townProgressState == null ||
+               mercenary.CurrentTownIndex == townProgressState.CurrentTownIndex;
     }
 
     private void HandleDayChanged(int currentDay)
@@ -158,6 +190,12 @@ public class HealingManager : MonoBehaviour
         if (dayManager == null)
         {
             dayManager = FindObjectOfType<DayManager>();
+        }
+
+        if (townProgressState == null)
+        {
+            townProgressState = GetComponent<TownProgressState>() ??
+                                FindObjectOfType<TownProgressState>();
         }
     }
 }

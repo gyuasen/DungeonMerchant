@@ -16,7 +16,7 @@ MonoBehaviour:
   itemName: "\u56DE\u5FA9\u85AC"
   itemType: 3
   rarity: 0
-  description: "HP\u309240\u56DE\u5FA9\u3059\u308B\u5E38\u5099\u85AC\u3002"
+  description: "HP\u309240\u56DE\u5FA9\u3059\u308B\u3001\u30EA\u30FC\u30D5\u306E\u85AC\u5E2B\u304C\u9B54\u7269\u306E\u4F53\u6DB2\u304B\u3089\u7CBE\u88FD\u3057\u305F\u6CBB\u7642\u85AC\u3002"
   basePrice: 120
   acquisitionType: 0
   equipmentSlot: 0

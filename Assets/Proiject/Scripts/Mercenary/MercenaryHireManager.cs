@@ -7,6 +7,7 @@ public class MercenaryHireManager : MonoBehaviour
     [Header("References")]
     [SerializeField] private MerchantData merchantData;
     [SerializeField] private DayManager dayManager;
+    [SerializeField] private TownProgressState townProgressState;
     [SerializeField] private MercenaryContractType selectedContract =
         MercenaryContractType.Local;
 
@@ -29,6 +30,7 @@ public class MercenaryHireManager : MonoBehaviour
         ResolveReferences();
         if (dayManager != null)
         {
+            dayManager.DayChanged -= HandleDayChanged;
             dayManager.DayChanged += HandleDayChanged;
         }
     }
@@ -121,6 +123,10 @@ public class MercenaryHireManager : MonoBehaviour
         mercenary.SetContract(
             contractType,
             dayManager != null ? dayManager.CurrentDay : 1);
+        if (townProgressState != null)
+        {
+            mercenary.SetCurrentTownIndex(townProgressState.CurrentTownIndex);
+        }
 
         hiredMercenaries.Add(mercenary);
         MercenaryHired?.Invoke(mercenary);
@@ -297,6 +303,12 @@ public class MercenaryHireManager : MonoBehaviour
         {
             dayManager = GetComponent<DayManager>() ??
                          FindObjectOfType<DayManager>();
+        }
+
+        if (townProgressState == null)
+        {
+            townProgressState = GetComponent<TownProgressState>() ??
+                                FindObjectOfType<TownProgressState>();
         }
     }
 }

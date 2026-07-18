@@ -62,7 +62,7 @@ public static class BalanceExpansionAssetGenerator
     {
         ItemDataSO item = ScriptableObject.CreateInstance<ItemDataSO>();
         item.itemName = definition.EnglishName;
-        item.description = definition.EnglishName;
+        item.description = definition.Description;
         item.itemType = ItemType.Consumable;
         item.acquisitionType = ItemAcquisitionType.Market;
         item.basePrice = definition.Price;

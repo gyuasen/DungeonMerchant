@@ -57,6 +57,7 @@ public class DungeonExpeditionManager : MonoBehaviour
     [SerializeField] private MercenaryHireManager hireManager;
     [SerializeField] private MercenaryPartyManager partyManager;
     [SerializeField] private TransportManager transportManager;
+    [SerializeField] private TownProgressState townProgressState;
     [SerializeField] private DayManager dayManager;
     private Func<float> randomValue = () => UnityEngine.Random.value;
     private bool isDayChangedSubscribed;
@@ -105,6 +106,10 @@ public class DungeonExpeditionManager : MonoBehaviour
     {
         if (expedition != null && activeExpeditions.Remove(expedition))
         {
+            foreach (MercenaryInstance member in GetMembers(expedition))
+            {
+                member.SetCurrentTownIndex(expedition.dungeon.nearbyTownIndex);
+            }
             ExpeditionChanged?.Invoke();
         }
     }
@@ -230,6 +235,11 @@ public class DungeonExpeditionManager : MonoBehaviour
         foreach (MercenaryInstance member in members)
         {
             if (member == null || !member.IsContractActive || !ids.Add(member.InstanceId) || !IsHired(member) || (partyManager != null && partyManager.Contains(member)) || (transportManager != null && transportManager.IsMercenaryOnTransportDuty(member.InstanceId)) || IsMercenaryOnExpeditionDuty(member.InstanceId))
+            {
+                return ExpeditionFormationResult.InvalidMembers;
+            }
+            if (townProgressState != null &&
+                member.CurrentTownIndex != townProgressState.CurrentTownIndex)
             {
                 return ExpeditionFormationResult.InvalidMembers;
             }
@@ -431,6 +441,7 @@ public class DungeonExpeditionManager : MonoBehaviour
         if (hireManager == null) hireManager = GetComponent<MercenaryHireManager>() ?? FindObjectOfType<MercenaryHireManager>();
         if (partyManager == null) partyManager = GetComponent<MercenaryPartyManager>() ?? FindObjectOfType<MercenaryPartyManager>();
         if (transportManager == null) transportManager = GetComponent<TransportManager>() ?? FindObjectOfType<TransportManager>();
+        if (townProgressState == null) townProgressState = GetComponent<TownProgressState>() ?? FindObjectOfType<TownProgressState>();
         if (dayManager == null) dayManager = GetComponent<DayManager>() ?? FindObjectOfType<DayManager>();
         EnsureDayChangedSubscription();
     }

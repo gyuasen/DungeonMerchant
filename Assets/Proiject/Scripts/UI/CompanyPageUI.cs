@@ -88,7 +88,7 @@ public sealed class CompanyPageUI : ListPageUIBase
 
         RebuildRows(
             mercenaryProvider.Invoke(),
-            112f,
+            128f,
             430f,
             "雇用済みの傭兵はいません。",
             mercenary => mercenary != null,
@@ -127,6 +127,17 @@ public sealed class CompanyPageUI : ListPageUIBase
             TextAnchor.MiddleLeft,
             new Vector2(18f, -76f),
             new Vector2(-300f, -48f),
+            MutedTextColor);
+
+        CreateText(
+            row,
+            GetLocationStatus(mercenary),
+            RowFont,
+            13,
+            FontStyle.Normal,
+            TextAnchor.MiddleLeft,
+            new Vector2(18f, -104f),
+            new Vector2(-300f, -78f),
             MutedTextColor);
 
         string actionLabel =
@@ -200,6 +211,21 @@ public sealed class CompanyPageUI : ListPageUIBase
             $"{JapaneseDisplayText.GetContractType(mercenary.ContractType)} " +
             contractStatus +
             (isOnTransportDuty?.Invoke(mercenary) == true ? "  |  輸送任務中" : string.Empty);
+    }
+
+    private string GetLocationStatus(MercenaryInstance mercenary)
+    {
+        if (isOnTransportDuty?.Invoke(mercenary) == true)
+        {
+            return "輸送護衛中";
+        }
+
+        if (isOnExpeditionDuty?.Invoke(mercenary) == true)
+        {
+            return "遠征任務中";
+        }
+
+        return $"所在: {WorldMapService.GetTownName(mercenary.CurrentTownIndex)}";
     }
 
 }

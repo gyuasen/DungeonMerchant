@@ -167,26 +167,102 @@ public static class DungeonEventService
 
 public static class DungeonEnvironmentEventService
 {
-public static DungeonEventChoiceResult ResolveEnvironmentalChoice(
-    DungeonEventType eventType,
-    int optionIndex,
-    DungeonGrade dungeonGrade)
-{
-    if (optionIndex == 2)
+    public static DungeonEventChoiceResult ResolveEnvironmentalChoice(
+        DungeonEventType eventType,
+        int optionIndex,
+        DungeonGrade dungeonGrade)
     {
-        return DungeonEventChoiceResult.None;
+        int legacyWorldMapIndex = dungeonGrade >= DungeonGrade.Upper
+            ? 2
+            : 0;
+        return ResolveEnvironmentalChoice(
+            eventType,
+            optionIndex,
+            dungeonGrade,
+            legacyWorldMapIndex);
     }
 
-    bool highGrade = dungeonGrade >= DungeonGrade.Upper;
-    string path = eventType == DungeonEventType.MineralVein
-        ? highGrade ? "GameData/Items/SilverOre" : "GameData/Items/IronOre"
-        : eventType == DungeonEventType.HerbGrove
-            ? highGrade ? "GameData/Items/AntidoteHerb" : "GameData/Items/MedicinalHerb"
-            : highGrade ? "GameData/Items/Spiritwood" : "GameData/Items/Hardwood";
-    ItemDataSO item = Resources.Load<ItemDataSO>(path);
-    int amount = (optionIndex == 0 ? 2 : 1) + (int)dungeonGrade;
-    return DungeonEventChoiceResult.Material(item, amount, optionIndex == 0);
-}
+    public static DungeonEventChoiceResult ResolveEnvironmentalChoice(
+        DungeonEventType eventType,
+        int optionIndex,
+        DungeonDataSO dungeonData)
+    {
+        if (dungeonData == null)
+        {
+            return ResolveEnvironmentalChoice(
+                eventType,
+                optionIndex,
+                DungeonGrade.Low);
+        }
+
+        int worldMapIndex = dungeonData.worldMapIndex;
+        if (worldMapIndex < 0 || worldMapIndex >= WorldMapService.WorldRegionCount)
+        {
+            worldMapIndex = WorldMapService.GetWorldMapIndexForTown(
+                dungeonData.nearbyTownIndex);
+        }
+
+        return ResolveEnvironmentalChoice(
+            eventType,
+            optionIndex,
+            dungeonData.grade,
+            worldMapIndex);
+    }
+
+    private static DungeonEventChoiceResult ResolveEnvironmentalChoice(
+        DungeonEventType eventType,
+        int optionIndex,
+        DungeonGrade dungeonGrade,
+        int worldMapIndex)
+    {
+        if (optionIndex == 2)
+        {
+            return DungeonEventChoiceResult.None;
+        }
+
+        string path = GetMaterialResourcePath(eventType, worldMapIndex);
+        ItemDataSO item = Resources.Load<ItemDataSO>(path);
+        int amount = (optionIndex == 0 ? 2 : 1) + (int)dungeonGrade;
+        amount += GetRegionalAmountBonus(worldMapIndex);
+        return DungeonEventChoiceResult.Material(item, amount, optionIndex == 0);
+    }
+
+    private static string GetMaterialResourcePath(
+        DungeonEventType eventType,
+        int worldMapIndex)
+    {
+        switch (eventType)
+        {
+            case DungeonEventType.MineralVein:
+                return worldMapIndex == 0
+                    ? "GameData/Items/IronOre"
+                    : "GameData/Items/SilverOre";
+            case DungeonEventType.HerbGrove:
+                return worldMapIndex == 2 ||
+                       worldMapIndex == WorldMapService.HiddenIslandWorldMapIndex
+                    ? "GameData/Items/AntidoteHerb"
+                    : "GameData/Items/MedicinalHerb";
+            case DungeonEventType.QualityGrove:
+                return worldMapIndex == 0
+                    ? "GameData/Items/Hardwood"
+                    : "GameData/Items/Spiritwood";
+            default:
+                return string.Empty;
+        }
+    }
+
+    private static int GetRegionalAmountBonus(int worldMapIndex)
+    {
+        switch (worldMapIndex)
+        {
+            case 2:
+                return 1;
+            case WorldMapService.HiddenIslandWorldMapIndex:
+                return 2;
+            default:
+                return 0;
+        }
+    }
 }
 
 public readonly struct DungeonEventPresentation

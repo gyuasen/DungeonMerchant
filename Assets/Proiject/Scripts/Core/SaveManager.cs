@@ -23,6 +23,7 @@ public class SaveManager : MonoBehaviour
     private StoryProgressManager storyProgressManager;
     private TransportManager transportManager;
     private DungeonExpeditionManager dungeonExpeditionManager;
+    private RemoteSaleManager remoteSaleManager;
     private MonsterCodexManager monsterCodexManager;
     private bool initialized;
     private bool isLoading;
@@ -349,6 +350,7 @@ public class SaveManager : MonoBehaviour
                 data.hiredMercenaries.Add(new SavedMercenary
                 {
                     instanceId = mercenary.InstanceId,
+                    townIndex = mercenary.CurrentTownIndex,
                     baseDataAssetName = mercenary.BaseData != null
                         ? mercenary.BaseData.name
                         : string.Empty,
@@ -436,6 +438,10 @@ public class SaveManager : MonoBehaviour
         if (dungeonExpeditionManager != null)
         {
             data.dungeonExpeditions = dungeonExpeditionManager.CreateSaveData();
+        }
+        if (remoteSaleManager != null)
+        {
+            data.remoteSaleOrders = remoteSaleManager.CreateSaveData();
         }
         if (monsterCodexManager != null)
         {
@@ -596,6 +602,7 @@ public class SaveManager : MonoBehaviour
         partyManager?.RestoreParty(restoredParty);
         transportManager?.Restore(data.transportConvoys, mercenaryById);
         dungeonExpeditionManager?.Restore(data.dungeonExpeditions, mercenaryById);
+        remoteSaleManager?.Restore(data.remoteSaleOrders);
         progressionManager?.Restore(data.progression);
 
         dungeonRunManager?.RestoreProgress(
@@ -659,6 +666,7 @@ public class SaveManager : MonoBehaviour
         mercenary.RestoreContractState(
             saved.contractEndDay,
             saved.contractNeedsRenewal);
+        mercenary.SetCurrentTownIndex(saved.townIndex);
         RestoreMercenaryConsumableSlots(mercenary, saved.consumableSlots);
         return mercenary;
     }
@@ -812,6 +820,7 @@ public class SaveManager : MonoBehaviour
         if (storyProgressManager != null) storyProgressManager.MilestoneCompleted += HandleStoryMilestoneCompleted;
         if (transportManager != null) transportManager.TransportChanged += HandleChanged;
         if (dungeonExpeditionManager != null) dungeonExpeditionManager.ExpeditionChanged += HandleChanged;
+        if (remoteSaleManager != null) remoteSaleManager.RemoteSaleChanged += HandleChanged;
         if (partyManager != null) partyManager.PartyChanged += HandleChanged;
         if (healingManager != null) healingManager.HealingChanged += HandleChanged;
         if (battleManager != null) battleManager.BattleCompleted += HandleBattleCompleted;
@@ -842,6 +851,7 @@ public class SaveManager : MonoBehaviour
         if (storyProgressManager != null) storyProgressManager.MilestoneCompleted -= HandleStoryMilestoneCompleted;
         if (transportManager != null) transportManager.TransportChanged -= HandleChanged;
         if (dungeonExpeditionManager != null) dungeonExpeditionManager.ExpeditionChanged -= HandleChanged;
+        if (remoteSaleManager != null) remoteSaleManager.RemoteSaleChanged -= HandleChanged;
         if (partyManager != null) partyManager.PartyChanged -= HandleChanged;
         if (healingManager != null) healingManager.HealingChanged -= HandleChanged;
         if (battleManager != null) battleManager.BattleCompleted -= HandleBattleCompleted;
@@ -982,6 +992,9 @@ public class SaveManager : MonoBehaviour
         dungeonExpeditionManager =
             GetComponent<DungeonExpeditionManager>() ??
             FindObjectOfType<DungeonExpeditionManager>();
+        remoteSaleManager =
+            GetComponent<RemoteSaleManager>() ??
+            FindObjectOfType<RemoteSaleManager>();
         monsterCodexManager =
             GetComponent<MonsterCodexManager>() ??
             FindObjectOfType<MonsterCodexManager>();

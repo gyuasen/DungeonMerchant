@@ -7,6 +7,7 @@ public class MercenaryPartyManager : MonoBehaviour
     [SerializeField] private MercenaryHireManager hireManager;
     [SerializeField] private TransportManager transportManager;
     [SerializeField] private DungeonExpeditionManager dungeonExpeditionManager;
+    [SerializeField] private TownProgressState townProgressState;
     [SerializeField, Min(1)] private int maxPartySize = 3;
     [SerializeField] private List<MercenaryInstance> members = new List<MercenaryInstance>();
 
@@ -45,6 +46,7 @@ public class MercenaryPartyManager : MonoBehaviour
         if (mercenary == null ||
             !mercenary.IsContractActive ||
             !IsHired(mercenary) ||
+            !IsAtCurrentTown(mercenary) ||
             (transportManager != null &&
              transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId)) ||
             (dungeonExpeditionManager != null &&
@@ -122,6 +124,21 @@ public class MercenaryPartyManager : MonoBehaviour
         return false;
     }
 
+    public void UpdateMemberLocations(int townIndex)
+    {
+        foreach (MercenaryInstance member in members)
+        {
+            member?.SetCurrentTownIndex(townIndex);
+        }
+    }
+
+    private bool IsAtCurrentTown(MercenaryInstance mercenary)
+    {
+        ResolveReferences();
+        return townProgressState == null ||
+               mercenary.CurrentTownIndex == townProgressState.CurrentTownIndex;
+    }
+
     private void RemoveInactiveContracts()
     {
         if (members.RemoveAll(member =>
@@ -146,6 +163,12 @@ public class MercenaryPartyManager : MonoBehaviour
         if (hireManager == null)
         {
             hireManager = FindObjectOfType<MercenaryHireManager>();
+        }
+
+        if (townProgressState == null)
+        {
+            townProgressState = GetComponent<TownProgressState>() ??
+                                FindObjectOfType<TownProgressState>();
         }
     }
 }

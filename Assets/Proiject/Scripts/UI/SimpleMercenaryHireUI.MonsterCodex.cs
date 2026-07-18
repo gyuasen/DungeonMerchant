@@ -107,8 +107,8 @@ public partial class SimpleMercenaryHireUI
 
         return string.Format(
             "{0} / {1}\nHP {2}  攻 {3}  防 {4}  速 {5:0.##}\nドロップ: {6}",
-            JapaneseDisplayText.GetMonsterGrade(enemy),
-            enemy.category,
+            JapaneseDisplayText.GetMonsterGradeWithStrengthHint(enemy),
+            JapaneseDisplayText.GetMonsterCategory(enemy.category),
             enemy.maxHP,
             enemy.attack,
             enemy.defense,

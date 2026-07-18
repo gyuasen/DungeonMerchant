@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 3
   rarity: 0
   materialClassification: 0
-  description: "\u50AD\u5175\u4E00\u4EBA\u306E\u6BD2\u3092\u6CBB\u7642\u3059\u308B\u85AC\u3002"
+  description: "\u50AD\u5175\u4E00\u4EBA\u306E\u6BD2\u3092\u6CBB\u7642\u3059\u308B\u3001\u30EA\u30FC\u30D5\u306E\u85AC\u5E2B\u304C\u9B54\u7269\u306E\u6BD2\u817A\u304B\u3089\u7CBE\u88FD\u3057\u305F\u85AC\u3002"
   basePrice: 80
   acquisitionType: 0
   equipmentSlot: 0

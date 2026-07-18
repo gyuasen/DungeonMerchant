@@ -307,6 +307,7 @@ public sealed class TransportManagerTests
 
     private void Hire(MercenaryInstance mercenary)
     {
+        mercenary.SetCurrentTownIndex(townProgress.CurrentTownIndex);
         List<MercenaryInstance> hired = new List<MercenaryInstance>(
             hireManager.HiredMercenaries);
         hired.Add(mercenary);
