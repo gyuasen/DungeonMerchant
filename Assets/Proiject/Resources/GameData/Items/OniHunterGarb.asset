@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 1
   materialClassification: 0
   description: "\u30B4\u30D6\u30EA\u30F3\u306E\u5947\u8972\u3068\u30AA\u30FC\u30AC\u306E\u6253\u6483\u306B\u5099\u3048\u305F\u3001\u8EFD\u304F\u4E08\u592B\u306A\u9B3C\u72E9\u308A\u306E\u88C5\u675F\u3002"
-  basePrice: 190
+  basePrice: 430
   acquisitionType: 2
   equipmentSlot: 1
   requiredClass: 0
   allClassesCanEquip: 1
   equipmentSet: 5
   equipmentRank: 3
-  bonusMaxHP: 10
-  bonusAttack: 0
-  bonusDefense: 4
-  bonusAttackSpeed: 0
+  bonusMaxHP: 18
+  bonusAttack: 2
+  bonusDefense: 7
+  bonusAttackSpeed: 0.015
   consumableEffect: 0
   consumableHealAmount: 0

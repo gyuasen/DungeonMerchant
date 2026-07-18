@@ -11,18 +11,27 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Grade05OgreMage
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
+  persistentId: 
   enemyName: Ogre Mage
   monsterGrade: 5
   isBoss: 0
+  category: 0
   enemySkill: 8
-  maxHP: 72
-  attack: 18
-  defense: 6
+  isSpecialVariant: 0
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 250
+  attack: 36
+  defense: 18
   maxMagicPower: 60
   attackSpeed: 0.9
   criticalRate: 0.05
-  goldReward: 145
+  evasionRate: 0
+  goldReward: 299
+  experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: bc2a3b4c5d6e7f8091a2b3c4d5e6f7a8, type: 2}
     amount: 1

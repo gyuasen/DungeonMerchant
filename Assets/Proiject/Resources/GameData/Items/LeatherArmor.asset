@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Light armor that allows archers to move freely.
-  basePrice: 145
+  basePrice: 130
   acquisitionType: 0
   equipmentSlot: 1
   requiredClass: 1
@@ -27,7 +27,7 @@ MonoBehaviour:
   equipmentRank: 1
   bonusMaxHP: 7
   bonusAttack: 0
-  bonusDefense: 3
-  bonusAttackSpeed: 0.02
+  bonusDefense: 2
+  bonusAttackSpeed: 0.0075
   consumableEffect: 0
   consumableHealAmount: 0

@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 5 Warrior Armor
-  basePrice: 530
+  basePrice: 1400
   acquisitionType: 0
   equipmentSlot: 1
   requiredClass: 0
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 5
-  bonusMaxHP: 55
-  bonusAttack: 0
-  bonusDefense: 12
-  bonusAttackSpeed: 0
+  bonusMaxHP: 46
+  bonusAttack: 4
+  bonusDefense: 15
+  bonusAttackSpeed: 0.020000001
   consumableEffect: 0
   consumableHealAmount: 0

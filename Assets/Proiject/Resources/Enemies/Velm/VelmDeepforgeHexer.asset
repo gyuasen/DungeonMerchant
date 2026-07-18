@@ -11,22 +11,26 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: VelmDeepforgeHexer
-  m_EditorClassIdentifier:
-  enemyName: ヴェルム深炉呪術師
+  m_EditorClassIdentifier: 
+  persistentId: 
+  enemyName: "\u30F4\u30A7\u30EB\u30E0\u6DF1\u7089\u546A\u8853\u5E2B"
   monsterGrade: 2
   isBoss: 0
   category: 0
   enemySkill: 14
   isSpecialVariant: 0
-  specialVariantTitle:
-  maxHP: 105
-  attack: 29
-  defense: 9
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 1417
+  attack: 121
+  defense: 74
   maxMagicPower: 110
   attackSpeed: 1.05
   criticalRate: 0.02
   evasionRate: 0.04
-  goldReward: 320
+  goldReward: 874
   experienceMultiplier: 1.25
   itemDrops:
   - item: {fileID: 11400000, guid: cd2a3b4c5d6e7f8091a2b3c4d5e6f7a8, type: 2}

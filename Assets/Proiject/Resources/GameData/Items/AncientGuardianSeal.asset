@@ -25,7 +25,7 @@ MonoBehaviour:
   allClassesCanEquip: 1
   equipmentSet: 1
   equipmentRank: 5
-  bonusMaxHP: 10
+  bonusMaxHP: 15
   bonusAttack: 10
   bonusDefense: 5
   bonusAttackSpeed: 0.06

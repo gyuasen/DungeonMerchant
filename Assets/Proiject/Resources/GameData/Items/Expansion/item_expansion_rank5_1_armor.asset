@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 5 Archer Armor
-  basePrice: 530
+  basePrice: 1400
   acquisitionType: 0
   equipmentSlot: 1
   requiredClass: 1
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 5
-  bonusMaxHP: 35
-  bonusAttack: 0
+  bonusMaxHP: 32
+  bonusAttack: 4
   bonusDefense: 10
-  bonusAttackSpeed: 0.03
+  bonusAttackSpeed: 0.0375
   consumableEffect: 0
   consumableHealAmount: 0

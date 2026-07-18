@@ -11,16 +11,25 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: MythicalGrade05ThunderhornKirin
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
+  persistentId: 
   enemyName: Thunderhorn Kirin
   monsterGrade: 5
   isBoss: 0
   category: 1
-  maxHP: 120
-  attack: 22
-  defense: 9
+  enemySkill: 0
+  isSpecialVariant: 0
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 250
+  attack: 36
+  defense: 18
   maxMagicPower: 80
   attackSpeed: 1.2
-  goldReward: 260
+  criticalRate: 0
+  evasionRate: 0
+  goldReward: 299
   experienceMultiplier: 3
   itemDrops: []

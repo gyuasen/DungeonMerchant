@@ -67,16 +67,18 @@ public static class DungeonEnemyVariantService
         bool isBossVariant)
     {
         variant.maxHP = Mathf.RoundToInt(
-            source.maxHP * (isBossVariant ? 1.4f : 1.18f));
+            source.maxHP * (isBossVariant ? 1.75f : 1.35f));
         variant.attack = Mathf.RoundToInt(
-            source.attack * (isBossVariant ? 1.25f : 1.12f));
+            source.attack * (isBossVariant ? 1.25f : 1.15f));
         variant.defense = Mathf.RoundToInt(
-            source.defense * (isBossVariant ? 1.2f : 1.1f));
+            source.defense * (isBossVariant ? 1.18f : 1.12f));
+        variant.attackSpeed =
+            source.attackSpeed * (isBossVariant ? 1.10f : 1.08f);
         variant.goldReward = Mathf.RoundToInt(
-            source.goldReward * (isBossVariant ? 3f : 1.75f));
+            source.goldReward * (isBossVariant ? 2f : 1.75f));
         variant.experienceMultiplier =
             Mathf.Max(1f, source.experienceMultiplier) *
-            (isBossVariant ? 2.5f : 2f);
+            (isBossVariant ? 2f : 1.75f);
     }
 
     private static void AddSpecialVariantMaterialDrop(

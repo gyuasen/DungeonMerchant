@@ -12,16 +12,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Grade05StoneGolem
   m_EditorClassIdentifier: 
+  persistentId: 
   enemyName: Stone Golem
   monsterGrade: 5
-  enemySkill: 11
   isBoss: 0
-  maxHP: 85
-  attack: 16
-  defense: 9
+  category: 0
+  enemySkill: 11
+  isSpecialVariant: 0
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 250
+  attack: 36
+  defense: 18
   maxMagicPower: 25
   attackSpeed: 0.7
-  goldReward: 145
+  criticalRate: 0
+  evasionRate: 0
+  goldReward: 299
+  experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: 6c4764172bbd4245ab4c951ba5b53403, type: 2}
     amount: 1

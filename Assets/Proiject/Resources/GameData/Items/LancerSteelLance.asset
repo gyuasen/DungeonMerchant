@@ -11,20 +11,23 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: LancerSteelLance
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   persistentId: item.lancer.steel_lance
-  itemName: 鋼鉄の長槍
+  itemName: "\u92FC\u9244\u306E\u9577\u69CD"
   itemType: 1
   rarity: 1
-  description: 前線を支える槍兵のために鍛えられた鋼の長槍。
-  basePrice: 320
+  materialClassification: 0
+  description: "\u524D\u7DDA\u3092\u652F\u3048\u308B\u69CD\u5175\u306E\u305F\u3081\u306B\u935B\u3048\u3089\u308C\u305F\u92FC\u306E\u9577\u69CD\u3002"
+  basePrice: 220
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 5
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 2
-  bonusMaxHP: 10
-  bonusAttack: 8
-  bonusDefense: 2
-  bonusAttackSpeed: 0.02
+  bonusMaxHP: 5
+  bonusAttack: 7
+  bonusDefense: 1
+  bonusAttackSpeed: 0.012
+  consumableEffect: 0
+  consumableHealAmount: 0

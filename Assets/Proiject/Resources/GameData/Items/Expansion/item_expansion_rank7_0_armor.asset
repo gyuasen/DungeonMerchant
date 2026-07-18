@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 7 Warrior Armor
-  basePrice: 640
+  basePrice: 4500
   acquisitionType: 1
   equipmentSlot: 1
   requiredClass: 0
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 7
-  bonusMaxHP: 77
-  bonusAttack: 0
-  bonusDefense: 16
-  bonusAttackSpeed: 0
+  bonusMaxHP: 74
+  bonusAttack: 5
+  bonusDefense: 20
+  bonusAttackSpeed: 0.028
   consumableEffect: 0
   consumableHealAmount: 0

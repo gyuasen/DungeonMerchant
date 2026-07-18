@@ -11,8 +11,8 @@ public sealed class BattleRewardService
     // Keep low-grade encounters meaningful while flattening high-grade rewards.
     // strengthOffset is 0 for grade 10 and 9 for grade 1.
     private const int BaseExperienceReward = 50;
-    private const int LinearExperienceGrowth = 20;
-    private const int QuadraticExperienceGrowth = 5;
+    private const int LinearExperienceGrowth = 25;
+    private const int QuadraticExperienceGrowth = 15;
 
     private readonly MerchantData merchantData;
     private readonly MerchantInventory merchantInventory;
@@ -193,7 +193,7 @@ public sealed class BattleRewardService
                 enemy.monsterGrade);
             if (enemy.isBoss)
             {
-                enemyExperience *= 2;
+                enemyExperience *= 3;
             }
 
             enemyExperience = Mathf.RoundToInt(

@@ -11,20 +11,23 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: RogueDagger
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   persistentId: item.rogue.dagger
-  itemName: 駆け出しの短剣
+  itemName: "\u99C6\u3051\u51FA\u3057\u306E\u77ED\u5263"
   itemType: 1
   rarity: 0
-  description: 素早い一撃の練習に向く、軽い短剣。
-  basePrice: 125
+  materialClassification: 0
+  description: "\u7D20\u65E9\u3044\u4E00\u6483\u306E\u7DF4\u7FD2\u306B\u5411\u304F\u3001\u8EFD\u3044\u77ED\u5263\u3002"
+  basePrice: 120
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 4
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 1
-  bonusMaxHP: 0
+  bonusMaxHP: 2
   bonusAttack: 4
   bonusDefense: 0
-  bonusAttackSpeed: 0.08
+  bonusAttackSpeed: 0.015
+  consumableEffect: 0
+  consumableHealAmount: 0

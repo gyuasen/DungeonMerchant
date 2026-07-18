@@ -20,16 +20,17 @@ MonoBehaviour:
   enemySkill: 21
   isSpecialVariant: 0
   specialVariantTitle: 
+  combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
   battleVisualKey: Grade03_wyvern_skyrider
-  maxHP: 123
-  attack: 26
-  defense: 14
+  maxHP: 627
+  attack: 74
+  defense: 39
   maxMagicPower: 60
-  attackSpeed: 1.2
+  attackSpeed: 1.44
   criticalRate: 0
   evasionRate: 0.08
-  goldReward: 300
+  goldReward: 611
   experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: 56b326c55b534ee9a072194a18894d73, type: 2}

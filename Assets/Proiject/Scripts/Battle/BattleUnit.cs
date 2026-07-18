@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class BattleUnit
 {
+    private const int DefenseMitigationConstant = 100;
     public string UnitName { get; private set; }
     public bool IsPlayerSide { get; private set; }
     public MercenaryClass MercenaryClass { get; private set; }
@@ -28,6 +29,7 @@ public class BattleUnit
     private float attackBonusPercent;
     private float defenseBonusPercent;
     private float speedBonusPercent;
+    private int enemyHealCooldownTurns;
 
     public bool IsDead => CurrentHP <= 0;
     public bool IsTaunting => !IsDead && TauntTurns > 0;
@@ -92,7 +94,7 @@ public class BattleUnit
 
     public void TakeDamage(int damage)
     {
-        int finalDamage = Mathf.Max(1, damage - EffectiveDefense);
+        int finalDamage = CalculateDefenseMitigatedDamage(damage);
         CurrentHP -= finalDamage;
         CurrentHP = Mathf.Max(0, CurrentHP);
     }
@@ -184,7 +186,14 @@ public class BattleUnit
 
     public int EstimateDamageTaken(int damage)
     {
-        return Mathf.Max(1, damage - EffectiveDefense);
+        return CalculateDefenseMitigatedDamage(damage);
+    }
+
+    private int CalculateDefenseMitigatedDamage(int damage)
+    {
+        float mitigatedDamage = damage * DefenseMitigationConstant /
+                                (float)(DefenseMitigationConstant + EffectiveDefense);
+        return Mathf.Max(1, Mathf.RoundToInt(mitigatedDamage));
     }
 
     public int CalculateDamage()
@@ -241,6 +250,11 @@ public class BattleUnit
 
     public void TickStatuses()
     {
+        if (enemyHealCooldownTurns > 0)
+        {
+            enemyHealCooldownTurns--;
+        }
+
         if (TauntTurns > 0)
         {
             TauntTurns--;
@@ -254,5 +268,15 @@ public class BattleUnit
                 criticalRateBonus = 0f;
             }
         }
+    }
+
+    public bool CanUseEnemyHeal()
+    {
+        return enemyHealCooldownTurns <= 0;
+    }
+
+    public void StartEnemyHealCooldown(int turns)
+    {
+        enemyHealCooldownTurns = Mathf.Max(enemyHealCooldownTurns, Mathf.Max(0, turns));
     }
 }

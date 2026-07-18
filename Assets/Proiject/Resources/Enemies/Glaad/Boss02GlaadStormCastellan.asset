@@ -11,22 +11,26 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Boss02GlaadStormCastellan
-  m_EditorClassIdentifier:
-  enemyName: "グラード嵐城将"
+  m_EditorClassIdentifier: 
+  persistentId: 
+  enemyName: "\u30B0\u30E9\u30FC\u30C9\u5D50\u57CE\u5C06"
   monsterGrade: 2
   isBoss: 1
   category: 0
   enemySkill: 10
   isSpecialVariant: 0
-  specialVariantTitle:
-  maxHP: 320
-  attack: 38
-  defense: 19
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 5238
+  attack: 151
+  defense: 81
   maxMagicPower: 85
-  attackSpeed: 1
+  attackSpeed: 1.05
   criticalRate: 0.12
   evasionRate: 0.05
-  goldReward: 650
+  goldReward: 874
   experienceMultiplier: 1.7
   itemDrops:
   - item: {fileID: 11400000, guid: c70727ecee064ba696148e6f62cb4c9e, type: 2}

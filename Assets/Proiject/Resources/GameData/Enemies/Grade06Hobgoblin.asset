@@ -11,22 +11,26 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Grade06Hobgoblin
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
+  persistentId: 
   enemyName: Hobgoblin
   monsterGrade: 6
   isBoss: 0
   category: 0
   enemySkill: 1
   isSpecialVariant: 0
-  specialVariantTitle:
-  maxHP: 65
-  attack: 15
-  defense: 5
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 150
+  attack: 24
+  defense: 11
   maxMagicPower: 40
   attackSpeed: 0.95
   criticalRate: 0.07
   evasionRate: 0.02
-  goldReward: 115
+  goldReward: 209
   experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: c004e837db61404f91a3642e14170b20, type: 2}

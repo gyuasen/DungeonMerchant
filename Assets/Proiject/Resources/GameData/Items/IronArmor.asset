@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Standard iron armor for novice warriors.
-  basePrice: 150
+  basePrice: 130
   acquisitionType: 0
   equipmentSlot: 1
   requiredClass: 0
@@ -27,7 +27,7 @@ MonoBehaviour:
   equipmentRank: 1
   bonusMaxHP: 10
   bonusAttack: 0
-  bonusDefense: 5
-  bonusAttackSpeed: 0
+  bonusDefense: 4
+  bonusAttackSpeed: 0.004
   consumableEffect: 0
   consumableHealAmount: 0

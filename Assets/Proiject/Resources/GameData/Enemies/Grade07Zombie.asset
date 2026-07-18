@@ -11,22 +11,26 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Grade07Zombie
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
+  persistentId: 
   enemyName: Zombie
   monsterGrade: 7
   isBoss: 0
   category: 0
   enemySkill: 11
   isSpecialVariant: 0
-  specialVariantTitle:
-  maxHP: 54
-  attack: 10
-  defense: 3
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 95
+  attack: 15
+  defense: 7
   maxMagicPower: 30
   attackSpeed: 0.75
   criticalRate: 0
   evasionRate: 0
-  goldReward: 90
+  goldReward: 146
   experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: f66e9fe18b5c428a86a912bdf72fc5ba, type: 2}

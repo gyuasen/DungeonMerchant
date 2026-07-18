@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 4 Warrior Accessory
-  basePrice: 520
+  basePrice: 650
   acquisitionType: 0
   equipmentSlot: 2
   requiredClass: 0
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 4
-  bonusMaxHP: 16
-  bonusAttack: 2
-  bonusDefense: 4
-  bonusAttackSpeed: 0.01
+  bonusMaxHP: 14
+  bonusAttack: 5
+  bonusDefense: 5
+  bonusAttackSpeed: 0.020000001
   consumableEffect: 0
   consumableHealAmount: 0

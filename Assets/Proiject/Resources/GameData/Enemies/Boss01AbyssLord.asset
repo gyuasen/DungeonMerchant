@@ -12,16 +12,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Boss01AbyssLord
   m_EditorClassIdentifier: 
+  persistentId: 
   enemyName: Abyss Lord
   monsterGrade: 1
-  enemySkill: 14
   isBoss: 1
-  maxHP: 460
-  attack: 46
-  defense: 24
+  category: 0
+  enemySkill: 14
+  isSpecialVariant: 0
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 9600
+  attack: 216
+  defense: 126
   maxMagicPower: 120
-  attackSpeed: 1.1
-  goldReward: 900
+  attackSpeed: 1.155
+  criticalRate: 0
+  evasionRate: 0
+  goldReward: 1250
+  experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: 3a7ba2b9811048e2959b76344ed5c903, type: 2}
     amount: 1

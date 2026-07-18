@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 7 Archer Weapon
-  basePrice: 845
+  basePrice: 4100
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 1
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 7
-  bonusMaxHP: 2
-  bonusAttack: 21
-  bonusDefense: 0
+  bonusMaxHP: 13
+  bonusAttack: 22
+  bonusDefense: 5
   bonusAttackSpeed: 0.06
   consumableEffect: 0
   consumableHealAmount: 0

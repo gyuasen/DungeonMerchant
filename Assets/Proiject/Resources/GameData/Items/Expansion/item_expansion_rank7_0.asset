@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 7 Warrior Weapon
-  basePrice: 845
+  basePrice: 4100
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 0
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 7
-  bonusMaxHP: 28
-  bonusAttack: 23
-  bonusDefense: 0
-  bonusAttackSpeed: 0
+  bonusMaxHP: 18
+  bonusAttack: 20
+  bonusDefense: 8
+  bonusAttackSpeed: 0.032
   consumableEffect: 0
   consumableHealAmount: 0

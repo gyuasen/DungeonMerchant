@@ -20,16 +20,17 @@ MonoBehaviour:
   enemySkill: 5
   isSpecialVariant: 0
   specialVariantTitle: 
+  combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
   battleVisualKey: Grade09_goblin_veteran
-  maxHP: 34
-  attack: 9
+  maxHP: 38
+  attack: 7
   defense: 2
   maxMagicPower: 25
   attackSpeed: 1.35
   criticalRate: 0
   evasionRate: 0
-  goldReward: 75
+  goldReward: 71
   experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: c004e837db61404f91a3642e14170b20, type: 2}

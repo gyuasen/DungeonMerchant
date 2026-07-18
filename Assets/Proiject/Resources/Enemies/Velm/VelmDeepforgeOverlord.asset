@@ -11,22 +11,26 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: VelmDeepforgeOverlord
-  m_EditorClassIdentifier:
-  enemyName: ヴェルム深炉王
+  m_EditorClassIdentifier: 
+  persistentId: 
+  enemyName: "\u30F4\u30A7\u30EB\u30E0\u6DF1\u7089\u738B"
   monsterGrade: 2
   isBoss: 1
   category: 0
   enemySkill: 10
   isSpecialVariant: 0
-  specialVariantTitle:
-  maxHP: 380
-  attack: 42
-  defense: 22
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 5670
+  attack: 163
+  defense: 88
   maxMagicPower: 100
-  attackSpeed: 0.9
+  attackSpeed: 0.94499993
   criticalRate: 0.08
   evasionRate: 0
-  goldReward: 780
+  goldReward: 874
   experienceMultiplier: 2
   itemDrops:
   - item: {fileID: 11400000, guid: c70727ecee064ba696148e6f62cb4c9e, type: 2}

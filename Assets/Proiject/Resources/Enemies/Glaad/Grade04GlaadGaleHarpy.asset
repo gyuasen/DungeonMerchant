@@ -11,22 +11,26 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Grade04GlaadGaleHarpy
-  m_EditorClassIdentifier:
-  enemyName: "グラード疾風ハーピー"
+  m_EditorClassIdentifier: 
+  persistentId: 
+  enemyName: "\u30B0\u30E9\u30FC\u30C9\u75BE\u98A8\u30CF\u30FC\u30D4\u30FC"
   monsterGrade: 4
   isBoss: 0
   category: 0
   enemySkill: 5
   isSpecialVariant: 0
-  specialVariantTitle:
-  maxHP: 84
-  attack: 24
-  defense: 7
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 417
+  attack: 52
+  defense: 28
   maxMagicPower: 55
   attackSpeed: 1.32
   criticalRate: 0.14
   evasionRate: 0.12
-  goldReward: 210
+  goldReward: 427
   experienceMultiplier: 1.1
   itemDrops:
   - item: {fileID: 11400000, guid: 52a98352167a4bce926ac5c343b9c6e8, type: 2}

@@ -11,21 +11,25 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Boss01CelestialJudge
-  m_EditorClassIdentifier:
-  enemyName: 天穹の審判者
+  m_EditorClassIdentifier: 
+  persistentId: 
+  enemyName: "\u5929\u7A79\u306E\u5BE9\u5224\u8005"
   monsterGrade: 1
   isBoss: 1
   category: 0
   enemySkill: 13
   isSpecialVariant: 0
-  specialVariantTitle:
-  maxHP: 900
-  attack: 62
-  defense: 34
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 9600
+  attack: 216
+  defense: 126
   maxMagicPower: 220
-  attackSpeed: 1.1
+  attackSpeed: 1.155
   criticalRate: 0.16
   evasionRate: 0.08
-  goldReward: 2500
+  goldReward: 1250
   experienceMultiplier: 2
   itemDrops: []

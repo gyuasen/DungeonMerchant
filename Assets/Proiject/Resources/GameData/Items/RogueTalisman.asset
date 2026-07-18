@@ -11,20 +11,23 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: RogueTalisman
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   persistentId: item.rogue.talisman
-  itemName: 隠密の護符
+  itemName: "\u96A0\u5BC6\u306E\u8B77\u7B26"
   itemType: 1
   rarity: 0
-  description: 足運びを軽くしてくれる、小さな護符。
-  basePrice: 115
+  materialClassification: 0
+  description: "\u8DB3\u904B\u3073\u3092\u8EFD\u304F\u3057\u3066\u304F\u308C\u308B\u3001\u5C0F\u3055\u306A\u8B77\u7B26\u3002"
+  basePrice: 110
   acquisitionType: 0
   equipmentSlot: 2
   requiredClass: 4
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 1
-  bonusMaxHP: 0
+  bonusMaxHP: 3
   bonusAttack: 2
-  bonusDefense: 0
-  bonusAttackSpeed: 0.04
+  bonusDefense: 1
+  bonusAttackSpeed: 0.015
+  consumableEffect: 0
+  consumableHealAmount: 0

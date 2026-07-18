@@ -43,11 +43,11 @@ public sealed class DungeonExpeditionManagerTests
         }
     }
 
-    [TestCase(DungeonGrade.Low, 60)]
-    [TestCase(DungeonGrade.Lower, 120)]
-    [TestCase(DungeonGrade.Middle, 200)]
-    [TestCase(DungeonGrade.Upper, 300)]
-    [TestCase(DungeonGrade.Highest, 420)]
+    [TestCase(DungeonGrade.Low, 100)]
+    [TestCase(DungeonGrade.Lower, 220)]
+    [TestCase(DungeonGrade.Middle, 420)]
+    [TestCase(DungeonGrade.Upper, 750)]
+    [TestCase(DungeonGrade.Highest, 1200)]
     public void RequiredStrength_IsPinned(DungeonGrade grade, int expected)
     {
         DungeonDataSO dungeon = CreateDungeon(grade, 1);

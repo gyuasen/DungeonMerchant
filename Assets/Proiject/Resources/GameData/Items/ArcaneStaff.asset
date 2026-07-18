@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 1
   materialClassification: 0
   description: A staff engraved with runes that amplify arcane power.
-  basePrice: 360
+  basePrice: 220
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 2
@@ -26,8 +26,8 @@ MonoBehaviour:
   equipmentSet: 0
   equipmentRank: 2
   bonusMaxHP: 3
-  bonusAttack: 12
-  bonusDefense: 0
-  bonusAttackSpeed: 0.03
+  bonusAttack: 11
+  bonusDefense: 1
+  bonusAttackSpeed: 0.015
   consumableEffect: 0
   consumableHealAmount: 0

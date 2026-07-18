@@ -2,14 +2,23 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: VelmBlackIronBreaker
+  m_EditorClassIdentifier: 
   persistentId: item.dungeon.velm_black_iron_breaker
-  itemName: ヴェルム黒鉄砕き
+  itemName: "\u30F4\u30A7\u30EB\u30E0\u9ED2\u9244\u7815\u304D"
   itemType: 1
   rarity: 3
-  description: 黒鉄坑の深部で鍛えられた、岩盤さえ断つ全職向けの武器。
-  basePrice: 2850
+  materialClassification: 0
+  description: "\u9ED2\u9244\u5751\u306E\u6DF1\u90E8\u3067\u935B\u3048\u3089\u308C\u305F\u3001\u5CA9\u76E4\u3055\u3048\u65AD\u3064\u5168\u8077\u5411\u3051\u306E\u6B66\u5668\u3002"
+  basePrice: 7300
   acquisitionType: 2
   equipmentSlot: 0
   requiredClass: 0
@@ -18,6 +27,7 @@ MonoBehaviour:
   equipmentRank: 8
   bonusMaxHP: 20
   bonusAttack: 29
-  bonusDefense: 6
-  bonusAttackSpeed: 0.04
+  bonusDefense: 7
+  bonusAttackSpeed: 0.045
   consumableEffect: 0
+  consumableHealAmount: 0

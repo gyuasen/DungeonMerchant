@@ -26,8 +26,8 @@ MonoBehaviour:
   equipmentSet: 2
   equipmentRank: 3
   bonusMaxHP: 22
-  bonusAttack: 0
+  bonusAttack: 2
   bonusDefense: 10
-  bonusAttackSpeed: 0
+  bonusAttackSpeed: 0.015
   consumableEffect: 0
   consumableHealAmount: 0

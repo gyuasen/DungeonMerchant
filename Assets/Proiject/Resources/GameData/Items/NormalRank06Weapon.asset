@@ -2,14 +2,23 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: NormalRank06Weapon
+  m_EditorClassIdentifier: 
   persistentId: item.normal.rank06.weapon
-  itemName: 魔鋼の武具
+  itemName: "\u9B54\u92FC\u306E\u6B66\u5177"
   itemType: 1
   rarity: 0
-  description: 町の市場で流通する、扱いやすい標準装備。
-  basePrice: 640
+  materialClassification: 0
+  description: "\u753A\u306E\u5E02\u5834\u3067\u6D41\u901A\u3059\u308B\u3001\u6271\u3044\u3084\u3059\u3044\u6A19\u6E96\u88C5\u5099\u3002"
+  basePrice: 2300
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0
@@ -17,7 +26,8 @@ MonoBehaviour:
   equipmentSet: 0
   equipmentRank: 6
   bonusMaxHP: 12
-  bonusAttack: 15
-  bonusDefense: 0
-  bonusAttackSpeed: 0
+  bonusAttack: 19
+  bonusDefense: 5
+  bonusAttackSpeed: 0.035
   consumableEffect: 0
+  consumableHealAmount: 0

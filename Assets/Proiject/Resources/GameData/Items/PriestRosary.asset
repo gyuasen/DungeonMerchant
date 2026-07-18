@@ -11,20 +11,23 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: PriestRosary
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   persistentId: item.priest.rosary
-  itemName: 祈りの数珠
+  itemName: "\u7948\u308A\u306E\u6570\u73E0"
   itemType: 1
   rarity: 0
-  description: 魔力を祈りへと整える、小さな数珠。
-  basePrice: 120
+  materialClassification: 0
+  description: "\u9B54\u529B\u3092\u7948\u308A\u3078\u3068\u6574\u3048\u308B\u3001\u5C0F\u3055\u306A\u6570\u73E0\u3002"
+  basePrice: 110
   acquisitionType: 0
   equipmentSlot: 2
   requiredClass: 3
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 1
-  bonusMaxHP: 0
-  bonusAttack: 4
-  bonusDefense: 0
-  bonusAttackSpeed: 0.01
+  bonusMaxHP: 3
+  bonusAttack: 2
+  bonusDefense: 1
+  bonusAttackSpeed: 0.009
+  consumableEffect: 0
+  consumableHealAmount: 0

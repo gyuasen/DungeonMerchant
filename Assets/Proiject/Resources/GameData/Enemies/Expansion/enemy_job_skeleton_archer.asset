@@ -20,16 +20,17 @@ MonoBehaviour:
   enemySkill: 26
   isSpecialVariant: 0
   specialVariantTitle: 
+  combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
   battleVisualKey: Grade07_skeleton_archer
-  maxHP: 59
+  maxHP: 81
   attack: 14
-  defense: 5
+  defense: 6
   maxMagicPower: 45
-  attackSpeed: 1.35
+  attackSpeed: 1.6200001
   criticalRate: 0
   evasionRate: 0.14
-  goldReward: 115
+  goldReward: 146
   experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: f66e9fe18b5c428a86a912bdf72fc5ba, type: 2}

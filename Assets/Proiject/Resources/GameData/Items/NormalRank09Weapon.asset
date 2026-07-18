@@ -2,22 +2,32 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: NormalRank09Weapon
+  m_EditorClassIdentifier: 
   persistentId: item.normal.rank09.weapon
-  itemName: 深淵探索の刃
+  itemName: "\u6DF1\u6DF5\u63A2\u7D22\u306E\u5203"
   itemType: 1
   rarity: 0
-  description: 深淵の魔物に抗うため、黒鉄へ魔力を通した探索者の刃。
-  basePrice: 925
+  materialClassification: 0
+  description: "\u6DF1\u6DF5\u306E\u9B54\u7269\u306B\u6297\u3046\u305F\u3081\u3001\u9ED2\u9244\u3078\u9B54\u529B\u3092\u901A\u3057\u305F\u63A2\u7D22\u8005\u306E\u5203\u3002"
+  basePrice: 13000
   acquisitionType: 2
   equipmentSlot: 0
   requiredClass: 0
   allClassesCanEquip: 1
   equipmentSet: 0
   equipmentRank: 9
-  bonusMaxHP: 18
-  bonusAttack: 21
-  bonusDefense: 0
-  bonusAttackSpeed: 0
+  bonusMaxHP: 22
+  bonusAttack: 28
+  bonusDefense: 8
+  bonusAttackSpeed: 0.05
   consumableEffect: 0
+  consumableHealAmount: 0

@@ -11,21 +11,25 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Grade01AstralReaver
-  m_EditorClassIdentifier:
-  enemyName: 星断ちの執行者
+  m_EditorClassIdentifier: 
+  persistentId: 
+  enemyName: "\u661F\u65AD\u3061\u306E\u57F7\u884C\u8005"
   monsterGrade: 1
   isBoss: 0
   category: 0
   enemySkill: 10
   isSpecialVariant: 0
-  specialVariantTitle:
-  maxHP: 230
-  attack: 48
-  defense: 20
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 2400
+  attack: 160
+  defense: 105
   maxMagicPower: 90
   attackSpeed: 1.25
   criticalRate: 0.15
   evasionRate: 0.1
-  goldReward: 750
+  goldReward: 1250
   experienceMultiplier: 1.5
   itemDrops: []

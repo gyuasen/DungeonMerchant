@@ -11,18 +11,27 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Grade07Wraith
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
+  persistentId: 
   enemyName: Wraith
   monsterGrade: 7
   isBoss: 0
+  category: 0
   enemySkill: 6
-  maxHP: 40
-  attack: 12
-  defense: 3
+  isSpecialVariant: 0
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 95
+  attack: 15
+  defense: 7
   maxMagicPower: 45
   attackSpeed: 1.25
+  criticalRate: 0
   evasionRate: 0.1
-  goldReward: 90
+  goldReward: 146
+  experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: ef1a2b3c4d5e6f708192a3b4c5d6e7f8, type: 2}
     amount: 1

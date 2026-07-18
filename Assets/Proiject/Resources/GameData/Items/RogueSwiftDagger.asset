@@ -11,20 +11,23 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: RogueSwiftDagger
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   persistentId: item.rogue.swift_dagger
-  itemName: 疾風の短剣
+  itemName: "\u75BE\u98A8\u306E\u77ED\u5263"
   itemType: 1
   rarity: 1
-  description: 鋭い刃と軽さを備えた、素早い連撃のための短剣。
-  basePrice: 340
+  materialClassification: 0
+  description: "\u92ED\u3044\u5203\u3068\u8EFD\u3055\u3092\u5099\u3048\u305F\u3001\u7D20\u65E9\u3044\u9023\u6483\u306E\u305F\u3081\u306E\u77ED\u5263\u3002"
+  basePrice: 220
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 4
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 2
-  bonusMaxHP: 4
+  bonusMaxHP: 3
   bonusAttack: 8
   bonusDefense: 1
-  bonusAttackSpeed: 0.15
+  bonusAttackSpeed: 0.022499999
+  consumableEffect: 0
+  consumableHealAmount: 0

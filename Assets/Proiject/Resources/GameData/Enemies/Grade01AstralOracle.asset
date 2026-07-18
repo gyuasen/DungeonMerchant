@@ -11,21 +11,25 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Grade01AstralOracle
-  m_EditorClassIdentifier:
-  enemyName: 星詠みの神官
+  m_EditorClassIdentifier: 
+  persistentId: 
+  enemyName: "\u661F\u8A60\u307F\u306E\u795E\u5B98"
   monsterGrade: 1
   isBoss: 0
   category: 0
   enemySkill: 11
   isSpecialVariant: 0
-  specialVariantTitle:
-  maxHP: 210
-  attack: 38
-  defense: 18
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 2400
+  attack: 160
+  defense: 105
   maxMagicPower: 180
   attackSpeed: 1.05
   criticalRate: 0.1
   evasionRate: 0.08
-  goldReward: 700
+  goldReward: 1250
   experienceMultiplier: 1.5
   itemDrops: []

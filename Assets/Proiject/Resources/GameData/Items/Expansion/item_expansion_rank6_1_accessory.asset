@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 6 Archer Accessory
-  basePrice: 640
+  basePrice: 2100
   acquisitionType: 1
   equipmentSlot: 2
   requiredClass: 1
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 6
-  bonusMaxHP: 12
-  bonusAttack: 3
-  bonusDefense: 1
-  bonusAttackSpeed: 0.07
+  bonusMaxHP: 15
+  bonusAttack: 8
+  bonusDefense: 5
+  bonusAttackSpeed: 0.052500002
   consumableEffect: 0
   consumableHealAmount: 0

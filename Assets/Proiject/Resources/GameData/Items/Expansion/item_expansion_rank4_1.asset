@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 4 Archer Weapon
-  basePrice: 560
+  basePrice: 720
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 1
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 4
-  bonusMaxHP: 2
-  bonusAttack: 12
-  bonusDefense: 0
-  bonusAttackSpeed: 0.06
+  bonusMaxHP: 7
+  bonusAttack: 14
+  bonusDefense: 2
+  bonusAttackSpeed: 0.0375
   consumableEffect: 0
   consumableHealAmount: 0

@@ -2,22 +2,32 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: NormalRank08Weapon
+  m_EditorClassIdentifier: 
   persistentId: item.normal.rank08.weapon
-  itemName: 黒鉄の遠征剣
+  itemName: "\u9ED2\u9244\u306E\u9060\u5F81\u5263"
   itemType: 1
   rarity: 0
-  description: 黒鉄を幾重にも鍛え、あらゆる職が扱えるよう整えた武器。
-  basePrice: 830
+  materialClassification: 0
+  description: "\u9ED2\u9244\u3092\u5E7E\u91CD\u306B\u3082\u935B\u3048\u3001\u3042\u3089\u3086\u308B\u8077\u304C\u6271\u3048\u308B\u3088\u3046\u6574\u3048\u305F\u6B66\u5668\u3002"
+  basePrice: 7300
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 0
   allClassesCanEquip: 1
   equipmentSet: 0
   equipmentRank: 8
-  bonusMaxHP: 16
-  bonusAttack: 19
-  bonusDefense: 0
-  bonusAttackSpeed: 0
+  bonusMaxHP: 18
+  bonusAttack: 25
+  bonusDefense: 7
+  bonusAttackSpeed: 0.045
   consumableEffect: 0
+  consumableHealAmount: 0

@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 2
   materialClassification: 0
   description: A rune blade veiled in the cold mist of ancient ruins.
-  basePrice: 880
+  basePrice: 1300
   acquisitionType: 2
   equipmentSlot: 0
   requiredClass: 0
@@ -26,8 +26,8 @@ MonoBehaviour:
   equipmentSet: 0
   equipmentRank: 5
   bonusMaxHP: 10
-  bonusAttack: 15
-  bonusDefense: 3
+  bonusAttack: 16
+  bonusDefense: 4
   bonusAttackSpeed: 0.04
   consumableEffect: 0
   consumableHealAmount: 0

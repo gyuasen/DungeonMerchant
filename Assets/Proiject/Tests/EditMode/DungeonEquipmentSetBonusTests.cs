@@ -19,10 +19,10 @@ public sealed class DungeonEquipmentSetBonusTests
         createdObjects.Clear();
     }
 
-    [TestCase(EquipmentSetId.NornCanopy, 116, 14, 7, 1.02f)]
+    [TestCase(EquipmentSetId.NornCanopy, 120, 14, 8, 1.02f)]
     [TestCase(EquipmentSetId.GlaadSkyFortress, 122, 13, 9, 1.025f)]
     [TestCase(EquipmentSetId.VelmBlackIron, 128, 14, 11, 1.03f)]
-    [TestCase(EquipmentSetId.AbyssThrone, 136, 17, 10, 1.035f)]
+    [TestCase(EquipmentSetId.AbyssThrone, 145, 17, 11, 1.035f)]
     [TestCase(EquipmentSetId.AstralDepths, 145, 20, 13, 1.04f)]
     public void FullDungeonSet_AppliesProgressiveAllRoleBonuses(
         EquipmentSetId setId,

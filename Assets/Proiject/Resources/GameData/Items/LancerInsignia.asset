@@ -11,12 +11,13 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: LancerInsignia
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   persistentId: item.lancer.insignia
-  itemName: 槍兵の徽章
+  itemName: "\u69CD\u5175\u306E\u5FBD\u7AE0"
   itemType: 1
   rarity: 0
-  description: 隊列を守る槍兵に授けられる、丈夫な徽章。
+  materialClassification: 0
+  description: "\u968A\u5217\u3092\u5B88\u308B\u69CD\u5175\u306B\u6388\u3051\u3089\u308C\u308B\u3001\u4E08\u592B\u306A\u5FBD\u7AE0\u3002"
   basePrice: 110
   acquisitionType: 0
   equipmentSlot: 2
@@ -25,6 +26,8 @@ MonoBehaviour:
   equipmentSet: 0
   equipmentRank: 1
   bonusMaxHP: 4
-  bonusAttack: 3
+  bonusAttack: 2
   bonusDefense: 1
-  bonusAttackSpeed: 0
+  bonusAttackSpeed: 0.008
+  consumableEffect: 0
+  consumableHealAmount: 0

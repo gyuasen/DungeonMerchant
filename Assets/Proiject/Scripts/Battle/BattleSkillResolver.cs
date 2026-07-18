@@ -47,7 +47,8 @@ public sealed class BattleSkillResolver
         out string skillName)
     {
         skillName = string.Empty;
-        if (data == null || context.RandomValue() > context.EnemySkillUseChance)
+        float skillUseChance = data != null && data.isBoss ? 0.30f : 0.25f;
+        if (data == null || context.RandomValue() > skillUseChance)
         {
             return false;
         }
@@ -95,7 +96,7 @@ public sealed class BattleSkillResolver
                 return UseEnemyLifeDrain(attacker, target);
             case EnemySkillType.ArmorPierce:
                 return UseEnemyPureDamageSkill(
-                    attacker, target, "装甲穿ち", 1.05f);
+                    attacker, target, "装甲穿ち", 0.65f);
             case EnemySkillType.FlameBreath:
                 return UseEnemyAreaDamageSkill(
                     attacker,
@@ -150,7 +151,7 @@ public sealed class BattleSkillResolver
                 return UseEnemyAreaDamageSkill(
                     attacker,
                     "毒霧",
-                    0.42f,
+                    0.35f,
                     BattleStatusEffect.Poison);
             case EnemySkillType.ShadowPounce:
                 return UseEnemyMultiStrike(attacker, target, "影跳び", 2, 0.62f);
@@ -161,11 +162,11 @@ public sealed class BattleSkillResolver
             case EnemySkillType.CleavingRush:
                 return UseEnemyAreaDamageSkill(attacker, "薙ぎ払い", 0.58f, BattleStatusEffect.None);
             case EnemySkillType.VenomSpray:
-                return UseEnemyAreaDamageSkill(attacker, "毒液散布", 0.34f, BattleStatusEffect.Poison);
+                return UseEnemyAreaDamageSkill(attacker, "毒液散布", 0.30f, BattleStatusEffect.Poison);
             case EnemySkillType.PiercingShot:
-                return UseEnemyPureDamageSkill(attacker, target, "貫通射", 0.82f);
+                return UseEnemyPureDamageSkill(attacker, target, "貫通射", 0.55f);
             case EnemySkillType.BloodFrenzy:
-                return UseEnemyDamageSkill(attacker, target, "血煙の猛攻", 1.58f, BattleStatusEffect.None);
+                return UseEnemyDamageSkill(attacker, target, "血煙の猛攻", 1.45f, BattleStatusEffect.None);
             case EnemySkillType.Reconstitute:
                 return UseEnemyRegeneration(attacker);
             default:
@@ -533,27 +534,30 @@ public sealed class BattleSkillResolver
 
     private bool UseEnemyBattleHeal(BattleUnit attacker)
     {
-        if (attacker.MaxHP - attacker.CurrentHP <
+        if (!attacker.CanUseEnemyHeal() ||
+            attacker.MaxHP - attacker.CurrentHP <
             Math.Max(1, attacker.MaxHP / 5))
         {
             return false;
         }
         int before = attacker.CurrentHP;
-        attacker.Heal(Round(attacker.MaxHP * 0.28f));
+        attacker.Heal(Round(attacker.MaxHP * 0.16f));
+        attacker.StartEnemyHealCooldown(3);
         Log(BattleLogFormatter.FormatHealSkill(attacker.UnitName, "再生", attacker.CurrentHP - before), BattleLogType.Enemy);
         return true;
     }
 
     private bool UseEnemyRegeneration(BattleUnit attacker)
     {
-        if (attacker.IsDead ||
+        if (attacker.IsDead || !attacker.CanUseEnemyHeal() ||
             attacker.CurrentHP > Mathf.RoundToInt(attacker.MaxHP * 0.55f))
         {
             return false;
         }
 
         int before = attacker.CurrentHP;
-        attacker.Heal(Round(attacker.MaxHP * 0.22f));
+        attacker.Heal(Round(attacker.MaxHP * 0.12f));
+        attacker.StartEnemyHealCooldown(3);
         Log(
             BattleLogFormatter.FormatHealSkill(
                 attacker.UnitName,
@@ -569,9 +573,9 @@ public sealed class BattleSkillResolver
         {
             return false;
         }
-        int recoil = Math.Max(1, Round(attacker.MaxHP * 0.08f));
+        int recoil = Math.Max(1, Round(attacker.MaxHP * 0.10f));
         attacker.TakePureDamage(recoil);
-        bool used = UseEnemyDamageSkill(attacker, target, "捨て身の猛撃", 1.85f, BattleStatusEffect.None);
+        bool used = UseEnemyDamageSkill(attacker, target, "捨て身の猛撃", 1.65f, BattleStatusEffect.None);
         if (used)
         {
             Log(
@@ -590,7 +594,7 @@ public sealed class BattleSkillResolver
             attacker,
             target,
             ratio <= 0.35f ? "処刑撃" : "追い込み",
-            ratio <= 0.35f ? 2f : 0.85f,
+            ratio <= 0.35f ? 1.75f : 0.85f,
             BattleStatusEffect.None);
     }
 

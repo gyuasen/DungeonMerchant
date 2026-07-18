@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 4 Mage Armor
-  basePrice: 475
+  basePrice: 780
   acquisitionType: 0
   equipmentSlot: 1
   requiredClass: 2
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 4
-  bonusMaxHP: 28
+  bonusMaxHP: 22
   bonusAttack: 4
   bonusDefense: 8
-  bonusAttackSpeed: 0
+  bonusAttackSpeed: 0.02
   consumableEffect: 0
   consumableHealAmount: 0

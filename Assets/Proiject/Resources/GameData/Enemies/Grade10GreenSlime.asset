@@ -11,17 +11,21 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Grade10GreenSlime
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
+  persistentId: 
   enemyName: Green Slime
   monsterGrade: 10
   isBoss: 0
   category: 0
   enemySkill: 0
   isSpecialVariant: 0
-  specialVariantTitle:
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
   maxHP: 24
-  attack: 4
-  defense: 2
+  attack: 5
+  defense: 1
   maxMagicPower: 20
   attackSpeed: 0.85
   criticalRate: 0

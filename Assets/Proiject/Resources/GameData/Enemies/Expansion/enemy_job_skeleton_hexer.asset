@@ -20,16 +20,17 @@ MonoBehaviour:
   enemySkill: 22
   isSpecialVariant: 0
   specialVariantTitle: 
+  combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
   battleVisualKey: Grade07_skeleton_hexer
-  maxHP: 56
-  attack: 15
-  defense: 6
+  maxHP: 95
+  attack: 16
+  defense: 7
   maxMagicPower: 60
   attackSpeed: 1.05
   criticalRate: 0.05
   evasionRate: 0.03
-  goldReward: 115
+  goldReward: 146
   experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: f66e9fe18b5c428a86a912bdf72fc5ba, type: 2}

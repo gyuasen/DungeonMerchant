@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 2
   materialClassification: 0
   description: A charm modeled after the watchful eye of a ruin guardian.
-  basePrice: 820
+  basePrice: 1170
   acquisitionType: 2
   equipmentSlot: 2
   requiredClass: 0
   allClassesCanEquip: 1
   equipmentSet: 0
   equipmentRank: 5
-  bonusMaxHP: 9
+  bonusMaxHP: 15
   bonusAttack: 7
-  bonusDefense: 4
+  bonusDefense: 5
   bonusAttackSpeed: 0.04
   consumableEffect: 0
   consumableHealAmount: 0

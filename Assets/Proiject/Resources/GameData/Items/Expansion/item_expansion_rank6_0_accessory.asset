@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 6 Warrior Accessory
-  basePrice: 640
+  basePrice: 2100
   acquisitionType: 1
   equipmentSlot: 2
   requiredClass: 0
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 6
-  bonusMaxHP: 24
-  bonusAttack: 2
-  bonusDefense: 6
-  bonusAttackSpeed: 0.01
+  bonusMaxHP: 22
+  bonusAttack: 7
+  bonusDefense: 8
+  bonusAttackSpeed: 0.028
   consumableEffect: 0
   consumableHealAmount: 0

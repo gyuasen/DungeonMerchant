@@ -11,22 +11,26 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: VelmEmberforgedAutomaton
-  m_EditorClassIdentifier:
-  enemyName: ヴェルム熾火魔導兵
+  m_EditorClassIdentifier: 
+  persistentId: 
+  enemyName: "\u30F4\u30A7\u30EB\u30E0\u71BE\u706B\u9B54\u5C0E\u5175"
   monsterGrade: 3
   isBoss: 0
   category: 0
   enemySkill: 11
   isSpecialVariant: 0
-  specialVariantTitle:
-  maxHP: 140
-  attack: 25
-  defense: 16
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 798
+  attack: 84
+  defense: 47
   maxMagicPower: 60
   attackSpeed: 0.65
   criticalRate: 0
   evasionRate: 0
-  goldReward: 270
+  goldReward: 611
   experienceMultiplier: 1.2
   itemDrops:
   - item: {fileID: 11400000, guid: cd2a3b4c5d6e7f8091a2b3c4d5e6f7a8, type: 2}

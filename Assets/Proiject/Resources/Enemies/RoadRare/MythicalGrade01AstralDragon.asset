@@ -11,16 +11,25 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: MythicalGrade01AstralDragon
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
+  persistentId: 
   enemyName: Astral Dragon
   monsterGrade: 1
   isBoss: 0
   category: 1
-  maxHP: 260
-  attack: 44
-  defense: 20
+  enemySkill: 0
+  isSpecialVariant: 0
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 2400
+  attack: 160
+  defense: 105
   maxMagicPower: 140
   attackSpeed: 1.2
-  goldReward: 600
+  criticalRate: 0
+  evasionRate: 0
+  goldReward: 1250
   experienceMultiplier: 3
   itemDrops: []

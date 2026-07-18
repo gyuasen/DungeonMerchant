@@ -20,6 +20,46 @@ public static class BalanceExpansionAssetGenerator
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
     }
+    [MenuItem("DungeonMerchant/Apply Combat Balance Stage 1")]
+    public static void ApplyCombatBalanceStage1()
+    {
+        string[] guids = AssetDatabase.FindAssets("t:EnemyDataSO", new[] { "Assets/Proiject/Resources" });
+        foreach (string guid in guids)
+        {
+            EnemyDataSO enemy = AssetDatabase.LoadAssetAtPath<EnemyDataSO>(AssetDatabase.GUIDToAssetPath(guid));
+            BalanceExpansionEnemyDefinition expansion = FindExpansionDefinition(enemy);
+            ApplyCombatBalance(enemy, expansion == null ? EnemyCombatRole.Balance : expansion.Role, GetRegionalMultiplier(enemy));
+            EditorUtility.SetDirty(enemy);
+        }
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+    }
+    [MenuItem("DungeonMerchant/Apply Combat Balance Stage 2")]
+    public static void ApplyCombatBalanceStage2()
+    {
+        string[] guids = AssetDatabase.FindAssets("t:ItemDataSO", new[] { "Assets/Proiject/Resources" });
+        foreach (string guid in guids)
+        {
+            ItemDataSO item = AssetDatabase.LoadAssetAtPath<ItemDataSO>(AssetDatabase.GUIDToAssetPath(guid));
+            if (item == null || !item.IsEquipment)
+            {
+                continue;
+            }
+
+            if (item.equipmentSet == EquipmentSetId.None &&
+                !IsLimitedEquipment(item))
+            {
+                ApplyEquipmentStats(item, item.equipmentRank, item.equipmentSlot, item.allClassesCanEquip ? -1 : GetClassIndex(item.requiredClass));
+            }
+            else
+            {
+                ApplyMinimumRankStats(item);
+            }
+            EditorUtility.SetDirty(item);
+        }
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+    }
     static void BuildEquipment(BalanceExpansionEquipmentDefinition definition)
     {
         ItemDataSO item = ScriptableObject.CreateInstance<ItemDataSO>();
@@ -30,22 +70,65 @@ public static class BalanceExpansionAssetGenerator
         item.equipmentSlot = definition.Slot;
         item.requiredClass = new[] { MercenaryClass.Warrior, MercenaryClass.Archer, MercenaryClass.Mage }[definition.ClassIndex];
         item.equipmentRank = definition.Rank;
-        ApplyEquipmentStats(item, definition);
+        ApplyEquipmentStats(item, definition.Rank, definition.Slot, definition.ClassIndex);
         Id(item, definition.Id);
         string path = ItemPath + "/" + definition.Id.Replace('.', '_') + ".asset";
         Put(item, path);
         if (definition.AcquisitionType == ItemAcquisitionType.Blacksmith) { BuildRecipe(definition, AssetDatabase.LoadAssetAtPath<ItemDataSO>(path)); }
     }
-    static void ApplyEquipmentStats(ItemDataSO item, BalanceExpansionEquipmentDefinition definition)
+    static void ApplyEquipmentStats(ItemDataSO item, int rank, EquipmentSlot slot, int classIndex)
     {
-        int rank = definition.Rank;
-        if (definition.Slot == EquipmentSlot.Weapon) { item.bonusAttack = rank * 3 + (definition.ClassIndex == 0 ? 2 : definition.ClassIndex == 2 ? 1 : 0); item.bonusMaxHP = definition.ClassIndex == 0 ? rank * 4 : definition.ClassIndex == 1 ? 2 : 1; item.bonusAttackSpeed = definition.ClassIndex == 1 ? .06f : 0f; item.basePrice = 180 + rank * 95; return; }
-        if (definition.Slot == EquipmentSlot.Armor) { item.bonusMaxHP = definition.ClassIndex == 0 ? rank * 11 : rank * 7; item.bonusDefense = rank * 2 + (definition.ClassIndex == 0 ? 2 : 0); item.bonusAttack = definition.ClassIndex == 2 ? 4 : 0; item.bonusAttackSpeed = definition.ClassIndex == 1 ? .03f : 0f; item.basePrice = 255 + rank * 55; return; }
-        item.bonusMaxHP = definition.ClassIndex == 0 ? rank * 4 : definition.ClassIndex == 1 ? rank * 2 : rank * 2 + 1;
-        item.bonusAttack = definition.ClassIndex == 2 ? rank + 3 : definition.ClassIndex == 0 ? 2 : 3;
-        item.bonusDefense = definition.ClassIndex == 0 ? rank : 1;
-        item.bonusAttackSpeed = definition.ClassIndex == 1 ? .04f + rank * .005f : definition.ClassIndex == 2 ? .01f + rank * .003f : .01f;
-        item.basePrice = 280 + rank * 60;
+        int safeRank = Mathf.Clamp(rank, 1, 10);
+        int[] hp;
+        int[] attack;
+        int[] defense;
+        float[] speed;
+        int[] price;
+        GetEquipmentTable(slot, out hp, out attack, out defense, out speed, out price);
+        float hpRate;
+        float attackRate;
+        float defenseRate;
+        float speedRate;
+        GetClassRates(classIndex, out hpRate, out attackRate, out defenseRate, out speedRate);
+        int index = safeRank - 1;
+        item.bonusMaxHP = Mathf.RoundToInt(hp[index] * hpRate);
+        item.bonusAttack = Mathf.RoundToInt(attack[index] * attackRate);
+        item.bonusDefense = Mathf.RoundToInt(defense[index] * defenseRate);
+        item.bonusAttackSpeed = speed[index] * speedRate;
+        item.basePrice = price[index];
+    }
+    static void GetEquipmentTable(EquipmentSlot slot, out int[] hp, out int[] attack, out int[] defense, out float[] speed, out int[] price)
+    {
+        if (slot == EquipmentSlot.Weapon) { hp = new[] { 2, 4, 6, 8, 10, 12, 15, 18, 22, 28 }; attack = new[] { 4, 8, 13, 14, 16, 19, 22, 25, 28, 34 }; defense = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }; speed = new[] { .010f, .015f, .020f, .025f, .030f, .035f, .040f, .045f, .050f, .060f }; price = new[] { 120, 220, 400, 720, 1300, 2300, 4100, 7300, 13000, 28600 }; return; }
+        if (slot == EquipmentSlot.Armor) { hp = new[] { 8, 12, 18, 30, 38, 50, 62, 76, 90, 110 }; attack = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 }; defense = new[] { 3, 4, 7, 10, 12, 14, 16, 19, 22, 28 }; speed = new[] { .005f, .010f, .015f, .020f, .025f, .030f, .035f, .040f, .045f, .055f }; price = new[] { 130, 240, 430, 780, 1400, 2500, 4500, 8000, 14300, 31500 }; return; }
+        hp = new[] { 3, 6, 9, 12, 15, 18, 22, 28, 34, 45 }; attack = new[] { 2, 3, 5, 6, 7, 8, 9, 10, 12, 14 }; defense = new[] { 1, 2, 3, 4, 5, 6, 7, 9, 11, 14 }; speed = new[] { .010f, .015f, .020f, .025f, .030f, .035f, .040f, .045f, .050f, .060f }; price = new[] { 110, 200, 360, 650, 1170, 2100, 3800, 6800, 12200, 26800 };
+    }
+    static void GetClassRates(int classIndex, out float hp, out float attack, out float defense, out float speed)
+    {
+        hp = 1f; attack = 1f; defense = 1f; speed = 1f;
+        if (classIndex == 0 || classIndex == 5) { hp = 1.20f; attack = .90f; defense = 1.25f; speed = .80f; }
+        if (classIndex == 1 || classIndex == 4) { hp = .85f; attack = 1f; defense = .80f; speed = 1.50f; }
+        if (classIndex == 2) { hp = .75f; attack = 1.35f; defense = .75f; speed = 1f; }
+        if (classIndex == 3) { hp = 1.10f; attack = .90f; defense = 1.10f; speed = .90f; }
+    }
+    static int GetClassIndex(MercenaryClass value) { return value == MercenaryClass.Archer ? 1 : value == MercenaryClass.Mage ? 2 : value == MercenaryClass.Priest ? 3 : value == MercenaryClass.Rogue ? 4 : value == MercenaryClass.Lancer ? 5 : 0; }
+    static bool IsLimitedEquipment(ItemDataSO item) { return item.acquisitionType == ItemAcquisitionType.Dungeon; }
+    static void ApplyMinimumRankStats(ItemDataSO item)
+    {
+        int hp; int attack; int defense; float speed; int price;
+        GetRankMinimum(item.equipmentSlot, item.equipmentRank, out hp, out attack, out defense, out speed, out price);
+        item.bonusMaxHP = Mathf.Max(item.bonusMaxHP, hp);
+        item.bonusAttack = Mathf.Max(item.bonusAttack, attack);
+        item.bonusDefense = Mathf.Max(item.bonusDefense, defense);
+        item.bonusAttackSpeed = Mathf.Max(item.bonusAttackSpeed, speed);
+        item.basePrice = Mathf.Max(item.basePrice, price);
+    }
+    static void GetRankMinimum(EquipmentSlot slot, int rank, out int hp, out int attack, out int defense, out float speed, out int price)
+    {
+        int[] hpTable; int[] attackTable; int[] defenseTable; float[] speedTable; int[] priceTable;
+        GetEquipmentTable(slot, out hpTable, out attackTable, out defenseTable, out speedTable, out priceTable);
+        int index = Mathf.Clamp(rank, 1, 10) - 1;
+        hp = hpTable[index]; attack = attackTable[index]; defense = defenseTable[index]; speed = speedTable[index]; price = priceTable[index];
     }
     static void BuildRecipe(BalanceExpansionEquipmentDefinition definition, ItemDataSO item)
     {
@@ -79,24 +162,17 @@ public static class BalanceExpansionAssetGenerator
         enemy.enemyName = definition.EnglishName;
         enemy.monsterGrade = definition.Grade;
         enemy.battleVisualKey = definition.BattleVisualKey;
+        ApplyCombatBalance(enemy, EnemyCombatRole.Balance, GetRegionalMultiplier(definition.DungeonAsset));
         Id(enemy, definition.Id);
         AddEnemyToDungeon(enemy, definition.DungeonAsset);
         EditorUtility.SetDirty(enemy);
     }
-    static void BuildEnemy(BalanceExpansionEnemyDefinition definition) { EnemyDataSO basis = Load<EnemyDataSO>("GameData/Enemies/" + definition.BaseEnemyAsset); EnemyDataSO enemy = ScriptableObject.CreateInstance<EnemyDataSO>(); enemy.enemyName = definition.EnglishName; enemy.monsterGrade = definition.Grade; enemy.enemySkill = definition.Skill; enemy.maxHP = basis.maxHP; enemy.attack = basis.attack; enemy.defense = basis.defense; enemy.maxMagicPower = basis.maxMagicPower; enemy.attackSpeed = basis.attackSpeed; enemy.criticalRate = basis.criticalRate; enemy.evasionRate = basis.evasionRate; enemy.goldReward = basis.goldReward; enemy.experienceMultiplier = basis.experienceMultiplier; enemy.itemDrops = basis.itemDrops; if (definition.Role == EnemyCombatRole.Skill) { enemy.maxMagicPower += 25; } if (definition.Role == EnemyCombatRole.Speed) { enemy.attackSpeed += .2f; enemy.evasionRate += .08f; } if (definition.Role == EnemyCombatRole.Durability) { enemy.maxHP += 12; enemy.defense += 3; } if (definition.Role == EnemyCombatRole.Attack) { enemy.attack += 4; } enemy.battleVisualKey = definition.BattleVisualKey; Id(enemy, definition.Id); string path = EnemyPath + "/" + definition.Id.Replace('.', '_') + ".asset"; Put(enemy, path); AddEnemyToDungeon(AssetDatabase.LoadAssetAtPath<EnemyDataSO>(path), definition.DungeonAsset == "UpperFortress" ? "GlaadSkyFortress" : definition.DungeonAsset); }
+    static void BuildEnemy(BalanceExpansionEnemyDefinition definition) { EnemyDataSO basis = Load<EnemyDataSO>("GameData/Enemies/" + definition.BaseEnemyAsset); EnemyDataSO enemy = ScriptableObject.CreateInstance<EnemyDataSO>(); enemy.enemyName = definition.EnglishName; enemy.monsterGrade = definition.Grade; enemy.enemySkill = definition.Skill; enemy.maxMagicPower = basis.maxMagicPower; enemy.attackSpeed = basis.attackSpeed; enemy.criticalRate = basis.criticalRate; enemy.evasionRate = basis.evasionRate; enemy.itemDrops = basis.itemDrops; enemy.battleVisualKey = definition.BattleVisualKey; ApplyCombatBalance(enemy, definition.Role, GetRegionalMultiplier(definition.DungeonAsset)); Id(enemy, definition.Id); string path = EnemyPath + "/" + definition.Id.Replace('.', '_') + ".asset"; Put(enemy, path); AddEnemyToDungeon(AssetDatabase.LoadAssetAtPath<EnemyDataSO>(path), definition.DungeonAsset == "UpperFortress" ? "GlaadSkyFortress" : definition.DungeonAsset); }
     static void AddEnemyToDungeon(EnemyDataSO enemy, string dungeonAsset) { DungeonDataSO dungeon = Load<DungeonDataSO>("Dungeons/" + dungeonAsset); List<EnemyDataSO> enemies = new List<EnemyDataSO>(); foreach (EnemyDataSO existingEnemy in dungeon.normalEnemies) { if (existingEnemy != null) { enemies.Add(existingEnemy); } } if (!enemies.Contains(enemy)) { enemies.Add(enemy); } dungeon.normalEnemies = enemies.ToArray(); EditorUtility.SetDirty(dungeon); }
     static T Load<T>(string path) where T : UnityEngine.Object { T result = Resources.Load<T>(path); if (result == null) { throw new InvalidOperationException(path); } return result; }
     static void Id(UnityEngine.Object item, string id) { SerializedObject serialized = new SerializedObject(item); serialized.FindProperty("persistentId").stringValue = id; serialized.ApplyModifiedPropertiesWithoutUndo(); }
     static void Put(UnityEngine.Object item, string path)
     {
-        if (item is EnemyDataSO enemy && path.Contains("enemy_job_wyvern_"))
-        {
-            // Glaad precedes Velm; preserve that regional progression after
-            // adding the five role-specialised wyvern variants.
-            enemy.maxHP = Mathf.RoundToInt(enemy.maxHP * 0.85f);
-            enemy.attack = Mathf.RoundToInt(enemy.attack * 0.85f);
-        }
-
         UnityEngine.Object existing = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path);
         if (existing != null)
         {
@@ -108,4 +184,57 @@ public static class BalanceExpansionAssetGenerator
         AssetDatabase.CreateAsset(item, path);
     }
     static void Folders() { foreach (string path in new[] { EnemyPath, ItemPath, RecipePath }) { string[] parts = path.Split('/'); string current = parts[0]; for (int index = 1; index < parts.Length; index++) { if (!AssetDatabase.IsValidFolder(current + "/" + parts[index])) { AssetDatabase.CreateFolder(current, parts[index]); } current += "/" + parts[index]; } } }
+    static void ApplyCombatBalance(EnemyDataSO enemy, EnemyCombatRole role, float regionalMultiplier)
+    {
+        int[] hitPoints = { 2400, 1350, 760, 430, 250, 150, 95, 60, 38, 24 };
+        int[] attacks = { 160, 115, 80, 54, 36, 24, 15, 10, 7, 5 };
+        int[] defenses = { 105, 70, 45, 29, 18, 11, 7, 4, 2, 1 };
+        int index = Mathf.Clamp(enemy.monsterGrade, 1, 10) - 1;
+        float healthMultiplier = regionalMultiplier;
+        float attackMultiplier = regionalMultiplier;
+        float defenseMultiplier = regionalMultiplier;
+        float speedMultiplier = 1f;
+        if (enemy.isBoss)
+        {
+            healthMultiplier *= 4f;
+            attackMultiplier *= 1.35f;
+            defenseMultiplier *= 1.20f;
+            speedMultiplier *= 1.05f;
+        }
+        ApplyRoleMultiplier(role, ref healthMultiplier, ref attackMultiplier, ref defenseMultiplier, ref speedMultiplier);
+        enemy.maxHP = Mathf.RoundToInt(hitPoints[index] * healthMultiplier);
+        enemy.attack = Mathf.RoundToInt(attacks[index] * attackMultiplier);
+        enemy.defense = Mathf.RoundToInt(defenses[index] * defenseMultiplier);
+        if (!enemy.combatBalanceStage1Applied)
+        {
+            enemy.attackSpeed *= speedMultiplier;
+            enemy.combatBalanceStage1Applied = true;
+        }
+        enemy.goldReward = CalculateGoldReward(enemy.monsterGrade);
+    }
+    static void ApplyRoleMultiplier(EnemyCombatRole role, ref float health, ref float attack, ref float defense, ref float speed)
+    {
+        if (role == EnemyCombatRole.Attack) { health *= .90f; attack *= 1.15f; defense *= .90f; speed *= 1.05f; }
+        if (role == EnemyCombatRole.Durability) { health *= 1.35f; attack *= .90f; defense *= 1.20f; speed *= .90f; }
+        if (role == EnemyCombatRole.Speed) { health *= .85f; attack *= .95f; defense *= .90f; speed *= 1.20f; }
+        if (role == EnemyCombatRole.Skill) { attack *= 1.05f; }
+    }
+    static int CalculateGoldReward(int grade) { return Mathf.RoundToInt(50f * Mathf.Pow(25f, (10 - Mathf.Clamp(grade, 1, 10)) / 9f)); }
+    static BalanceExpansionEnemyDefinition FindExpansionDefinition(EnemyDataSO enemy)
+    {
+        foreach (BalanceExpansionEnemyDefinition definition in BalanceExpansionDefinition.Enemies) { if (enemy.PersistentId == definition.Id) { return definition; } }
+        return null;
+    }
+    static float GetRegionalMultiplier(EnemyDataSO enemy)
+    {
+        string[] dungeonGuids = AssetDatabase.FindAssets("t:DungeonDataSO", new[] { "Assets/Proiject/Resources/Dungeons" });
+        foreach (string guid in dungeonGuids)
+        {
+            DungeonDataSO dungeon = AssetDatabase.LoadAssetAtPath<DungeonDataSO>(AssetDatabase.GUIDToAssetPath(guid));
+            if (dungeon != null && (Contains(dungeon.normalEnemies, enemy) || dungeon.bossEnemy == enemy)) { return GetRegionalMultiplier(dungeon.name); }
+        }
+        return 1f;
+    }
+    static bool Contains(EnemyDataSO[] enemies, EnemyDataSO target) { foreach (EnemyDataSO enemy in enemies) { if (enemy == target) { return true; } } return false; }
+    static float GetRegionalMultiplier(string dungeonName) { if (dungeonName == "GlaadSkyFortress" || dungeonName == "UpperFortress") { return .97f; } if (dungeonName == "VelmBlackIronMine") { return 1.05f; } return 1f; }
 }

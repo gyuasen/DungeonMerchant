@@ -12,16 +12,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Grade01AbyssDragon
   m_EditorClassIdentifier: 
+  persistentId: 
   enemyName: Abyss Dragon
   monsterGrade: 1
-  enemySkill: 8
   isBoss: 0
-  maxHP: 190
-  attack: 38
-  defense: 18
+  category: 0
+  enemySkill: 8
+  isSpecialVariant: 0
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 2400
+  attack: 160
+  defense: 105
   maxMagicPower: 100
   attackSpeed: 1.1
-  goldReward: 400
+  criticalRate: 0
+  evasionRate: 0
+  goldReward: 1250
+  experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: 1197351783f64fca9a1ff0565309b19d, type: 2}
     amount: 1

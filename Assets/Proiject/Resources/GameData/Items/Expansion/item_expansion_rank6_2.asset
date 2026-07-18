@@ -18,16 +18,16 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 6 Mage Weapon
-  basePrice: 750
+  basePrice: 2300
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 2
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 6
-  bonusMaxHP: 1
-  bonusAttack: 19
-  bonusDefense: 0
-  bonusAttackSpeed: 0
+  bonusMaxHP: 9
+  bonusAttack: 26
+  bonusDefense: 4
+  bonusAttackSpeed: 0.035
   consumableEffect: 0
   consumableHealAmount: 0

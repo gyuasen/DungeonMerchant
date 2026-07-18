@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 4 Mage Accessory
-  basePrice: 520
+  basePrice: 650
   acquisitionType: 0
   equipmentSlot: 2
   requiredClass: 2
@@ -26,8 +26,8 @@ MonoBehaviour:
   equipmentSet: 0
   equipmentRank: 4
   bonusMaxHP: 9
-  bonusAttack: 7
-  bonusDefense: 1
-  bonusAttackSpeed: 0.022
+  bonusAttack: 8
+  bonusDefense: 3
+  bonusAttackSpeed: 0.025
   consumableEffect: 0
   consumableHealAmount: 0

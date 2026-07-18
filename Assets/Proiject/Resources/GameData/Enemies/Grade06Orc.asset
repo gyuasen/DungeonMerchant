@@ -12,16 +12,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Grade06Orc
   m_EditorClassIdentifier: 
+  persistentId: 
   enemyName: Orc
   monsterGrade: 6
-  enemySkill: 12
   isBoss: 0
-  maxHP: 60
-  attack: 14
-  defense: 5
+  category: 0
+  enemySkill: 12
+  isSpecialVariant: 0
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: 
+  maxHP: 150
+  attack: 24
+  defense: 11
   maxMagicPower: 35
   attackSpeed: 0.9
-  goldReward: 115
+  criticalRate: 0
+  evasionRate: 0
+  goldReward: 209
+  experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: 02cca79ae8434c1eb64f32d3d4d206a0, type: 2}
     amount: 1

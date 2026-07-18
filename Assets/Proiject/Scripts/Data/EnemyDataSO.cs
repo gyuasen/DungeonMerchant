@@ -14,6 +14,7 @@ public class EnemyDataSO : ScriptableObject, IPersistentGameAsset
     public EnemySkillType enemySkill = EnemySkillType.None;
     public bool isSpecialVariant;
     public string specialVariantTitle;
+    [HideInInspector] public bool combatBalanceStage1Applied;
 
     [Header("Battle Visual")]
     [Tooltip("Optional battle sprite. A placeholder is used when empty.")]

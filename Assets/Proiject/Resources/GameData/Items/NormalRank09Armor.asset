@@ -2,22 +2,32 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
   m_Name: NormalRank09Armor
+  m_EditorClassIdentifier: 
   persistentId: item.normal.rank09.armor
-  itemName: 深淵探索の外套
+  itemName: "\u6DF1\u6DF5\u63A2\u7D22\u306E\u5916\u5957"
   itemType: 1
   rarity: 0
-  description: 深淵の瘴気を遠ざける繊維で織られた探索用の外套。
-  basePrice: 950
+  materialClassification: 0
+  description: "\u6DF1\u6DF5\u306E\u7634\u6C17\u3092\u9060\u3056\u3051\u308B\u7E4A\u7DAD\u3067\u7E54\u3089\u308C\u305F\u63A2\u7D22\u7528\u306E\u5916\u5957\u3002"
+  basePrice: 14300
   acquisitionType: 2
   equipmentSlot: 1
   requiredClass: 0
   allClassesCanEquip: 1
   equipmentSet: 0
   equipmentRank: 9
-  bonusMaxHP: 81
-  bonusAttack: 0
-  bonusDefense: 19
-  bonusAttackSpeed: 0
+  bonusMaxHP: 90
+  bonusAttack: 8
+  bonusDefense: 22
+  bonusAttackSpeed: 0.045
   consumableEffect: 0
+  consumableHealAmount: 0
