@@ -24,6 +24,6 @@ MonoBehaviour:
   evasionRate: 0.1
   goldReward: 90
   itemDrops:
-  - item: {fileID: 11400000, guid: f66e9fe18b5c428a86a912bdf72fc5ba, type: 2}
+  - item: {fileID: 11400000, guid: ef1a2b3c4d5e6f708192a3b4c5d6e7f8, type: 2}
     amount: 1
     dropChance: 0.7

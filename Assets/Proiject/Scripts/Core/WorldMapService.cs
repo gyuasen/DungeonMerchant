@@ -102,8 +102,12 @@ public static class WorldMapService
     private static bool IsLeafSpecialtyMaterial(ItemDataSO item)
     {
         return item.itemType == ItemType.Material &&
-               string.Equals(item.itemName, "Bat Wing",
-                   StringComparison.Ordinal);
+               (string.Equals(item.itemName, "Bat Wing",
+                    StringComparison.Ordinal) ||
+                string.Equals(item.itemName, "Slime Mucus",
+                    StringComparison.Ordinal) ||
+                string.Equals(item.itemName, "Venom Moth Powder",
+                    StringComparison.Ordinal));
     }
 
     private static bool IsMineralMaterial(ItemDataSO item)

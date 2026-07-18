@@ -92,6 +92,12 @@ public static class JapaneseDisplayText
             }
         }
 
+        string redesignedMaterialName = GetRedesignedMaterialName(item.itemName);
+        if (!string.IsNullOrEmpty(redesignedMaterialName))
+        {
+            return redesignedMaterialName;
+        }
+
         switch (item.itemName)
         {
             case "Low Grade Mutant Core": return "低級変異核";
@@ -283,6 +289,25 @@ public static class JapaneseDisplayText
                 return "魔獣";
             default:
                 return value.ToString();
+        }
+    }
+
+    private static string GetRedesignedMaterialName(string itemName)
+    {
+        switch (itemName)
+        {
+            case "Slime Mucus": return "スライムの粘液";
+            case "Rabbit Horn": return "ウサギの角";
+            case "Giant Rat Pelt": return "大ネズミの毛皮";
+            case "Spider Silk": return "クモの糸";
+            case "Beetle Shell": return "甲虫の殻";
+            case "Venom Moth Powder": return "毒蛾の鱗粉";
+            case "Spirit Remnant": return "霊魂の残滓";
+            case "Lizard Scale": return "トカゲの鱗";
+            case "Troll Hide": return "トロルの皮";
+            case "Ogre Bloodstone": return "オーガの血石";
+            case "Black Iron Ore Fragment": return "黒鉄鉱片";
+            default: return string.Empty;
         }
     }
 
