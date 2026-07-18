@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_consumable_defense_potion
   m_EditorClassIdentifier: 
   persistentId: item.expansion.consumable.defense_potion
-  itemName: "\u9632\u5FA1\u85AC"
+  itemName: Defense Potion
   itemType: 3
   rarity: 0
   materialClassification: 0

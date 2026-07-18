@@ -6,6 +6,54 @@ using UnityEngine;
 public sealed class BalanceExpansionDefinitionTests
 {
     [Test]
+    public void GeneratedAssets_UseEnglishInternalNamesAndJapaneseDisplayNames()
+    {
+        foreach (BalanceExpansionNormalEnemyDefinition definition in BalanceExpansionDefinition.NormalEnemies)
+        {
+            EnemyDataSO enemy = Resources.Load<EnemyDataSO>("GameData/Enemies/" + definition.AssetName);
+            Assert.That(enemy, Is.Not.Null, definition.Id);
+            Assert.That(enemy.enemyName, Is.EqualTo(definition.EnglishName), definition.Id);
+            Assert.That(JapaneseDisplayText.GetEnemyName(enemy.enemyName), Is.EqualTo(definition.JapaneseName), definition.Id);
+        }
+        foreach (BalanceExpansionEnemyDefinition definition in BalanceExpansionDefinition.Enemies)
+        {
+            EnemyDataSO enemy = Resources.Load<EnemyDataSO>("GameData/Enemies/Expansion/" + definition.Id.Replace('.', '_'));
+            Assert.That(enemy, Is.Not.Null, definition.Id);
+            Assert.That(enemy.enemyName, Is.EqualTo(definition.EnglishName), definition.Id);
+            Assert.That(JapaneseDisplayText.GetEnemyName(enemy.enemyName), Is.EqualTo(definition.JapaneseName), definition.Id);
+        }
+        foreach (BalanceExpansionEquipmentDefinition definition in BalanceExpansionDefinition.Equipment)
+        {
+            ItemDataSO item = Resources.Load<ItemDataSO>("GameData/Items/Expansion/" + definition.Id.Replace('.', '_'));
+            Assert.That(item, Is.Not.Null, definition.Id);
+            Assert.That(item.itemName, Is.EqualTo(definition.EnglishName), definition.Id);
+            Assert.That(JapaneseDisplayText.GetItemName(item), Is.EqualTo(definition.JapaneseName), definition.Id);
+        }
+        foreach (BalanceExpansionConsumableDefinition definition in BalanceExpansionDefinition.Consumables)
+        {
+            ItemDataSO item = Resources.Load<ItemDataSO>("GameData/Items/Expansion/" + definition.Id.Replace('.', '_'));
+            Assert.That(item, Is.Not.Null, definition.Id);
+            Assert.That(item.itemName, Is.EqualTo(definition.EnglishName), definition.Id);
+            Assert.That(JapaneseDisplayText.GetItemName(item), Is.EqualTo(definition.JapaneseName), definition.Id);
+        }
+    }
+
+    [Test]
+    public void WyvernAndMutantCores_AreGameplayConsistent()
+    {
+        DungeonDataSO dungeon = Resources.Load<DungeonDataSO>("Dungeons/GlaadSkyFortress");
+        EnemyDataSO wyvern = Resources.Load<EnemyDataSO>("GameData/Enemies/Grade03Wyvern");
+        Assert.That(wyvern.monsterGrade, Is.EqualTo(3));
+        Assert.That(dungeon.normalEnemies, Does.Contain(wyvern));
+        foreach (string name in new[] { "MutantCore", "LowerGradeMutantCore", "MiddleGradeMutantCore", "UpperGradeMutantCore", "HighestGradeMutantCore" })
+        {
+            ItemDataSO core = Resources.Load<ItemDataSO>("Items/Special/" + name);
+            Assert.That(core.materialClassification, Is.EqualTo(MaterialClassification.CraftingMaterial), name);
+            Assert.That(core.description, Does.Not.Contain("ダンジョン"), name);
+        }
+    }
+
+    [Test]
     public void Variants_UseNextGradeNormalEnemyAndCoverEveryRoleInEachBand()
     {
         var rolesByBand = new Dictionary<int, HashSet<EnemyCombatRole>>();
@@ -59,6 +107,21 @@ public sealed class BalanceExpansionDefinitionTests
         Assert.That(BalanceExpansionDefinition.Equipment.Count, Is.EqualTo(36));
         Assert.That(BalanceExpansionDefinition.Equipment.Count(d => d.Slot == EquipmentSlot.Armor), Is.EqualTo(12));
         Assert.That(BalanceExpansionDefinition.Equipment.Count(d => d.Slot == EquipmentSlot.Accessory), Is.EqualTo(12));
+    }
+
+    [Test]
+    public void Equipment_ExpressesClassStrengths()
+    {
+        foreach (int rank in Enumerable.Range(4, 4))
+        {
+            ItemDataSO warriorArmor = Resources.Load<ItemDataSO>("GameData/Items/Expansion/item_expansion_rank" + rank + "_0_armor");
+            ItemDataSO archerWeapon = Resources.Load<ItemDataSO>("GameData/Items/Expansion/item_expansion_rank" + rank + "_1");
+            ItemDataSO mageWeapon = Resources.Load<ItemDataSO>("GameData/Items/Expansion/item_expansion_rank" + rank + "_2");
+            Assert.That(warriorArmor.bonusMaxHP, Is.GreaterThan(rank * 9));
+            Assert.That(warriorArmor.bonusDefense, Is.GreaterThan(rank * 2));
+            Assert.That(archerWeapon.bonusAttackSpeed, Is.GreaterThan(0.03f));
+            Assert.That(mageWeapon.bonusAttack, Is.GreaterThan(rank * 3));
+        }
     }
 
     [Test]

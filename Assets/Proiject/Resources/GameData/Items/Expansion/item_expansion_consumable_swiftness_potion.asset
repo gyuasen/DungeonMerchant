@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_consumable_swiftness_potion
   m_EditorClassIdentifier: 
   persistentId: item.expansion.consumable.swiftness_potion
-  itemName: "\u97CB\u99C4\u5929\u85AC"
+  itemName: Swiftness Potion
   itemType: 3
   rarity: 0
   materialClassification: 0

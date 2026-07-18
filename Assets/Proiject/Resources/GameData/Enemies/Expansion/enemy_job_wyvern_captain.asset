@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: enemy_job_wyvern_captain
   m_EditorClassIdentifier: 
   persistentId: enemy.job.wyvern_captain
-  enemyName: "\u30EF\u30A4\u30D0\u30FC\u30F3\u968A\u9577"
+  enemyName: Wyvern Packlord
   monsterGrade: 3
   isBoss: 0
   category: 0

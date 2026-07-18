@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20acd31e8b6f423581ac34d0952a1667, type: 3}
   m_Name: item_expansion_rank6_1_armorRecipe
   m_EditorClassIdentifier: 
-  recipeName: "\u7FE0\u8449\u306A\u3081\u3057\u306E\u72E9\u8863"
+  recipeName: Rank 6 Archer Armor
   resultItem: {fileID: 11400000, guid: d40eec64530f85e4b8d1dfe95720c651, type: 2}
   resultAmount: 1
   goldCost: 540

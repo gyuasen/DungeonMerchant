@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: enemy_job_goblin_raider
   m_EditorClassIdentifier: 
   persistentId: enemy.job.goblin_raider
-  enemyName: "\u30B4\u30D6\u30EA\u30F3\u30EC\u30A4\u30C0\u30FC"
+  enemyName: Goblin Raider
   monsterGrade: 9
   isBoss: 0
   category: 0

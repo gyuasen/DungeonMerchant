@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20acd31e8b6f423581ac34d0952a1667, type: 3}
   m_Name: item_expansion_rank7_2_accessoryRecipe
   m_EditorClassIdentifier: 
-  recipeName: "\u30F4\u30A7\u30EB\u30E0\u71BE\u706B\u306E\u74B0"
+  recipeName: Rank 7 Mage Accessory
   resultItem: {fileID: 11400000, guid: 9b88b40794bc62b42812abe4fdb6c3e5, type: 2}
   resultAmount: 1
   goldCost: 610

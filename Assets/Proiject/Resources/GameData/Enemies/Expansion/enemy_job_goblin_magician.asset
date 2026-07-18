@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: enemy_job_goblin_magician
   m_EditorClassIdentifier: 
   persistentId: enemy.job.goblin_magician
-  enemyName: "\u30B4\u30D6\u30EA\u30F3\u30DE\u30B8\u30B7\u30E3\u30F3"
+  enemyName: Goblin Magician
   monsterGrade: 9
   isBoss: 0
   category: 0

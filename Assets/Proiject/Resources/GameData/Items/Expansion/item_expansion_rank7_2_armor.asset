@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_rank7_2_armor
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank7.2.armor
-  itemName: "\u7194\u9271\u7E54\u306E\u8CE2\u8005\u8863"
+  itemName: Rank 7 Mage Armor
   itemType: 1
   rarity: 0
   materialClassification: 0
@@ -25,8 +25,8 @@ MonoBehaviour:
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 7
-  bonusMaxHP: 63
-  bonusAttack: 2
+  bonusMaxHP: 49
+  bonusAttack: 4
   bonusDefense: 14
   bonusAttackSpeed: 0
   consumableEffect: 0

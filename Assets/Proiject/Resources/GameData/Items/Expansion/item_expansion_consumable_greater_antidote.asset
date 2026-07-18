@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_consumable_greater_antidote
   m_EditorClassIdentifier: 
   persistentId: item.expansion.consumable.greater_antidote
-  itemName: "\u4E0A\u89E3\u6BD2\u85AC"
+  itemName: Greater Antidote
   itemType: 3
   rarity: 0
   materialClassification: 0

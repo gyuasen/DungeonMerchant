@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_rank7_0_accessory
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank7.0.accessory
-  itemName: "\u71BE\u706B\u6838\u306E\u6226\u7AE0"
+  itemName: Rank 7 Warrior Accessory
   itemType: 1
   rarity: 0
   materialClassification: 0

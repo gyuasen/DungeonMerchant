@@ -337,12 +337,12 @@ public sealed class BattleSkillResolver
             case EnemySkillType.ToxicCloud: return "毒霧";
             case EnemySkillType.ShadowPounce: return "影跳び";
             case EnemySkillType.HexBolt: return "呪弾";
-            case EnemySkillType.Ironhide: return "鉄皮再生";
+            case EnemySkillType.Ironhide: return "甲殻修復";
             case EnemySkillType.CleavingRush: return "薙ぎ払い";
             case EnemySkillType.VenomSpray: return "毒液散布";
             case EnemySkillType.PiercingShot: return "貫通射";
             case EnemySkillType.BloodFrenzy: return "血煙の猛攻";
-            case EnemySkillType.Reconstitute: return "再構成";
+            case EnemySkillType.Reconstitute: return "魔力再生";
             default: return string.Empty;
         }
     }

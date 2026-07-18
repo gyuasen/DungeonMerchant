@@ -25,6 +25,7 @@ MonoBehaviour:
   enemyCountIncreasePerFloor: 1
   maxEnemyCountPerEncounter: 5
   normalEnemies:
+  - {fileID: 11400000, guid: d5b504215a634161b572384055626995, type: 2}
   - {fileID: 11400000, guid: 9493c9d4e5d64634966f3bdda3c0e1ca, type: 2}
   - {fileID: 11400000, guid: f5f268b439b8441998680c9c1a2c7a35, type: 2}
   - {fileID: 11400000, guid: 97a4b941d2bf4f7b953a98380bff14ea, type: 2}

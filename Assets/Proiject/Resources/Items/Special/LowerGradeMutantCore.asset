@@ -10,7 +10,8 @@ MonoBehaviour:
   itemName: Lower Grade Mutant Core
   itemType: 0
   rarity: 2
-  description: 下級ダンジョンの特殊個体から採取される変異核。
+  materialClassification: 2
+  description: 異形の魔力が脈打つ核。武具に鋭い力を宿す。
   basePrice: 480
   acquisitionType: 2
   equipmentSlot: 0

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_rank6_2_accessory
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank6.2.accessory
-  itemName: "\u6DF1\u68EE\u306E\u9B54\u6676\u73E0"
+  itemName: Rank 6 Mage Accessory
   itemType: 1
   rarity: 0
   materialClassification: 0
@@ -25,8 +25,8 @@ MonoBehaviour:
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 6
-  bonusMaxHP: 18
-  bonusAttack: 8
+  bonusMaxHP: 13
+  bonusAttack: 9
   bonusDefense: 1
   bonusAttackSpeed: 0.028
   consumableEffect: 0

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_rank6_0
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank6.0
-  itemName: "\u30CE\u30EB\u30F3\u6A39\u51A0\u306E\u6226\u5263"
+  itemName: Rank 6 Warrior Weapon
   itemType: 1
   rarity: 0
   materialClassification: 0

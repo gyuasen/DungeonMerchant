@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_rank5_1_accessory
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank5.1.accessory
-  itemName: "\u98A8\u8AAD\u307F\u306E\u8033\u98FE\u308A"
+  itemName: Rank 5 Archer Accessory
   itemType: 1
   rarity: 0
   materialClassification: 0
@@ -25,9 +25,9 @@ MonoBehaviour:
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 5
-  bonusMaxHP: 15
+  bonusMaxHP: 10
   bonusAttack: 3
   bonusDefense: 1
-  bonusAttackSpeed: 0.044999998
+  bonusAttackSpeed: 0.065
   consumableEffect: 0
   consumableHealAmount: 0

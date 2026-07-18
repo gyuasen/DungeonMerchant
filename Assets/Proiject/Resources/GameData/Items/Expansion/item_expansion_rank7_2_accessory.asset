@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_rank7_2_accessory
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank7.2.accessory
-  itemName: "\u30F4\u30A7\u30EB\u30E0\u71BE\u706B\u306E\u74B0"
+  itemName: Rank 7 Mage Accessory
   itemType: 1
   rarity: 0
   materialClassification: 0
@@ -25,8 +25,8 @@ MonoBehaviour:
   allClassesCanEquip: 0
   equipmentSet: 0
   equipmentRank: 7
-  bonusMaxHP: 21
-  bonusAttack: 9
+  bonusMaxHP: 15
+  bonusAttack: 10
   bonusDefense: 1
   bonusAttackSpeed: 0.031
   consumableEffect: 0

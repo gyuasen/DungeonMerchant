@@ -83,6 +83,15 @@ public static class JapaneseDisplayText
             }
         }
 
+        foreach (BalanceExpansionConsumableDefinition definition in
+                 BalanceExpansionDefinition.Consumables)
+        {
+            if (item.itemName == definition.EnglishName)
+            {
+                return definition.JapaneseName;
+            }
+        }
+
         switch (item.itemName)
         {
             case "Low Grade Mutant Core": return "低級変異核";
@@ -179,6 +188,15 @@ public static class JapaneseDisplayText
 
     public static string GetEnemyName(string enemyName)
     {
+        foreach (BalanceExpansionNormalEnemyDefinition definition in
+                 BalanceExpansionDefinition.NormalEnemies)
+        {
+            if (enemyName == definition.EnglishName)
+            {
+                return definition.JapaneseName;
+            }
+        }
+
         foreach (BalanceExpansionEnemyDefinition definition in
                  BalanceExpansionDefinition.Enemies)
         {

@@ -12,10 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
   m_Name: Grade03Wyvern
   m_EditorClassIdentifier: 
+  persistentId: enemy.normal.wyvern
   enemyName: Wyvern
   monsterGrade: 3
   enemySkill: 8
   isBoss: 0
+  battleVisualKey: Grade03_wyvern
   maxHP: 110
   attack: 26
   defense: 10
