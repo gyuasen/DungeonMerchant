@@ -350,7 +350,9 @@ public sealed class BattleSkillResolver
 
     public static bool CanDefeatWithNormalAttack(BattleUnit attacker, BattleUnit target)
     {
-        return target != null && target.CurrentHP <= target.EstimateDamageTaken(attacker.CalculateDamage());
+        return target != null && target.CurrentHP <= DamageResolver.PreviewDamage(
+            new DamageRequest(attacker.CalculateDamage(), DamageType.Physical,
+                false, attacker, target, true));
     }
 
     public static bool IsUsefulSkillTarget(BattleUnit attacker, BattleUnit target, int rawSkillDamage)
@@ -360,13 +362,15 @@ public sealed class BattleSkillResolver
             return false;
         }
 
-        int normalDamage = target.EstimateDamageTaken(attacker.CalculateDamage());
+        int normalDamage = DamageResolver.PreviewDamage(new DamageRequest(
+            attacker.CalculateDamage(), DamageType.Physical, false, attacker, target, true));
         if (target.CurrentHP <= normalDamage)
         {
             return false;
         }
 
-        int skillDamage = target.EstimateDamageTaken(rawSkillDamage);
+        int skillDamage = DamageResolver.PreviewDamage(new DamageRequest(
+            rawSkillDamage, DamageType.Physical, false, attacker, target, true));
         return skillDamage > normalDamage &&
                skillDamage <= target.CurrentHP + Math.Max(8, normalDamage);
     }
@@ -384,9 +388,14 @@ public sealed class BattleSkillResolver
             return true;
         }
         bool critical = attacker.RollCritical();
-        int damage = Math.Max(1, Round(attacker.Attack * power * (critical ? context.CriticalDamageMultiplier : 1f)));
+        int damage = Math.Max(1, Round(attacker.CalculateDamage() * power * (critical ? context.CriticalDamageMultiplier : 1f)));
         int before = target.CurrentHP;
-        target.TakePureDamage(damage);
+        DamageResolver.ResolveDamage(new DamageRequest(
+            damage,
+            DamageType.Pure,
+            critical,
+            attacker,
+            target));
         Log(BattleLogFormatter.FormatPureDamageSkill(attacker.UnitName, skillName, critical, target.UnitName, before - target.CurrentHP), BattleLogType.Enemy);
         return true;
     }
@@ -407,7 +416,12 @@ public sealed class BattleSkillResolver
                 continue;
             }
             int before = target.CurrentHP;
-            target.TakeDamage(Round(attacker.CalculateDamage() * power));
+            DamageResolver.ResolveDamage(new DamageRequest(
+                Round(attacker.CalculateDamage() * power),
+                DamageType.Physical,
+                false,
+                attacker,
+                target));
             damage += before - target.CurrentHP;
             affected++;
             if (!target.IsDead && status != BattleStatusEffect.None)
@@ -449,11 +463,11 @@ public sealed class BattleSkillResolver
 
         bool critical = attacker.RollCritical();
         int rawDamage = Round(
-            (attacker.Attack * attackPower +
+            (attacker.CalculateDamage() * attackPower +
              attacker.MaxMagicPower * magicPower) *
             (critical ? context.CriticalDamageMultiplier : 1f));
         int before = target.CurrentHP;
-        target.TakeDamage(rawDamage);
+        ApplyDamage(attacker, target, rawDamage, DamageType.Magic, critical);
         int damage = before - target.CurrentHP;
         if (!target.IsDead && status != BattleStatusEffect.None)
         {
@@ -485,7 +499,7 @@ public sealed class BattleSkillResolver
         }
 
         int rawDamage = Round(
-            attacker.Attack * attackPower +
+            attacker.CalculateDamage() * attackPower +
             attacker.MaxMagicPower * magicPower);
         int damage = 0;
         int affected = 0;
@@ -497,7 +511,7 @@ public sealed class BattleSkillResolver
             }
 
             int before = target.CurrentHP;
-            target.TakeDamage(rawDamage);
+            ApplyDamage(attacker, target, rawDamage, DamageType.Magic, false);
             damage += before - target.CurrentHP;
             affected++;
         }
@@ -524,7 +538,7 @@ public sealed class BattleSkillResolver
                 continue;
             }
             int before = target.CurrentHP;
-            target.TakeDamage(Round(attacker.CalculateDamage() * power));
+            ApplyDamage(attacker, target, Round(attacker.CalculateDamage() * power), DamageType.Physical, false);
             damage += before - target.CurrentHP;
             landed++;
         }
@@ -574,7 +588,7 @@ public sealed class BattleSkillResolver
             return false;
         }
         int recoil = Math.Max(1, Round(attacker.MaxHP * 0.10f));
-        attacker.TakePureDamage(recoil);
+        ApplyDamage(attacker, attacker, recoil, DamageType.Pure, false);
         bool used = UseEnemyDamageSkill(attacker, target, "捨て身の猛撃", 1.65f, BattleStatusEffect.None);
         if (used)
         {
@@ -612,7 +626,13 @@ public sealed class BattleSkillResolver
         }
         bool critical = attacker.RollCritical();
         int before = target.CurrentHP;
-        target.TakeDamage(Round(attacker.Attack * 0.9f * (critical ? context.CriticalDamageMultiplier : 1f)));
+        ApplyDamage(
+            attacker,
+            target,
+            Round(attacker.CalculateDamage() * 0.9f *
+                (critical ? context.CriticalDamageMultiplier : 1f)),
+            DamageType.Physical,
+            critical);
         int damage = before - target.CurrentHP;
         int heal = Math.Max(1, damage / 2);
         attacker.Heal(heal);
@@ -628,7 +648,7 @@ public sealed class BattleSkillResolver
         }
 
         int recoil = Math.Max(1, Round(attacker.MaxHP * 0.06f));
-        attacker.TakePureDamage(recoil);
+        ApplyDamage(attacker, attacker, recoil, DamageType.Pure, false);
         bool used = UseEnemyAreaDamageSkill(
             attacker,
             "魂魄爆裂",
@@ -657,7 +677,7 @@ public sealed class BattleSkillResolver
         }
         bool critical = attacker.RollCritical();
         int before = target.CurrentHP;
-        target.TakeDamage(Round(attacker.CalculateDamage() * power * (critical ? context.CriticalDamageMultiplier : 1f)));
+        ApplyDamage(attacker, target, Round(attacker.CalculateDamage() * power * (critical ? context.CriticalDamageMultiplier : 1f)), DamageType.Physical, critical);
         int damage = before - target.CurrentHP;
         if (!target.IsDead && status != BattleStatusEffect.None)
         {
@@ -683,7 +703,7 @@ public sealed class BattleSkillResolver
 
     private bool TryUseArcherDoubleShot(BattleUnit attacker, MercenarySkillDefinition skill)
     {
-        int rawDamage = Round(attacker.Attack * skill.Power);
+        int rawDamage = Round(attacker.CalculateDamage() * skill.Power);
         if (!HasUsefulSkillTarget(attacker, rawDamage, 1) ||
             !attacker.TryConsumeMagicPower(skill.MagicCost))
         {
@@ -708,7 +728,7 @@ public sealed class BattleSkillResolver
                 criticalCount++;
             }
             int before = target.CurrentHP;
-            target.TakeDamage(Round(attacker.Attack * skill.Power * (critical ? context.CriticalDamageMultiplier : 1f)));
+            ApplyDamage(attacker, target, Round(attacker.CalculateDamage() * skill.Power * (critical ? context.CriticalDamageMultiplier : 1f)), DamageType.Physical, critical);
             damage += before - target.CurrentHP;
         }
         attacker.BoostCriticalRate(0.15f, 3);
@@ -718,7 +738,7 @@ public sealed class BattleSkillResolver
 
     private bool TryUseMageFireball(BattleUnit attacker, MercenarySkillDefinition skill)
     {
-        int damage = Round(attacker.Attack * skill.Power);
+        int damage = Round(attacker.CalculateDamage() * skill.Power);
         BattleUnit target = GetUsefulSkillTarget(attacker, damage);
         if (target == null || !attacker.TryConsumeMagicPower(skill.MagicCost))
         {
@@ -742,7 +762,7 @@ public sealed class BattleSkillResolver
             damage = Round(damage * context.CriticalDamageMultiplier);
         }
         int before = target.CurrentHP;
-        target.TakeDamage(damage);
+        ApplyDamage(attacker, target, damage, DamageType.Magic, critical);
         Log(BattleLogFormatter.FormatDamageSkillWithMagic(attacker.UnitName, "火球", critical, target.UnitName, before - target.CurrentHP, attacker.CurrentMagicPower, attacker.MaxMagicPower), BattleLogType.Player);
         return true;
     }
@@ -793,7 +813,7 @@ public sealed class BattleSkillResolver
             return true;
         }
         int before = target.CurrentHP;
-        target.TakeDamage(Round(attacker.Attack * skill.Power));
+        ApplyDamage(attacker, target, Round(attacker.CalculateDamage() * skill.Power), DamageType.Physical, false);
         int damage = before - target.CurrentHP;
         if (!target.IsDead)
         {
@@ -821,8 +841,13 @@ public sealed class BattleSkillResolver
         }
         bool critical = attacker.RollCritical();
         int before = target.CurrentHP;
-        target.TakeDamage(Round(attacker.CalculateDamage() * skill.Power *
-            (critical ? context.CriticalDamageMultiplier : 1f)));
+        ApplyDamage(
+            attacker,
+            target,
+            Round(attacker.CalculateDamage() * skill.Power *
+                (critical ? context.CriticalDamageMultiplier : 1f)),
+            DamageType.Physical,
+            critical);
         hit = true;
         Log(BattleLogFormatter.FormatDamageSkill(attacker.UnitName, skill.Name, critical,
             target.UnitName, before - target.CurrentHP, string.Empty), BattleLogType.Player);
@@ -866,7 +891,7 @@ public sealed class BattleSkillResolver
                 continue;
             }
             int before = target.CurrentHP;
-            target.TakeDamage(Round(attacker.CalculateDamage() * skill.Power));
+            ApplyDamage(attacker, target, Round(attacker.CalculateDamage() * skill.Power), DamageType.Physical, false);
             damage += before - target.CurrentHP;
             affected++;
             if (!target.IsDead && status != BattleStatusEffect.None)
@@ -940,7 +965,7 @@ public sealed class BattleSkillResolver
             if (!target.TryEvade())
             {
                 int before = target.CurrentHP;
-                target.TakeDamage(Round(attacker.CalculateDamage() * skill.Power));
+                ApplyDamage(attacker, target, Round(attacker.CalculateDamage() * skill.Power), DamageType.Physical, false);
                 damage += before - target.CurrentHP;
                 landedHits++;
             }
@@ -973,9 +998,25 @@ public sealed class BattleSkillResolver
             return true;
         }
         int before = target.CurrentHP;
-        target.TakePureDamage(Round(attacker.Attack * skill.Power));
+        ApplyDamage(attacker, target, Round(attacker.CalculateDamage() * skill.Power), DamageType.Pure, false);
         Log(BattleLogFormatter.FormatPureDamageSkillSimple(attacker.UnitName, skill.Name, before - target.CurrentHP), BattleLogType.Player);
         return true;
+    }
+
+    private static DamageResult ApplyDamage(
+        BattleUnit attacker,
+        BattleUnit target,
+        int rawDamage,
+        DamageType type,
+        bool isCritical)
+    {
+        return DamageResolver.ResolveDamage(new DamageRequest(
+            rawDamage,
+            type,
+            isCritical,
+            attacker,
+            target,
+            type == DamageType.Physical || type == DamageType.Magic));
     }
 
     private bool HasUsefulSkillTarget(BattleUnit attacker, int rawDamage, int maxTargets)

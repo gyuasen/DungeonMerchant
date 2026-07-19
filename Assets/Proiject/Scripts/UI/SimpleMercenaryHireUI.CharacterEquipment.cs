@@ -790,7 +790,9 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             item.bonusAttack,
             item.bonusDefense,
             item.bonusAttackSpeed,
-            item.basePrice);
+            item.basePrice) +
+            "\n特殊効果\n" +
+            EquipmentEffectTextFormatter.FormatList(item.equipmentEffects);
     }
 
     private void HideEquipmentCollection()

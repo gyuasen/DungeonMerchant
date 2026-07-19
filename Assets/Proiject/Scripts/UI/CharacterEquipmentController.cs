@@ -312,6 +312,8 @@ public sealed class CharacterEquipmentController
         string modifiers = modifierLines.Count > 0
             ? string.Join("\n", modifierLines)
             : "追加効果なし";
+        string specialEffects = EquipmentEffectTextFormatter.FormatList(
+            equipment.EquipmentEffects);
         string setText = BuildEquipmentSetDetail(item.equipmentSet);
         string target = item.allClassesCanEquip
             ? "全職業"
@@ -331,7 +333,7 @@ public sealed class CharacterEquipmentController
             $"攻撃 {FormatSigned(equipment.BonusAttack)}\n" +
             $"防御 {FormatSigned(equipment.BonusDefense)}  " +
             $"攻撃速度 {FormatSigned(equipment.BonusAttackSpeed)}\n\n" +
-            $"追加効果\n{modifiers}\n\n{setText}\n\n" +
+            $"追加効果\n{modifiers}\n\n特殊効果\n{specialEffects}\n\n{setText}\n\n" +
             $"次回強化: 成功率 " +
             $"{equipment.GetEnhancementSuccessRate() * 100f:0}%  " +
             $"{enhancementMaterialName} " +
@@ -577,7 +579,8 @@ public sealed class CharacterEquipmentController
                $"防御 {FormatSigned(candidate.BonusDefense)} " +
                $"{FormatComparison(candidate.BonusDefense - currentDefense)}  " +
                $"速度 {FormatSigned(candidate.BonusAttackSpeed)} " +
-               $"{FormatComparison(candidate.BonusAttackSpeed - currentSpeed)}";
+               $"{FormatComparison(candidate.BonusAttackSpeed - currentSpeed)}\n" +
+               $"特殊効果: {EquipmentEffectTextFormatter.FormatList(candidate.EquipmentEffects)}";
     }
 
     public static string BuildEquipmentBonusText(ItemDataSO item)
@@ -613,7 +616,8 @@ public sealed class CharacterEquipmentController
                $"防御 {FormatSigned(candidate.bonusDefense)} " +
                $"{FormatComparison(candidate.bonusDefense - currentDefense)}  " +
                $"速度 {FormatSigned(candidate.bonusAttackSpeed)} " +
-               $"{FormatComparison(candidate.bonusAttackSpeed - currentSpeed)}";
+               $"{FormatComparison(candidate.bonusAttackSpeed - currentSpeed)}\n" +
+               $"特殊効果: {EquipmentEffectTextFormatter.FormatList(candidate.equipmentEffects)}";
     }
 
     public static List<MercenarySkillInfo> GetMercenarySkillInfos(

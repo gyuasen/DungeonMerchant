@@ -207,7 +207,11 @@ public sealed class BalanceExpansionDefinitionTests
     [Test]
     public void Equipment_InterpolatesRanksWithoutPriceOrPowerSpikes()
     {
-        foreach (BalanceExpansionEquipmentDefinition d in BalanceExpansionDefinition.Equipment)
+        BalanceExpansionEquipmentDefinition[] normalEquipment =
+            BalanceExpansionDefinition.Equipment
+                .Where(d => d.TargetRace == EnemyRace.Unknown)
+                .ToArray();
+        foreach (BalanceExpansionEquipmentDefinition d in normalEquipment)
         {
             Assert.That(d.Rank, Is.InRange(4, 7));
             Assert.That(d.ClassIndex, Is.InRange(0, 2));
@@ -224,9 +228,9 @@ public sealed class BalanceExpansionDefinitionTests
             if (d.Slot != EquipmentSlot.Weapon && d.Rank >= 6)
                 Assert.That(d.AcquisitionType, Is.EqualTo(ItemAcquisitionType.Blacksmith));
         }
-        Assert.That(BalanceExpansionDefinition.Equipment.Count, Is.EqualTo(36));
-        Assert.That(BalanceExpansionDefinition.Equipment.Count(d => d.Slot == EquipmentSlot.Armor), Is.EqualTo(12));
-        Assert.That(BalanceExpansionDefinition.Equipment.Count(d => d.Slot == EquipmentSlot.Accessory), Is.EqualTo(12));
+        Assert.That(normalEquipment.Length, Is.EqualTo(36));
+        Assert.That(normalEquipment.Count(d => d.Slot == EquipmentSlot.Armor), Is.EqualTo(12));
+        Assert.That(normalEquipment.Count(d => d.Slot == EquipmentSlot.Accessory), Is.EqualTo(12));
     }
 
     [Test]

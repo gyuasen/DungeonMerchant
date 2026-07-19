@@ -2,19 +2,19 @@ using UnityEngine;
 
 public class BattleUnit
 {
-    private const int DefenseMitigationConstant = 100;
     public string UnitName { get; private set; }
     public bool IsPlayerSide { get; private set; }
     public MercenaryClass MercenaryClass { get; private set; }
     public int Level { get; private set; }
+    public EnemyRace Race { get; private set; }
 
     public int MaxHP { get; private set; }
     public int CurrentHP { get; private set; }
     public int MaxMagicPower { get; private set; }
     public int CurrentMagicPower { get; private set; }
 
-    public int Attack => Mathf.RoundToInt(baseAttack * (1f + attackBonusPercent));
-    public int Defense => Mathf.RoundToInt(baseDefense * (1f + defenseBonusPercent));
+    public int Attack => Mathf.RoundToInt(baseAttack * (1f + GetAttackBonusPercent()));
+    public int Defense => Mathf.RoundToInt(baseDefense * (1f + GetDefenseBonusPercent()));
     public float AttackSpeed => baseAttackSpeed * (1f + speedBonusPercent);
     public float CriticalRate { get; private set; }
     public float EvasionRate { get; private set; }
@@ -30,13 +30,25 @@ public class BattleUnit
     private float defenseBonusPercent;
     private float speedBonusPercent;
     private int enemyHealCooldownTurns;
+    private float equipmentAttackBonusPercent;
+    private int equipmentAttackBonusTurns;
+    private float equipmentDefenseBonusPercent;
+    private int equipmentDefenseBonusTurns;
+    private float equipmentDamageMultiplier = 1f;
+    private float equipmentLowHpDamageBonus;
+    private float equipmentLowHpThreshold;
+    private float equipmentDamageTakenMultiplier = 1f;
+    private int equipmentTurnRegenerationAmount;
+    private System.Collections.Generic.IReadOnlyDictionary<EnemyRace, float> raceDamageMultipliers =
+        new System.Collections.Generic.Dictionary<EnemyRace, float>();
 
     public bool IsDead => CurrentHP <= 0;
     public bool IsTaunting => !IsDead && TauntTurns > 0;
     public int EffectiveDefense => Defense;
-    public float AttackBonusPercent => attackBonusPercent;
-    public float DefenseBonusPercent => defenseBonusPercent;
+    public float AttackBonusPercent => GetAttackBonusPercent();
+    public float DefenseBonusPercent => GetDefenseBonusPercent();
     public float SpeedBonusPercent => speedBonusPercent;
+    internal float DamageTakenMultiplier => equipmentDamageTakenMultiplier;
     public string StatusSummary
     {
         get
@@ -69,12 +81,14 @@ public class BattleUnit
         float criticalRate = 0f,
         float evasionRate = 0f,
         BattleStatusEffect initialStatus = BattleStatusEffect.None,
-        int level = 1)
+        int level = 1,
+        EnemyRace race = EnemyRace.Unknown)
     {
         UnitName = unitName;
         IsPlayerSide = isPlayerSide;
         MercenaryClass = mercenaryClass;
         Level = Mathf.Max(1, level);
+        Race = race;
         MaxHP = maxHP;
         CurrentHP = Mathf.Clamp(currentHP, 0, maxHP);
         baseAttack = attack;
@@ -94,14 +108,22 @@ public class BattleUnit
 
     public void TakeDamage(int damage)
     {
-        int finalDamage = CalculateDefenseMitigatedDamage(damage);
-        CurrentHP -= finalDamage;
-        CurrentHP = Mathf.Max(0, CurrentHP);
+        DamageResolver.ResolveDamage(new DamageRequest(
+            damage,
+            DamageType.Physical,
+            false,
+            null,
+            this));
     }
 
     public void TakePureDamage(int damage)
     {
-        CurrentHP = Mathf.Max(0, CurrentHP - Mathf.Max(1, damage));
+        DamageResolver.ResolveDamage(new DamageRequest(
+            damage,
+            DamageType.Pure,
+            false,
+            null,
+            this));
     }
 
     public void Heal(int amount)
@@ -147,7 +169,12 @@ public class BattleUnit
         }
 
         int damage = Mathf.Max(1, Mathf.RoundToInt(MaxHP * 0.06f));
-        TakePureDamage(damage);
+        DamageResolver.ResolveDamage(new DamageRequest(
+            damage,
+            DamageType.Periodic,
+            false,
+            null,
+            this));
         StatusTurns--;
         if (StatusTurns <= 0)
         {
@@ -186,19 +213,27 @@ public class BattleUnit
 
     public int EstimateDamageTaken(int damage)
     {
-        return CalculateDefenseMitigatedDamage(damage);
+        return DamageResolver.PreviewDamage(new DamageRequest(
+            damage,
+            DamageType.Physical,
+            false,
+            null,
+            this));
     }
 
-    private int CalculateDefenseMitigatedDamage(int damage)
+    internal void ApplyResolvedDamage(int damage)
     {
-        float mitigatedDamage = damage * DefenseMitigationConstant /
-                                (float)(DefenseMitigationConstant + EffectiveDefense);
-        return Mathf.Max(1, Mathf.RoundToInt(mitigatedDamage));
+        CurrentHP = Mathf.Max(0, CurrentHP - damage);
     }
 
     public int CalculateDamage()
     {
-        return Attack;
+        float multiplier = equipmentDamageMultiplier;
+        if (MaxHP > 0 && (float)CurrentHP / MaxHP < equipmentLowHpThreshold)
+        {
+            multiplier *= 1f + equipmentLowHpDamageBonus;
+        }
+        return Mathf.Max(1, Mathf.RoundToInt(Attack * multiplier));
     }
 
     public void GainMagicPower(int amount)
@@ -212,14 +247,77 @@ public class BattleUnit
             Mathf.Min(MaxMagicPower, CurrentMagicPower + amount);
     }
 
+    public float GetRaceDamageMultiplier(EnemyRace targetRace)
+    {
+        if (targetRace == EnemyRace.Unknown || raceDamageMultipliers == null)
+        {
+            return 1f;
+        }
+        float multiplier;
+        return raceDamageMultipliers.TryGetValue(targetRace, out multiplier)
+            ? multiplier
+            : 1f;
+    }
+
     public void BoostAttackForBattle(float percent)
     {
         attackBonusPercent = Mathf.Max(attackBonusPercent, Mathf.Max(0f, percent));
     }
 
+    public void BoostAttackForBattle(float percent, int turns)
+    {
+        if (turns <= 0)
+        {
+            BoostAttackForBattle(percent);
+            return;
+        }
+        equipmentAttackBonusPercent = Mathf.Max(equipmentAttackBonusPercent, Mathf.Max(0f, percent));
+        equipmentAttackBonusTurns = Mathf.Max(equipmentAttackBonusTurns, turns);
+    }
+
     public void BoostDefenseForBattle(float percent)
     {
         defenseBonusPercent = Mathf.Max(defenseBonusPercent, Mathf.Max(0f, percent));
+    }
+
+    public void BoostDefenseForBattle(float percent, int turns)
+    {
+        if (turns <= 0)
+        {
+            BoostDefenseForBattle(percent);
+            return;
+        }
+        equipmentDefenseBonusPercent = Mathf.Max(equipmentDefenseBonusPercent, Mathf.Max(0f, percent));
+        equipmentDefenseBonusTurns = Mathf.Max(equipmentDefenseBonusTurns, turns);
+    }
+
+    public void ApplyEquipmentEffects(BattleEquipmentEffectSnapshot effects)
+    {
+        equipmentDamageMultiplier = effects.DamageMultiplier;
+        equipmentLowHpDamageBonus = effects.LowHpDamageBonus;
+        equipmentLowHpThreshold = effects.LowHpThreshold;
+        equipmentDamageTakenMultiplier = effects.DamageTakenMultiplier;
+        equipmentTurnRegenerationAmount = effects.TurnRegenerationAmount;
+        raceDamageMultipliers = effects.RaceDamageMultipliers;
+        if (effects.BattleStartAttackBuffTurns > 0)
+        {
+            BoostAttackForBattle(effects.BattleStartAttackBuffPercent, effects.BattleStartAttackBuffTurns);
+        }
+        if (effects.BattleStartDefenseBuffTurns > 0)
+        {
+            BoostDefenseForBattle(effects.BattleStartDefenseBuffPercent, effects.BattleStartDefenseBuffTurns);
+        }
+    }
+
+    public int ProcessEquipmentTurnRegeneration()
+    {
+        if (IsDead || equipmentTurnRegenerationAmount <= 0)
+        {
+            return 0;
+        }
+        int before = CurrentHP;
+        Heal(equipmentTurnRegenerationAmount);
+        return CurrentHP - before;
     }
 
     public void BoostSpeedForBattle(float percent)
@@ -268,6 +366,23 @@ public class BattleUnit
                 criticalRateBonus = 0f;
             }
         }
+
+        if (equipmentAttackBonusTurns > 0)
+        {
+            equipmentAttackBonusTurns--;
+            if (equipmentAttackBonusTurns <= 0)
+            {
+                equipmentAttackBonusPercent = 0f;
+            }
+        }
+        if (equipmentDefenseBonusTurns > 0)
+        {
+            equipmentDefenseBonusTurns--;
+            if (equipmentDefenseBonusTurns <= 0)
+            {
+                equipmentDefenseBonusPercent = 0f;
+            }
+        }
     }
 
     public bool CanUseEnemyHeal()
@@ -278,5 +393,15 @@ public class BattleUnit
     public void StartEnemyHealCooldown(int turns)
     {
         enemyHealCooldownTurns = Mathf.Max(enemyHealCooldownTurns, Mathf.Max(0, turns));
+    }
+
+    private float GetAttackBonusPercent()
+    {
+        return Mathf.Max(attackBonusPercent, equipmentAttackBonusPercent);
+    }
+
+    private float GetDefenseBonusPercent()
+    {
+        return Mathf.Max(defenseBonusPercent, equipmentDefenseBonusPercent);
     }
 }

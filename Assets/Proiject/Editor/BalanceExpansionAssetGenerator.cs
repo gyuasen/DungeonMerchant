@@ -73,6 +73,19 @@ public static class BalanceExpansionAssetGenerator
         item.requiredClass = new[] { MercenaryClass.Warrior, MercenaryClass.Archer, MercenaryClass.Mage }[definition.ClassIndex];
         item.equipmentRank = definition.Rank;
         ApplyEquipmentStats(item, definition.Rank, definition.Slot, definition.ClassIndex);
+        if (definition.TargetRace != EnemyRace.Unknown &&
+            definition.RaceDamageBonus > 0f)
+        {
+            item.equipmentEffects = new[]
+            {
+                new EquipmentEffectDefinition
+                {
+                    type = EquipmentEffectType.RaceDamageBonus,
+                    value = definition.RaceDamageBonus,
+                    targetRace = definition.TargetRace
+                }
+            };
+        }
         Id(item, definition.Id);
         string path = ItemPath + "/" + definition.Id.Replace('.', '_') + ".asset";
         Put(item, path);

@@ -243,7 +243,7 @@ public class BattleManager : MonoBehaviour
                 continue;
             }
 
-            playerUnits.Add(new BattleUnit(
+            BattleUnit unit = new BattleUnit(
                 mercenary.MercenaryName,
                 mercenary.MaxHP,
                 mercenary.CurrentHP,
@@ -256,7 +256,9 @@ public class BattleManager : MonoBehaviour
                 mercenary.CriticalRate,
                 mercenary.EvasionRate,
                 mercenary.StatusEffect,
-                mercenary.Level));
+                mercenary.Level);
+            unit.ApplyEquipmentEffects(CreateEquipmentEffectSnapshot(mercenary));
+            playerUnits.Add(unit);
             battleMercenaries.Add(mercenary);
         }
 
@@ -286,7 +288,10 @@ public class BattleManager : MonoBehaviour
                 MercenaryClass.Warrior,
                 enemy.maxMagicPower,
                 baseCriticalRate + enemy.criticalRate,
-                enemy.evasionRate));
+                enemy.evasionRate,
+                BattleStatusEffect.None,
+                1,
+                enemy.race));
             battleEnemyData.Add(enemy);
         }
     }
@@ -424,6 +429,18 @@ public class BattleManager : MonoBehaviour
                 }
 
                 ProcessConsumableUse(unit);
+                int regeneration = unit.ProcessEquipmentTurnRegeneration();
+                if (regeneration > 0)
+                {
+                    RaisePresentation(new BattlePresentationEvent(
+                        BattlePresentationEventType.Heal,
+                        unit,
+                        unit,
+                        regeneration,
+                        unit.CurrentHP,
+                        unit.MaxHP,
+                        actionKind: BattlePresentationActionKind.StatusEffect));
+                }
                 BattleStatusEffect previousStatus = unit.StatusEffect;
                 BattleStatusEffectResult statusResult =
                     battleStatusEffectService.ProcessActionStart(unit);
@@ -610,6 +627,99 @@ public class BattleManager : MonoBehaviour
             BattleLogType.Player);
     }
 
+    private static BattleEquipmentEffectSnapshot CreateEquipmentEffectSnapshot(
+        MercenaryInstance mercenary)
+    {
+        float attackBuff = mercenary.GetEquipmentEffectTotal(
+            EquipmentEffectType.BattleStartAttackBuff);
+        float defenseBuff = mercenary.GetEquipmentEffectTotal(
+            EquipmentEffectType.BattleStartDefenseBuff);
+        float regenerationRate = mercenary.GetEquipmentEffectTotal(
+            EquipmentEffectType.TurnRegeneration);
+        float damageReduction = mercenary.GetEquipmentEffectTotal(
+            EquipmentEffectType.DamageReduction);
+        float lowHpDamageBonus = mercenary.GetEquipmentEffectTotal(
+            EquipmentEffectType.LowHpDamageBonus);
+        int attackBuffTurns = GetEquipmentEffectMaximumDuration(
+            mercenary,
+            EquipmentEffectType.BattleStartAttackBuff);
+        int defenseBuffTurns = GetEquipmentEffectMaximumDuration(
+            mercenary,
+            EquipmentEffectType.BattleStartDefenseBuff);
+        float lowHpThreshold = GetEquipmentEffectMaximumSecondaryValue(
+            mercenary,
+            EquipmentEffectType.LowHpDamageBonus);
+        Dictionary<EnemyRace, float> raceMultipliers =
+            GetRaceDamageMultipliers(mercenary);
+        return new BattleEquipmentEffectSnapshot(
+            1f,
+            lowHpDamageBonus,
+            lowHpThreshold,
+            1f - damageReduction,
+            Mathf.RoundToInt(mercenary.MaxHP * regenerationRate),
+            attackBuff,
+            attackBuffTurns,
+            defenseBuff,
+            defenseBuffTurns,
+            raceMultipliers);
+    }
+
+    private static Dictionary<EnemyRace, float> GetRaceDamageMultipliers(
+        MercenaryInstance mercenary)
+    {
+        Dictionary<EnemyRace, float> multipliers =
+            new Dictionary<EnemyRace, float>();
+        foreach (EquipmentEffectDefinition effect in
+                 mercenary.GetActiveEquipmentEffects())
+        {
+            if (effect == null || effect.type != EquipmentEffectType.RaceDamageBonus ||
+                effect.targetRace == EnemyRace.Unknown)
+            {
+                continue;
+            }
+            float currentBonus = multipliers.ContainsKey(effect.targetRace)
+                ? multipliers[effect.targetRace] - 1f
+                : 0f;
+            multipliers[effect.targetRace] = 1f + Mathf.Clamp(
+                currentBonus + effect.value,
+                0f,
+                0.60f);
+        }
+        return multipliers;
+    }
+
+    private static int GetEquipmentEffectMaximumDuration(
+        MercenaryInstance mercenary,
+        EquipmentEffectType type)
+    {
+        int duration = 0;
+        foreach (EquipmentEffectDefinition effect in
+                 mercenary.GetActiveEquipmentEffects())
+        {
+            if (effect != null && effect.type == type)
+            {
+                duration = Mathf.Max(duration, effect.durationTurns);
+            }
+        }
+        return duration;
+    }
+
+    private static float GetEquipmentEffectMaximumSecondaryValue(
+        MercenaryInstance mercenary,
+        EquipmentEffectType type)
+    {
+        float value = 0f;
+        foreach (EquipmentEffectDefinition effect in
+                 mercenary.GetActiveEquipmentEffects())
+        {
+            if (effect != null && effect.type == type)
+            {
+                value = Mathf.Max(value, effect.secondaryValue);
+            }
+        }
+        return value;
+    }
+
     private IEnumerator WaitForActionDelay()
     {
         while (IsBattling && IsPaused && !skipToBattleEndRequested)
@@ -686,7 +796,20 @@ public class BattleManager : MonoBehaviour
                 attacker.CalculateDamage() * criticalDamageMultiplier)
             : attacker.CalculateDamage();
         int previousHP = target.CurrentHP;
-        target.TakeDamage(rawDamage);
+        DamageResolver.ResolveDamage(new DamageRequest(
+            rawDamage,
+            DamageType.Physical,
+            critical,
+            attacker,
+            target,
+            true));
+        if (attacker.IsPlayerSide && target.Race != EnemyRace.Unknown &&
+            attacker.GetRaceDamageMultiplier(target.Race) > 1f)
+        {
+            SendBattleMessage(
+                $"{JapaneseDisplayText.GetEnemyRace(target.Race)}特攻が発動！",
+                BattleLogType.Player);
+        }
         int damageDealt = previousHP - target.CurrentHP;
 
         RaisePresentation(new BattlePresentationEvent(
