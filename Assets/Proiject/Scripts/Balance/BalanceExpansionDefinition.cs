@@ -36,6 +36,12 @@ public sealed class BalanceExpansionEquipmentDefinition
     public readonly float RaceDamageBonus;
     public BalanceExpansionEquipmentDefinition(string id, string en, string ja, int rank, int classIndex, EquipmentSlot slot, ItemAcquisitionType acquisitionType, EnemyRace targetRace = EnemyRace.Unknown, float raceDamageBonus = 0f) { Id = id; EnglishName = en; JapaneseName = ja; Rank = rank; ClassIndex = classIndex; Slot = slot; AcquisitionType = acquisitionType; TargetRace = targetRace; RaceDamageBonus = raceDamageBonus; }
 }
+public sealed class ExistingEquipmentEffectAssignment
+{
+    public readonly string ResourcePath;
+    public readonly EquipmentEffectDefinition EquipmentEffectDefinition;
+    public ExistingEquipmentEffectAssignment(string resourcePath, EquipmentEffectDefinition equipmentEffectDefinition) { ResourcePath = resourcePath; EquipmentEffectDefinition = equipmentEffectDefinition; }
+}
 public sealed class BalanceExpansionConsumableDefinition
 {
     public readonly string Id, EnglishName, JapaneseName, Description;
@@ -61,6 +67,17 @@ public sealed class BalanceExpansionConsumableDefinition
 }
 public static class BalanceExpansionDefinition
 {
+    public static readonly IReadOnlyList<ExistingEquipmentEffectAssignment> ExistingEquipmentEffects = new[]
+    {
+        X("GameData/Items/ChampionEmblem", EquipmentEffectType.BattleStartAttackBuff, 0.15f, 0f, 3),
+        X("GameData/Items/IronVanguardArmor", EquipmentEffectType.BattleStartDefenseBuff, 0.15f, 0f, 3),
+        X("GameData/Items/NornVerdantCharm", EquipmentEffectType.TurnRegeneration, 0.025f),
+        X("GameData/Items/AstralCore", EquipmentEffectType.TurnRegeneration, 0.025f),
+        X("GameData/Items/GolemPlate", EquipmentEffectType.DamageReduction, 0.10f),
+        X("GameData/Items/AstralAegis", EquipmentEffectType.DamageReduction, 0.15f),
+        X("GameData/Items/OniHunterCleaver", EquipmentEffectType.LowHpDamageBonus, 0.20f, 0.30f),
+        X("GameData/Items/AbyssFang", EquipmentEffectType.LowHpDamageBonus, 0.20f, 0.30f)
+    };
     public static readonly IReadOnlyList<BalanceExpansionNormalEnemyDefinition> NormalEnemies = new[] { N("wyvern", "Wyvern", "ワイバーン", 3, "Grade03Wyvern", "GlaadSkyFortress", "Grade03_wyvern") };
     public static readonly IReadOnlyList<SlimeVariantDefinition> SlimeVariants = new[]
     {
@@ -162,6 +179,7 @@ public static class BalanceExpansionDefinition
             price,
             amount);
     }
+    static ExistingEquipmentEffectAssignment X(string resourcePath, EquipmentEffectType type, float value, float secondaryValue = 0f, int durationTurns = 0) { return new ExistingEquipmentEffectAssignment(resourcePath, new EquipmentEffectDefinition { type = type, value = value, secondaryValue = secondaryValue, durationTurns = durationTurns }); }
     static IReadOnlyList<BalanceExpansionEquipmentDefinition> BuildEquipment()
     {
         var result = new List<BalanceExpansionEquipmentDefinition>();
@@ -179,8 +197,8 @@ public static class BalanceExpansionDefinition
             }
         }
         result.Add(new BalanceExpansionEquipmentDefinition("item.expansion.dragonbane", "Dragonbane Blade", "竜狩りの剣", 6, 0, EquipmentSlot.Weapon, ItemAcquisitionType.Blacksmith, EnemyRace.Dragon, 0.35f));
-        result.Add(new BalanceExpansionEquipmentDefinition("item.expansion.undeadbane", "Undead Ward", "不死狩りの護符", 5, 2, EquipmentSlot.Accessory, ItemAcquisitionType.Market, EnemyRace.Undead, 0.30f));
-        result.Add(new BalanceExpansionEquipmentDefinition("item.expansion.beastbane", "Beast Hunter Bow", "獣狩りの弓", 7, 1, EquipmentSlot.Weapon, ItemAcquisitionType.Blacksmith, EnemyRace.Beast, 0.40f));
+        result.Add(new BalanceExpansionEquipmentDefinition("item.expansion.undeadbane", "Undead Purification Ward", "不死祓いの護符", 4, 2, EquipmentSlot.Accessory, ItemAcquisitionType.Market, EnemyRace.Undead, 0.30f));
+        result.Add(new BalanceExpansionEquipmentDefinition("item.expansion.beastbane", "Beast Hunter Bow", "獣狩りの弓", 4, 1, EquipmentSlot.Weapon, ItemAcquisitionType.Blacksmith, EnemyRace.Beast, 0.28f));
         return result;
     }
 }

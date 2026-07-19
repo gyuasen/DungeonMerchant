@@ -13,22 +13,22 @@ MonoBehaviour:
   m_Name: item_expansion_undeadbane
   m_EditorClassIdentifier: 
   persistentId: item.expansion.undeadbane
-  itemName: Undead Ward
+  itemName: Undead Purification Ward
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Undead Ward
-  basePrice: 1170
+  description: Undead Purification Ward
+  basePrice: 650
   acquisitionType: 0
   equipmentSlot: 2
   requiredClass: 2
   allClassesCanEquip: 0
   equipmentSet: 0
-  equipmentRank: 5
-  bonusMaxHP: 11
-  bonusAttack: 9
-  bonusDefense: 4
-  bonusAttackSpeed: 0.03
+  equipmentRank: 4
+  bonusMaxHP: 9
+  bonusAttack: 8
+  bonusDefense: 3
+  bonusAttackSpeed: 0.025
   equipmentEffects:
   - type: 60
     value: 0.3

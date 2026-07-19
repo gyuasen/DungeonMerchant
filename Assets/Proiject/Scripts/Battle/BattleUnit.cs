@@ -229,7 +229,12 @@ public class BattleUnit
     public int CalculateDamage()
     {
         float multiplier = equipmentDamageMultiplier;
-        if (MaxHP > 0 && (float)CurrentHP / MaxHP < equipmentLowHpThreshold)
+        // Compare with integer cross-multiplication to avoid float division
+        // rounding making CurrentHP/MaxHP dip just under an equal threshold
+        // (e.g. 30/100 rendered slightly below 0.30f). Activates strictly
+        // below the threshold, never exactly at it.
+        if (MaxHP > 0 &&
+            CurrentHP * 1000L < Mathf.RoundToInt(equipmentLowHpThreshold * 1000f) * (long)MaxHP)
         {
             multiplier *= 1f + equipmentLowHpDamageBonus;
         }
