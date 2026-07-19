@@ -17,6 +17,7 @@ MonoBehaviour:
   monsterGrade: 5
   isBoss: 0
   category: 0
+  race: 10
   enemySkill: 21
   isSpecialVariant: 0
   specialVariantTitle: 
@@ -27,12 +28,12 @@ MonoBehaviour:
   attack: 34
   defense: 16
   maxMagicPower: 90
-  attackSpeed: 1.6200001
+  attackSpeed: 1.38
   criticalRate: 0
-  evasionRate: 0.08
+  evasionRate: 0
   goldReward: 299
   experienceMultiplier: 1
   itemDrops:
   - item: {fileID: 11400000, guid: 02cca79ae8434c1eb64f32d3d4d206a0, type: 2}
     amount: 1
-    dropChance: 0.55
+    dropChance: 0.65

@@ -17,6 +17,7 @@ MonoBehaviour:
   monsterGrade: 8
   isBoss: 0
   category: 0
+  race: 30
   enemySkill: 2
   isSpecialVariant: 0
   specialVariantTitle: 

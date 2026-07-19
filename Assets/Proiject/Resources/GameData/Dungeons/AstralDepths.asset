@@ -11,14 +11,15 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e979c614ce1242bd9c993974ec08851e, type: 3}
   m_Name: AstralDepths
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   persistentId: dungeon.hidden.astral_depths
-  dungeonName: 星環深層
+  dungeonName: "\u661F\u74B0\u6DF1\u5C64"
   grade: 4
   worldMapIndex: 3
   nearbyTownIndex: 7
   totalFloors: 7
-  description: 中央島の地下に封じられた、Rank 10装備が眠る最深層遺構。
+  description: "\u4E2D\u592E\u5CF6\u306E\u5730\u4E0B\u306B\u5C01\u3058\u3089\u308C\u305F\u3001Rank
+    10\u88C5\u5099\u304C\u7720\u308B\u6700\u6DF1\u5C64\u907A\u69CB\u3002"
   encounterCount: 5
   firstEncounterEnemyCount: 4
   enemyCountIncreasePerEncounter: 1
@@ -28,10 +29,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b3100000000000000000000000000001, type: 2}
   - {fileID: 11400000, guid: b3100000000000000000000000000002, type: 2}
   - {fileID: 11400000, guid: b3100000000000000000000000000003, type: 2}
+  - {fileID: 11400000, guid: 3b71aef984e1e1647abf58358eb45243, type: 2}
   bossEnemy: {fileID: 11400000, guid: b3100000000000000000000000000004, type: 2}
   specialVariantChance: 0.14
   specialBossChance: 0.05
   specialVariantSkillPool: 01000000030000000400000007000000090000000b0000000e0000000f00000010000000110000001300000014000000
+  battleBackground: {fileID: 0}
+  battleBackgroundKey: 
   floorClearGoldReward: 450
   clearGoldReward: 5000
   clearItemRewards: []

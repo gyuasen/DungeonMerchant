@@ -17,6 +17,7 @@ MonoBehaviour:
   monsterGrade: 3
   isBoss: 0
   category: 0
+  race: 40
   enemySkill: 22
   isSpecialVariant: 0
   specialVariantTitle: 
@@ -26,7 +27,7 @@ MonoBehaviour:
   maxHP: 737
   attack: 81
   defense: 44
-  maxMagicPower: 85
+  maxMagicPower: 60
   attackSpeed: 1
   criticalRate: 0
   evasionRate: 0
@@ -35,4 +36,4 @@ MonoBehaviour:
   itemDrops:
   - item: {fileID: 11400000, guid: 56b326c55b534ee9a072194a18894d73, type: 2}
     amount: 1
-    dropChance: 0.45
+    dropChance: 0.5

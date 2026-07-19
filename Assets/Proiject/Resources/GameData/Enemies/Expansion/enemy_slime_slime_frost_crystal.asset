@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
+  m_Name: enemy_slime_slime_frost_crystal
+  m_EditorClassIdentifier: 
+  persistentId: enemy.slime.slime_frost_crystal
+  enemyName: Frost Crystal Slime
+  monsterGrade: 3
+  isBoss: 0
+  category: 0
+  race: 50
+  enemySkill: 9
+  isSpecialVariant: 0
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: Grade03_slime_frost_crystal
+  maxHP: 995
+  attack: 70
+  defense: 52
+  maxMagicPower: 20
+  attackSpeed: 0.9
+  criticalRate: 0
+  evasionRate: 0
+  goldReward: 611
+  experienceMultiplier: 1
+  itemDrops:
+  - item: {fileID: 11400000, guid: 8f0a1b2c3d4e5f60718293a4b5c6d7e8, type: 2}
+    amount: 1
+    dropChance: 1

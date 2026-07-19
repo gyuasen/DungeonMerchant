@@ -17,6 +17,7 @@ MonoBehaviour:
   monsterGrade: 3
   isBoss: 0
   category: 0
+  race: 40
   enemySkill: 24
   isSpecialVariant: 0
   specialVariantTitle: 
@@ -35,4 +36,4 @@ MonoBehaviour:
   itemDrops:
   - item: {fileID: 11400000, guid: 56b326c55b534ee9a072194a18894d73, type: 2}
     amount: 1
-    dropChance: 0.45
+    dropChance: 0.5

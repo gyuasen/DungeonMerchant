@@ -4,17 +4,27 @@ using System.Collections.Generic;
 public enum EnemyCombatRole { Skill, Speed, Durability, Attack, Balance }
 public sealed class BalanceExpansionEnemyDefinition
 {
-    public readonly string Id, EnglishName, JapaneseName, BaseEnemyAsset, DungeonAsset, BattleVisualKey;
+    public readonly string Id, EnglishName, JapaneseName, BaseEnemyAsset, DropSourceAsset, DungeonAsset, BattleVisualKey;
     public readonly int Grade;
     public readonly EnemySkillType Skill;
     public readonly EnemyCombatRole Role;
-    public BalanceExpansionEnemyDefinition(string id, string en, string ja, int grade, string basis, string dungeon, EnemySkillType skill, EnemyCombatRole role, string visual) { Id = id; EnglishName = en; JapaneseName = ja; Grade = grade; BaseEnemyAsset = basis; DungeonAsset = dungeon; Skill = skill; Role = role; BattleVisualKey = visual; }
+    public readonly EnemyRace Race;
+    public BalanceExpansionEnemyDefinition(string id, string en, string ja, int grade, string basis, string dropSource, string dungeon, EnemySkillType skill, EnemyCombatRole role, EnemyRace race, string visual) { Id = id; EnglishName = en; JapaneseName = ja; Grade = grade; BaseEnemyAsset = basis; DropSourceAsset = dropSource; DungeonAsset = dungeon; Skill = skill; Role = role; Race = race; BattleVisualKey = visual; }
 }
 public sealed class BalanceExpansionNormalEnemyDefinition
 {
     public readonly string Id, EnglishName, JapaneseName, AssetName, DungeonAsset, BattleVisualKey;
     public readonly int Grade;
     public BalanceExpansionNormalEnemyDefinition(string id, string en, string ja, int grade, string assetName, string dungeonAsset, string battleVisualKey) { Id = id; EnglishName = en; JapaneseName = ja; Grade = grade; AssetName = assetName; DungeonAsset = dungeonAsset; BattleVisualKey = battleVisualKey; }
+}
+public sealed class SlimeVariantDefinition
+{
+    public readonly string Id, EnglishName, JapaneseName, TemplateAsset, DropSourceAsset, DungeonAsset, BattleVisualKey;
+    public readonly int Grade;
+    public readonly EnemySkillType Skill;
+    public readonly EnemyCombatRole Role;
+    public readonly EnemyRace Race = EnemyRace.Slime;
+    public SlimeVariantDefinition(string id, string en, string ja, int grade, string templateAsset, string dropSourceAsset, string dungeonAsset, EnemySkillType skill, EnemyCombatRole role) { Id = id; EnglishName = en; JapaneseName = ja; Grade = grade; TemplateAsset = templateAsset; DropSourceAsset = dropSourceAsset; DungeonAsset = dungeonAsset; Skill = skill; Role = role; BattleVisualKey = "Grade" + grade.ToString("00") + "_" + id.Replace("enemy.slime.", string.Empty); }
 }
 public sealed class BalanceExpansionEquipmentDefinition
 {
@@ -50,7 +60,35 @@ public sealed class BalanceExpansionConsumableDefinition
 public static class BalanceExpansionDefinition
 {
     public static readonly IReadOnlyList<BalanceExpansionNormalEnemyDefinition> NormalEnemies = new[] { N("wyvern", "Wyvern", "ワイバーン", 3, "Grade03Wyvern", "GlaadSkyFortress", "Grade03_wyvern") };
+    public static readonly IReadOnlyList<SlimeVariantDefinition> SlimeVariants = new[]
+    {
+        S("slime_acid", "Acid Slime", "酸液スライム", 9, "EldUndergroundWaterway", EnemySkillType.VenomStrike, EnemyCombatRole.Attack),
+        S("slime_venom", "Venom Slime", "猛毒スライム", 8, "EldUndergroundWaterway", EnemySkillType.ToxicCloud, EnemyCombatRole.Skill),
+        S("slime_stone", "Stone Slime", "岩殻スライム", 7, "EldOldQuarry", EnemySkillType.Ironhide, EnemyCombatRole.Durability),
+        S("slime_quicksilver", "Quicksilver Slime", "水銀スライム", 6, "EldOldQuarry", EnemySkillType.ShadowPounce, EnemyCombatRole.Speed),
+        S("slime_verdant", "Verdant Slime", "翠樹スライム", 5, "NornCanopyLabyrinth", EnemySkillType.Regeneration, EnemyCombatRole.Balance),
+        S("slime_thunder", "Thunder Slime", "雷光スライム", 4, "NornCanopyLabyrinth", EnemySkillType.ParalyzingRoar, EnemyCombatRole.Speed),
+        S("slime_frost_crystal", "Frost Crystal Slime", "霜晶スライム", 3, "GlaadSkyFortress", EnemySkillType.FrostBite, EnemyCombatRole.Durability),
+        S("slime_magma", "Magma Slime", "溶鉄スライム", 2, "VelmBlackIronMine", EnemySkillType.FlameBreath, EnemyCombatRole.Attack),
+        S("slime_astral", "Astral Slime", "星核スライム", 1, "AstralDepths", EnemySkillType.MeteorRain, EnemyCombatRole.Skill)
+    };
     public static readonly IReadOnlyList<BalanceExpansionEnemyDefinition> Enemies = new[] { E("goblin_assassin", "Goblin Assassin", "ゴブリンアサシン", 9, "Grade08GiantRat", "EldUndergroundWaterway", EnemySkillType.ShadowPounce, EnemyCombatRole.Speed), E("goblin_magician", "Goblin Magician", "ゴブリンマジシャン", 9, "Grade08CaveSpider", "EldUndergroundWaterway", EnemySkillType.HexBolt, EnemyCombatRole.Skill), E("goblin_knight", "Goblin Knight", "ゴブリンナイト", 9, "Grade08RockBeetle", "EldUndergroundWaterway", EnemySkillType.Ironhide, EnemyCombatRole.Durability), E("goblin_raider", "Goblin Raider", "ゴブリンレイダー", 9, "Grade08GiantRat", "EldUndergroundWaterway", EnemySkillType.CleavingRush, EnemyCombatRole.Attack), E("goblin_veteran", "Goblin Veteran", "ゴブリンベテラン", 9, "Grade08CaveBat", "EldUndergroundWaterway", EnemySkillType.DoubleStrike, EnemyCombatRole.Balance), E("skeleton_archer", "Skeleton Archer", "スケルトンアーチャー", 7, "Grade06MarshLizard", "EldOldQuarry", EnemySkillType.PiercingShot, EnemyCombatRole.Speed), E("skeleton_hexer", "Skeleton Hexer", "スケルトン呪術師", 7, "Grade06Lizardman", "EldOldQuarry", EnemySkillType.HexBolt, EnemyCombatRole.Skill), E("skeleton_guard", "Skeleton Guard", "スケルトンガード", 7, "Grade06Troll", "EldOldQuarry", EnemySkillType.Ironhide, EnemyCombatRole.Durability), E("skeleton_reaper", "Skeleton Reaper", "スケルトンリーパー", 7, "Grade06Hobgoblin", "EldOldQuarry", EnemySkillType.BloodFrenzy, EnemyCombatRole.Attack), E("skeleton_captain", "Skeleton Captain", "スケルトン隊長", 7, "Grade06Orc", "EldOldQuarry", EnemySkillType.PowerStrike, EnemyCombatRole.Balance), E("orc_shaman", "Orc Shaman", "オークシャーマン", 5, "Grade04DarkMage", "NornCanopyLabyrinth", EnemySkillType.HexBolt, EnemyCombatRole.Skill), E("orc_rider", "Orc Rider", "オークライダー", 5, "Grade04DarkMage", "NornCanopyLabyrinth", EnemySkillType.ShadowPounce, EnemyCombatRole.Speed), E("orc_bulwark", "Orc Bulwark", "オークブルワーク", 5, "Grade04DarkMage", "NornCanopyLabyrinth", EnemySkillType.Ironhide, EnemyCombatRole.Durability), E("orc_berserker", "Orc Berserker", "オークバーサーカー", 5, "Grade04DarkMage", "NornCanopyLabyrinth", EnemySkillType.BloodFrenzy, EnemyCombatRole.Attack), E("orc_veteran", "Orc Veteran", "オーク古参兵", 5, "Grade04DarkMage", "NornCanopyLabyrinth", EnemySkillType.CleavingRush, EnemyCombatRole.Balance), E("wyvern_hexer", "Wyvern Hexwing", "呪翼のワイバーン", 3, "Grade02DemonKnight", "UpperFortress", EnemySkillType.HexBolt, EnemyCombatRole.Skill), E("wyvern_skyrider", "Wyvern Galewing", "疾風翼のワイバーン", 3, "Grade02DemonKnight", "UpperFortress", EnemySkillType.ShadowPounce, EnemyCombatRole.Speed), E("wyvern_ironwing", "Wyvern Ironwing", "ワイバーン鉄翼", 3, "Grade02DemonKnight", "UpperFortress", EnemySkillType.Reconstitute, EnemyCombatRole.Durability), E("wyvern_ravager", "Wyvern Razortalon", "猛爪のワイバーン", 3, "Grade02DemonKnight", "UpperFortress", EnemySkillType.BloodFrenzy, EnemyCombatRole.Attack), E("wyvern_captain", "Wyvern Packlord", "群れ長のワイバーン", 3, "Grade02DemonKnight", "UpperFortress", EnemySkillType.CleavingRush, EnemyCombatRole.Balance) };
+    static BalanceExpansionDefinition()
+    {
+        var enemies = new List<BalanceExpansionEnemyDefinition>(Enemies);
+        enemies.Add(E("kobold_hexer", "Kobold Hexer", "コボルト呪術師", 9, "Grade08CaveSpider", "Grade09Kobold", "EldUndergroundWaterway", EnemySkillType.HexBolt, EnemyCombatRole.Skill, EnemyRace.Beast));
+        enemies.Add(E("kobold_prowler", "Kobold Prowler", "コボルト追跡者", 9, "Grade08GiantRat", "Grade09Kobold", "EldUndergroundWaterway", EnemySkillType.ShadowPounce, EnemyCombatRole.Speed, EnemyRace.Beast));
+        enemies.Add(E("kobold_bulwark", "Kobold Bulwark", "コボルト堅盾兵", 9, "Grade08RockBeetle", "Grade09Kobold", "EldUndergroundWaterway", EnemySkillType.Ironhide, EnemyCombatRole.Durability, EnemyRace.Beast));
+        enemies.Add(E("kobold_ravager", "Kobold Ravager", "コボルト襲撃者", 9, "Grade08GiantRat", "Grade09Kobold", "EldUndergroundWaterway", EnemySkillType.CleavingRush, EnemyCombatRole.Attack, EnemyRace.Beast));
+        enemies.Add(E("kobold_packleader", "Kobold Packleader", "コボルト群れ長", 9, "Grade08CaveBat", "Grade09Kobold", "EldUndergroundWaterway", EnemySkillType.DoubleStrike, EnemyCombatRole.Balance, EnemyRace.Beast));
+        enemies.Add(E("lizardman_shaman", "Lizardman Shaman", "リザードマン祈祷師", 6, "Grade05OgreMage", "Grade06Lizardman", "EldOldQuarry", EnemySkillType.HexBolt, EnemyCombatRole.Skill, EnemyRace.Dragon));
+        enemies.Add(E("lizardman_stalker", "Lizardman Stalker", "リザードマン追跡兵", 6, "Grade05OgreMage", "Grade06Lizardman", "EldOldQuarry", EnemySkillType.ShadowPounce, EnemyCombatRole.Speed, EnemyRace.Dragon));
+        enemies.Add(E("lizardman_scaleguard", "Lizardman Scaleguard", "リザードマン鱗衛兵", 6, "Grade05IronGolem", "Grade06Lizardman", "EldOldQuarry", EnemySkillType.Ironhide, EnemyCombatRole.Durability, EnemyRace.Dragon));
+        enemies.Add(E("lizardman_ravager", "Lizardman Ravager", "リザードマン裂爪兵", 6, "Grade05OgreMage", "Grade06Lizardman", "EldOldQuarry", EnemySkillType.BloodFrenzy, EnemyCombatRole.Attack, EnemyRace.Dragon));
+        enemies.Add(E("lizardman_captain", "Lizardman Captain", "リザードマン隊長", 6, "Grade05StoneGolem", "Grade06Lizardman", "EldOldQuarry", EnemySkillType.PowerStrike, EnemyCombatRole.Balance, EnemyRace.Dragon));
+        Enemies = enemies;
+    }
+
     public static readonly IReadOnlyList<BalanceExpansionEquipmentDefinition> Equipment = BuildEquipment();
     public static readonly IReadOnlyList<BalanceExpansionConsumableDefinition> Consumables =
         new[]
@@ -62,7 +100,48 @@ public static class BalanceExpansionDefinition
             C("greater_antidote", "Greater Antidote", "上解毒薬", "リーフの薬師が魔物の毒腺を浄めて精製した上質な解毒薬。", ConsumableEffectType.CureAllStatus, 220)
         };
     static BalanceExpansionNormalEnemyDefinition N(string id, string en, string ja, int grade, string assetName, string dungeon, string visual) { return new BalanceExpansionNormalEnemyDefinition("enemy.normal." + id, en, ja, grade, assetName, dungeon, visual); }
-    static BalanceExpansionEnemyDefinition E(string id, string en, string ja, int grade, string basis, string dungeon, EnemySkillType skill, EnemyCombatRole role) { return new BalanceExpansionEnemyDefinition("enemy.job." + id, en, ja, grade, basis, dungeon, skill, role, "Grade" + grade.ToString("00") + "_" + id); }
+    static SlimeVariantDefinition S(string id, string en, string ja, int grade, string dungeon, EnemySkillType skill, EnemyCombatRole role) { return new SlimeVariantDefinition("enemy.slime." + id, en, ja, grade, "EnemyData", "EnemyData", dungeon, skill, role); }
+    static BalanceExpansionEnemyDefinition E(string id, string en, string ja, int grade, string basis, string dungeon, EnemySkillType skill, EnemyCombatRole role)
+    {
+        string dropSource = GetDropSourceAsset(id);
+        EnemyRace race = GetRace(id);
+        return new BalanceExpansionEnemyDefinition("enemy.job." + id, en, ja, grade, basis, dropSource, dungeon, skill, role, race, "Grade" + grade.ToString("00") + "_" + id);
+    }
+
+    static BalanceExpansionEnemyDefinition E(string id, string en, string ja, int grade, string basis, string dropSource, string dungeon, EnemySkillType skill, EnemyCombatRole role, EnemyRace race)
+    {
+        return new BalanceExpansionEnemyDefinition("enemy.job." + id, en, ja, grade, basis, dropSource, dungeon, skill, role, race, "Grade" + grade.ToString("00") + "_" + id);
+    }
+
+    static string GetDropSourceAsset(string id)
+    {
+        if (id.StartsWith("goblin_"))
+        {
+            return "Grade09Goblin";
+        }
+        if (id.StartsWith("skeleton_"))
+        {
+            return "Grade07Skeleton";
+        }
+        if (id.StartsWith("orc_"))
+        {
+            return "Grade06Orc";
+        }
+        return "Grade03Wyvern";
+    }
+
+    static EnemyRace GetRace(string id)
+    {
+        if (id.StartsWith("skeleton_"))
+        {
+            return EnemyRace.Undead;
+        }
+        if (id.StartsWith("wyvern_"))
+        {
+            return EnemyRace.Dragon;
+        }
+        return EnemyRace.Humanoid;
+    }
     static BalanceExpansionConsumableDefinition C(
         string id,
         string en,

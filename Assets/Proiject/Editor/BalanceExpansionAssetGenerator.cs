@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -15,6 +16,7 @@ public static class BalanceExpansionAssetGenerator
         Folders();
         foreach (BalanceExpansionNormalEnemyDefinition enemy in BalanceExpansionDefinition.NormalEnemies) { BuildNormalEnemy(enemy); }
         foreach (BalanceExpansionEnemyDefinition enemy in BalanceExpansionDefinition.Enemies) { BuildEnemy(enemy); }
+        foreach (SlimeVariantDefinition slime in BalanceExpansionDefinition.SlimeVariants) { BuildSlimeVariant(slime); }
         foreach (BalanceExpansionEquipmentDefinition equipment in BalanceExpansionDefinition.Equipment) { BuildEquipment(equipment); }
         foreach (BalanceExpansionConsumableDefinition consumable in BalanceExpansionDefinition.Consumables) { BuildConsumable(consumable); }
         AssetDatabase.SaveAssets();
@@ -159,6 +161,7 @@ public static class BalanceExpansionAssetGenerator
         string path = "Assets/Proiject/Resources/GameData/Enemies/" + definition.AssetName + ".asset";
         EnemyDataSO enemy = AssetDatabase.LoadAssetAtPath<EnemyDataSO>(path);
         if (enemy == null) { throw new InvalidOperationException(path); }
+        enemy.name = Path.GetFileNameWithoutExtension(path);
         enemy.enemyName = definition.EnglishName;
         enemy.monsterGrade = definition.Grade;
         enemy.battleVisualKey = definition.BattleVisualKey;
@@ -167,16 +170,61 @@ public static class BalanceExpansionAssetGenerator
         AddEnemyToDungeon(enemy, definition.DungeonAsset);
         EditorUtility.SetDirty(enemy);
     }
-    static void BuildEnemy(BalanceExpansionEnemyDefinition definition) { EnemyDataSO basis = Load<EnemyDataSO>("GameData/Enemies/" + definition.BaseEnemyAsset); EnemyDataSO enemy = ScriptableObject.CreateInstance<EnemyDataSO>(); enemy.enemyName = definition.EnglishName; enemy.monsterGrade = definition.Grade; enemy.enemySkill = definition.Skill; enemy.maxMagicPower = basis.maxMagicPower; enemy.attackSpeed = basis.attackSpeed; enemy.criticalRate = basis.criticalRate; enemy.evasionRate = basis.evasionRate; enemy.itemDrops = basis.itemDrops; enemy.battleVisualKey = definition.BattleVisualKey; ApplyCombatBalance(enemy, definition.Role, GetRegionalMultiplier(definition.DungeonAsset)); Id(enemy, definition.Id); string path = EnemyPath + "/" + definition.Id.Replace('.', '_') + ".asset"; Put(enemy, path); AddEnemyToDungeon(AssetDatabase.LoadAssetAtPath<EnemyDataSO>(path), definition.DungeonAsset == "UpperFortress" ? "GlaadSkyFortress" : definition.DungeonAsset); }
-    static void AddEnemyToDungeon(EnemyDataSO enemy, string dungeonAsset) { DungeonDataSO dungeon = Load<DungeonDataSO>("Dungeons/" + dungeonAsset); List<EnemyDataSO> enemies = new List<EnemyDataSO>(); foreach (EnemyDataSO existingEnemy in dungeon.normalEnemies) { if (existingEnemy != null) { enemies.Add(existingEnemy); } } if (!enemies.Contains(enemy)) { enemies.Add(enemy); } dungeon.normalEnemies = enemies.ToArray(); EditorUtility.SetDirty(dungeon); }
+    static void BuildEnemy(BalanceExpansionEnemyDefinition definition)
+    {
+        EnemyDataSO basis = Load<EnemyDataSO>("GameData/Enemies/" + definition.BaseEnemyAsset);
+        EnemyDataSO dropSource = Load<EnemyDataSO>("GameData/Enemies/" + definition.DropSourceAsset);
+        EnemyDataSO enemy = ScriptableObject.CreateInstance<EnemyDataSO>();
+        enemy.enemyName = definition.EnglishName;
+        enemy.monsterGrade = definition.Grade;
+        enemy.enemySkill = definition.Skill;
+        enemy.race = definition.Race;
+        enemy.maxMagicPower = basis.maxMagicPower;
+        enemy.attackSpeed = basis.attackSpeed;
+        enemy.criticalRate = basis.criticalRate;
+        enemy.evasionRate = basis.evasionRate;
+        enemy.itemDrops = dropSource.itemDrops;
+        enemy.battleVisualKey = definition.BattleVisualKey;
+        ApplyCombatBalance(enemy, definition.Role, GetRegionalMultiplier(definition.DungeonAsset));
+        Id(enemy, definition.Id);
+        string path = EnemyPath + "/" + definition.Id.Replace('.', '_') + ".asset";
+        Put(enemy, path);
+        AddEnemyToDungeon(AssetDatabase.LoadAssetAtPath<EnemyDataSO>(path), definition.DungeonAsset == "UpperFortress" ? "GlaadSkyFortress" : definition.DungeonAsset);
+    }
+    static void BuildSlimeVariant(SlimeVariantDefinition definition)
+    {
+        EnemyDataSO template = Load<EnemyDataSO>("GameData/Enemies/" + definition.TemplateAsset);
+        ItemDataSO slimeMucus = Load<ItemDataSO>("GameData/Items/SlimeMucus");
+        EnemyDataSO enemy = ScriptableObject.CreateInstance<EnemyDataSO>();
+        enemy.enemyName = definition.EnglishName;
+        enemy.monsterGrade = definition.Grade;
+        enemy.enemySkill = definition.Skill;
+        enemy.race = EnemyRace.Slime;
+        enemy.maxMagicPower = template.maxMagicPower;
+        enemy.attackSpeed = template.attackSpeed;
+        enemy.criticalRate = template.criticalRate;
+        enemy.evasionRate = template.evasionRate;
+        enemy.itemDrops = new[] { new ItemDropEntry { item = slimeMucus, amount = 1, dropChance = 1f } };
+        enemy.battleVisualKey = definition.BattleVisualKey;
+        ApplyCombatBalance(enemy, definition.Role, GetRegionalMultiplier(definition.DungeonAsset));
+        Id(enemy, definition.Id);
+        string path = EnemyPath + "/" + definition.Id.Replace('.', '_') + ".asset";
+        Put(enemy, path);
+        AddEnemyToDungeon(AssetDatabase.LoadAssetAtPath<EnemyDataSO>(path), definition.DungeonAsset);
+    }
+    static void AddEnemyToDungeon(EnemyDataSO enemy, string dungeonAsset) { DungeonDataSO dungeon = LoadDungeon(dungeonAsset); List<EnemyDataSO> enemies = new List<EnemyDataSO>(); foreach (EnemyDataSO existingEnemy in dungeon.normalEnemies) { if (existingEnemy != null) { enemies.Add(existingEnemy); } } if (!enemies.Contains(enemy)) { enemies.Add(enemy); } dungeon.normalEnemies = enemies.ToArray(); EditorUtility.SetDirty(dungeon); }
+    static DungeonDataSO LoadDungeon(string dungeonAsset) { DungeonDataSO dungeon = Resources.Load<DungeonDataSO>("Dungeons/" + dungeonAsset); if (dungeon != null) { return dungeon; } dungeon = Resources.Load<DungeonDataSO>("GameData/Dungeons/" + dungeonAsset); if (dungeon != null) { return dungeon; } throw new InvalidOperationException(dungeonAsset); }
     static T Load<T>(string path) where T : UnityEngine.Object { T result = Resources.Load<T>(path); if (result == null) { throw new InvalidOperationException(path); } return result; }
     static void Id(UnityEngine.Object item, string id) { SerializedObject serialized = new SerializedObject(item); serialized.FindProperty("persistentId").stringValue = id; serialized.ApplyModifiedPropertiesWithoutUndo(); }
     static void Put(UnityEngine.Object item, string path)
     {
+        string assetName = Path.GetFileNameWithoutExtension(path);
+        item.name = assetName;
         UnityEngine.Object existing = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path);
         if (existing != null)
         {
             EditorUtility.CopySerialized(item, existing);
+            existing.name = assetName;
             EditorUtility.SetDirty(existing);
             UnityEngine.Object.DestroyImmediate(item);
             return;
@@ -237,4 +285,87 @@ public static class BalanceExpansionAssetGenerator
     }
     static bool Contains(EnemyDataSO[] enemies, EnemyDataSO target) { foreach (EnemyDataSO enemy in enemies) { if (enemy == target) { return true; } } return false; }
     static float GetRegionalMultiplier(string dungeonName) { if (dungeonName == "GlaadSkyFortress" || dungeonName == "UpperFortress") { return .97f; } if (dungeonName == "VelmBlackIronMine") { return 1.05f; } return 1f; }
+}
+
+public static class EnemyRaceAssetAssigner
+{
+    private static readonly HashSet<string> Slimes = new HashSet<string>
+    {
+        "EnemyData", "Grade10BlueSlime", "Grade10GreenSlime", "Grade10MossSlime"
+    };
+    private static readonly HashSet<string> Undead = new HashSet<string>
+    {
+        "Grade07Zombie", "Grade07Wraith", "Grade07Skeleton", "Grade07BoneHound", "Grade07ArmoredSkeleton",
+        "enemy_job_skeleton_archer", "enemy_job_skeleton_hexer", "enemy_job_skeleton_guard", "enemy_job_skeleton_reaper", "enemy_job_skeleton_captain"
+    };
+    private static readonly HashSet<string> Beasts = new HashSet<string>
+    {
+        "Grade10HornRabbit", "Grade09WildDog", "Grade09Kobold", "Grade08VenomMoth", "Grade08RockBeetle", "Grade08GiantRat", "Grade08CaveSpider", "Grade08CaveBat", "Grade06MarshLizard",
+        "Grade04GlaadGaleHarpy", "MythicalGrade05ThunderhornKirin", "MythicalGrade03FlamewingGryphon", "MythicalGrade07MistfangWolf"
+    };
+    private static readonly HashSet<string> Dragons = new HashSet<string>
+    {
+        "Grade03Wyvern", "Grade06Lizardman", "Grade01AbyssDragon", "Grade03GlaadFrostDrake", "VelmMagmaDrake", "MythicalGrade01AstralDragon",
+        "enemy_job_wyvern_hexer", "enemy_job_wyvern_skyrider", "enemy_job_wyvern_ironwing", "enemy_job_wyvern_ravager", "enemy_job_wyvern_captain"
+    };
+    private static readonly HashSet<string> Constructs = new HashSet<string>
+    {
+        "Grade05StoneGolem", "Grade05IronGolem", "Boss04RuinGuardian", "VelmEmberforgedAutomaton", "Grade01AstralSentinel"
+    };
+    private static readonly HashSet<string> Demons = new HashSet<string>
+    {
+        "Grade02DemonKnight", "Grade01AstralReaver", "Grade01AstralOracle", "Boss01AbyssLord", "Boss01CelestialJudge"
+    };
+
+    [MenuItem("Tools/DungeonMerchant/Enemy Race/Assign Missing Races")]
+    public static void AssignMissingRaces()
+    {
+        int assignedCount = 0;
+        string[] guids = AssetDatabase.FindAssets("t:EnemyDataSO", new[] { "Assets/Proiject/Resources" });
+        foreach (string guid in guids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            EnemyDataSO enemy = AssetDatabase.LoadAssetAtPath<EnemyDataSO>(path);
+            if (enemy == null || enemy.race != EnemyRace.Unknown)
+            {
+                continue;
+            }
+            Undo.RecordObject(enemy, "Assign Enemy Race");
+            enemy.race = GetRace(enemy.name);
+            EditorUtility.SetDirty(enemy);
+            assignedCount++;
+        }
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+        Debug.Log("Assigned enemy races to " + assignedCount + " assets.");
+    }
+
+    private static EnemyRace GetRace(string assetName)
+    {
+        if (Slimes.Contains(assetName))
+        {
+            return EnemyRace.Slime;
+        }
+        if (Undead.Contains(assetName))
+        {
+            return EnemyRace.Undead;
+        }
+        if (Beasts.Contains(assetName))
+        {
+            return EnemyRace.Beast;
+        }
+        if (Dragons.Contains(assetName))
+        {
+            return EnemyRace.Dragon;
+        }
+        if (Constructs.Contains(assetName))
+        {
+            return EnemyRace.Construct;
+        }
+        if (Demons.Contains(assetName))
+        {
+            return EnemyRace.Demon;
+        }
+        return EnemyRace.Humanoid;
+    }
 }
