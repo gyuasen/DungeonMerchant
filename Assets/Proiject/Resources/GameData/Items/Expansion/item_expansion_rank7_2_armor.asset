@@ -29,5 +29,6 @@ MonoBehaviour:
   bonusAttack: 8
   bonusDefense: 12
   bonusAttackSpeed: 0.035
+  equipmentEffects: []
   consumableEffect: 0
   consumableHealAmount: 0

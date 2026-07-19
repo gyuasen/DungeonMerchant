@@ -493,6 +493,32 @@ public class MercenaryInstance
         currentHP = Mathf.Clamp(currentHP, 0, MaxHP);
     }
 
+    public IReadOnlyList<EquipmentEffectDefinition> GetActiveEquipmentEffects()
+    {
+        List<EquipmentEffectDefinition> effects =
+            new List<EquipmentEffectDefinition>();
+        AddEquipmentEffects(effects, EquippedWeapon);
+        AddEquipmentEffects(effects, EquippedArmor);
+        AddEquipmentEffects(effects, EquippedAccessory);
+        return effects;
+    }
+
+    public float GetEquipmentEffectTotal(EquipmentEffectType effectType)
+    {
+        float total = 0f;
+        foreach (EquipmentEffectDefinition effect in GetActiveEquipmentEffects())
+        {
+            if (effect != null && effect.type == effectType)
+            {
+                total += effect.value;
+            }
+        }
+
+        return effectType == EquipmentEffectType.DamageReduction
+            ? Mathf.Clamp(total, 0f, 0.30f)
+            : total;
+    }
+
     private void EnsureConsumableSlots()
     {
         if (consumableSlots != null && consumableSlots.Length == 2 &&
@@ -683,6 +709,24 @@ public class MercenaryInstance
         return GetBonusMaxHP(EquipmentSlot.Weapon) +
                GetBonusMaxHP(EquipmentSlot.Armor) +
                GetBonusMaxHP(EquipmentSlot.Accessory);
+    }
+
+    private static void AddEquipmentEffects(
+        List<EquipmentEffectDefinition> effects,
+        ItemDataSO item)
+    {
+        if (item == null || item.equipmentEffects == null)
+        {
+            return;
+        }
+
+        foreach (EquipmentEffectDefinition effect in item.equipmentEffects)
+        {
+            if (effect != null && effect.type != EquipmentEffectType.None)
+            {
+                effects.Add(effect);
+            }
+        }
     }
 
     private int GetProgressionBonus(

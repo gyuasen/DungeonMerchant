@@ -19,6 +19,10 @@ public class EquipmentInstance
     public int EnhancementLevel => enhancementLevel;
     public bool IsLocked => isLocked;
     public IReadOnlyList<EquipmentModifier> Modifiers => modifiers;
+    public IReadOnlyList<EquipmentEffectDefinition> EquipmentEffects =>
+        baseItem != null && baseItem.equipmentEffects != null
+            ? baseItem.equipmentEffects
+            : Array.Empty<EquipmentEffectDefinition>();
 
     public int BonusMaxHP => ScaleInt(baseItem.bonusMaxHP) +
         Mathf.RoundToInt(GetModifierValue(EquipmentModifierType.MaxHP));

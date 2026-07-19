@@ -32,7 +32,9 @@ public sealed class BalanceExpansionEquipmentDefinition
     public readonly int Rank, ClassIndex;
     public readonly EquipmentSlot Slot;
     public readonly ItemAcquisitionType AcquisitionType;
-    public BalanceExpansionEquipmentDefinition(string id, string en, string ja, int rank, int classIndex, EquipmentSlot slot, ItemAcquisitionType acquisitionType) { Id = id; EnglishName = en; JapaneseName = ja; Rank = rank; ClassIndex = classIndex; Slot = slot; AcquisitionType = acquisitionType; }
+    public readonly EnemyRace TargetRace;
+    public readonly float RaceDamageBonus;
+    public BalanceExpansionEquipmentDefinition(string id, string en, string ja, int rank, int classIndex, EquipmentSlot slot, ItemAcquisitionType acquisitionType, EnemyRace targetRace = EnemyRace.Unknown, float raceDamageBonus = 0f) { Id = id; EnglishName = en; JapaneseName = ja; Rank = rank; ClassIndex = classIndex; Slot = slot; AcquisitionType = acquisitionType; TargetRace = targetRace; RaceDamageBonus = raceDamageBonus; }
 }
 public sealed class BalanceExpansionConsumableDefinition
 {
@@ -176,6 +178,9 @@ public static class BalanceExpansionDefinition
                 result.Add(new BalanceExpansionEquipmentDefinition("item.expansion.rank" + rank + "." + classIndex + ".accessory", "Rank " + rank + " " + english[classIndex] + " Accessory", names[nameRankIndex, classIndex, 2], rank, classIndex, EquipmentSlot.Accessory, acquisition));
             }
         }
+        result.Add(new BalanceExpansionEquipmentDefinition("item.expansion.dragonbane", "Dragonbane Blade", "竜狩りの剣", 6, 0, EquipmentSlot.Weapon, ItemAcquisitionType.Blacksmith, EnemyRace.Dragon, 0.35f));
+        result.Add(new BalanceExpansionEquipmentDefinition("item.expansion.undeadbane", "Undead Ward", "不死狩りの護符", 5, 2, EquipmentSlot.Accessory, ItemAcquisitionType.Market, EnemyRace.Undead, 0.30f));
+        result.Add(new BalanceExpansionEquipmentDefinition("item.expansion.beastbane", "Beast Hunter Bow", "獣狩りの弓", 7, 1, EquipmentSlot.Weapon, ItemAcquisitionType.Blacksmith, EnemyRace.Beast, 0.40f));
         return result;
     }
 }

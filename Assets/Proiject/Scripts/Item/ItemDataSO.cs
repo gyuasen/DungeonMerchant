@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 [CreateAssetMenu(
@@ -29,6 +30,7 @@ public class ItemDataSO : ScriptableObject, IPersistentGameAsset
     public int bonusAttack;
     public int bonusDefense;
     public float bonusAttackSpeed;
+    public EquipmentEffectDefinition[] equipmentEffects;
 
     [Header("Consumable")]
     public ConsumableEffectType consumableEffect = ConsumableEffectType.None;
@@ -80,4 +82,25 @@ public enum EquipmentSetId
     VelmBlackIron,
     AbyssThrone,
     AstralDepths
+}
+
+public enum EquipmentEffectType
+{
+    None = 0,
+    BattleStartAttackBuff = 10,
+    BattleStartDefenseBuff = 20,
+    TurnRegeneration = 30,
+    DamageReduction = 40,
+    LowHpDamageBonus = 50,
+    RaceDamageBonus = 60
+}
+
+[Serializable]
+public class EquipmentEffectDefinition
+{
+    public EquipmentEffectType type;
+    public float value;
+    public float secondaryValue;
+    public int durationTurns;
+    public EnemyRace targetRace;
 }

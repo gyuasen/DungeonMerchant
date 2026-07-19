@@ -146,6 +146,7 @@ public sealed class UIHoverTooltipTrigger : MonoBehaviour,
 
         if (!unit.IsPlayerSide)
         {
+            content += "\n種族 " + JapaneseDisplayText.GetEnemyRace(unit.Race);
             EnemySkillType skill = enemyData != null &&
                 enemyData.enemySkill != EnemySkillType.None
                 ? enemyData.enemySkill
