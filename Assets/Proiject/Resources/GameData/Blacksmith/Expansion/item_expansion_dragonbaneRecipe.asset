@@ -17,8 +17,8 @@ MonoBehaviour:
   resultAmount: 1
   goldCost: 540
   materials:
-  - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
-    amount: 6
+  - item: {fileID: 11400000, guid: fa1a2b3c4d5e6f708192a3b4c5d6e7f8, type: 2}
+    amount: 3
   - item: {fileID: 11400000, guid: 41759c6c3b674e80badbff072ddc6b6d, type: 2}
     amount: 3
   - item: {fileID: 11400000, guid: 3693d3aa73216dc44a3c3e7d77c1419f, type: 2}

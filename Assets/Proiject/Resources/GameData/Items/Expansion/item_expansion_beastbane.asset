@@ -18,20 +18,20 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Beast Hunter Bow
-  basePrice: 4100
+  basePrice: 720
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 1
   allClassesCanEquip: 0
   equipmentSet: 0
-  equipmentRank: 7
-  bonusMaxHP: 13
-  bonusAttack: 22
-  bonusDefense: 5
-  bonusAttackSpeed: 0.06
+  equipmentRank: 4
+  bonusMaxHP: 7
+  bonusAttack: 14
+  bonusDefense: 2
+  bonusAttackSpeed: 0.0375
   equipmentEffects:
   - type: 60
-    value: 0.4
+    value: 0.28
     secondaryValue: 0
     durationTurns: 0
     targetRace: 30

@@ -514,9 +514,15 @@ public class MercenaryInstance
             }
         }
 
-        return effectType == EquipmentEffectType.DamageReduction
-            ? Mathf.Clamp(total, 0f, 0.30f)
-            : total;
+        if (effectType == EquipmentEffectType.DamageReduction)
+        {
+            return Mathf.Clamp(total, 0f, 0.30f);
+        }
+        if (effectType == EquipmentEffectType.TurnRegeneration)
+        {
+            return Mathf.Clamp(total, 0f, 0.05f);
+        }
+        return total;
     }
 
     private void EnsureConsumableSlots()

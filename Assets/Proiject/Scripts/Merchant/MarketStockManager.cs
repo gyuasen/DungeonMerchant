@@ -142,6 +142,8 @@ public class MarketStockManager : MonoBehaviour
             stock.Add(new MarketStockEntry(item, quantity, buyPrice));
         }
 
+        AddUndeadPurificationWardFixedStock();
+
         StockChanged?.Invoke();
     }
 
@@ -155,6 +157,28 @@ public class MarketStockManager : MonoBehaviour
         int hash = GetStableHash(item, salt, 71);
         float normalized = (hash & 0x7fffffff) / (float)int.MaxValue;
         return Mathf.Lerp(minimumBuyMultiplier, maximumBuyMultiplier, normalized);
+    }
+
+    private void AddUndeadPurificationWardFixedStock()
+    {
+        if (currentTownIndex != 0)
+        {
+            return;
+        }
+
+        ItemDataSO ward = purchasableItems.Find(item =>
+            item != null && item.PersistentId == "item.expansion.undeadbane");
+        if (ward == null)
+        {
+            return;
+        }
+
+        float merchantMultiplier = merchantData != null
+            ? merchantData.GetMarketBuyMultiplier()
+            : 1f;
+        int buyPrice = Mathf.Max(1, Mathf.RoundToInt(
+            ward.basePrice * GetBuyMultiplier(ward, 97) * merchantMultiplier));
+        stock.Add(new MarketStockEntry(ward, 1, buyPrice));
     }
 
     private int GetStableIndex(int slot, int itemCount)

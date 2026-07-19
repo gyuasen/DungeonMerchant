@@ -15,11 +15,11 @@ MonoBehaviour:
   recipeName: Beast Hunter Bow
   resultItem: {fileID: 11400000, guid: 709413fa603208c46b5723a0c30ca220, type: 2}
   resultAmount: 1
-  goldCost: 610
+  goldCost: 400
   materials:
   - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
-    amount: 7
-  - item: {fileID: 11400000, guid: 41759c6c3b674e80badbff072ddc6b6d, type: 2}
     amount: 4
-  - item: {fileID: 11400000, guid: c01daff2d8c8d0843b566ee23e07360b, type: 2}
-    amount: 3
+  - item: {fileID: 11400000, guid: 41759c6c3b674e80badbff072ddc6b6d, type: 2}
+    amount: 1
+  - item: {fileID: 11400000, guid: 28ea52f6212db55409b8ea0e99271947, type: 2}
+    amount: 2

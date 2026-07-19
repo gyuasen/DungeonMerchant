@@ -29,5 +29,11 @@ MonoBehaviour:
   bonusAttack: 14
   bonusDefense: 14
   bonusAttackSpeed: 0.06
+  equipmentEffects:
+  - type: 30
+    value: 0.025
+    secondaryValue: 0
+    durationTurns: 0
+    targetRace: 0
   consumableEffect: 0
   consumableHealAmount: 0

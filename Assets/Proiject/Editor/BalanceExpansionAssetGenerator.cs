@@ -19,6 +19,7 @@ public static class BalanceExpansionAssetGenerator
         foreach (SlimeVariantDefinition slime in BalanceExpansionDefinition.SlimeVariants) { BuildSlimeVariant(slime); }
         foreach (BalanceExpansionEquipmentDefinition equipment in BalanceExpansionDefinition.Equipment) { BuildEquipment(equipment); }
         foreach (BalanceExpansionConsumableDefinition consumable in BalanceExpansionDefinition.Consumables) { BuildConsumable(consumable); }
+        ApplyExistingEquipmentEffects();
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
     }
@@ -66,7 +67,7 @@ public static class BalanceExpansionAssetGenerator
     {
         ItemDataSO item = ScriptableObject.CreateInstance<ItemDataSO>();
         item.itemName = definition.EnglishName;
-        item.description = definition.EnglishName;
+        item.description = GetEquipmentDescription(definition);
         item.itemType = ItemType.Equipment;
         item.acquisitionType = definition.AcquisitionType;
         item.equipmentSlot = definition.Slot;
@@ -150,11 +151,32 @@ public static class BalanceExpansionAssetGenerator
         EquipmentRecipeSO recipe = ScriptableObject.CreateInstance<EquipmentRecipeSO>();
         recipe.recipeName = item.itemName;
         recipe.resultItem = item;
-        recipe.goldCost = 120 + definition.Rank * 70;
+        recipe.goldCost = GetRecipeGoldCost(definition);
         ItemDataSO magicStone = MaterialCatalog.GetMagicStoneForEquipmentRank(definition.Rank);
         if (magicStone == null) { throw new InvalidOperationException("Run Trade Materials/Apply Classification And Recipes first."); }
-        recipe.materials = new[] { new CraftingMaterialRequirement { item = Load<ItemDataSO>("GameData/Items/MonsterFang"), amount = definition.Rank }, new CraftingMaterialRequirement { item = Load<ItemDataSO>("GameData/Items/EnhancementOre"), amount = Math.Max(1, definition.Rank - 3) }, new CraftingMaterialRequirement { item = magicStone, amount = MaterialCatalog.GetMagicStoneAmountForEquipmentRank(definition.Rank) } };
+        recipe.materials = BuildRecipeMaterials(definition, magicStone);
         Put(recipe, RecipePath + "/" + definition.Id.Replace('.', '_') + "Recipe.asset");
+    }
+    static string GetEquipmentDescription(BalanceExpansionEquipmentDefinition definition) { return definition.Id == "item.expansion.dragonbane" ? "リザードマンの鱗を鍛え、飛竜や深層の竜種に備える剣。竜種にはリザードマン、ワイバーン、ドレイクを含む。" : definition.EnglishName; }
+    static int GetRecipeGoldCost(BalanceExpansionEquipmentDefinition definition) { return definition.Id == "item.expansion.beastbane" ? 400 : definition.Id == "item.expansion.dragonbane" ? 540 : 120 + definition.Rank * 70; }
+    static CraftingMaterialRequirement[] BuildRecipeMaterials(BalanceExpansionEquipmentDefinition definition, ItemDataSO magicStone)
+    {
+        ItemDataSO firstMaterial = definition.Id == "item.expansion.dragonbane" ? Load<ItemDataSO>("GameData/Items/LizardScale") : Load<ItemDataSO>("GameData/Items/MonsterFang");
+        int firstAmount = definition.Id == "item.expansion.beastbane" ? 4 : definition.Id == "item.expansion.dragonbane" ? 3 : definition.Rank;
+        int oreAmount = definition.Id == "item.expansion.beastbane" ? 1 : definition.Id == "item.expansion.dragonbane" ? 3 : Math.Max(1, definition.Rank - 3);
+        return new[] { new CraftingMaterialRequirement { item = firstMaterial, amount = firstAmount }, new CraftingMaterialRequirement { item = Load<ItemDataSO>("GameData/Items/EnhancementOre"), amount = oreAmount }, new CraftingMaterialRequirement { item = magicStone, amount = MaterialCatalog.GetMagicStoneAmountForEquipmentRank(definition.Rank) } };
+    }
+    static void ApplyExistingEquipmentEffects()
+    {
+        foreach (ExistingEquipmentEffectAssignment assignment in BalanceExpansionDefinition.ExistingEquipmentEffects)
+        {
+            ItemDataSO item = Load<ItemDataSO>(assignment.ResourcePath);
+            List<EquipmentEffectDefinition> effects = new List<EquipmentEffectDefinition>();
+            if (item.equipmentEffects != null) { foreach (EquipmentEffectDefinition effect in item.equipmentEffects) { if (effect != null && effect.type != assignment.EquipmentEffectDefinition.type) { effects.Add(effect); } } }
+            effects.Add(new EquipmentEffectDefinition { type = assignment.EquipmentEffectDefinition.type, value = assignment.EquipmentEffectDefinition.value, secondaryValue = assignment.EquipmentEffectDefinition.secondaryValue, durationTurns = assignment.EquipmentEffectDefinition.durationTurns, targetRace = assignment.EquipmentEffectDefinition.targetRace });
+            item.equipmentEffects = effects.ToArray();
+            EditorUtility.SetDirty(item);
+        }
     }
     static void BuildConsumable(BalanceExpansionConsumableDefinition definition)
     {
