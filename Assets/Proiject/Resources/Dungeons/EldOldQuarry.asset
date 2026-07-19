@@ -35,41 +35,18 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9608b2b708f341d19ba07e7a092be004, type: 2}
   - {fileID: 11400000, guid: db0d9adf899945e39e292eca1e11fea1, type: 2}
   - {fileID: 11400000, guid: 3c8a2207d91941d5a31d652a6206a2d5, type: 2}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
   - {fileID: 11400000, guid: 05d9c2d844998364e9d997cf126141df, type: 2}
   - {fileID: 11400000, guid: 09242eaa7bfdcac4fbbccff6875f5c3a, type: 2}
   - {fileID: 11400000, guid: 5b4e181d7a012c643850cb5c91b5dc78, type: 2}
   - {fileID: 11400000, guid: cbe60918772136c49bbc6eb32c86e7e9, type: 2}
   - {fileID: 11400000, guid: fe1b92e667b821842a91ca4ab23c97ae, type: 2}
+  - {fileID: 11400000, guid: a1bd4b71ba226be43a1f389e6f09a39b, type: 2}
+  - {fileID: 11400000, guid: aef11af5b5574354fb92774c40983453, type: 2}
+  - {fileID: 11400000, guid: b0f74ccef63e0d14da231a693d780a53, type: 2}
+  - {fileID: 11400000, guid: 27ab29367afcf224395222de03ce733f, type: 2}
+  - {fileID: 11400000, guid: 88a7c13c1a8251743ad3b12bc8a812bb, type: 2}
+  - {fileID: 11400000, guid: a515bf52324ebce46a5a92c96093f688, type: 2}
+  - {fileID: 11400000, guid: a41469afa12d6bb4c93e29a4e5b73294, type: 2}
   bossEnemy: {fileID: 11400000, guid: 5801c50e8df7449bbab39e1ca0b4922f, type: 2}
   specialVariantChance: 0.07
   specialBossChance: 0.035

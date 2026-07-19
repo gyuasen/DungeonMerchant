@@ -219,6 +219,7 @@ public class BattleManager : MonoBehaviour
         fallbackEnemyData = ScriptableObject.CreateInstance<EnemyDataSO>();
         fallbackEnemyData.name = "Runtime Slime";
         fallbackEnemyData.enemyName = "Slime";
+        fallbackEnemyData.race = EnemyRace.Slime;
         fallbackEnemyData.maxHP = 20;
         fallbackEnemyData.attack = 5;
         fallbackEnemyData.defense = 1;

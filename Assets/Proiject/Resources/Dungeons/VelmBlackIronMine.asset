@@ -29,6 +29,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 5140b532b27b41a09dd351d628bddfc7, type: 2}
   - {fileID: 11400000, guid: 73cf7748949b4827985f379fa5ccec12, type: 2}
   - {fileID: 11400000, guid: 6667d25bfbf941a6a6d98c36f89540ef, type: 2}
+  - {fileID: 11400000, guid: cc82bba8ee33ad147a030f2f82a31afa, type: 2}
   bossEnemy: {fileID: 11400000, guid: 196316e2b4a94b91b5a6f79e30742a94, type: 2}
   specialVariantChance: 0.09
   specialBossChance: 0.045

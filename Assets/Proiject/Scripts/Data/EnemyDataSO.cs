@@ -11,6 +11,7 @@ public class EnemyDataSO : ScriptableObject, IPersistentGameAsset
     [Range(1, 10)] public int monsterGrade = 10;
     public bool isBoss;
     public EnemyCategory category = EnemyCategory.Normal;
+    public EnemyRace race = EnemyRace.Unknown;
     public EnemySkillType enemySkill = EnemySkillType.None;
     public bool isSpecialVariant;
     public string specialVariantTitle;
@@ -46,6 +47,18 @@ public enum EnemyCategory
 {
     Normal,
     MythicalBeast
+}
+
+public enum EnemyRace
+{
+    Unknown = 0,
+    Humanoid = 10,
+    Undead = 20,
+    Beast = 30,
+    Dragon = 40,
+    Slime = 50,
+    Construct = 60,
+    Demon = 70
 }
 
 [System.Serializable]

@@ -212,6 +212,15 @@ public static class JapaneseDisplayText
             }
         }
 
+        foreach (SlimeVariantDefinition definition in
+                 BalanceExpansionDefinition.SlimeVariants)
+        {
+            if (enemyName == definition.EnglishName)
+            {
+                return definition.JapaneseName;
+            }
+        }
+
         switch (enemyName)
         {
             case "Slime": return "スライム";
@@ -289,6 +298,30 @@ public static class JapaneseDisplayText
                 return "魔獣";
             default:
                 return value.ToString();
+        }
+    }
+
+    public static string GetEnemyRace(EnemyRace value)
+    {
+        switch (value)
+        {
+            case EnemyRace.Humanoid:
+                return "人型";
+            case EnemyRace.Undead:
+                return "不死";
+            case EnemyRace.Beast:
+                return "獣";
+            case EnemyRace.Dragon:
+                return "竜";
+            case EnemyRace.Slime:
+                return "粘体";
+            case EnemyRace.Construct:
+                return "構造体";
+            case EnemyRace.Demon:
+                return "魔";
+            case EnemyRace.Unknown:
+            default:
+                return "不明";
         }
     }
 

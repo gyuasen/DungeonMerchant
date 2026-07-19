@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -43,6 +44,7 @@ public static class TradeMaterialAssetUpdater
                 item = ScriptableObject.CreateInstance<ItemDataSO>();
                 AssetDatabase.CreateAsset(item, path);
             }
+            item.name = Path.GetFileNameWithoutExtension(path);
             item.itemName = definition.DisplayName;
             item.itemType = ItemType.Material;
             item.materialClassification = MaterialClassification.CraftingMaterial;
@@ -87,6 +89,7 @@ public static class TradeMaterialAssetUpdater
             {
                 continue;
             }
+            recipe.name = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(recipe));
             ItemDataSO magicStone = MaterialCatalog.GetMagicStoneForEquipmentRank(recipe.resultItem.equipmentRank);
             if (magicStone == null)
             {

@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
+  m_Name: enemy_slime_slime_venom
+  m_EditorClassIdentifier: 
+  persistentId: enemy.slime.slime_venom
+  enemyName: Venom Slime
+  monsterGrade: 8
+  isBoss: 0
+  category: 0
+  race: 50
+  enemySkill: 14
+  isSpecialVariant: 0
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: Grade08_slime_venom
+  maxHP: 60
+  attack: 10
+  defense: 4
+  maxMagicPower: 20
+  attackSpeed: 1
+  criticalRate: 0
+  evasionRate: 0
+  goldReward: 102
+  experienceMultiplier: 1
+  itemDrops:
+  - item: {fileID: 11400000, guid: 8f0a1b2c3d4e5f60718293a4b5c6d7e8, type: 2}
+    amount: 1
+    dropChance: 1
