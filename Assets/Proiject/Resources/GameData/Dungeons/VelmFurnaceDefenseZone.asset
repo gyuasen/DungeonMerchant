@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e979c614ce1242bd9c993974ec08851e, type: 3}
+  m_Name: VelmFurnaceDefenseZone
+  m_EditorClassIdentifier: 
+  persistentId: dungeon.velm_furnace_defense_zone
+  dungeonName: "\u7194\u7089\u9632\u885B\u533A"
+  grade: 3
+  worldMapIndex: 2
+  nearbyTownIndex: 5
+  totalFloors: 6
+  description: "\u30F4\u30A7\u30EB\u30E0\u306E\u5927\u7194\u7089\u3092\u5B88\u308B\u3001\u81EA\u5F8B\u6A5F\u69CB\u306E\u9632\u885B\u533A\u3002"
+  encounterCount: 4
+  firstEncounterEnemyCount: 4
+  enemyCountIncreasePerEncounter: 2
+  enemyCountIncreasePerFloor: 1
+  maxEnemyCountPerEncounter: 5
+  normalEnemies:
+  - {fileID: 11400000, guid: f582ec2d17a04ed58896adafab76f9d8, type: 2}
+  - {fileID: 11400000, guid: be463f195df046a0952022f76ba24110, type: 2}
+  - {fileID: 11400000, guid: f8cc8e9386e84dbd87ad119e3a14e07d, type: 2}
+  - {fileID: 11400000, guid: f5f268b439b8441998680c9c1a2c7a35, type: 2}
+  - {fileID: 11400000, guid: 5140b532b27b41a09dd351d628bddfc7, type: 2}
+  - {fileID: 11400000, guid: 92314d6555c9c3c47be56f6d61eaada7, type: 2}
+  bossEnemy: {fileID: 11400000, guid: 3e5b7d9f1a2c4468b0d3f6a9c2e5b813, type: 2}
+  specialVariantChance: 0.09
+  specialBossChance: 0.045
+  specialVariantSkillPool: 010000000400000005000000090000000f000000100000001100000013000000
+  battleBackground: {fileID: 0}
+  battleBackgroundKey: VelmFurnaceDefenseZone
+  floorClearGoldReward: 150
+  clearGoldReward: 600
+  clearItemRewards:
+  - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
+    amount: 9
+  - item: {fileID: 11400000, guid: 41a4798a2b1e48dcbbf3d766cefd6229, type: 2}
+    amount: 5
+  eventLimitedDropChance: 0.04
+  bossLimitedDropChance: 0.1
+  limitedEquipmentDrops:
+  - {fileID: 11400000, guid: 10a10000000000000000000000000008, type: 2}
+  - {fileID: 11400000, guid: 20800000000000000000000000000000, type: 2}
+  - {fileID: 11400000, guid: 20820000000000000000000000000000, type: 2}

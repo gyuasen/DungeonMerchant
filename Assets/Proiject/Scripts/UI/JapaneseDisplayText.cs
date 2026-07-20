@@ -212,6 +212,15 @@ public static class JapaneseDisplayText
             }
         }
 
+        foreach (BalanceExpansionEnemyDefinition definition in
+                 BalanceExpansionDefinition.DungeonReorgEnemies)
+        {
+            if (enemyName == definition.EnglishName)
+            {
+                return definition.JapaneseName;
+            }
+        }
+
         foreach (SlimeVariantDefinition definition in
                  BalanceExpansionDefinition.SlimeVariants)
         {

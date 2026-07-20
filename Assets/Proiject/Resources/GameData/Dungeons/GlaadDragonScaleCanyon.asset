@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e979c614ce1242bd9c993974ec08851e, type: 3}
+  m_Name: GlaadDragonScaleCanyon
+  m_EditorClassIdentifier: 
+  persistentId: dungeon.glaad_dragon_scale_canyon
+  dungeonName: "\u7ADC\u9C57\u5CE1\u8C37"
+  grade: 2
+  worldMapIndex: 1
+  nearbyTownIndex: 4
+  totalFloors: 5
+  description: "\u53E4\u3044\u9F8D\u306E\u9C57\u7247\u304C\u5CA9\u808C\u306B\u6B8B\u308B\u3001\u6DF1\u3044\u5CE1\u8C37\u3002"
+  encounterCount: 4
+  firstEncounterEnemyCount: 3
+  enemyCountIncreasePerEncounter: 1
+  enemyCountIncreasePerFloor: 1
+  maxEnemyCountPerEncounter: 5
+  normalEnemies:
+  - {fileID: 11400000, guid: a1bd4b71ba226be43a1f389e6f09a39b, type: 2}
+  - {fileID: 11400000, guid: aef11af5b5574354fb92774c40983453, type: 2}
+  - {fileID: 11400000, guid: b0f74ccef63e0d14da231a693d780a53, type: 2}
+  - {fileID: 11400000, guid: 27ab29367afcf224395222de03ce733f, type: 2}
+  - {fileID: 11400000, guid: 88a7c13c1a8251743ad3b12bc8a812bb, type: 2}
+  - {fileID: 11400000, guid: d132bd2c942640109263b2652d471f8a, type: 2}
+  - {fileID: 11400000, guid: a41469afa12d6bb4c93e29a4e5b73294, type: 2}
+  bossEnemy: {fileID: 11400000, guid: 2d4a6c8e0f1b43579a2c5e8b1d4f6072, type: 2}
+  specialVariantChance: 0.08
+  specialBossChance: 0.04
+  specialVariantSkillPool: 01000000030000000400000007000000090000000b0000000e0000000f0000001000000013000000
+  battleBackground: {fileID: 0}
+  battleBackgroundKey: GlaadDragonScaleCanyon
+  floorClearGoldReward: 90
+  clearGoldReward: 360
+  clearItemRewards:
+  - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
+    amount: 5
+  - item: {fileID: 11400000, guid: cacb701ddfa7423ba19f2f471bad942a, type: 2}
+    amount: 3
+  eventLimitedDropChance: 0.03
+  bossLimitedDropChance: 0.08
+  limitedEquipmentDrops:
+  - {fileID: 11400000, guid: 10a10000000000000000000000000007, type: 2}
+  - {fileID: 11400000, guid: 20710000000000000000000000000000, type: 2}
+  - {fileID: 11400000, guid: 20720000000000000000000000000000, type: 2}

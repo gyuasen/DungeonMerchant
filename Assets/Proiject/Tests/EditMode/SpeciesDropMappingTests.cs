@@ -54,8 +54,6 @@ public sealed class SpeciesDropMappingTests
 
         Assert.That(dungeon.normalEnemies.Any(enemy =>
             enemy.enemyName == "Wild Dog" && HasDrop(enemy, "Monster Fang")), Is.True);
-        Assert.That(dungeon.normalEnemies.Any(enemy =>
-            enemy.enemyName == "Kobold" && HasDrop(enemy, "Monster Fang")), Is.True);
     }
 
     [Test]

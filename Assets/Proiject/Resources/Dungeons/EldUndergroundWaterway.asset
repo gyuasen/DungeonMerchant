@@ -25,28 +25,15 @@ MonoBehaviour:
   enemyCountIncreasePerFloor: 1
   maxEnemyCountPerEncounter: 5
   normalEnemies:
-  - {fileID: 11400000, guid: 239a8f3917ce33c469d7359348e47b0b, type: 2}
   - {fileID: 11400000, guid: 9017a6d57352445198b657303e35421e, type: 2}
-  - {fileID: 11400000, guid: beb7f177f0844435b1ee0b6324a47733, type: 2}
-  - {fileID: 11400000, guid: edbb61e841b04bb8a7fe87d7ce6fddd8, type: 2}
-  - {fileID: 11400000, guid: fa9f722472a4452a9fc7566f770c8afd, type: 2}
   - {fileID: 11400000, guid: bce707ea711642478a1f4981ee103e57, type: 2}
-  - {fileID: 11400000, guid: f2dfcb83af8d43b98f0369f255e513d2, type: 2}
-  - {fileID: 11400000, guid: 6b6fc807dc4f4dfe98190aec3545455e, type: 2}
-  - {fileID: 11400000, guid: a04018ea899b41bbbe41cff593236c22, type: 2}
   - {fileID: 11400000, guid: 170c65f3d2c74740a72add3b3b46291e, type: 2}
   - {fileID: 11400000, guid: e701e516bcca4aa4d9b106b718d31b34, type: 2}
   - {fileID: 11400000, guid: 3225ef91ce86c274d925266640be1235, type: 2}
   - {fileID: 11400000, guid: 17e823831fa5b274c989c9b901099878, type: 2}
   - {fileID: 11400000, guid: 6abc0f4edecc9964f9fa9431d93722b1, type: 2}
   - {fileID: 11400000, guid: 6e98b9ae93520ce4797b57381b62c7d2, type: 2}
-  - {fileID: 11400000, guid: 08ee259ff19ed284ea7f04752f5ff149, type: 2}
-  - {fileID: 11400000, guid: 3532f17aca889984ea5c63e5bc5e4ff1, type: 2}
-  - {fileID: 11400000, guid: c09974f97be38f64eb0dd34f0635f01a, type: 2}
-  - {fileID: 11400000, guid: ed2e14bc48dad344fae727710dc9ca98, type: 2}
-  - {fileID: 11400000, guid: 2988f9048cd0c3e4990d17ccb6c15404, type: 2}
   - {fileID: 11400000, guid: 3b62fd54878e9c0439df366510c636c4, type: 2}
-  - {fileID: 11400000, guid: c75b5feb6f1175a409b4d370d3ba9f3e, type: 2}
   bossEnemy: {fileID: 11400000, guid: 5c78c95223f24a0ea9217d76786d9044, type: 2}
   specialVariantChance: 0.06
   specialBossChance: 0.03

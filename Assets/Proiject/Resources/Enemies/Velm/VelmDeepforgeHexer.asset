@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   persistentId: 
   enemyName: "\u30F4\u30A7\u30EB\u30E0\u6DF1\u7089\u546A\u8853\u5E2B"
-  monsterGrade: 2
+  monsterGrade: 1
   isBoss: 0
   category: 0
   race: 10
@@ -24,15 +24,15 @@ MonoBehaviour:
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
   battleVisualKey: 
-  maxHP: 1417
-  attack: 121
-  defense: 74
-  maxMagicPower: 110
+  maxHP: 2520
+  attack: 176
+  defense: 110
+  maxMagicPower: 140
   attackSpeed: 1.05
   criticalRate: 0.02
   evasionRate: 0.04
-  goldReward: 874
-  experienceMultiplier: 1.25
+  goldReward: 1250
+  experienceMultiplier: 1.4
   itemDrops:
   - item: {fileID: 11400000, guid: cd2a3b4c5d6e7f8091a2b3c4d5e6f7a8, type: 2}
     amount: 1

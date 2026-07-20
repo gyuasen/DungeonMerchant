@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e979c614ce1242bd9c993974ec08851e, type: 3}
+  m_Name: AbyssGatewayThreshold
+  m_EditorClassIdentifier: 
+  persistentId: dungeon.abyss_gateway_threshold
+  dungeonName: "\u5948\u843D\u5883\u9580"
+  grade: 3
+  worldMapIndex: 2
+  nearbyTownIndex: 6
+  totalFloors: 6
+  description: "\u6DF1\u6DF5\u3078\u306E\u9580\u306E\u524D\u306B\u5E83\u304C\u308B\u3001\u9B54\u65CF\u3068\u98DB\u7ADC\u306E\u5883\u754C\u3002"
+  encounterCount: 4
+  firstEncounterEnemyCount: 4
+  enemyCountIncreasePerEncounter: 2
+  enemyCountIncreasePerFloor: 1
+  maxEnemyCountPerEncounter: 5
+  normalEnemies:
+  - {fileID: 11400000, guid: b3b67e52dccc48089bb352b4aefc6eed, type: 2}
+  - {fileID: 11400000, guid: f8cc8e9386e84dbd87ad119e3a14e07d, type: 2}
+  - {fileID: 11400000, guid: d5b504215a634161b572384055626995, type: 2}
+  - {fileID: 11400000, guid: 18f0700b7be372341a2ec3ec93db6f16, type: 2}
+  - {fileID: 11400000, guid: ebde6f592fef3354b87b2658db075e89, type: 2}
+  - {fileID: 11400000, guid: 0b2e4a6c8d1f43579b0e3c6a9d2f5081, type: 2}
+  bossEnemy: {fileID: 11400000, guid: 4f6c8e0a2b3d4579c1e4a7d0b3f6c924, type: 2}
+  specialVariantChance: 0.09
+  specialBossChance: 0.045
+  specialVariantSkillPool: 010000000400000005000000090000000f000000100000001100000013000000
+  battleBackground: {fileID: 0}
+  battleBackgroundKey: AbyssGatewayThreshold
+  floorClearGoldReward: 175
+  clearGoldReward: 800
+  clearItemRewards:
+  - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
+    amount: 10
+  - item: {fileID: 11400000, guid: 41a4798a2b1e48dcbbf3d766cefd6229, type: 2}
+    amount: 6
+  eventLimitedDropChance: 0.04
+  bossLimitedDropChance: 0.1
+  limitedEquipmentDrops:
+  - {fileID: 11400000, guid: 10a10000000000000000000000000009, type: 2}
+  - {fileID: 11400000, guid: 20900000000000000000000000000000, type: 2}
+  - {fileID: 11400000, guid: 20910000000000000000000000000000, type: 2}

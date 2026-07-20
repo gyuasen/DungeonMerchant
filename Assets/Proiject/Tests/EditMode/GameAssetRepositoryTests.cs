@@ -138,6 +138,108 @@ public sealed class GameAssetRepositoryTests
     }
 
     [Test]
+    public void DungeonReorgPhase2_AddsTwoMiddleDungeonsWithRegionalRosters()
+    {
+        IReadOnlyList<DungeonDataSO> dungeons =
+            GameAssetRepository.LoadAll<DungeonDataSO>();
+        Assert.That(dungeons.Count, Is.EqualTo(15));
+
+        AssertMiddleDungeon(
+            "NornVerdantSettlement",
+            "dungeon.norn_verdant_settlement",
+            3,
+            "enemy_job_orc_shaman",
+            "enemy_job_orc_rider",
+            "enemy_job_orc_bulwark",
+            "enemy_job_orc_berserker",
+            "enemy_job_orc_veteran",
+            "Grade05OgreMage",
+            "enemy_slime_slime_verdant");
+        AssertMiddleDungeon(
+            "GlaadDragonScaleCanyon",
+            "dungeon.glaad_dragon_scale_canyon",
+            4,
+            "enemy_job_lizardman_shaman",
+            "enemy_job_lizardman_stalker",
+            "enemy_job_lizardman_scaleguard",
+            "enemy_job_lizardman_ravager",
+            "enemy_job_lizardman_captain",
+            "Grade06Lizardman",
+            "enemy_slime_slime_quicksilver");
+        AssertUpperDungeon(
+            "VelmFurnaceDefenseZone",
+            "dungeon.velm_furnace_defense_zone",
+            5,
+            "Grade05IronGolem",
+            "Grade05StoneGolem",
+            "Grade04DarkMage",
+            "Grade03GlaadSkyWarden",
+            "VelmEmberforgedAutomaton",
+            "enemy_slime_slime_frost_crystal");
+        AssertUpperDungeon(
+            "AbyssGatewayThreshold",
+            "dungeon.abyss_gateway_threshold",
+            6,
+            "Grade02DemonKnight",
+            "Grade04DarkMage",
+            "Grade03Wyvern",
+            "enemy_job_wyvern_hexer",
+            "enemy_slime_slime_thunder",
+            "AbyssSpawn");
+    }
+
+    [Test]
+    public void DungeonReorgPhase5_UsesFormalRegionalBossesAndAbyssSpawn()
+    {
+        AssertReorgEnemy("GameData/Enemies/Expansion/AbyssSpawn", "奈落の眷属",
+            EnemyRace.Demon, 4, false, "enemy.abyss_spawn", "Grade04_abyss_spawn", 430, 57, 29);
+        AssertReorgEnemy("GameData/Enemies/Expansion/NornVerdantOrcHighChieftain", "翠樹の大族長",
+            EnemyRace.Humanoid, 4, true, "enemy.boss.norn_verdant_orc_high_chieftain", "Grade04_norn_verdant_orc_high_chieftain", 1548, 84, 31);
+        AssertReorgEnemy("GameData/Enemies/Expansion/GlaadDragonScaleKing", "竜鱗王",
+            EnemyRace.Dragon, 4, true, "enemy.boss.glaad_dragon_scale_king", "Grade04_dragonscale_king", 1720, 73, 42);
+        AssertReorgEnemy("GameData/Enemies/Expansion/VelmGrandFurnaceColossus", "大熔炉巨像",
+            EnemyRace.Construct, 3, true, "enemy.boss.velm_grand_furnace_colossus", "Grade03_grand_furnace_colossus", 4104, 97, 65);
+        AssertReorgEnemy("GameData/Enemies/Expansion/AbyssGatekeeper", "奈落の門衛",
+            EnemyRace.Demon, 3, true, "enemy.boss.abyss_gatekeeper", "Grade03_abyss_gatekeeper", 3040, 113, 54);
+        AssertReorgEnemy("GameData/Enemies/Expansion/EldOldQuarryGravelord", "旧採石場の骸王",
+            EnemyRace.Undead, 6, true, "enemy.boss.eld_old_quarry_gravelord", "Grade06_eld_quarry_gravelord", 810, 29, 16);
+
+        AssertBoss("GameData/Dungeons/NornVerdantSettlement", "NornVerdantOrcHighChieftain", EnemyRace.Humanoid);
+        AssertBoss("GameData/Dungeons/GlaadDragonScaleCanyon", "GlaadDragonScaleKing", EnemyRace.Dragon);
+        AssertBoss("GameData/Dungeons/VelmFurnaceDefenseZone", "VelmGrandFurnaceColossus", EnemyRace.Construct);
+        DungeonDataSO abyss = UnityEngine.Resources.Load<DungeonDataSO>("GameData/Dungeons/AbyssGatewayThreshold");
+        Assert.That(abyss.normalEnemies, Has.Some.Matches<EnemyDataSO>(enemy => enemy.name == "AbyssSpawn"));
+        AssertBoss("GameData/Dungeons/AbyssGatewayThreshold", "AbyssGatekeeper", EnemyRace.Demon);
+        AssertBoss("Dungeons/EldOldQuarry", "EldOldQuarryGravelord", EnemyRace.Undead);
+        AssertBoss("GameData/Dungeons/LowerMine", "Boss06MineTyrant", EnemyRace.Humanoid);
+    }
+
+    [Test]
+    public void VelmBlackIronMine_IsHighestAndKeepsRankEightLimitedEquipment()
+    {
+        DungeonDataSO mine = UnityEngine.Resources.Load<DungeonDataSO>(
+            "Dungeons/VelmBlackIronMine");
+        Assert.That(mine, Is.Not.Null);
+        Assert.That(mine.grade, Is.EqualTo(DungeonGrade.Highest));
+        Assert.That(mine.nearbyTownIndex, Is.EqualTo(5));
+        Assert.That(mine.clearGoldReward, Is.EqualTo(1500));
+        foreach (ItemDataSO item in mine.limitedEquipmentDrops)
+        {
+            Assert.That(item, Is.Not.Null);
+            Assert.That(item.equipmentRank, Is.EqualTo(8));
+        }
+
+        AssertVelmEnemy("Enemies/Velm/VelmBlackIronDelver", 2, 1418, 121, 74, 874);
+        AssertVelmEnemy("Enemies/Velm/VelmEmberforgedAutomaton", 2, 1914, 109, 88, 874);
+        AssertVelmEnemy("Enemies/Velm/VelmMagmaDrake", 1, 2268, 193, 99, 1250);
+        AssertVelmEnemy("Enemies/Velm/VelmDeepforgeHexer", 1, 2520, 176, 110, 1250);
+        AssertVelmEnemy("Enemies/Velm/VelmDeepforgeOverlord", 1, 10080, 227, 132, 1250);
+        EnemyDataSO overlord = UnityEngine.Resources.Load<EnemyDataSO>(
+            "Enemies/Velm/VelmDeepforgeOverlord");
+        Assert.That(overlord.experienceMultiplier, Is.EqualTo(4f));
+    }
+
+    [Test]
     public void DungeonSpecialBossChance_IsHiddenElementLevel()
     {
         foreach (DungeonDataSO dungeon in
@@ -258,6 +360,108 @@ public sealed class GameAssetRepositoryTests
                 GameAssetRepository.FindByPersistentId<T>(id, asset.name),
                 Is.SameAs(asset));
         }
+    }
+
+    private static void AssertMiddleDungeon(
+        string assetName,
+        string persistentId,
+        int nearbyTownIndex,
+        params string[] enemyAssetNames)
+    {
+        DungeonDataSO dungeon = UnityEngine.Resources.Load<DungeonDataSO>(
+            "GameData/Dungeons/" + assetName);
+        Assert.That(dungeon, Is.Not.Null, assetName);
+        Assert.That(dungeon.PersistentId, Is.EqualTo(persistentId));
+        Assert.That(dungeon.grade, Is.EqualTo(DungeonGrade.Middle));
+        Assert.That(dungeon.worldMapIndex, Is.EqualTo(1));
+        Assert.That(dungeon.nearbyTownIndex, Is.EqualTo(nearbyTownIndex));
+        Assert.That(dungeon.totalFloors, Is.EqualTo(5));
+        Assert.That(dungeon.bossEnemy, Is.Not.Null);
+        Assert.That(dungeon.normalEnemies, Has.Length.EqualTo(enemyAssetNames.Length));
+        foreach (string enemyAssetName in enemyAssetNames)
+        {
+            Assert.That(dungeon.normalEnemies,
+                Has.Some.Matches<EnemyDataSO>(enemy => enemy.name == enemyAssetName),
+                assetName + ": " + enemyAssetName);
+        }
+    }
+
+    private static void AssertUpperDungeon(
+        string assetName,
+        string persistentId,
+        int nearbyTownIndex,
+        params string[] enemyAssetNames)
+    {
+        DungeonDataSO dungeon = UnityEngine.Resources.Load<DungeonDataSO>(
+            "GameData/Dungeons/" + assetName);
+        Assert.That(dungeon, Is.Not.Null, assetName);
+        Assert.That(dungeon.PersistentId, Is.EqualTo(persistentId));
+        Assert.That(dungeon.grade, Is.EqualTo(DungeonGrade.Upper));
+        Assert.That(dungeon.worldMapIndex, Is.EqualTo(2));
+        Assert.That(dungeon.nearbyTownIndex, Is.EqualTo(nearbyTownIndex));
+        Assert.That(dungeon.totalFloors, Is.EqualTo(6));
+        Assert.That(dungeon.bossEnemy, Is.Not.Null);
+        Assert.That(dungeon.normalEnemies, Has.Length.EqualTo(enemyAssetNames.Length));
+        foreach (string enemyAssetName in enemyAssetNames)
+        {
+            Assert.That(dungeon.normalEnemies,
+                Has.Some.Matches<EnemyDataSO>(enemy => enemy.name == enemyAssetName),
+                assetName + ": " + enemyAssetName);
+        }
+    }
+
+    private static void AssertReorgEnemy(
+        string resourcePath,
+        string japaneseName,
+        EnemyRace race,
+        int grade,
+        bool isBoss,
+        string persistentId,
+        string battleVisualKey,
+        int hitPoints,
+        int attack,
+        int defense)
+    {
+        EnemyDataSO enemy = UnityEngine.Resources.Load<EnemyDataSO>(resourcePath);
+        Assert.That(enemy, Is.Not.Null, resourcePath);
+        Assert.That(enemy.race, Is.EqualTo(race), resourcePath);
+        Assert.That(enemy.monsterGrade, Is.EqualTo(grade), resourcePath);
+        Assert.That(enemy.isBoss, Is.EqualTo(isBoss), resourcePath);
+        Assert.That(enemy.PersistentId, Is.EqualTo(persistentId), resourcePath);
+        Assert.That(enemy.battleVisualKey, Is.EqualTo(battleVisualKey), resourcePath);
+        Assert.That(JapaneseDisplayText.GetEnemyName(enemy.enemyName), Is.EqualTo(japaneseName), resourcePath);
+        Assert.That(enemy.maxHP, Is.EqualTo(hitPoints), resourcePath);
+        Assert.That(enemy.attack, Is.EqualTo(attack), resourcePath);
+        Assert.That(enemy.defense, Is.EqualTo(defense), resourcePath);
+    }
+
+    private static void AssertBoss(
+        string dungeonResourcePath,
+        string bossAssetName,
+        EnemyRace expectedRace)
+    {
+        DungeonDataSO dungeon = UnityEngine.Resources.Load<DungeonDataSO>(dungeonResourcePath);
+        Assert.That(dungeon, Is.Not.Null, dungeonResourcePath);
+        Assert.That(dungeon.bossEnemy, Is.Not.Null, dungeonResourcePath);
+        Assert.That(dungeon.bossEnemy.name, Is.EqualTo(bossAssetName), dungeonResourcePath);
+        Assert.That(dungeon.bossEnemy.race, Is.EqualTo(expectedRace), dungeonResourcePath);
+    }
+
+    private static void AssertVelmEnemy(
+        string resourcePath,
+        int grade,
+        int hitPoints,
+        int attack,
+        int defense,
+        int gold)
+    {
+        EnemyDataSO enemy = UnityEngine.Resources.Load<EnemyDataSO>(resourcePath);
+        Assert.That(enemy, Is.Not.Null, resourcePath);
+        Assert.That(enemy.monsterGrade, Is.EqualTo(grade), resourcePath);
+        Assert.That(enemy.maxHP, Is.EqualTo(hitPoints), resourcePath);
+        Assert.That(enemy.attack, Is.EqualTo(attack), resourcePath);
+        Assert.That(enemy.defense, Is.EqualTo(defense), resourcePath);
+        Assert.That(enemy.goldReward, Is.EqualTo(gold), resourcePath);
     }
 
     private static float AverageStat(
