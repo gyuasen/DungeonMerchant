@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e979c614ce1242bd9c993974ec08851e, type: 3}
+  m_Name: NornVerdantSettlement
+  m_EditorClassIdentifier: 
+  persistentId: dungeon.norn_verdant_settlement
+  dungeonName: "\u7FE0\u6A39\u65CF\u306E\u96C6\u843D\u8DE1"
+  grade: 2
+  worldMapIndex: 1
+  nearbyTownIndex: 3
+  totalFloors: 5
+  description: "\u7FE0\u6A39\u306E\u68EE\u306E\u6DF1\u304F\u306B\u6B8B\u308B\u3001\u30AA\u30FC\u30AF\u65CF\u306E\u53E4\u3044\u96C6\u843D\u8DE1\u3002"
+  encounterCount: 4
+  firstEncounterEnemyCount: 3
+  enemyCountIncreasePerEncounter: 1
+  enemyCountIncreasePerFloor: 1
+  maxEnemyCountPerEncounter: 5
+  normalEnemies:
+  - {fileID: 11400000, guid: efcf20d0df8b43345a567c0139ff3732, type: 2}
+  - {fileID: 11400000, guid: bf8f5eafd9a14854f8f1b7e1e8f341cd, type: 2}
+  - {fileID: 11400000, guid: 0a3e320b88816cc4d85948fd4a351d61, type: 2}
+  - {fileID: 11400000, guid: 711c5ec16c41c2846ab210d82e6a93dc, type: 2}
+  - {fileID: 11400000, guid: f8710f8949cde994b8bc4cea2905804e, type: 2}
+  - {fileID: 11400000, guid: 4b0f0259490840e4805032822bd20f56, type: 2}
+  - {fileID: 11400000, guid: 4050b323e4f0c7c428ac7373d06032cb, type: 2}
+  bossEnemy: {fileID: 11400000, guid: 1c3f5b7d9e2a4c6180f3d6b9a2e5c781, type: 2}
+  specialVariantChance: 0.08
+  specialBossChance: 0.04
+  specialVariantSkillPool: 01000000030000000400000007000000090000000b0000000e0000000f0000001000000013000000
+  battleBackground: {fileID: 0}
+  battleBackgroundKey: NornVerdantSettlement
+  floorClearGoldReward: 90
+  clearGoldReward: 360
+  clearItemRewards:
+  - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
+    amount: 5
+  - item: {fileID: 11400000, guid: cacb701ddfa7423ba19f2f471bad942a, type: 2}
+    amount: 3
+  eventLimitedDropChance: 0.03
+  bossLimitedDropChance: 0.08
+  limitedEquipmentDrops:
+  - {fileID: 11400000, guid: 10a10000000000000000000000000006, type: 2}
+  - {fileID: 11400000, guid: 20610000000000000000000000000000, type: 2}
+  - {fileID: 11400000, guid: 20600000000000000000000000000000, type: 2}

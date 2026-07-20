@@ -1,0 +1,4 @@
+Add-Type -AssemblyName System.Drawing
+$jobs=@(@{S='C:\Users\yuga0\.codex\generated_images\019f7a47-06d8-7b62-8373-138abfad0c65\exec-c07103a3-1b88-4872-b3b5-360c18c68911.png';N='Road_6_7.png'},@{S='C:\Users\yuga0\.codex\generated_images\019f7a47-06d8-7b62-8373-138abfad0c65\exec-010d62d6-edc5-4864-943b-75c4bfc712c9.png';N='Default.png'})
+$dir='C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Battle\Backgrounds'
+foreach($j in $jobs){$t=Join-Path $dir $j.N;if(Test-Path $t){throw "exists $t"};$s=[Drawing.Bitmap]::FromFile($j.S);try{$o=New-Object Drawing.Bitmap(1920,1080,[Drawing.Imaging.PixelFormat]::Format24bppRgb);$g=[Drawing.Graphics]::FromImage($o);try{$g.InterpolationMode=[Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic;$g.DrawImage($s,0,0,1920,1080)}finally{$g.Dispose()};$o.Save($t,[Drawing.Imaging.ImageFormat]::Png);$o.Dispose()}finally{$s.Dispose()}}

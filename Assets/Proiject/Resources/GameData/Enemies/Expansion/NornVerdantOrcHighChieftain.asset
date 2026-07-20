@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9de511cd5c82f2a4e8ed6b32c1f12ec9, type: 3}
+  m_Name: NornVerdantOrcHighChieftain
+  m_EditorClassIdentifier: 
+  persistentId: enemy.boss.norn_verdant_orc_high_chieftain
+  enemyName: Norn Verdant Orc High Chieftain
+  monsterGrade: 4
+  isBoss: 1
+  category: 0
+  race: 10
+  enemySkill: 27
+  isSpecialVariant: 0
+  specialVariantTitle: 
+  combatBalanceStage1Applied: 1
+  battleSprite: {fileID: 0}
+  battleVisualKey: Grade04_norn_verdant_orc_high_chieftain
+  maxHP: 1548
+  attack: 84
+  defense: 31
+  maxMagicPower: 35
+  attackSpeed: 0.99225
+  criticalRate: 0
+  evasionRate: 0
+  goldReward: 427
+  experienceMultiplier: 1
+  itemDrops:
+  - item: {fileID: 11400000, guid: 02cca79ae8434c1eb64f32d3d4d206a0, type: 2}
+    amount: 1
+    dropChance: 0.65

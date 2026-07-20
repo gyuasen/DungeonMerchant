@@ -1,0 +1,3 @@
+Add-Type -AssemblyName System.Drawing
+$path='C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\UI\Staff\Tavern.png';$src=[Drawing.Bitmap]::FromFile($path)
+try{$out=New-Object Drawing.Bitmap($src.Width,$src.Height,[Drawing.Imaging.PixelFormat]::Format32bppArgb);for($y=0;$y-lt$src.Height;$y++){for($x=0;$x-lt$src.Width;$x++){$c=$src.GetPixel($x,$y);$g=$c.G;if($g-[Math]::Max($c.R,$c.B)-gt 4){$g=[Math]::Max($c.R,$c.B)};$out.SetPixel($x,$y,[Drawing.Color]::FromArgb($c.A,$c.R,[int]$g,$c.B))}};$src.Dispose();$out.Save($path,[Drawing.Imaging.ImageFormat]::Png);$out.Dispose()}finally{if($src){$src.Dispose()}}

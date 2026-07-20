@@ -1,0 +1,4 @@
+Add-Type -AssemblyName System.Drawing
+$jobs=@(@{S='C:\Users\yuga0\.codex\generated_images\019f7a47-06d8-7b62-8373-138abfad0c65\exec-7adbed37-3234-4c40-8fde-10b99306abd5.png';N='Dungeon_OriginCave.png'},@{S='C:\Users\yuga0\.codex\generated_images\019f7a47-06d8-7b62-8373-138abfad0c65\exec-3b950825-a282-4b31-bf6a-8921fcbaaa48.png';N='Dungeon_SealedMine.png'})
+$dir='C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\Battle\Backgrounds';if(!(Test-Path $dir)){New-Item -ItemType Directory -Path $dir|Out-Null}
+foreach($j in $jobs){$t=Join-Path $dir $j.N;if(Test-Path $t){throw "exists $t"};$s=[Drawing.Bitmap]::FromFile($j.S);try{$o=New-Object Drawing.Bitmap(1920,1080,[Drawing.Imaging.PixelFormat]::Format24bppRgb);$g=[Drawing.Graphics]::FromImage($o);try{$g.InterpolationMode=[Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic;$g.DrawImage($s,0,0,1920,1080)}finally{$g.Dispose()};$o.Save($t,[Drawing.Imaging.ImageFormat]::Png);$o.Dispose()}finally{$s.Dispose()}}

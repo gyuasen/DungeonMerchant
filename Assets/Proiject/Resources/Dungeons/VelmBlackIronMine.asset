@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   persistentId: dungeon.VelmBlackIronMine
   dungeonName: "\u30F4\u30A7\u30EB\u30E0\u9ED2\u9244\u5751"
-  grade: 3
+  grade: 4
   worldMapIndex: 2
   nearbyTownIndex: 5
   totalFloors: 6
@@ -36,11 +36,13 @@ MonoBehaviour:
   specialVariantSkillPool: 07000000080000000a0000000c0000000d000000100000001200000014000000
   battleBackground: {fileID: 0}
   battleBackgroundKey: 
-  floorClearGoldReward: 150
-  clearGoldReward: 650
+  floorClearGoldReward: 225
+  clearGoldReward: 1500
   clearItemRewards:
   - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
-    amount: 10
+    amount: 12
+  - item: {fileID: 11400000, guid: 41759c6c3b674e80badbff072ddc6b6d, type: 2}
+    amount: 4
   eventLimitedDropChance: 0.045
   bossLimitedDropChance: 0.11
   limitedEquipmentDrops:

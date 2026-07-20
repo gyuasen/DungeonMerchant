@@ -1,0 +1,8 @@
+Add-Type -AssemblyName System.Drawing
+$items=@(
+ @{Name='ShadowhideArmor';Source='C:\Users\yuga0\.codex\generated_images\019f7a47-06d8-7b62-8373-138abfad0c65\exec-94337c12-b849-4b93-976b-c00a8d9141f0.png'},
+ @{Name='SoldierRing';Source='C:\Users\yuga0\.codex\generated_images\019f7a47-06d8-7b62-8373-138abfad0c65\exec-d80f702d-0c6a-49af-a332-54c90b17a5f4.png'})
+$outDir='C:\UnityProjects\DungeonMerchant\Assets\Proiject\Resources\UI\Codex\Equipment';$sourceDir='C:\UnityProjects\DungeonMerchant\tmp\imagegen'
+foreach($item in $items){$out=Join-Path $outDir ($item.Name+'.png');if(Test-Path -LiteralPath $out){throw "Refusing overwrite $out"};Copy-Item -LiteralPath $item.Source -Destination (Join-Path $sourceDir ($item.Name+'_source.png'));$src=[Drawing.Bitmap]::FromFile($item.Source);$keyed=New-Object Drawing.Bitmap $src.Width,$src.Height,([Drawing.Imaging.PixelFormat]::Format32bppArgb)
+ for($y=0;$y-lt$src.Height;$y++){for($x=0;$x-lt$src.Width;$x++){$c=$src.GetPixel($x,$y);$m=[Math]::Max($c.R,$c.B);$d=[Math]::Min($c.G-$c.R,$c.G-$c.B);$a=255;$g=$c.G;if($c.G-gt65-and$d-gt8){$a=[Math]::Max(0,[Math]::Min(255,255-[int](($d-8)*255/42)));if($a-lt38){$a=0};$g=[Math]::Min($c.G,$m)};$keyed.SetPixel($x,$y,[Drawing.Color]::FromArgb($a,$c.R,$g,$c.B))}}
+ $canvas=New-Object Drawing.Bitmap 256,256,([Drawing.Imaging.PixelFormat]::Format32bppArgb);$gfx=[Drawing.Graphics]::FromImage($canvas);$gfx.Clear([Drawing.Color]::Transparent);$gfx.InterpolationMode=[Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic;$gfx.DrawImage($keyed,10,10,236,236);$gfx.Dispose();$keyed.Dispose();$src.Dispose();$canvas.Save($out,[Drawing.Imaging.ImageFormat]::Png);$canvas.Dispose()}

@@ -67,6 +67,19 @@ public sealed class BalanceExpansionConsumableDefinition
 }
 public static class BalanceExpansionDefinition
 {
+    // Stage 5 enemies are authored directly as assets because their boss state and
+    // dungeon references must remain stable even when the batch generator is not run.
+    // Keep their display metadata here so every UI uses the same Japanese-name path.
+    public static readonly IReadOnlyList<BalanceExpansionEnemyDefinition> DungeonReorgEnemies = new[]
+    {
+        new BalanceExpansionEnemyDefinition("enemy.abyss_spawn", "Abyss Spawn", "奈落の眷属", 4, "Grade02DemonKnight", "Grade04DarkMage", "AbyssGatewayThreshold", EnemySkillType.HexBolt, EnemyCombatRole.Skill, EnemyRace.Demon, "Grade04_abyss_spawn"),
+        new BalanceExpansionEnemyDefinition("enemy.boss.norn_verdant_orc_high_chieftain", "Norn Verdant Orc High Chieftain", "翠樹の大族長", 4, "Grade06Orc", "Grade06Orc", "NornVerdantSettlement", EnemySkillType.BloodFrenzy, EnemyCombatRole.Attack, EnemyRace.Humanoid, "Grade04_norn_verdant_orc_high_chieftain"),
+        new BalanceExpansionEnemyDefinition("enemy.boss.glaad_dragon_scale_king", "Glaad Dragon Scale King", "竜鱗王", 4, "Grade06Lizardman", "Grade03Wyvern", "GlaadDragonScaleCanyon", EnemySkillType.ArmorPierce, EnemyCombatRole.Balance, EnemyRace.Dragon, "Grade04_dragonscale_king"),
+        new BalanceExpansionEnemyDefinition("enemy.boss.velm_grand_furnace_colossus", "Velm Grand Furnace Colossus", "大熔炉巨像", 3, "Grade05IronGolem", "Grade05IronGolem", "VelmFurnaceDefenseZone", EnemySkillType.Reconstitute, EnemyCombatRole.Durability, EnemyRace.Construct, "Grade03_grand_furnace_colossus"),
+        new BalanceExpansionEnemyDefinition("enemy.boss.abyss_gatekeeper", "Abyss Gatekeeper", "奈落の門衛", 3, "Grade02DemonKnight", "Grade02DemonKnight", "AbyssGatewayThreshold", EnemySkillType.MeteorRain, EnemyCombatRole.Skill, EnemyRace.Demon, "Grade03_abyss_gatekeeper"),
+        new BalanceExpansionEnemyDefinition("enemy.boss.eld_old_quarry_gravelord", "Eld Old Quarry Gravelord", "旧採石場の骸王", 6, "Grade07Skeleton", "Grade07Skeleton", "EldOldQuarry", EnemySkillType.SoulBurst, EnemyCombatRole.Durability, EnemyRace.Undead, "Grade06_eld_quarry_gravelord")
+    };
+
     public static readonly IReadOnlyList<ExistingEquipmentEffectAssignment> ExistingEquipmentEffects = new[]
     {
         X("GameData/Items/ChampionEmblem", EquipmentEffectType.BattleStartAttackBuff, 0.15f, 0f, 3),
@@ -82,10 +95,10 @@ public static class BalanceExpansionDefinition
     public static readonly IReadOnlyList<SlimeVariantDefinition> SlimeVariants = new[]
     {
         S("slime_acid", "Acid Slime", "酸液スライム", 9, "EldUndergroundWaterway", EnemySkillType.VenomStrike, EnemyCombatRole.Attack),
-        S("slime_venom", "Venom Slime", "猛毒スライム", 8, "EldUndergroundWaterway", EnemySkillType.ToxicCloud, EnemyCombatRole.Skill),
+        S("slime_venom", "Venom Slime", "猛毒スライム", 8, "LowerMine", EnemySkillType.ToxicCloud, EnemyCombatRole.Skill),
         S("slime_stone", "Stone Slime", "岩殻スライム", 7, "EldOldQuarry", EnemySkillType.Ironhide, EnemyCombatRole.Durability),
-        S("slime_quicksilver", "Quicksilver Slime", "水銀スライム", 6, "EldOldQuarry", EnemySkillType.ShadowPounce, EnemyCombatRole.Speed),
-        S("slime_verdant", "Verdant Slime", "翠樹スライム", 5, "NornCanopyLabyrinth", EnemySkillType.Regeneration, EnemyCombatRole.Balance),
+        S("slime_quicksilver", "Quicksilver Slime", "水銀スライム", 6, "GlaadDragonScaleCanyon", EnemySkillType.ShadowPounce, EnemyCombatRole.Speed),
+        S("slime_verdant", "Verdant Slime", "翠樹スライム", 5, "NornVerdantSettlement", EnemySkillType.Regeneration, EnemyCombatRole.Balance),
         S("slime_thunder", "Thunder Slime", "雷光スライム", 4, "NornCanopyLabyrinth", EnemySkillType.ParalyzingRoar, EnemyCombatRole.Speed),
         S("slime_frost_crystal", "Frost Crystal Slime", "霜晶スライム", 3, "GlaadSkyFortress", EnemySkillType.FrostBite, EnemyCombatRole.Durability),
         S("slime_magma", "Magma Slime", "溶鉄スライム", 2, "VelmBlackIronMine", EnemySkillType.FlameBreath, EnemyCombatRole.Attack),
@@ -95,16 +108,16 @@ public static class BalanceExpansionDefinition
     static BalanceExpansionDefinition()
     {
         var enemies = new List<BalanceExpansionEnemyDefinition>(Enemies);
-        enemies.Add(E("kobold_hexer", "Kobold Hexer", "コボルト呪術師", 9, "Grade08CaveSpider", "Grade09Kobold", "EldUndergroundWaterway", EnemySkillType.HexBolt, EnemyCombatRole.Skill, EnemyRace.Beast));
-        enemies.Add(E("kobold_prowler", "Kobold Prowler", "コボルト追跡者", 9, "Grade08GiantRat", "Grade09Kobold", "EldUndergroundWaterway", EnemySkillType.ShadowPounce, EnemyCombatRole.Speed, EnemyRace.Beast));
-        enemies.Add(E("kobold_bulwark", "Kobold Bulwark", "コボルト堅盾兵", 9, "Grade08RockBeetle", "Grade09Kobold", "EldUndergroundWaterway", EnemySkillType.Ironhide, EnemyCombatRole.Durability, EnemyRace.Beast));
-        enemies.Add(E("kobold_ravager", "Kobold Ravager", "コボルト襲撃者", 9, "Grade08GiantRat", "Grade09Kobold", "EldUndergroundWaterway", EnemySkillType.CleavingRush, EnemyCombatRole.Attack, EnemyRace.Beast));
-        enemies.Add(E("kobold_packleader", "Kobold Packleader", "コボルト群れ長", 9, "Grade08CaveBat", "Grade09Kobold", "EldUndergroundWaterway", EnemySkillType.DoubleStrike, EnemyCombatRole.Balance, EnemyRace.Beast));
-        enemies.Add(E("lizardman_shaman", "Lizardman Shaman", "リザードマン祈祷師", 6, "Grade05OgreMage", "Grade06Lizardman", "EldOldQuarry", EnemySkillType.HexBolt, EnemyCombatRole.Skill, EnemyRace.Dragon));
-        enemies.Add(E("lizardman_stalker", "Lizardman Stalker", "リザードマン追跡兵", 6, "Grade05OgreMage", "Grade06Lizardman", "EldOldQuarry", EnemySkillType.ShadowPounce, EnemyCombatRole.Speed, EnemyRace.Dragon));
-        enemies.Add(E("lizardman_scaleguard", "Lizardman Scaleguard", "リザードマン鱗衛兵", 6, "Grade05IronGolem", "Grade06Lizardman", "EldOldQuarry", EnemySkillType.Ironhide, EnemyCombatRole.Durability, EnemyRace.Dragon));
-        enemies.Add(E("lizardman_ravager", "Lizardman Ravager", "リザードマン裂爪兵", 6, "Grade05OgreMage", "Grade06Lizardman", "EldOldQuarry", EnemySkillType.BloodFrenzy, EnemyCombatRole.Attack, EnemyRace.Dragon));
-        enemies.Add(E("lizardman_captain", "Lizardman Captain", "リザードマン隊長", 6, "Grade05StoneGolem", "Grade06Lizardman", "EldOldQuarry", EnemySkillType.PowerStrike, EnemyCombatRole.Balance, EnemyRace.Dragon));
+        enemies.Add(E("kobold_hexer", "Kobold Hexer", "コボルト呪術師", 9, "Grade08CaveSpider", "Grade09Kobold", "LeafForestTrail", EnemySkillType.HexBolt, EnemyCombatRole.Skill, EnemyRace.Beast));
+        enemies.Add(E("kobold_prowler", "Kobold Prowler", "コボルト追跡者", 9, "Grade08GiantRat", "Grade09Kobold", "LeafForestTrail", EnemySkillType.ShadowPounce, EnemyCombatRole.Speed, EnemyRace.Beast));
+        enemies.Add(E("kobold_bulwark", "Kobold Bulwark", "コボルト堅盾兵", 9, "Grade08RockBeetle", "Grade09Kobold", "LeafForestTrail", EnemySkillType.Ironhide, EnemyCombatRole.Durability, EnemyRace.Beast));
+        enemies.Add(E("kobold_ravager", "Kobold Ravager", "コボルト襲撃者", 9, "Grade08GiantRat", "Grade09Kobold", "LeafForestTrail", EnemySkillType.CleavingRush, EnemyCombatRole.Attack, EnemyRace.Beast));
+        enemies.Add(E("kobold_packleader", "Kobold Packleader", "コボルト群れ長", 9, "Grade08CaveBat", "Grade09Kobold", "LeafForestTrail", EnemySkillType.DoubleStrike, EnemyCombatRole.Balance, EnemyRace.Beast));
+        enemies.Add(E("lizardman_shaman", "Lizardman Shaman", "リザードマン祈祷師", 6, "Grade05OgreMage", "Grade06Lizardman", "GlaadDragonScaleCanyon", EnemySkillType.HexBolt, EnemyCombatRole.Skill, EnemyRace.Dragon));
+        enemies.Add(E("lizardman_stalker", "Lizardman Stalker", "リザードマン追跡兵", 6, "Grade05OgreMage", "Grade06Lizardman", "GlaadDragonScaleCanyon", EnemySkillType.ShadowPounce, EnemyCombatRole.Speed, EnemyRace.Dragon));
+        enemies.Add(E("lizardman_scaleguard", "Lizardman Scaleguard", "リザードマン鱗衛兵", 6, "Grade05IronGolem", "Grade06Lizardman", "GlaadDragonScaleCanyon", EnemySkillType.Ironhide, EnemyCombatRole.Durability, EnemyRace.Dragon));
+        enemies.Add(E("lizardman_ravager", "Lizardman Ravager", "リザードマン裂爪兵", 6, "Grade05OgreMage", "Grade06Lizardman", "GlaadDragonScaleCanyon", EnemySkillType.BloodFrenzy, EnemyCombatRole.Attack, EnemyRace.Dragon));
+        enemies.Add(E("lizardman_captain", "Lizardman Captain", "リザードマン隊長", 6, "Grade05StoneGolem", "Grade06Lizardman", "GlaadDragonScaleCanyon", EnemySkillType.PowerStrike, EnemyCombatRole.Balance, EnemyRace.Dragon));
         Enemies = enemies;
     }
 
