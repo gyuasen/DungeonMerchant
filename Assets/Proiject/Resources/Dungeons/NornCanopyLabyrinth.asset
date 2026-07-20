@@ -26,11 +26,10 @@ MonoBehaviour:
   maxEnemyCountPerEncounter: 5
   normalEnemies:
   - {fileID: 11400000, guid: f8cc8e9386e84dbd87ad119e3a14e07d, type: 2}
-  - {fileID: 11400000, guid: f5f268b439b8441998680c9c1a2c7a35, type: 2}
   - {fileID: 11400000, guid: f582ec2d17a04ed58896adafab76f9d8, type: 2}
   - {fileID: 11400000, guid: be463f195df046a0952022f76ba24110, type: 2}
-  - {fileID: 11400000, guid: 5140b532b27b41a09dd351d628bddfc7, type: 2}
   - {fileID: 11400000, guid: ebde6f592fef3354b87b2658db075e89, type: 2}
+  - {fileID: 11400000, guid: 289c8ba70b8d4085be1dfe7dba2211a4, type: 2}
   bossEnemy: {fileID: 11400000, guid: 539900f1ce594749a2cf45d334448c8b, type: 2}
   specialVariantChance: 0.08
   specialBossChance: 0.04
