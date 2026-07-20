@@ -445,12 +445,28 @@ public static class WorldMapService
                equipmentRank < 10;
     }
 
+    /// <summary>
+    /// Returns the equipment ranks that may appear as limited drops in a town's
+    /// dungeons.  Towns with more than one dungeon intentionally span from
+    /// their market rank through their standard (highest) dungeon rank.
+    /// </summary>
+    public static EquipmentRankRange GetDungeonEquipmentRankRange(int townIndex)
+    {
+        if (townIndex == HiddenIslandTownIndex)
+        {
+            return new EquipmentRankRange(10, 10);
+        }
+
+        return new EquipmentRankRange(
+            GetTownEquipmentRank(townIndex),
+            GetDungeonEquipmentRank(townIndex));
+    }
+
     public static bool IsDungeonEquipmentRankAllowed(
         int townIndex,
         int equipmentRank)
     {
-        return equipmentRank == GetDungeonEquipmentRank(townIndex) &&
-               (equipmentRank < 10 || townIndex == HiddenIslandTownIndex);
+        return GetDungeonEquipmentRankRange(townIndex).Contains(equipmentRank);
     }
 
     public static int GetNextTownInProgression(int townIndex)

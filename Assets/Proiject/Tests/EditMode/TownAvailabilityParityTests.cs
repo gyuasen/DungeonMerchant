@@ -1,3 +1,4 @@
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -73,12 +74,16 @@ public sealed class TownAvailabilityParityTests
     }
 
     [Test]
-    public void ConfiguredDungeonLimitedDrops_MatchTheirTownRank()
+    public void ConfiguredDungeonLimitedDrops_AreWithinTheirTownAllowedRange()
     {
-        DungeonDataSO[] dungeons =
-            Resources.LoadAll<DungeonDataSO>("GameData/Dungeons");
+        DungeonDataSO[] dungeons = GameAssetRepository
+            .LoadAll<DungeonDataSO>()
+            .Where(dungeon => dungeon != null)
+            .GroupBy(dungeon => dungeon.PersistentId)
+            .Select(group => group.Single())
+            .ToArray();
 
-        Assert.That(dungeons, Is.Not.Empty);
+        Assert.That(dungeons, Has.Length.EqualTo(15));
         foreach (DungeonDataSO dungeon in dungeons)
         {
             if (dungeon.limitedEquipmentDrops == null)
@@ -86,26 +91,59 @@ public sealed class TownAvailabilityParityTests
                 continue;
             }
 
-            int expectedRank = WorldMapService.GetDungeonEquipmentRank(
-                dungeon.nearbyTownIndex);
             foreach (ItemDataSO item in dungeon.limitedEquipmentDrops)
             {
                 Assert.That(item, Is.Not.Null, dungeon.dungeonName);
                 Assert.That(
-                    item.equipmentRank,
-                    Is.EqualTo(expectedRank),
+                    WorldMapService.IsDungeonEquipmentRankAllowed(
+                        dungeon.nearbyTownIndex,
+                        item.equipmentRank),
+                    Is.True,
                     $"{dungeon.dungeonName}: {item.itemName}");
-                if (dungeon.nearbyTownIndex ==
-                    WorldMapService.HiddenIslandTownIndex)
-                {
-                    Assert.That(item.equipmentRank, Is.EqualTo(10));
-                }
-                else
-                {
-                    Assert.That(item.equipmentRank, Is.LessThan(10));
-                }
             }
         }
+    }
+
+    [TestCase(0, 3, true)]
+    [TestCase(0, 4, true)]
+    [TestCase(0, 5, true)]
+    [TestCase(0, 2, false)]
+    [TestCase(0, 6, false)]
+    [TestCase(6, 7, true)]
+    [TestCase(6, 8, true)]
+    [TestCase(6, 9, true)]
+    [TestCase(6, 6, false)]
+    [TestCase(6, 10, false)]
+    [TestCase(WorldMapService.HiddenIslandTownIndex, 10, true)]
+    [TestCase(WorldMapService.HiddenIslandTownIndex, 9, false)]
+    public void DungeonEquipmentAllowedRange_UsesInclusiveTownBand(
+        int townIndex,
+        int equipmentRank,
+        bool expected)
+    {
+        Assert.That(
+            WorldMapService.IsDungeonEquipmentRankAllowed(
+                townIndex,
+                equipmentRank),
+            Is.EqualTo(expected));
+    }
+
+    [TestCase("dungeon.EldUndergroundWaterway", 3)]
+    [TestCase("dungeon.EldOldQuarry", 4)]
+    [TestCase("dungeon.MiddleRuins", 5)]
+    public void EldDungeonLimitedDrops_CanCreateEquipmentAtEveryAllowedRank(
+        string dungeonPersistentId,
+        int expectedRank)
+    {
+        DungeonDataSO dungeon =
+            GameAssetRepository.FindByPersistentId<DungeonDataSO>(
+                dungeonPersistentId);
+
+        EquipmentInstance equipment =
+            DungeonRewardService.TryCreateLimitedEquipment(dungeon, () => 0f);
+
+        Assert.That(equipment, Is.Not.Null, dungeonPersistentId);
+        Assert.That(equipment.BaseItem.equipmentRank, Is.EqualTo(expectedRank));
     }
 
     [Test]

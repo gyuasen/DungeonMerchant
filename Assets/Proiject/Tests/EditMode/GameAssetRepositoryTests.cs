@@ -173,9 +173,9 @@ public sealed class GameAssetRepositoryTests
             "Grade05IronGolem",
             "Grade05StoneGolem",
             "Grade04DarkMage",
-            "Grade03GlaadSkyWarden",
-            "VelmEmberforgedAutomaton",
-            "enemy_slime_slime_frost_crystal");
+            "enemy_slime_slime_frost_crystal",
+            "Grade07Wraith",
+            "Grade05OgreMage");
         AssertUpperDungeon(
             "AbyssGatewayThreshold",
             "dungeon.abyss_gateway_threshold",
