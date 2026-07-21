@@ -430,6 +430,10 @@ public static class JapaneseDisplayText
             case EquipmentSetId.VelmBlackIron: return "ヴェルム黒鉄";
             case EquipmentSetId.AbyssThrone: return "アビス玉座";
             case EquipmentSetId.AstralDepths: return "星幽深層";
+            case EquipmentSetId.NornVerdantSettlement: return "翠樹族の集落跡";
+            case EquipmentSetId.GlaadDragonScaleCanyon: return "竜鱗峡谷";
+            case EquipmentSetId.VelmFurnaceDefenseZone: return "熔炉防衛区";
+            case EquipmentSetId.AbyssGatewayThreshold: return "奈落境門";
             default: return "セットなし";
         }
     }

@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
+  m_Name: AbyssGatewardenBlackGarb
+  m_EditorClassIdentifier: 
+  persistentId: item.dungeon.abyss_gatewarden_black_garb
+  itemName: "門衛喰らいの黒衣"
+  itemType: 1
+  rarity: 3
+  materialClassification: 0
+  description: "境門の守り手を飲み込んだ闇を織った黒衣。"
+  basePrice: 14300
+  acquisitionType: 2
+  equipmentSlot: 1
+  requiredClass: 0
+  allClassesCanEquip: 1
+  equipmentSet: 14
+  equipmentRank: 9
+  bonusMaxHP: 90
+  bonusAttack: 8
+  bonusDefense: 22
+  bonusAttackSpeed: 0.045
+  equipmentEffects:
+  - type: 20
+    value: 0.15
+    secondaryValue: 0
+    durationTurns: 3
+    targetRace: 0
+  consumableEffect: 0
+  consumableHealAmount: 0

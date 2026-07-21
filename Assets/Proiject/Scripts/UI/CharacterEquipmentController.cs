@@ -885,6 +885,19 @@ public sealed class CharacterEquipmentController
                 return "セット: 星幽深層\n" +
                        "2部位: 最大HP+45、攻撃速度+0.04\n" +
                        "3部位: 攻撃+10、防御+10";
+            case EquipmentSetId.NornVerdantSettlement:
+            case EquipmentSetId.GlaadDragonScaleCanyon:
+                return "セット: " + JapaneseDisplayText.GetEquipmentSet(setId) + "\n" +
+                       "2部位: 最大HP+15\n" +
+                       "3部位: 攻撃+2、防御+2、攻撃速度+0.01";
+            case EquipmentSetId.VelmFurnaceDefenseZone:
+                return "セット: 熔炉防衛区\n" +
+                       "2部位: 最大HP+20\n" +
+                       "3部位: 攻撃+3、防御+2、攻撃速度+0.015";
+            case EquipmentSetId.AbyssGatewayThreshold:
+                return "セット: 奈落境門\n" +
+                       "2部位: 最大HP+25\n" +
+                       "3部位: 攻撃+3、防御+3、攻撃速度+0.02";
             default:
                 return "セット: 古代守護者\n" +
                        "2部位: 最大HP+30、防御+8\n" +

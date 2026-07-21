@@ -81,7 +81,11 @@ public enum EquipmentSetId
     GlaadSkyFortress,
     VelmBlackIron,
     AbyssThrone,
-    AstralDepths
+    AstralDepths,
+    NornVerdantSettlement,
+    GlaadDragonScaleCanyon,
+    VelmFurnaceDefenseZone,
+    AbyssGatewayThreshold
 }
 
 public enum EquipmentEffectType

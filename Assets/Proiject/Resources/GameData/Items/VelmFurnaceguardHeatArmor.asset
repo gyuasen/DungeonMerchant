@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
+  m_Name: VelmFurnaceguardHeatArmor
+  m_EditorClassIdentifier: 
+  persistentId: item.dungeon.velm_furnaceguard_heat_armor
+  itemName: "炉心衛士の耐熱鎧"
+  itemType: 1
+  rarity: 3
+  materialClassification: 0
+  description: "炉心を守る衛士のために造られた耐熱鎧。"
+  basePrice: 8000
+  acquisitionType: 2
+  equipmentSlot: 1
+  requiredClass: 0
+  allClassesCanEquip: 1
+  equipmentSet: 13
+  equipmentRank: 8
+  bonusMaxHP: 76
+  bonusAttack: 7
+  bonusDefense: 19
+  bonusAttackSpeed: 0.04
+  equipmentEffects:
+  - type: 40
+    value: 0.1
+    secondaryValue: 0
+    durationTurns: 0
+    targetRace: 0
+  consumableEffect: 0
+  consumableHealAmount: 0

@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
+  m_Name: VelmEverflameTuningCore
+  m_EditorClassIdentifier: 
+  persistentId: item.dungeon.velm_everflame_tuning_core
+  itemName: "消えず火の調律核"
+  itemType: 1
+  rarity: 3
+  materialClassification: 0
+  description: "消えず火の熱量を装備者の守りへ調律する核。"
+  basePrice: 6800
+  acquisitionType: 2
+  equipmentSlot: 2
+  requiredClass: 0
+  allClassesCanEquip: 1
+  equipmentSet: 13
+  equipmentRank: 8
+  bonusMaxHP: 28
+  bonusAttack: 10
+  bonusDefense: 9
+  bonusAttackSpeed: 0.045
+  equipmentEffects:
+  - type: 20
+    value: 0.12
+    secondaryValue: 0
+    durationTurns: 3
+    targetRace: 0
+  consumableEffect: 0
+  consumableHealAmount: 0

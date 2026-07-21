@@ -819,6 +819,10 @@ public class MercenaryInstance
         if (GetEquippedSetCount(EquipmentSetId.VelmBlackIron) >= 2) bonus += 28;
         if (GetEquippedSetCount(EquipmentSetId.AbyssThrone) >= 3) bonus += 45;
         if (GetEquippedSetCount(EquipmentSetId.AstralDepths) >= 2) bonus += 45;
+        if (GetEquippedSetCount(EquipmentSetId.NornVerdantSettlement) >= 2) bonus += 15;
+        if (GetEquippedSetCount(EquipmentSetId.GlaadDragonScaleCanyon) >= 2) bonus += 15;
+        if (GetEquippedSetCount(EquipmentSetId.VelmFurnaceDefenseZone) >= 2) bonus += 20;
+        if (GetEquippedSetCount(EquipmentSetId.AbyssGatewayThreshold) >= 2) bonus += 25;
         return bonus;
     }
 
@@ -838,6 +842,10 @@ public class MercenaryInstance
         if (GetEquippedSetCount(EquipmentSetId.VelmBlackIron) >= 2) bonus += 4;
         if (GetEquippedSetCount(EquipmentSetId.AbyssThrone) >= 2) bonus += 7;
         if (GetEquippedSetCount(EquipmentSetId.AstralDepths) >= 3) bonus += 10;
+        if (GetEquippedSetCount(EquipmentSetId.NornVerdantSettlement) >= 3) bonus += 2;
+        if (GetEquippedSetCount(EquipmentSetId.GlaadDragonScaleCanyon) >= 3) bonus += 2;
+        if (GetEquippedSetCount(EquipmentSetId.VelmFurnaceDefenseZone) >= 3) bonus += 3;
+        if (GetEquippedSetCount(EquipmentSetId.AbyssGatewayThreshold) >= 3) bonus += 3;
         return bonus;
     }
 
@@ -852,6 +860,10 @@ public class MercenaryInstance
         if (GetEquippedSetCount(EquipmentSetId.VelmBlackIron) >= 3) bonus += 8;
         if (GetEquippedSetCount(EquipmentSetId.AbyssThrone) >= 2) bonus += 8;
         if (GetEquippedSetCount(EquipmentSetId.AstralDepths) >= 3) bonus += 10;
+        if (GetEquippedSetCount(EquipmentSetId.NornVerdantSettlement) >= 3) bonus += 2;
+        if (GetEquippedSetCount(EquipmentSetId.GlaadDragonScaleCanyon) >= 3) bonus += 2;
+        if (GetEquippedSetCount(EquipmentSetId.VelmFurnaceDefenseZone) >= 3) bonus += 2;
+        if (GetEquippedSetCount(EquipmentSetId.AbyssGatewayThreshold) >= 3) bonus += 3;
         return bonus;
     }
 
@@ -867,6 +879,10 @@ public class MercenaryInstance
         if (GetEquippedSetCount(EquipmentSetId.VelmBlackIron) >= 3) bonus += 0.03f;
         if (GetEquippedSetCount(EquipmentSetId.AbyssThrone) >= 3) bonus += 0.035f;
         if (GetEquippedSetCount(EquipmentSetId.AstralDepths) >= 2) bonus += 0.04f;
+        if (GetEquippedSetCount(EquipmentSetId.NornVerdantSettlement) >= 3) bonus += 0.01f;
+        if (GetEquippedSetCount(EquipmentSetId.GlaadDragonScaleCanyon) >= 3) bonus += 0.01f;
+        if (GetEquippedSetCount(EquipmentSetId.VelmFurnaceDefenseZone) >= 3) bonus += 0.015f;
+        if (GetEquippedSetCount(EquipmentSetId.AbyssGatewayThreshold) >= 3) bonus += 0.02f;
         return bonus;
     }
 

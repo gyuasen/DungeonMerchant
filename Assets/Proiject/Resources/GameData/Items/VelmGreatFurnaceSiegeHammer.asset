@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
+  m_Name: VelmGreatFurnaceSiegeHammer
+  m_EditorClassIdentifier: 
+  persistentId: item.dungeon.velm_great_furnace_siege_hammer
+  itemName: "大熔炉の破城槌"
+  itemType: 1
+  rarity: 3
+  materialClassification: 0
+  description: "大熔炉の圧力を封じた、構造体を砕く破城槌。"
+  basePrice: 7300
+  acquisitionType: 2
+  equipmentSlot: 0
+  requiredClass: 0
+  allClassesCanEquip: 1
+  equipmentSet: 13
+  equipmentRank: 8
+  bonusMaxHP: 18
+  bonusAttack: 25
+  bonusDefense: 7
+  bonusAttackSpeed: 0.045
+  equipmentEffects:
+  - type: 60
+    value: 0.16
+    secondaryValue: 0
+    durationTurns: 0
+    targetRace: 60
+  consumableEffect: 0
+  consumableHealAmount: 0
