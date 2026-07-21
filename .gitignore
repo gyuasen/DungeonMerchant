@@ -6,6 +6,8 @@
 # See: https://github.com/github/gitignore/tree/main/Global
 #
 .utmp/
+# 画像生成などの一時作業ディレクトリ（中間生成物はコミットしない）
+/tmp/
 /[Ll]ibrary/
 /[Tt]emp/
 /[Oo]bj/

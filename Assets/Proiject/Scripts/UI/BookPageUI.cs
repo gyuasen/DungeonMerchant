@@ -15,6 +15,7 @@ public sealed class BookPageUI : MonoBehaviour
         public string Detail;
         public Sprite Sprite;
         public bool Discovered;
+        public string Subtitle;
     }
 
     private const int EntriesPerPage = 2;
@@ -33,10 +34,13 @@ public sealed class BookPageUI : MonoBehaviour
         titleFont = configuredTitleFont;
         bodyFont = configuredBodyFont != null ? configuredBodyFont : configuredTitleFont;
         RectTransform root = transform as RectTransform;
-        CreateText(root, title, 24, FontStyle.Bold, TextAnchor.MiddleCenter,
-            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -26f), new Vector2(620f, 42f));
-        leftPage = CreatePage(root, "Left Page", new Vector2(0.25f, 0.53f));
-        rightPage = CreatePage(root, "Right Page", new Vector2(0.75f, 0.53f));
+        if (!string.IsNullOrEmpty(title))
+        {
+            CreateText(root, title, 24, FontStyle.Bold, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -26f), new Vector2(620f, 42f));
+        }
+        leftPage = CreatePage(root, "Left Page", new Vector2(0.2575f, 0.53f));
+        rightPage = CreatePage(root, "Right Page", new Vector2(0.7425f, 0.53f));
         previousButton = CreateButton(root, "◀ 前のページ", new Vector2(0.2f, 0f));
         nextButton = CreateButton(root, "次のページ ▶", new Vector2(0.8f, 0f));
         pageNumberText = CreateText(root, string.Empty, 16, FontStyle.Bold, TextAnchor.MiddleCenter,
@@ -102,7 +106,8 @@ public sealed class BookPageUI : MonoBehaviour
         GameObject pageObject = new GameObject(name, typeof(RectTransform), typeof(Image));
         RectTransform page = pageObject.GetComponent<RectTransform>();
         page.SetParent(parent, false);
-        page.anchorMin = page.anchorMax = page.pivot = anchor;
+        page.anchorMin = page.anchorMax = anchor;
+        page.pivot = new Vector2(0.5f, 0.5f);
         page.sizeDelta = new Vector2(PageWidth, PageHeight);
         page.GetComponent<Image>().color = new Color(0.92f, 0.82f, 0.61f, 1f);
         return page;
@@ -116,9 +121,12 @@ public sealed class BookPageUI : MonoBehaviour
         root.anchorMin = new Vector2(0f, 1f);
         root.anchorMax = new Vector2(1f, 1f);
         root.pivot = new Vector2(0.5f, 1f);
-        root.offsetMin = new Vector2(12f, -198f - slot * 198f);
-        root.offsetMax = new Vector2(-12f, -10f - slot * 198f);
-        root.GetComponent<Image>().color = new Color(0.35f, 0.21f, 0.09f, 0.12f);
+        root.offsetMin = new Vector2(12f, -192f - slot * 202f);
+        root.offsetMax = new Vector2(-12f, -10f - slot * 202f);
+        root.GetComponent<Image>().color = new Color(0.35f, 0.21f, 0.09f, 0.17f);
+        Outline outline = root.gameObject.AddComponent<Outline>();
+        outline.effectColor = new Color(0.35f, 0.21f, 0.09f, 0.45f);
+        outline.effectDistance = new Vector2(1f, -1f);
         GameObject imageObject = new GameObject("Image", typeof(RectTransform), typeof(Image));
         RectTransform imageRect = imageObject.GetComponent<RectTransform>();
         imageRect.SetParent(root, false);
@@ -133,11 +141,21 @@ public sealed class BookPageUI : MonoBehaviour
             new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(64f, 64f));
         string name = entry.Discovered ? entry.Name : "？？？";
         string detail = entry.Discovered ? entry.Detail : "未発見";
-        CreateText(root, name, 16, FontStyle.Bold, TextAnchor.UpperLeft,
-            new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(78f, -12f), new Vector2(-10f, -42f));
-        Text detailText = CreateText(root, detail, 13, FontStyle.Normal, TextAnchor.UpperLeft,
-            new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(78f, -178f), new Vector2(-10f, -46f));
+        Text nameText = CreateText(root, name, 14, FontStyle.Bold, TextAnchor.MiddleLeft,
+            new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(82f, -31f), new Vector2(-10f, -10f));
+        nameText.resizeTextForBestFit = true;
+        nameText.resizeTextMinSize = 10;
+        nameText.resizeTextMaxSize = 14;
+        nameText.verticalOverflow = VerticalWrapMode.Truncate;
+        if (entry.Discovered && !string.IsNullOrWhiteSpace(entry.Subtitle))
+        {
+            CreateText(root, entry.Subtitle, 12, FontStyle.Bold, TextAnchor.MiddleLeft,
+                new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(82f, -51f), new Vector2(-10f, -33f));
+        }
+        Text detailText = CreateText(root, detail, 11, FontStyle.Normal, TextAnchor.UpperLeft,
+            new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(82f, -174f), new Vector2(-10f, -55f));
         detailText.supportRichText = true;
+        detailText.verticalOverflow = VerticalWrapMode.Truncate;
     }
 
     private Button CreateButton(RectTransform parent, string label, Vector2 anchor)

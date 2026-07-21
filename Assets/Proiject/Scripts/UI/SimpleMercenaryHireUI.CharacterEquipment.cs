@@ -99,13 +99,37 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             new Vector2(28f, -64f), new Vector2(-120f, -20f),
             ParchmentTextColor);
 
-        RectTransform bookRoot = CreateUIObject("Equipment Codex Book", window);
-        bookRoot.anchorMin = Vector2.zero;
-        bookRoot.anchorMax = Vector2.one;
-        bookRoot.offsetMin = new Vector2(34f, 34f);
-        bookRoot.offsetMax = new Vector2(-34f, -88f);
-        equipmentCodexBook = bookRoot.gameObject.AddComponent<BookPageUI>();
-        equipmentCodexBook.Initialize("装備図鑑", uiFont, uiBodyFont);
+        equipmentCodexNormalTabButton = CreateActionButton(window, "通常装備", ShowNormalEquipmentCodexTab);
+        RectTransform normalTabRect = equipmentCodexNormalTabButton.GetComponent<RectTransform>();
+        normalTabRect.anchorMin = normalTabRect.anchorMax = new Vector2(0f, 1f);
+        normalTabRect.pivot = new Vector2(0f, 1f);
+        normalTabRect.anchoredPosition = new Vector2(250f, -20f);
+        equipmentCodexSpecialTabButton = CreateActionButton(window, "特殊装備", ShowSpecialEquipmentCodexTab);
+        RectTransform specialTabRect = equipmentCodexSpecialTabButton.GetComponent<RectTransform>();
+        specialTabRect.anchorMin = specialTabRect.anchorMax = new Vector2(0f, 1f);
+        specialTabRect.pivot = new Vector2(0f, 1f);
+        specialTabRect.anchoredPosition = new Vector2(380f, -20f);
+
+        equipmentCodexNormalRoot = CreateUIObject("Equipment Codex Normal Book", window);
+        equipmentCodexNormalRoot.anchorMin = Vector2.zero;
+        equipmentCodexNormalRoot.anchorMax = Vector2.one;
+        equipmentCodexNormalRoot.offsetMin = new Vector2(34f, 34f);
+        equipmentCodexNormalRoot.offsetMax = new Vector2(-34f, -88f);
+        equipmentCodexBook = equipmentCodexNormalRoot.gameObject.AddComponent<BookPageUI>();
+        equipmentCodexBook.Initialize(string.Empty, uiFont, uiBodyFont);
+        equipmentCodexSpecialRoot = CreateUIObject("Equipment Codex Special Pages", window);
+        equipmentCodexSpecialRoot.anchorMin = Vector2.zero;
+        equipmentCodexSpecialRoot.anchorMax = Vector2.one;
+        equipmentCodexSpecialRoot.offsetMin = new Vector2(34f, 34f);
+        equipmentCodexSpecialRoot.offsetMax = new Vector2(-34f, -88f);
+        equipmentSpecialCodexPage = equipmentCodexSpecialRoot.gameObject.AddComponent<EquipmentSpecialCodexPageUI>();
+        equipmentSpecialCodexPage.Initialize(uiFont, uiBodyFont);
+#if UNITY_EDITOR
+        equipmentCodexNormalRoot.offsetMin = new Vector2(34f, 76f);
+        equipmentCodexSpecialRoot.offsetMin = new Vector2(34f, 76f);
+        BuildEquipmentCodexDebugButtons(window);
+#endif
+        ShowNormalEquipmentCodexTab();
 
         Button closeButton =
             CreateActionButton(window, "閉じる", HideEquipmentCollection);
@@ -749,6 +773,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
 
     private void ShowEquipmentCollection()
     {
+        List<ItemDataSO> equipmentItems = new List<ItemDataSO>();
         List<BookPageUI.Entry> entries = new List<BookPageUI.Entry>();
         foreach (ItemDataSO item in GameAssetRepository.LoadAll<ItemDataSO>())
         {
@@ -757,47 +782,224 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
                 continue;
             }
 
-            bool discovered = merchantInventory != null &&
-                merchantInventory.HasDiscoveredEquipment(item);
+            equipmentItems.Add(item);
+        }
+
+        EquipmentCodexEntries codexEntries = EquipmentCodexEntryBuilder.Build(equipmentItems);
+        List<ItemDataSO> normalEquipment =
+            new List<ItemDataSO>(codexEntries.NormalEquipment);
+        normalEquipment.Sort((left, right) =>
+        {
+            int rankComparison = left.equipmentRank.CompareTo(right.equipmentRank);
+            if (rankComparison != 0)
+            {
+                return rankComparison;
+            }
+            int slotComparison = left.equipmentSlot.CompareTo(right.equipmentSlot);
+            if (slotComparison != 0)
+            {
+                return slotComparison;
+            }
+            int nameComparison = string.Compare(
+                JapaneseDisplayText.GetItemName(left),
+                JapaneseDisplayText.GetItemName(right),
+                System.StringComparison.Ordinal);
+            return nameComparison != 0
+                ? nameComparison
+                : string.Compare(
+                    left.name,
+                    right.name,
+                    System.StringComparison.Ordinal);
+        });
+        foreach (ItemDataSO item in normalEquipment)
+        {
+            bool discovered = IsEquipmentDiscovered(item);
             entries.Add(new BookPageUI.Entry
             {
-                Name = JapaneseDisplayText.GetItemName(item) + "  " +
-                    EquipmentRankPresentation.GetRichText(item),
+                Name = JapaneseDisplayText.GetItemName(item),
+                Subtitle = EquipmentRankPresentation.GetRichText(item),
                 Detail = BuildEquipmentCodexDetail(item),
                 Sprite = Resources.Load<Sprite>("UI/Codex/Equipment/" + item.name),
                 Discovered = discovered
             });
         }
 
-        entries.Sort((left, right) => string.Compare(left.Name, right.Name, System.StringComparison.Ordinal));
         equipmentCodexBook.SetEntries(entries);
+        equipmentSpecialCodexPage.SetPages(EquipmentSpecialPageModelBuilder.Build(codexEntries, IsEquipmentDiscovered));
+        ShowNormalEquipmentCodexTab();
         equipmentCollectionOverlay.SetAsLastSibling();
         equipmentCollectionOverlay.gameObject.SetActive(true);
     }
+
+#if UNITY_EDITOR
+    private void BuildEquipmentCodexDebugButtons(RectTransform window)
+    {
+        CreateText(
+            window, "[DEBUG] 発見状況", 12, FontStyle.Bold, TextAnchor.MiddleLeft,
+            new Vector2(20f, 54f), new Vector2(140f, 76f),
+            ParchmentMutedColor);
+        Button allButton = CreateActionButton(
+            window,
+            "全て発見",
+            DiscoverAllEquipmentForEditor);
+        SetEquipmentCodexDebugButtonPosition(allButton, 150f);
+        Button partialButton = CreateActionButton(
+            window,
+            "一部発見",
+            DiscoverPartialEquipmentForEditor);
+        SetEquipmentCodexDebugButtonPosition(partialButton, 265f);
+        Button resetButton = CreateActionButton(
+            window,
+            "発見をリセット",
+            ResetEquipmentDiscoveryForEditor);
+        SetEquipmentCodexDebugButtonPosition(resetButton, 380f);
+    }
+
+    private static void SetEquipmentCodexDebugButtonPosition(
+        Button button,
+        float x)
+    {
+        RectTransform rect = button.GetComponent<RectTransform>();
+        rect.anchorMin = rect.anchorMax = new Vector2(0f, 0f);
+        rect.pivot = new Vector2(0f, 0f);
+        rect.sizeDelta = new Vector2(105f, 28f);
+        rect.anchoredPosition = new Vector2(x, 18f);
+    }
+
+    private void DiscoverAllEquipmentForEditor()
+    {
+        if (merchantInventory == null)
+        {
+            return;
+        }
+        foreach (ItemDataSO item in GameAssetRepository.LoadAll<ItemDataSO>())
+        {
+            merchantInventory.RegisterEquipmentDiscovery(item);
+        }
+        RefreshEquipmentCollectionAfterEditorDiscoveryChange();
+    }
+
+    private void DiscoverPartialEquipmentForEditor()
+    {
+        if (merchantInventory == null)
+        {
+            return;
+        }
+        merchantInventory.ClearEquipmentDiscoveryForEditor();
+        List<ItemDataSO> equipment = new List<ItemDataSO>();
+        foreach (ItemDataSO item in GameAssetRepository.LoadAll<ItemDataSO>())
+        {
+            if (item != null && item.IsEquipment)
+            {
+                equipment.Add(item);
+            }
+        }
+        EquipmentCodexEntries entries = EquipmentCodexEntryBuilder.Build(equipment);
+        for (int index = 0; index < entries.SetGroups.Count; index++)
+        {
+            EquipmentCodexSetGroup group = entries.SetGroups[index];
+            if (index % 3 != 0 && group.Equipment.Count > 0)
+            {
+                merchantInventory.RegisterEquipmentDiscovery(group.Equipment[0]);
+            }
+        }
+        for (int index = 0; index < entries.HighRankSingleEquipment.Count; index++)
+        {
+            if (index % 2 == 0)
+            {
+                merchantInventory.RegisterEquipmentDiscovery(
+                    entries.HighRankSingleEquipment[index]);
+            }
+        }
+        RefreshEquipmentCollectionAfterEditorDiscoveryChange();
+    }
+
+    private void ResetEquipmentDiscoveryForEditor()
+    {
+        if (merchantInventory == null)
+        {
+            return;
+        }
+        merchantInventory.ClearEquipmentDiscoveryForEditor();
+        RefreshEquipmentCollectionAfterEditorDiscoveryChange();
+    }
+
+    private void RefreshEquipmentCollectionAfterEditorDiscoveryChange()
+    {
+        bool showSpecial = equipmentCodexSpecialRoot != null &&
+            equipmentCodexSpecialRoot.gameObject.activeSelf;
+        ShowEquipmentCollection();
+        if (showSpecial)
+        {
+            ShowSpecialEquipmentCodexTab();
+        }
+    }
+#endif
 
     private static string BuildEquipmentCodexDetail(ItemDataSO item)
     {
         string target = item.allClassesCanEquip
             ? "全職業"
             : JapaneseDisplayText.GetMercenaryClass(item.requiredClass);
+        string effectText = ShortenEquipmentCodexText(
+            EquipmentEffectTextFormatter.FormatList(item.equipmentEffects),
+            30);
         return string.Format(
-            "{0} / {1}\n{2}  Rank {3}\nHP {4:+#;-#;0}  攻 {5:+#;-#;0}  防 {6:+#;-#;0}  速 {7:+0.##;-0.##;0}\n基本価格 {8} G",
+            "{0} / {1}\nHP {2:+#;-#;0}  攻 {3:+#;-#;0}\n防 {4:+#;-#;0}  速 {5:+0.##;-0.##;0}\n価格 {6}G\n効果: {7}",
             JapaneseDisplayText.GetEquipmentSlot(item.equipmentSlot),
             target,
-            EquipmentRankPresentation.GetRichText(item),
-            item.equipmentRank,
             item.bonusMaxHP,
             item.bonusAttack,
             item.bonusDefense,
             item.bonusAttackSpeed,
-            item.basePrice) +
-            "\n特殊効果\n" +
-            EquipmentEffectTextFormatter.FormatList(item.equipmentEffects);
+            item.basePrice,
+            effectText);
+    }
+
+    private static string ShortenEquipmentCodexText(
+        string value,
+        int maximumLength)
+    {
+        string normalized = string.IsNullOrWhiteSpace(value)
+            ? "なし"
+            : value.Replace("\r\n", "、").Replace("\n", "、");
+        return normalized.Length <= maximumLength
+            ? normalized
+            : normalized.Substring(0, maximumLength - 1) + "…";
     }
 
     private void HideEquipmentCollection()
     {
         equipmentCollectionOverlay?.gameObject.SetActive(false);
+    }
+
+    private bool IsEquipmentDiscovered(ItemDataSO item)
+    {
+        return merchantInventory != null && merchantInventory.HasDiscoveredEquipment(item);
+    }
+
+    private void ShowNormalEquipmentCodexTab()
+    {
+        if (equipmentCodexNormalRoot == null || equipmentCodexSpecialRoot == null)
+        {
+            return;
+        }
+        equipmentCodexNormalRoot.gameObject.SetActive(true);
+        equipmentCodexSpecialRoot.gameObject.SetActive(false);
+        equipmentCodexNormalTabButton.targetGraphic.color = ImportantButtonColor;
+        equipmentCodexSpecialTabButton.targetGraphic.color = WoodButtonColor;
+    }
+
+    private void ShowSpecialEquipmentCodexTab()
+    {
+        if (equipmentCodexNormalRoot == null || equipmentCodexSpecialRoot == null)
+        {
+            return;
+        }
+        equipmentCodexNormalRoot.gameObject.SetActive(false);
+        equipmentCodexSpecialRoot.gameObject.SetActive(true);
+        equipmentCodexNormalTabButton.targetGraphic.color = WoodButtonColor;
+        equipmentCodexSpecialTabButton.targetGraphic.color = ImportantButtonColor;
     }
 
     // --- IEquipmentDetailView (equipment-detail overlay view surface for
