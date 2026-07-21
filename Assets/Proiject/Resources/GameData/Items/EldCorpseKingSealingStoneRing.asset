@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
+  m_Name: EldCorpseKingSealingStoneRing
+  m_EditorClassIdentifier: 
+  persistentId: item.dungeon.eld_corpse_king_sealing_stone_ring
+  itemName: "骸王封じの石環"
+  itemType: 1
+  rarity: 2
+  materialClassification: 0
+  description: "骸王を封じた石片を嵌めた石環。"
+  basePrice: 650
+  acquisitionType: 2
+  equipmentSlot: 2
+  requiredClass: 0
+  allClassesCanEquip: 1
+  equipmentSet: 19
+  equipmentRank: 4
+  bonusMaxHP: 12
+  bonusAttack: 6
+  bonusDefense: 4
+  bonusAttackSpeed: 0.025
+  equipmentEffects:
+  - type: 30
+    value: 0.01
+    secondaryValue: 0
+    durationTurns: 0
+    targetRace: 0
+  consumableEffect: 0
+  consumableHealAmount: 0

@@ -100,7 +100,7 @@ public sealed class EquipmentAvailabilityTests
     }
 
     [Test]
-    public void Rank09Equipment_IsConnectedToHighestAbyssWithoutReplacingItsSet()
+    public void HighestAbyss_UsesOnlyItsDedicatedThreePieceSet()
     {
         DungeonDataSO abyss =
             Resources.Load<DungeonDataSO>("Dungeons/FinalBlackSoilAbyss");
@@ -109,27 +109,30 @@ public sealed class EquipmentAvailabilityTests
         Assert.That(abyss.limitedEquipmentDrops, Is.Not.Null);
 
         HashSet<string> drops = new HashSet<string>();
+        HashSet<EquipmentSlot> slots = new HashSet<EquipmentSlot>();
         foreach (ItemDataSO item in abyss.limitedEquipmentDrops)
         {
             Assert.That(item, Is.Not.Null);
             Assert.That(drops.Add(item.PersistentId), Is.True,
                 $"Duplicate Highest Abyss drop: {item.name}");
+            Assert.That(item.equipmentRank, Is.EqualTo(9), item.name);
+            Assert.That(item.equipmentSet,
+                Is.EqualTo(EquipmentSetId.AbyssThrone), item.name);
+            Assert.That(slots.Add(item.equipmentSlot), Is.True, item.name);
         }
 
-        foreach (string id in NormalRank09Ids)
+        Assert.That(abyss.limitedEquipmentDrops.Length, Is.EqualTo(3));
+        Assert.That(slots, Is.EquivalentTo(new[]
         {
-            ItemDataSO item =
-                GameAssetRepository.FindByPersistentId<ItemDataSO>(id);
-            Assert.That(item, Is.Not.Null, id);
-            Assert.That(item.acquisitionType,
-                Is.EqualTo(ItemAcquisitionType.Dungeon), id);
-            Assert.That(item.equipmentRank, Is.EqualTo(9), id);
-            Assert.That(drops.Contains(id), Is.True, id);
-        }
-
-        Assert.That(drops.Contains("item.dungeon.abyss_fang"), Is.True);
-        Assert.That(drops.Contains("item.dungeon.abyss_mantle"), Is.True);
-        Assert.That(drops.Contains("item.dungeon.abyss_seal"), Is.True);
-        Assert.That(abyss.limitedEquipmentDrops.Length, Is.EqualTo(6));
+            EquipmentSlot.Weapon,
+            EquipmentSlot.Armor,
+            EquipmentSlot.Accessory
+        }));
+        Assert.That(drops, Is.EquivalentTo(new[]
+        {
+            "item.dungeon.abyss_fang",
+            "item.dungeon.abyss_mantle",
+            "item.dungeon.abyss_seal"
+        }));
     }
 }

@@ -82,14 +82,27 @@ public static class BalanceExpansionDefinition
 
     public static readonly IReadOnlyList<ExistingEquipmentEffectAssignment> ExistingEquipmentEffects = new[]
     {
+        X("GameData/Items/MistRuneBlade", EquipmentEffectType.RaceDamageBonus, 0.10f, targetRace: EnemyRace.Construct),
+        X("GameData/Items/RuinweaveMantle", EquipmentEffectType.DamageReduction, 0.06f),
+        X("GameData/Items/GuardianEyeCharm", EquipmentEffectType.BattleStartDefenseBuff, 0.08f, durationTurns: 3),
+        X("GameData/Items/NornCanopyBlade", EquipmentEffectType.RaceDamageBonus, 0.12f, targetRace: EnemyRace.Construct),
+        X("GameData/Items/NornBarkguard", EquipmentEffectType.DamageReduction, 0.08f),
+        X("GameData/Items/NornVerdantCharm", EquipmentEffectType.TurnRegeneration, 0.025f),
+        X("GameData/Items/GlaadFrostbrand", EquipmentEffectType.RaceDamageBonus, 0.15f, targetRace: EnemyRace.Dragon),
+        X("GameData/Items/GlaadWardenPlate", EquipmentEffectType.DamageReduction, 0.09f),
+        X("GameData/Items/GlaadSummitSigil", EquipmentEffectType.BattleStartAttackBuff, 0.10f, durationTurns: 3),
+        X("GameData/Items/VelmBlackIronBreaker", EquipmentEffectType.RaceDamageBonus, 0.16f, targetRace: EnemyRace.Construct),
+        X("GameData/Items/VelmDeepforgeArmor", EquipmentEffectType.DamageReduction, 0.11f),
+        X("GameData/Items/VelmEmberCore", EquipmentEffectType.LowHpDamageBonus, 0.16f, 0.30f),
+        X("GameData/Items/AbyssFang", EquipmentEffectType.LowHpDamageBonus, 0.20f, 0.30f),
+        X("GameData/Items/AbyssMantle", EquipmentEffectType.DamageReduction, 0.12f),
+        X("GameData/Items/AbyssSeal", EquipmentEffectType.RaceDamageBonus, 0.18f, targetRace: EnemyRace.Demon),
         X("GameData/Items/ChampionEmblem", EquipmentEffectType.BattleStartAttackBuff, 0.15f, 0f, 3),
         X("GameData/Items/IronVanguardArmor", EquipmentEffectType.BattleStartDefenseBuff, 0.15f, 0f, 3),
-        X("GameData/Items/NornVerdantCharm", EquipmentEffectType.TurnRegeneration, 0.025f),
         X("GameData/Items/AstralCore", EquipmentEffectType.TurnRegeneration, 0.025f),
         X("GameData/Items/GolemPlate", EquipmentEffectType.DamageReduction, 0.10f),
         X("GameData/Items/AstralAegis", EquipmentEffectType.DamageReduction, 0.15f),
-        X("GameData/Items/OniHunterCleaver", EquipmentEffectType.LowHpDamageBonus, 0.20f, 0.30f),
-        X("GameData/Items/AbyssFang", EquipmentEffectType.LowHpDamageBonus, 0.20f, 0.30f)
+        X("GameData/Items/OniHunterCleaver", EquipmentEffectType.LowHpDamageBonus, 0.20f, 0.30f)
     };
     public static readonly IReadOnlyList<BalanceExpansionNormalEnemyDefinition> NormalEnemies = new[] { N("wyvern", "Wyvern", "ワイバーン", 3, "Grade03Wyvern", "GlaadSkyFortress", "Grade03_wyvern") };
     public static readonly IReadOnlyList<SlimeVariantDefinition> SlimeVariants = new[]
@@ -192,7 +205,7 @@ public static class BalanceExpansionDefinition
             price,
             amount);
     }
-    static ExistingEquipmentEffectAssignment X(string resourcePath, EquipmentEffectType type, float value, float secondaryValue = 0f, int durationTurns = 0) { return new ExistingEquipmentEffectAssignment(resourcePath, new EquipmentEffectDefinition { type = type, value = value, secondaryValue = secondaryValue, durationTurns = durationTurns }); }
+    static ExistingEquipmentEffectAssignment X(string resourcePath, EquipmentEffectType type, float value, float secondaryValue = 0f, int durationTurns = 0, EnemyRace targetRace = EnemyRace.Unknown) { return new ExistingEquipmentEffectAssignment(resourcePath, new EquipmentEffectDefinition { type = type, value = value, secondaryValue = secondaryValue, durationTurns = durationTurns, targetRace = targetRace }); }
     static IReadOnlyList<BalanceExpansionEquipmentDefinition> BuildEquipment()
     {
         var result = new List<BalanceExpansionEquipmentDefinition>();

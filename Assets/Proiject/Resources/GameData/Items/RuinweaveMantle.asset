@@ -23,11 +23,17 @@ MonoBehaviour:
   equipmentSlot: 1
   requiredClass: 0
   allClassesCanEquip: 1
-  equipmentSet: 0
+  equipmentSet: 20
   equipmentRank: 5
   bonusMaxHP: 38
   bonusAttack: 4
   bonusDefense: 12
   bonusAttackSpeed: 0.025
+  equipmentEffects:
+  - type: 40
+    value: 0.06
+    secondaryValue: 0
+    durationTurns: 0
+    targetRace: 0
   consumableEffect: 0
   consumableHealAmount: 0

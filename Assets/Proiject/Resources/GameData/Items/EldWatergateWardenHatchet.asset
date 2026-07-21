@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
+  m_Name: EldWatergateWardenHatchet
+  m_EditorClassIdentifier: 
+  persistentId: item.dungeon.eld_watergate_warden_hatchet
+  itemName: "水門番の短鉈"
+  itemType: 1
+  rarity: 1
+  materialClassification: 0
+  description: "地下水路の水門番が携えた短鉈。"
+  basePrice: 400
+  acquisitionType: 2
+  equipmentSlot: 0
+  requiredClass: 0
+  allClassesCanEquip: 1
+  equipmentSet: 17
+  equipmentRank: 3
+  bonusMaxHP: 6
+  bonusAttack: 13
+  bonusDefense: 2
+  bonusAttackSpeed: 0.02
+  equipmentEffects:
+  - type: 60
+    value: 0.08
+    secondaryValue: 0
+    durationTurns: 0
+    targetRace: 10
+  consumableEffect: 0
+  consumableHealAmount: 0

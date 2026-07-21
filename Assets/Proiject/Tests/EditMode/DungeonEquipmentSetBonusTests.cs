@@ -19,15 +19,21 @@ public sealed class DungeonEquipmentSetBonusTests
         createdObjects.Clear();
     }
 
-    [TestCase(EquipmentSetId.NornCanopy, 120, 14, 8, 1.02f)]
-    [TestCase(EquipmentSetId.GlaadSkyFortress, 122, 13, 9, 1.025f)]
-    [TestCase(EquipmentSetId.VelmBlackIron, 128, 14, 11, 1.03f)]
-    [TestCase(EquipmentSetId.AbyssThrone, 145, 17, 11, 1.035f)]
+    [TestCase(EquipmentSetId.NornCanopy, 115, 12, 5, 1.01f)]
+    [TestCase(EquipmentSetId.GlaadSkyFortress, 115, 12, 5, 1.01f)]
+    [TestCase(EquipmentSetId.VelmBlackIron, 120, 13, 5, 1.015f)]
+    [TestCase(EquipmentSetId.AbyssThrone, 125, 13, 6, 1.02f)]
+    [TestCase(EquipmentSetId.MiddleRuins, 110, 12, 4, 1f)]
     [TestCase(EquipmentSetId.AstralDepths, 145, 20, 13, 1.04f)]
     [TestCase(EquipmentSetId.NornVerdantSettlement, 115, 12, 5, 1.01f)]
     [TestCase(EquipmentSetId.GlaadDragonScaleCanyon, 115, 12, 5, 1.01f)]
     [TestCase(EquipmentSetId.VelmFurnaceDefenseZone, 120, 13, 5, 1.015f)]
     [TestCase(EquipmentSetId.AbyssGatewayThreshold, 125, 13, 6, 1.02f)]
+    [TestCase(EquipmentSetId.StartingCave, 105, 11, 4, 1f)]
+    [TestCase(EquipmentSetId.LeafForestTrail, 105, 11, 4, 1f)]
+    [TestCase(EquipmentSetId.EldUndergroundWaterway, 105, 11, 4, 1f)]
+    [TestCase(EquipmentSetId.LowerMine, 110, 12, 4, 1f)]
+    [TestCase(EquipmentSetId.EldOldQuarry, 110, 12, 4, 1f)]
     public void FullDungeonSet_AppliesProgressiveAllRoleBonuses(
         EquipmentSetId setId,
         int expectedMaxHP,
@@ -56,6 +62,12 @@ public sealed class DungeonEquipmentSetBonusTests
     [TestCase(EquipmentSetId.GlaadDragonScaleCanyon, 15)]
     [TestCase(EquipmentSetId.VelmFurnaceDefenseZone, 20)]
     [TestCase(EquipmentSetId.AbyssGatewayThreshold, 25)]
+    [TestCase(EquipmentSetId.StartingCave, 5)]
+    [TestCase(EquipmentSetId.LeafForestTrail, 5)]
+    [TestCase(EquipmentSetId.EldUndergroundWaterway, 5)]
+    [TestCase(EquipmentSetId.LowerMine, 10)]
+    [TestCase(EquipmentSetId.EldOldQuarry, 10)]
+    [TestCase(EquipmentSetId.MiddleRuins, 10)]
     public void NewDungeonSets_TwoPiecesGrantOnlyTheirHealthBonus(
         EquipmentSetId setId,
         int expectedHealthBonus)

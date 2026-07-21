@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
+  m_Name: StartingCaveOriginDropletCharm
+  m_EditorClassIdentifier: 
+  persistentId: item.dungeon.starting_cave_origin_droplet_charm
+  itemName: "始原雫の護石"
+  itemType: 1
+  rarity: 1
+  materialClassification: 0
+  description: "洞窟の奥で見つかる始原の雫を封じた護石。"
+  basePrice: 360
+  acquisitionType: 2
+  equipmentSlot: 2
+  requiredClass: 0
+  allClassesCanEquip: 1
+  equipmentSet: 15
+  equipmentRank: 3
+  bonusMaxHP: 9
+  bonusAttack: 5
+  bonusDefense: 3
+  bonusAttackSpeed: 0.02
+  equipmentEffects:
+  - type: 30
+    value: 0.01
+    secondaryValue: 0
+    durationTurns: 0
+    targetRace: 0
+  consumableEffect: 0
+  consumableHealAmount: 0

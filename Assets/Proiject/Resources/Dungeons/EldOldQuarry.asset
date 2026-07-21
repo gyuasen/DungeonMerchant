@@ -48,6 +48,6 @@ MonoBehaviour:
   eventLimitedDropChance: 0.025
   bossLimitedDropChance: 0.06
   limitedEquipmentDrops:
-  - {fileID: 11400000, guid: 6852a28ead75407b9763ded77631bc32, type: 2}
-  - {fileID: 11400000, guid: 0b4102646c7b4f5d849e7a6f19e71019, type: 2}
-  - {fileID: 11400000, guid: 63ba7bb231e846f094201d39fc593864, type: 2}
+  - {fileID: 11400000, guid: c82f1ec64ab65f20c3e0f00300000004, type: 2}
+  - {fileID: 11400000, guid: c82f1ec64ab65f20c3e0f00300000005, type: 2}
+  - {fileID: 11400000, guid: c82f1ec64ab65f20c3e0f00300000006, type: 2}
