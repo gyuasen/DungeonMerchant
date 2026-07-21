@@ -85,7 +85,13 @@ public enum EquipmentSetId
     NornVerdantSettlement,
     GlaadDragonScaleCanyon,
     VelmFurnaceDefenseZone,
-    AbyssGatewayThreshold
+    AbyssGatewayThreshold,
+    StartingCave,
+    LeafForestTrail,
+    EldUndergroundWaterway,
+    LowerMine,
+    EldOldQuarry,
+    MiddleRuins
 }
 
 public enum EquipmentEffectType

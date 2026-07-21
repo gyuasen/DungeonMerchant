@@ -66,6 +66,17 @@
 - `VelmGreatFurnaceSiegeHammer`, `VelmFurnaceguardHeatArmor`, `VelmEverflameTuningCore`
 - `AbyssGatewaySealingBlade`, `AbyssGatewardenBlackGarb`, `AbyssChainSealRing`
 
+段階2のダンジョン限定装備図鑑画像（未配置、`Resources/UI/Codex/Equipment/{アセット名}.png`）:
+
+- `StartingCavePioneerMossBlade`, `StartingCaveLampTravelWear`, `StartingCaveOriginDropletCharm`
+- `LeafPackripperFangSword`, `LeafHidingHuntWear`, `LeafHowlSilencingBell`
+- `EldWatergateWardenHatchet`, `EldStagnantWaterCloak`, `EldBlueRustWaterwayKey`
+
+段階3のダンジョン限定装備図鑑画像（未配置、`Resources/UI/Codex/Equipment/{アセット名}.png`）:
+
+- `LowerMineTunnelbreakerHammer`, `LowerMineClosedMinerHeavyWear`, `LowerMineLampeaterMinerLamp`
+- `EldSoulmasonIronHammer`, `EldTombstoneWardenBreastplate`, `EldCorpseKingSealingStoneRing`
+
 1. ★ `Grade04_norn_verdant_orc_high_chieftain.png`
 2. ★ `Grade04_dragonscale_king.png`
 3. ★ `Grade03_grand_furnace_colossus.png`

@@ -434,6 +434,12 @@ public static class JapaneseDisplayText
             case EquipmentSetId.GlaadDragonScaleCanyon: return "竜鱗峡谷";
             case EquipmentSetId.VelmFurnaceDefenseZone: return "熔炉防衛区";
             case EquipmentSetId.AbyssGatewayThreshold: return "奈落境門";
+            case EquipmentSetId.StartingCave: return "はじまりの洞窟";
+            case EquipmentSetId.LeafForestTrail: return "樹海の獣道";
+            case EquipmentSetId.EldUndergroundWaterway: return "地下水路";
+            case EquipmentSetId.LowerMine: return "封じられた廃坑";
+            case EquipmentSetId.EldOldQuarry: return "旧採石場";
+            case EquipmentSetId.MiddleRuins: return "霧の古代遺跡";
             default: return "セットなし";
         }
     }

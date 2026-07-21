@@ -867,20 +867,20 @@ public sealed class CharacterEquipmentController
                        "3部位: 攻撃+5、防御+2";
             case EquipmentSetId.NornCanopy:
                 return "セット: ノルン樹冠\n" +
-                       "2部位: 最大HP+16、防御+4\n" +
-                       "3部位: 攻撃+4、攻撃速度+0.02";
+                       "2部位: 最大HP+15\n" +
+                       "3部位: 攻撃+2、防御+2、攻撃速度+0.01";
             case EquipmentSetId.GlaadSkyFortress:
                 return "セット: グラード天嶺\n" +
-                       "2部位: 攻撃+3、防御+6\n" +
-                       "3部位: 最大HP+22、攻撃速度+0.025";
+                       "2部位: 最大HP+15\n" +
+                       "3部位: 攻撃+2、防御+2、攻撃速度+0.01";
             case EquipmentSetId.VelmBlackIron:
                 return "セット: ヴェルム黒鉄\n" +
-                       "2部位: 最大HP+28、攻撃+4\n" +
-                       "3部位: 防御+8、攻撃速度+0.03";
+                       "2部位: 最大HP+20\n" +
+                       "3部位: 攻撃+3、防御+2、攻撃速度+0.015";
             case EquipmentSetId.AbyssThrone:
                 return "セット: アビス玉座\n" +
-                       "2部位: 攻撃+7、防御+7\n" +
-                       "3部位: 最大HP+36、攻撃速度+0.035";
+                       "2部位: 最大HP+25\n" +
+                       "3部位: 攻撃+3、防御+3、攻撃速度+0.02";
             case EquipmentSetId.AstralDepths:
                 return "セット: 星幽深層\n" +
                        "2部位: 最大HP+45、攻撃速度+0.04\n" +
@@ -898,6 +898,21 @@ public sealed class CharacterEquipmentController
                 return "セット: 奈落境門\n" +
                        "2部位: 最大HP+25\n" +
                        "3部位: 攻撃+3、防御+3、攻撃速度+0.02";
+            case EquipmentSetId.StartingCave:
+            case EquipmentSetId.LeafForestTrail:
+            case EquipmentSetId.EldUndergroundWaterway:
+                return "セット: " + JapaneseDisplayText.GetEquipmentSet(setId) + "\n" +
+                       "2部位: 最大HP+5\n" +
+                       "3部位: 攻撃+1、防御+1";
+            case EquipmentSetId.LowerMine:
+            case EquipmentSetId.EldOldQuarry:
+                return "セット: " + JapaneseDisplayText.GetEquipmentSet(setId) + "\n" +
+                       "2部位: 最大HP+10\n" +
+                       "3部位: 攻撃+2、防御+1";
+            case EquipmentSetId.MiddleRuins:
+                return "セット: 霧の古代遺跡\n" +
+                       "2部位: 最大HP+10\n" +
+                       "3部位: 攻撃+2、防御+1";
             default:
                 return "セット: 古代守護者\n" +
                        "2部位: 最大HP+30、防御+8\n" +
