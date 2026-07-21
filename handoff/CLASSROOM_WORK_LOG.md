@@ -136,3 +136,48 @@
 - `dotnet build DungeonMerchant.sln` は警告0件、エラー0件で成功。
 - Unity上での雇用・商会・編成・治療ページの実表示とスクロール動作は未確認。
 - 転職一覧 `RebuildJobChangeList` はまだ親UI側に残っているため、次段階で分離候補。
+
+## 2026-07-21
+
+### 戦闘演出/図鑑UI/特殊個体表示の微調整
+
+- 戦闘勝利後、モンスターの撃破演出が終わる前にダンジョンイベントへ移る問題へ対応した。
+- `BattleVisualController` の `BattleCompleted` 受信時に視覚キューを止めて最終状態へ即時スナップしていた処理を削除し、撃破イベントを含むキューを順番に再生してから勝利表示と完了通知を行うようにした。
+- 装備図鑑の見開きが片側で見切れる問題へ対応するため、装備図鑑ウィンドウを拡大し、`BookPageUI` の片ページ幅を少し縮めた。
+- 特殊モンスターは通常モンスターと同じ画像を使う方針に合わせ、特殊個体の画像解決時に元敵の画像へフォールバックする処理を追加した。
+- 特殊個体へ紫系のオーラ枠、発光枠、`SPECIAL` ラベルを追加し、通常画像の上から特殊個体であることを判別できるようにした。
+- 変更ファイル:
+  - `Assets/Proiject/Scripts/UI/BattleVisualController.cs`
+  - `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.CharacterEquipment.cs`
+  - `Assets/Proiject/Scripts/UI/BookPageUI.cs`
+  - `handoff/SHARED_PROJECT_STATUS.md`
+- 確認:
+  - `dotnet build DungeonMerchant.Runtime.csproj` は警告0件、エラー0件で成功。
+  - `dotnet build DungeonMerchant.EditModeTests.csproj` は警告0件、エラー0件で成功。
+  - `dotnet build DungeonMerchant.PlayModeTests.csproj` は警告0件、エラー0件で成功。
+  - `dotnet build Assembly-CSharp-Editor.csproj` は警告0件、エラー0件で成功。
+- 注意:
+  - `dotnet build DungeonMerchant.sln --no-restore` は、この環境ではユーザーTemp配下のMSBuild一時ファイルアクセス拒否で失敗した。
+  - Tempをワークスペースへ向けたソリューション通常ビルドも詳細なしで失敗したため、個別プロジェクトビルドで代替確認した。
+- Unity上で確認する項目:
+  - 撃破フェード完了後にイベントカードが表示されること。
+  - 装備図鑑の左右ページが見切れないこと。
+  - 特殊個体が通常画像+紫オーラ/ラベルで表示されること。
+
+## 2026-07-21
+
+### 一日のリザルト表示タイミング修正
+
+- 戦闘演出中に日付変更が発生した場合、一日のリザルトを即時表示せず、戦闘演出完了まで保留するように修正した。
+- `SimpleMercenaryHireUI.DailyResult.cs` に保留表示の判定と `ShowPendingDailyResultIfReady` を追加した。
+- `SimpleMercenaryHireUI.BattleDungeon.cs` の戦闘演出完了処理とダンジョン完了待機処理から、保留中の一日リザルトを表示するように接続した。
+- これにより、モンスター撃破演出やダンジョン完了表示より前に一日のリザルトへ遷移してしまうタイミングずれを抑制する。
+- 変更ファイル:
+  - `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.cs`
+  - `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.DailyResult.cs`
+  - `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.BattleDungeon.cs`
+- 確認:
+  - `dotnet build DungeonMerchant.Runtime.csproj --no-restore` は警告0件、エラー0件で成功。
+- 注意:
+  - この環境では `git` コマンドが見つからないため、`git diff` / `git status` による差分確認は未実施。
+  - Unity上では、日またぎ直前の戦闘で撃破演出が終わってから一日のリザルトが表示されることを確認する。

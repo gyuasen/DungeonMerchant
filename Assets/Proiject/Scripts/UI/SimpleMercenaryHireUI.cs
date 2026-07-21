@@ -175,6 +175,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private bool pendingDungeonCompletionCleared;
     private Coroutine pendingDungeonCompletionCoroutine;
     private Coroutine dungeonEventPresentationCoroutine;
+    private bool hasPendingDailyResult;
+    private int pendingDailyResultDay;
     private DailyResultController dailyResultController;
     private HireAndPartyController hireAndPartyController;
     private EconomyController economyController;

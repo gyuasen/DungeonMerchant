@@ -1204,3 +1204,28 @@
 ### 学校側で作業する場合の注意
 - 家側Claude CodeはSol(監査/分析)・Terra(実装)・Luna(単純作業)のCodexサブエージェントを使い分けている。学校側Codexで実装する場合も、設計はdocs/の正本に従い、完了後にこのファイルとhandoff/CLAUDE_WORK_LOG.mdへ記録すること。内容の食い違いは家側優先。
 - 各作業後 `dotnet build DungeonMerchant.sln --no-restore` 警告0・エラー0を確認し、新規.csはcsproj登録、新規.metaのGUID重複0を守る。UnityでのTest Runner実行はユーザーに依頼。
+
+## 2026-07-21 教室側・戦闘演出/図鑑UI/特殊個体表示の微調整
+
+- 共有ファイル上の大型タスクとは別の微調整として、戦闘勝利後に撃破演出が終わる前にダンジョンイベントへ移る問題へ対応した。
+- `BattleVisualController` が `BattleCompleted` を受け取った時に視覚キューを止めて最終状態へ即時スナップしていた処理を削除し、撃破イベントを含む既存キューを最後まで流してから勝利表示・完了通知へ進むようにした。
+- 装備図鑑の見開きが片側で見切れる問題へ対応するため、装備図鑑ウィンドウを拡大し、`BookPageUI` の片ページ幅を少し縮めて左右ページに余裕を持たせた。
+- 特殊モンスターは通常モンスターと同じ画像を使う方針に合わせ、特殊個体の画像解決時に元敵の画像へフォールバックする処理を追加した。
+- 特殊個体の戦闘表示へ紫系のオーラ枠、発光枠、`SPECIAL` ラベルを追加し、通常画像の上から特殊個体であることを判別できるようにした。
+- 確認: `DungeonMerchant.Runtime.csproj`、`DungeonMerchant.EditModeTests.csproj`、`DungeonMerchant.PlayModeTests.csproj`、`Assembly-CSharp-Editor.csproj` は個別ビルドで警告0・エラー0。
+- 注意: `dotnet build DungeonMerchant.sln --no-restore` は、この環境ではユーザーTemp配下のMSBuild一時ファイルアクセス拒否が発生した。Tempをワークスペースへ向けたソリューション通常ビルドも詳細なしで失敗したため、個別プロジェクトビルドで代替確認した。
+- Unity上で確認する項目: 撃破フェード完了後にイベントカードが出ること、装備図鑑の左右ページが見切れないこと、特殊個体が通常画像+紫オーラ/ラベルで表示されること。
+
+## 2026-07-21 教室側・一日のリザルト表示タイミング修正
+
+- 戦闘演出中に日付変更が入った場合、一日のリザルトを即時表示せず、戦闘演出完了後に表示する保留処理を追加した。
+- `SimpleMercenaryHireUI` に保留中の日次リザルト日付を保持し、`BattleVisualController.PresentationCompleted` 後とダンジョン完了待機後に表示を再開する。
+- 変更ファイル:
+  - `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.cs`
+  - `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.DailyResult.cs`
+  - `Assets/Proiject/Scripts/UI/SimpleMercenaryHireUI.BattleDungeon.cs`
+- 確認:
+  - `dotnet build DungeonMerchant.Runtime.csproj --no-restore` は警告0件、エラー0件で成功。
+- 補足:
+  - この教室環境では `git` コマンドが未検出のため、git差分確認は未実施。
+  - Unity上の確認項目は、日またぎ直前の戦闘で撃破演出完了後に一日のリザルトが表示されること。

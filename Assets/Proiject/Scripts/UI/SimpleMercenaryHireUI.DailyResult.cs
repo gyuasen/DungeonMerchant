@@ -109,7 +109,34 @@ public partial class SimpleMercenaryHireUI
             : string.Empty;
         statusText.text =
             $"{currentDay}日目になりました。市場価格が更新されました。{debtNotice}";
+        if (battleVisualController != null &&
+            battleVisualController.IsPresentationBusy)
+        {
+            hasPendingDailyResult = true;
+            pendingDailyResultDay = currentDay;
+            return;
+        }
+
         ShowDailyResult(currentDay);
+    }
+
+    private void ShowPendingDailyResultIfReady()
+    {
+        if (!hasPendingDailyResult)
+        {
+            return;
+        }
+
+        if (battleVisualController != null &&
+            battleVisualController.IsPresentationBusy)
+        {
+            return;
+        }
+
+        int resultDay = pendingDailyResultDay;
+        hasPendingDailyResult = false;
+        pendingDailyResultDay = 0;
+        ShowDailyResult(resultDay);
     }
 
     private void ShowDailyResult(int currentDay)
