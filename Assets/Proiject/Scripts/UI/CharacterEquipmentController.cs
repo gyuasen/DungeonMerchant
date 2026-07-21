@@ -314,7 +314,10 @@ public sealed class CharacterEquipmentController
             : "追加効果なし";
         string specialEffects = EquipmentEffectTextFormatter.FormatList(
             equipment.EquipmentEffects);
-        string setText = BuildEquipmentSetDetail(item.equipmentSet);
+        string setText = BuildEquipmentSetDetail(
+            item.equipmentSet,
+            SelectedDetailMercenary);
+        string descriptionText = BuildEquipmentDescriptionText(item);
         string target = item.allClassesCanEquip
             ? "全職業"
             : JapaneseDisplayText.GetMercenaryClass(item.requiredClass);
@@ -333,6 +336,7 @@ public sealed class CharacterEquipmentController
             $"攻撃 {FormatSigned(equipment.BonusAttack)}\n" +
             $"防御 {FormatSigned(equipment.BonusDefense)}  " +
             $"攻撃速度 {FormatSigned(equipment.BonusAttackSpeed)}\n\n" +
+            $"{descriptionText}" +
             $"追加効果\n{modifiers}\n\n特殊効果\n{specialEffects}\n\n{setText}\n\n" +
             $"次回強化: 成功率 " +
             $"{equipment.GetEnhancementSuccessRate() * 100f:0}%  " +
@@ -511,9 +515,7 @@ public sealed class CharacterEquipmentController
             string name = discovered
                 ? JapaneseDisplayText.GetItemName(item)
                 : "？？？？？？";
-            string set = item.equipmentSet != EquipmentSetId.None
-                ? $" / {JapaneseDisplayText.GetEquipmentSet(item.equipmentSet)}"
-                : string.Empty;
+            string set = BuildEquipmentSetMembershipText(item);
             string source = item.acquisitionType == ItemAcquisitionType.Dungeon
                 ? "ダンジョン限定"
                 : item.acquisitionType == ItemAcquisitionType.Blacksmith
@@ -580,7 +582,8 @@ public sealed class CharacterEquipmentController
                $"{FormatComparison(candidate.BonusDefense - currentDefense)}  " +
                $"速度 {FormatSigned(candidate.BonusAttackSpeed)} " +
                $"{FormatComparison(candidate.BonusAttackSpeed - currentSpeed)}\n" +
-               $"特殊効果: {EquipmentEffectTextFormatter.FormatList(candidate.EquipmentEffects)}";
+               $"特殊効果: {EquipmentEffectTextFormatter.FormatList(candidate.EquipmentEffects)}" +
+               BuildEquipmentSetMembershipText(candidate.BaseItem);
     }
 
     public static string BuildEquipmentBonusText(ItemDataSO item)
@@ -588,7 +591,8 @@ public sealed class CharacterEquipmentController
         return $"HP {FormatSigned(item.bonusMaxHP)}  " +
                $"攻撃 {FormatSigned(item.bonusAttack)}\n" +
                $"防御 {FormatSigned(item.bonusDefense)}  " +
-               $"速度 {FormatSigned(item.bonusAttackSpeed)}";
+               $"速度 {FormatSigned(item.bonusAttackSpeed)}" +
+               BuildEquipmentSetMembershipText(item);
     }
 
     public static string BuildEquipmentComparisonText(
@@ -617,7 +621,8 @@ public sealed class CharacterEquipmentController
                $"{FormatComparison(candidate.bonusDefense - currentDefense)}  " +
                $"速度 {FormatSigned(candidate.bonusAttackSpeed)} " +
                $"{FormatComparison(candidate.bonusAttackSpeed - currentSpeed)}\n" +
-               $"特殊効果: {EquipmentEffectTextFormatter.FormatList(candidate.equipmentEffects)}";
+               $"特殊効果: {EquipmentEffectTextFormatter.FormatList(candidate.equipmentEffects)}" +
+               BuildEquipmentSetMembershipText(candidate);
     }
 
     public static List<MercenarySkillInfo> GetMercenarySkillInfos(
@@ -825,99 +830,82 @@ public sealed class CharacterEquipmentController
                 continue;
             }
 
+            if (!EquipmentSetCatalog.TryGet(
+                    setId,
+                    out EquipmentSetDefinition definition))
+            {
+                continue;
+            }
+
             int count = mercenary.GetEquippedSetCount(setId);
             if (count <= 0)
             {
                 continue;
             }
 
-            string active = count >= 3
+            string active = count >= definition.ThreePiece.RequiredCount
                 ? "全効果"
-                : count >= 2 ? "2部位効果" : "未発動";
+                : count >= definition.TwoPiece.RequiredCount
+                    ? $"{definition.TwoPiece.RequiredCount}部位効果"
+                    : "未発動";
             summaries.Add(
-                $"{JapaneseDisplayText.GetEquipmentSet(setId)} {count}/3 {active}");
+                $"{definition.DisplayName} " +
+                $"{count}/{definition.ThreePiece.RequiredCount} {active}");
         }
         return summaries.Count > 0 ? string.Join(", ", summaries) : "なし";
     }
 
-    private static string BuildEquipmentSetDetail(EquipmentSetId setId)
+    public static string BuildEquipmentDescriptionText(ItemDataSO item)
     {
-        if (setId == EquipmentSetId.None)
+        return item != null && !string.IsNullOrWhiteSpace(item.description)
+            ? $"説明\n{item.description}\n\n"
+            : string.Empty;
+    }
+
+    public static string BuildEquipmentSetMembershipText(ItemDataSO item)
+    {
+        if (item == null || !EquipmentSetCatalog.TryGet(
+                item.equipmentSet,
+                out EquipmentSetDefinition definition))
+        {
+            return string.Empty;
+        }
+        return $"  <color=#{ColorUtility.ToHtmlStringRGB(definition.AccentColor)}>[{definition.DisplayName}]</color>";
+    }
+
+    public static string BuildEquipmentSetDetail(
+        EquipmentSetId setId,
+        MercenaryInstance mercenary)
+    {
+        if (!EquipmentSetCatalog.TryGet(setId, out EquipmentSetDefinition definition))
         {
             return "セット効果: なし";
         }
+        int equippedCount = mercenary != null
+            ? mercenary.GetEquippedSetCount(setId)
+            : 0;
+        string color = ColorUtility.ToHtmlStringRGB(definition.AccentColor);
+        return $"セット: <color=#{color}>{definition.DisplayName}</color>\n" +
+               BuildSetTierStatus(definition.TwoPiece, equippedCount, definition.AccentColor) + "\n" +
+               BuildSetTierStatus(definition.ThreePiece, equippedCount, definition.AccentColor);
+    }
 
-        switch (setId)
-        {
-            case EquipmentSetId.Vanguard:
-                return "セット: 不屈の前衛\n" +
-                       "2部位: 最大HP+20、防御+10\n" +
-                       "3部位: 攻撃+8";
-            case EquipmentSetId.Windstalker:
-                return "セット: 風狩り\n" +
-                       "2部位: 攻撃+5、攻撃速度+0.08\n" +
-                       "3部位: 攻撃+10、攻撃速度+0.06";
-            case EquipmentSetId.ArcaneSage:
-                return "セット: 秘術賢者\n" +
-                       "2部位: 攻撃+10\n" +
-                       "3部位: 攻撃+15、攻撃速度+0.04";
-            case EquipmentSetId.OniHunter:
-                return "セット: 鬼狩り\n" +
-                       "2部位: 最大HP+10、攻撃+3\n" +
-                       "3部位: 攻撃+5、防御+2";
-            case EquipmentSetId.NornCanopy:
-                return "セット: ノルン樹冠\n" +
-                       "2部位: 最大HP+15\n" +
-                       "3部位: 攻撃+2、防御+2、攻撃速度+0.01";
-            case EquipmentSetId.GlaadSkyFortress:
-                return "セット: グラード天嶺\n" +
-                       "2部位: 最大HP+15\n" +
-                       "3部位: 攻撃+2、防御+2、攻撃速度+0.01";
-            case EquipmentSetId.VelmBlackIron:
-                return "セット: ヴェルム黒鉄\n" +
-                       "2部位: 最大HP+20\n" +
-                       "3部位: 攻撃+3、防御+2、攻撃速度+0.015";
-            case EquipmentSetId.AbyssThrone:
-                return "セット: アビス玉座\n" +
-                       "2部位: 最大HP+25\n" +
-                       "3部位: 攻撃+3、防御+3、攻撃速度+0.02";
-            case EquipmentSetId.AstralDepths:
-                return "セット: 星幽深層\n" +
-                       "2部位: 最大HP+45、攻撃速度+0.04\n" +
-                       "3部位: 攻撃+10、防御+10";
-            case EquipmentSetId.NornVerdantSettlement:
-            case EquipmentSetId.GlaadDragonScaleCanyon:
-                return "セット: " + JapaneseDisplayText.GetEquipmentSet(setId) + "\n" +
-                       "2部位: 最大HP+15\n" +
-                       "3部位: 攻撃+2、防御+2、攻撃速度+0.01";
-            case EquipmentSetId.VelmFurnaceDefenseZone:
-                return "セット: 熔炉防衛区\n" +
-                       "2部位: 最大HP+20\n" +
-                       "3部位: 攻撃+3、防御+2、攻撃速度+0.015";
-            case EquipmentSetId.AbyssGatewayThreshold:
-                return "セット: 奈落境門\n" +
-                       "2部位: 最大HP+25\n" +
-                       "3部位: 攻撃+3、防御+3、攻撃速度+0.02";
-            case EquipmentSetId.StartingCave:
-            case EquipmentSetId.LeafForestTrail:
-            case EquipmentSetId.EldUndergroundWaterway:
-                return "セット: " + JapaneseDisplayText.GetEquipmentSet(setId) + "\n" +
-                       "2部位: 最大HP+5\n" +
-                       "3部位: 攻撃+1、防御+1";
-            case EquipmentSetId.LowerMine:
-            case EquipmentSetId.EldOldQuarry:
-                return "セット: " + JapaneseDisplayText.GetEquipmentSet(setId) + "\n" +
-                       "2部位: 最大HP+10\n" +
-                       "3部位: 攻撃+2、防御+1";
-            case EquipmentSetId.MiddleRuins:
-                return "セット: 霧の古代遺跡\n" +
-                       "2部位: 最大HP+10\n" +
-                       "3部位: 攻撃+2、防御+1";
-            default:
-                return "セット: 古代守護者\n" +
-                       "2部位: 最大HP+30、防御+8\n" +
-                       "3部位: 攻撃+12、攻撃速度+0.08";
-        }
+    public static bool IsSetTierActive(EquipmentSetTier tier, int equippedCount)
+    {
+        return equippedCount >= tier.RequiredCount;
+    }
+
+    private static string BuildSetTierStatus(
+        EquipmentSetTier tier,
+        int equippedCount,
+        Color accentColor)
+    {
+        bool active = IsSetTierActive(tier, equippedCount);
+        string color = active
+            ? ColorUtility.ToHtmlStringRGB(accentColor)
+            : "777777";
+        return $"<color=#{color}>{tier.RequiredCount}部位 ({equippedCount}/{tier.RequiredCount}): " +
+               $"{EquipmentSetCatalog.BuildTierBonusText(tier)}</color>";
     }
 
     private static List<ItemDataSO> FindAllEquipmentAssets()

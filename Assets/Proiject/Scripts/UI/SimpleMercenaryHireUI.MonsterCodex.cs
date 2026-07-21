@@ -26,7 +26,7 @@ public partial class SimpleMercenaryHireUI
         bookRoot.offsetMin = new Vector2(28f, 28f);
         bookRoot.offsetMax = new Vector2(-28f, -82f);
         monsterCodexBook = bookRoot.gameObject.AddComponent<BookPageUI>();
-        monsterCodexBook.Initialize("魔物図鑑", uiFont, uiBodyFont);
+        monsterCodexBook.Initialize(string.Empty, uiFont, uiBodyFont);
         Button closeButton = CreateActionButton(window, "閉じる", HideMonsterCollection);
         RectTransform closeRect = closeButton.GetComponent<RectTransform>();
         closeRect.anchorMin = closeRect.anchorMax = new Vector2(1f, 1f);

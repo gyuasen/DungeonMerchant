@@ -698,6 +698,14 @@ public class MerchantInventory : MonoBehaviour
         discoveredEquipmentPersistentIds.Add(item.PersistentId);
     }
 
+#if UNITY_EDITOR
+    public void ClearEquipmentDiscoveryForEditor()
+    {
+        discoveredEquipmentPersistentIds.Clear();
+        InventoryChanged?.Invoke();
+    }
+#endif
+
     private void PopulateEnhancementMaterials()
     {
         string[] names =

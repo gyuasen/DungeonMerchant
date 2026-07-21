@@ -71,6 +71,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform merchantSkillList;
     private RectTransform equipmentCollectionOverlay;
     private BookPageUI equipmentCodexBook;
+    private EquipmentSpecialCodexPageUI equipmentSpecialCodexPage;
+    private RectTransform equipmentCodexNormalRoot;
+    private RectTransform equipmentCodexSpecialRoot;
+    private Button equipmentCodexNormalTabButton;
+    private Button equipmentCodexSpecialTabButton;
     private RectTransform monsterCollectionOverlay;
     private BookPageUI monsterCodexBook;
     private RectTransform travelConfirmationOverlay;
