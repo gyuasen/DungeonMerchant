@@ -59,6 +59,13 @@
 
 未配置の必須画像は6枚。優先度順は以下のとおり。
 
+段階1のダンジョン限定装備図鑑画像（未配置、`Resources/UI/Codex/Equipment/{アセット名}.png`）:
+
+- `NornVerdantChieftainHatchet`, `NornAncientBarkBattlegear`, `NornVerdantOathNecklace`
+- `GlaadReversedScaleLance`, `GlaadCanyonScaleArmor`, `GlaadWingchaserDragonMark`
+- `VelmGreatFurnaceSiegeHammer`, `VelmFurnaceguardHeatArmor`, `VelmEverflameTuningCore`
+- `AbyssGatewaySealingBlade`, `AbyssGatewardenBlackGarb`, `AbyssChainSealRing`
+
 1. ★ `Grade04_norn_verdant_orc_high_chieftain.png`
 2. ★ `Grade04_dragonscale_king.png`
 3. ★ `Grade03_grand_furnace_colossus.png`

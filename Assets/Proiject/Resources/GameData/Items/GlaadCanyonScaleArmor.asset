@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d66787c2d1207b342b4b2592f386c3ca, type: 3}
+  m_Name: GlaadCanyonScaleArmor
+  m_EditorClassIdentifier: 
+  persistentId: item.dungeon.glaad_canyon_scale_armor
+  itemName: "峡谷鱗の鎧"
+  itemType: 1
+  rarity: 3
+  materialClassification: 0
+  description: "峡谷に散る硬い鱗を継ぎ合わせた鎧。"
+  basePrice: 4500
+  acquisitionType: 2
+  equipmentSlot: 1
+  requiredClass: 0
+  allClassesCanEquip: 1
+  equipmentSet: 12
+  equipmentRank: 7
+  bonusMaxHP: 62
+  bonusAttack: 6
+  bonusDefense: 16
+  bonusAttackSpeed: 0.035
+  equipmentEffects:
+  - type: 20
+    value: 0.1
+    secondaryValue: 0
+    durationTurns: 3
+    targetRace: 0
+  consumableEffect: 0
+  consumableHealAmount: 0

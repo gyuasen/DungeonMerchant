@@ -24,6 +24,10 @@ public sealed class DungeonEquipmentSetBonusTests
     [TestCase(EquipmentSetId.VelmBlackIron, 128, 14, 11, 1.03f)]
     [TestCase(EquipmentSetId.AbyssThrone, 145, 17, 11, 1.035f)]
     [TestCase(EquipmentSetId.AstralDepths, 145, 20, 13, 1.04f)]
+    [TestCase(EquipmentSetId.NornVerdantSettlement, 115, 12, 5, 1.01f)]
+    [TestCase(EquipmentSetId.GlaadDragonScaleCanyon, 115, 12, 5, 1.01f)]
+    [TestCase(EquipmentSetId.VelmFurnaceDefenseZone, 120, 13, 5, 1.015f)]
+    [TestCase(EquipmentSetId.AbyssGatewayThreshold, 125, 13, 6, 1.02f)]
     public void FullDungeonSet_AppliesProgressiveAllRoleBonuses(
         EquipmentSetId setId,
         int expectedMaxHP,
@@ -46,6 +50,26 @@ public sealed class DungeonEquipmentSetBonusTests
         Assert.That(mercenary.Defense, Is.EqualTo(expectedDefense));
         Assert.That(mercenary.AttackSpeed,
             Is.EqualTo(expectedAttackSpeed).Within(0.0001f));
+    }
+
+    [TestCase(EquipmentSetId.NornVerdantSettlement, 15)]
+    [TestCase(EquipmentSetId.GlaadDragonScaleCanyon, 15)]
+    [TestCase(EquipmentSetId.VelmFurnaceDefenseZone, 20)]
+    [TestCase(EquipmentSetId.AbyssGatewayThreshold, 25)]
+    public void NewDungeonSets_TwoPiecesGrantOnlyTheirHealthBonus(
+        EquipmentSetId setId,
+        int expectedHealthBonus)
+    {
+        MercenaryInstance mercenary = CreateMercenary();
+        Assert.That(mercenary.EquipEquipment(
+            CreateEquipment(EquipmentSlot.Weapon, setId)), Is.True);
+        Assert.That(mercenary.EquipEquipment(
+            CreateEquipment(EquipmentSlot.Armor, setId)), Is.True);
+
+        Assert.That(mercenary.MaxHP, Is.EqualTo(100 + expectedHealthBonus));
+        Assert.That(mercenary.Attack, Is.EqualTo(10));
+        Assert.That(mercenary.Defense, Is.EqualTo(3));
+        Assert.That(mercenary.AttackSpeed, Is.EqualTo(1f));
     }
 
     [Test]
