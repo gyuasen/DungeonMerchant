@@ -281,6 +281,12 @@ public sealed class BattleVisualController : MonoBehaviour
             : new Color(0.95f, 0.84f, 0.62f);
         fallback.gameObject.SetActive(!hasImage);
 
+        if (descriptor.EnemyData != null &&
+            descriptor.EnemyData.isSpecialVariant)
+        {
+            AddSpecialVariantEffect(panel, portrait);
+        }
+
         Text name = CreateText(
             "Name",
             panel,
@@ -355,19 +361,6 @@ public sealed class BattleVisualController : MonoBehaviour
     {
         if (presentationEvent == null)
         {
-            return;
-        }
-
-        if (presentationEvent.Type == BattlePresentationEventType.BattleCompleted &&
-            !skipPresentationRequested &&
-            isActiveAndEnabled)
-        {
-            // The simulation can finish before the visual queue. Snap to its final
-            // state so the last frame does not appear frozen while the queue drains.
-            StopPlayback();
-            SynchronizeSlotsToBattleState();
-            playbackRoutine = StartCoroutine(
-                PlayImmediateBattleCompletion(presentationEvent.Victory));
             return;
         }
 
@@ -717,7 +710,76 @@ public sealed class BattleVisualController : MonoBehaviour
         string key = string.IsNullOrWhiteSpace(data.battleVisualKey)
             ? data.name
             : data.battleVisualKey.Trim();
-        return Resources.Load<Sprite>($"Battle/Enemies/{key}");
+        Sprite sprite = Resources.Load<Sprite>($"Battle/Enemies/{key}");
+        if (sprite != null)
+        {
+            return sprite;
+        }
+
+        if (data.isSpecialVariant)
+        {
+            EnemyDataSO source =
+                GameAssetRepository.FindByPersistentId<EnemyDataSO>(
+                    data.runtimeSourcePersistentId);
+            if (source != null && source != data)
+            {
+                return ResolveEnemySprite(source);
+            }
+
+            const string suffix = " Special Variant";
+            if (data.name.EndsWith(suffix, StringComparison.Ordinal))
+            {
+                string sourceName =
+                    data.name.Substring(0, data.name.Length - suffix.Length);
+                sprite = Resources.Load<Sprite>($"Battle/Enemies/{sourceName}");
+                if (sprite != null)
+                {
+                    return sprite;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private void AddSpecialVariantEffect(
+        RectTransform panel,
+        RectTransform portrait)
+    {
+        RectTransform aura = CreateRect("Special Variant Aura", panel);
+        aura.anchorMin = portrait.anchorMin;
+        aura.anchorMax = portrait.anchorMax;
+        aura.offsetMin = new Vector2(-4f, -4f);
+        aura.offsetMax = new Vector2(4f, 4f);
+        aura.SetAsFirstSibling();
+
+        Image auraImage = aura.gameObject.AddComponent<Image>();
+        auraImage.color = new Color(0.72f, 0.16f, 1f, 0.20f);
+        auraImage.raycastTarget = false;
+
+        Outline auraOutline = aura.gameObject.AddComponent<Outline>();
+        auraOutline.effectColor = new Color(0.95f, 0.30f, 1f, 0.95f);
+        auraOutline.effectDistance = new Vector2(4f, -4f);
+        auraOutline.useGraphicAlpha = true;
+
+        Outline panelGlow = panel.gameObject.AddComponent<Outline>();
+        panelGlow.effectColor = new Color(0.95f, 0.30f, 1f, 0.9f);
+        panelGlow.effectDistance = new Vector2(2f, -2f);
+        panelGlow.useGraphicAlpha = true;
+
+        Text label = CreateText(
+            "Special Variant Label",
+            panel,
+            "SPECIAL",
+            11,
+            FontStyle.Bold,
+            TextAnchor.MiddleCenter);
+        label.color = new Color(1f, 0.78f, 1f, 1f);
+        label.rectTransform.anchorMin = new Vector2(0.08f, 0.83f);
+        label.rectTransform.anchorMax = new Vector2(0.92f, 0.96f);
+        label.rectTransform.offsetMin = label.rectTransform.offsetMax =
+            Vector2.zero;
+        label.transform.SetAsLastSibling();
     }
 
     private static Sprite ResolveBattleBackground(
@@ -872,14 +934,6 @@ public sealed class BattleVisualController : MonoBehaviour
         {
             yield return null;
         }
-    }
-
-    private IEnumerator PlayImmediateBattleCompletion(bool victory)
-    {
-        ShowResult(victory);
-        yield return WaitUnpaused(Duration(BattleResultDisplaySeconds));
-        playbackRoutine = null;
-        CompletePresentation();
     }
 
     private static IEnumerator TweenUnpaused(

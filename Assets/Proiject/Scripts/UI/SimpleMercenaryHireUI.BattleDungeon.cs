@@ -766,6 +766,7 @@ public partial class SimpleMercenaryHireUI
         if (hasPendingDungeonCompletion)
         {
             CompletePendingDungeonResult();
+            ShowPendingDailyResultIfReady();
             return;
         }
 
@@ -774,6 +775,8 @@ public partial class SimpleMercenaryHireUI
             UpdateDungeonEventUI();
             ShowBattlePage();
         }
+
+        ShowPendingDailyResultIfReady();
     }
 
     private IEnumerator WaitForDungeonPresentationCompletion()
@@ -804,6 +807,7 @@ public partial class SimpleMercenaryHireUI
         {
             CompletePendingDungeonResult();
         }
+        ShowPendingDailyResultIfReady();
         pendingDungeonCompletionCoroutine = null;
     }
 

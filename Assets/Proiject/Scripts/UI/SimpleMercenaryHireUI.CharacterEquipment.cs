@@ -91,7 +91,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             CreateUIObject("Equipment Collection Window", equipmentCollectionOverlay);
         window.anchorMin = window.anchorMax = window.pivot =
             new Vector2(0.5f, 0.5f);
-        window.sizeDelta = new Vector2(720f, 560f);
+        window.sizeDelta = new Vector2(820f, 600f);
         ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
 
         CreateText(
@@ -102,8 +102,8 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         RectTransform bookRoot = CreateUIObject("Equipment Codex Book", window);
         bookRoot.anchorMin = Vector2.zero;
         bookRoot.anchorMax = Vector2.one;
-        bookRoot.offsetMin = new Vector2(28f, 28f);
-        bookRoot.offsetMax = new Vector2(-28f, -82f);
+        bookRoot.offsetMin = new Vector2(34f, 34f);
+        bookRoot.offsetMax = new Vector2(-34f, -88f);
         equipmentCodexBook = bookRoot.gameObject.AddComponent<BookPageUI>();
         equipmentCodexBook.Initialize("装備図鑑", uiFont, uiBodyFont);
 

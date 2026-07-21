@@ -6,6 +6,9 @@ using UnityEngine.UI;
 /// <summary>Runtime-built two-page parchment codex. Each page contains two entries.</summary>
 public sealed class BookPageUI : MonoBehaviour
 {
+    private const float PageWidth = 310f;
+    private const float PageHeight = 410f;
+
     public sealed class Entry
     {
         public string Name;
@@ -100,7 +103,7 @@ public sealed class BookPageUI : MonoBehaviour
         RectTransform page = pageObject.GetComponent<RectTransform>();
         page.SetParent(parent, false);
         page.anchorMin = page.anchorMax = page.pivot = anchor;
-        page.sizeDelta = new Vector2(330f, 410f);
+        page.sizeDelta = new Vector2(PageWidth, PageHeight);
         page.GetComponent<Image>().color = new Color(0.92f, 0.82f, 0.61f, 1f);
         return page;
     }
