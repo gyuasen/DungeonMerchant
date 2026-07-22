@@ -15,13 +15,11 @@ MonoBehaviour:
   recipeName: Hawkeye Charm
   resultItem: {fileID: 11400000, guid: f1f65105d611441290acd95c6afe51af, type: 2}
   resultAmount: 1
-  goldCost: 320
+  goldCost: 340
   materials:
-  - item: {fileID: 11400000, guid: f66e9fe18b5c428a86a912bdf72fc5ba, type: 2}
-    amount: 2
   - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
-    amount: 1
-  - item: {fileID: 11400000, guid: 02cca79ae8434c1eb64f32d3d4d206a0, type: 2}
-    amount: 2
+    amount: 3
+  - item: {fileID: 11400000, guid: 57356d96cb1541f5a8cc6f35b4533638, type: 2}
+    amount: 3
   - item: {fileID: 11400000, guid: 28ea52f6212db55409b8ea0e99271947, type: 2}
-    amount: 1
+    amount: 2

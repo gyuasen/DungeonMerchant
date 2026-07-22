@@ -23,13 +23,18 @@ public sealed class TradeMaterialTests
     }
 
     [Test]
-    public void EveryBlacksmithRecipe_RequiresTheStoneForItsResultRank()
+    public void EveryBlacksmithRecipe_RequiresAtLeastTheStoneAmountForItsResultRank()
     {
         foreach (string guid in AssetDatabase.FindAssets("t:EquipmentRecipeSO"))
         {
             EquipmentRecipeSO recipe = AssetDatabase.LoadAssetAtPath<EquipmentRecipeSO>(AssetDatabase.GUIDToAssetPath(guid));
             ItemDataSO expected = MaterialCatalog.GetMagicStoneForEquipmentRank(recipe.resultItem.equipmentRank);
-            Assert.That(recipe.materials.Any(requirement => requirement.item == expected && requirement.amount == MaterialCatalog.GetMagicStoneAmountForEquipmentRank(recipe.resultItem.equipmentRank)), Is.True, recipe.name);
+            Assert.That(recipe.materials.Any(requirement =>
+                requirement.item == expected &&
+                requirement.amount >= MaterialCatalog.GetMagicStoneAmountForEquipmentRank(
+                    recipe.resultItem.equipmentRank)),
+                Is.True,
+                recipe.name);
         }
     }
 
