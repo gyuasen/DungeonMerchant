@@ -57,56 +57,111 @@ public sealed class SpeciesDropMappingTests
     }
 
     [Test]
-    public void SaleRankTwoRecipes_UseOnlyStartingCaveMaterials()
+    public void SaleAndLeafBlacksmithRecipes_UseOnlyMaterialsAvailableAtFirstTown()
     {
-        DungeonDataSO dungeon = Resources.Load<DungeonDataSO>(
+        DungeonDataSO startingCave = Resources.Load<DungeonDataSO>(
             "GameData/Dungeons/DungeonData");
-        Assert.That(dungeon, Is.Not.Null);
+        DungeonDataSO lowerMine = Resources.Load<DungeonDataSO>(
+            "GameData/Dungeons/LowerMine");
+        Assert.That(startingCave, Is.Not.Null);
+        Assert.That(lowerMine, Is.Not.Null);
 
-        HashSet<ItemDataSO> obtainableMaterials = new HashSet<ItemDataSO>(
-            dungeon.normalEnemies
-                .Where(enemy => enemy != null && enemy.itemDrops != null)
-                .SelectMany(enemy => enemy.itemDrops)
-                .Where(drop => drop?.item != null)
-                .Select(drop => drop.item));
-        foreach (EnemyDataSO enemy in dungeon.normalEnemies.Where(enemy => enemy != null))
-        {
-            ItemDataSO magicStone =
-                MaterialCatalog.GetMagicStoneForEnemyGrade(enemy.monsterGrade);
-            if (magicStone != null)
+        AssertRecipesUseOnlyAvailableMaterials(
+            2,
+            CollectObtainableMaterials(startingCave),
+            new[]
             {
-                obtainableMaterials.Add(magicStone);
-            }
-        }
-        foreach (DungeonItemReward reward in dungeon.clearItemRewards ??
-                 new DungeonItemReward[0])
-        {
-            if (reward?.item != null)
+                "GameData/Blacksmith/ArcaneStaffRecipe",
+                "GameData/Blacksmith/CompositeBowRecipe",
+                "GameData/Blacksmith/LancerSteelLanceRecipe",
+                "GameData/Blacksmith/PriestBlessedStaffRecipe",
+                "GameData/Blacksmith/RogueSwiftDaggerRecipe",
+                "GameData/Blacksmith/SteelSwordRecipe"
+            });
+        AssertRecipesUseOnlyAvailableMaterials(
+            1,
+            CollectObtainableMaterials(startingCave, lowerMine),
+            new[]
             {
-                obtainableMaterials.Add(reward.item);
-            }
-        }
+                "GameData/Blacksmith/ArcanePendantRecipe",
+                "GameData/Blacksmith/BonePrayerVestmentRecipe",
+                "GameData/Blacksmith/HexwoodStaffRecipe",
+                "GameData/Blacksmith/RunewovenRobeRecipe",
+                "GameData/Blacksmith/SanctifiedMaceRecipe",
+                "GameData/Blacksmith/SpiritBeadRecipe",
+                "GameData/Blacksmith/BeastboneBowRecipe",
+                "GameData/Blacksmith/GolemPlateRecipe",
+                "GameData/Blacksmith/HawkeyeCharmRecipe",
+                "GameData/Blacksmith/IronVanguardArmorRecipe",
+                "GameData/Blacksmith/OrcboneSpearRecipe",
+                "GameData/Blacksmith/ShadowhideArmorRecipe",
+                "GameData/Blacksmith/WindrunnerLeatherRecipe",
+                "GameData/Blacksmith/WyvernCrestRecipe"
+            });
+    }
 
-        string[] recipePaths =
-        {
-            "GameData/Blacksmith/ArcaneStaffRecipe",
-            "GameData/Blacksmith/CompositeBowRecipe",
-            "GameData/Blacksmith/LancerSteelLanceRecipe",
-            "GameData/Blacksmith/PriestBlessedStaffRecipe",
-            "GameData/Blacksmith/RogueSwiftDaggerRecipe",
-            "GameData/Blacksmith/SteelSwordRecipe"
-        };
+    private static void AssertRecipesUseOnlyAvailableMaterials(
+        int firstTownIndex,
+        HashSet<ItemDataSO> obtainableMaterials,
+        IEnumerable<string> recipePaths)
+    {
         foreach (string recipePath in recipePaths)
         {
             EquipmentRecipeSO recipe = Resources.Load<EquipmentRecipeSO>(recipePath);
             Assert.That(recipe, Is.Not.Null, recipePath);
-            Assert.That(BlacksmithManager.IsRecipeAvailableInTown(recipe, 2), Is.True,
+            Assert.That(BlacksmithManager.IsRecipeAvailableInTown(recipe, firstTownIndex), Is.True,
                 recipePath);
             Assert.That(recipe.materials.All(requirement =>
                 requirement != null && obtainableMaterials.Contains(requirement.item)),
                 Is.True,
                 recipePath);
         }
+    }
+
+    private static HashSet<ItemDataSO> CollectObtainableMaterials(
+        params DungeonDataSO[] dungeons)
+    {
+        HashSet<ItemDataSO> obtainableMaterials = new HashSet<ItemDataSO>();
+        foreach (DungeonDataSO dungeon in dungeons)
+        {
+            if (dungeon == null)
+            {
+                continue;
+            }
+
+            foreach (EnemyDataSO enemy in dungeon.normalEnemies ?? new EnemyDataSO[0])
+            {
+                if (enemy == null)
+                {
+                    continue;
+                }
+
+                foreach (ItemDropEntry drop in enemy.itemDrops ?? new ItemDropEntry[0])
+                {
+                    if (drop?.item != null)
+                    {
+                        obtainableMaterials.Add(drop.item);
+                    }
+                }
+
+                ItemDataSO magicStone =
+                    MaterialCatalog.GetMagicStoneForEnemyGrade(enemy.monsterGrade);
+                if (magicStone != null)
+                {
+                    obtainableMaterials.Add(magicStone);
+                }
+            }
+
+            foreach (DungeonItemReward reward in dungeon.clearItemRewards ??
+                     new DungeonItemReward[0])
+            {
+                if (reward?.item != null)
+                {
+                    obtainableMaterials.Add(reward.item);
+                }
+            }
+        }
+        return obtainableMaterials;
     }
 
     [Test]

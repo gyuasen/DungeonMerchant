@@ -15,11 +15,11 @@ MonoBehaviour:
   recipeName: Sanctified Mace
   resultItem: {fileID: 11400000, guid: 711ef51426284e09ad10ee925438686b, type: 2}
   resultAmount: 1
-  goldCost: 360
+  goldCost: 390
   materials:
   - item: {fileID: 11400000, guid: f66e9fe18b5c428a86a912bdf72fc5ba, type: 2}
     amount: 4
-  - item: {fileID: 11400000, guid: 52a98352167a4bce926ac5c343b9c6e8, type: 2}
+  - item: {fileID: 11400000, guid: bf1a2b3c4d5e6f708192a3b4c5d6e7f8, type: 2}
     amount: 2
   - item: {fileID: 11400000, guid: 28ea52f6212db55409b8ea0e99271947, type: 2}
-    amount: 1
+    amount: 3
