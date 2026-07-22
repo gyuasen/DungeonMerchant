@@ -98,6 +98,38 @@ public static class MercenaryClassProgression
     public const int AdvancedLevelCap = 30;
     public const int SpecialLevelCap = 50;
 
+    public static int GetPassiveBonus(
+        MercenaryClass value,
+        int level,
+        System.Func<MercenarySkillDefinition, int> selector)
+    {
+        int total = 0;
+        foreach (MercenarySkillDefinition skill in GetSkillProgression(value))
+        {
+            if (skill.IsPassive && level >= skill.UnlockLevel)
+            {
+                total += selector(skill);
+            }
+        }
+        return total;
+    }
+
+    public static float GetPassiveBonusFloat(
+        MercenaryClass value,
+        int level,
+        System.Func<MercenarySkillDefinition, float> selector)
+    {
+        float total = 0f;
+        foreach (MercenarySkillDefinition skill in GetSkillProgression(value))
+        {
+            if (skill.IsPassive && level >= skill.UnlockLevel)
+            {
+                total += selector(skill);
+            }
+        }
+        return total;
+    }
+
     public static MercenaryClass[] GetBaseClasses()
     {
         return new[]

@@ -403,3 +403,42 @@
 - 段階5+6: Sol最終監査。**数値調整不要でバランス完成**。全14セットは崖なし単調増加、特攻同種最大は竜50%(60%上限未達)、被ダメ軽減は全て防具スロットで排他のため最大15%(30%上限未達)、最終盤瞬間倍率(黒鉄+36%/黒土+41.6%)も終盤・種族・瀕死条件付きで許容。旧共有SO(鬼狩り/採掘/NormalRank流用)はドロップ参照から完全除外。テスト1件(EquipmentAvailabilityTests、黒土深淵の旧6点前提)を専用3点前提へ更新(HighestAbyss_UsesOnlyItsDedicatedThreePieceSetへリネーム)。
 - **全14ダンジョン専用装備実装 完了(Sol判定: 提出可能水準)**。専用装備計42点、全14セット効果。build警告0エラー0、GUID/persistentId重複0、EditMode全緑ユーザー確認済み。
 - 画像: docs/IMAGE_ASSET_LISTへ専用装備の図鑑画像(未配置)を全段階で追記済み。戦闘スプライトは装備には不要(図鑑画像のみ)。
+
+## 2026-07-22 家側・装備図鑑 特殊ページ機能 + 図鑑UI表示調整（Codex Sol設計/Terra実装、コミット 5fa22fb）
+
+### 特殊ページ機能（Sol設計の9段階、全完了）
+- ①共通セット定義 `EquipmentSetCatalog`: 全20セットの displayName/displayOrder/accentColor/2部位・3部位効果を構造化して一元管理。従来は MercenaryInstance の実効果計算と CharacterEquipmentController の表示switchで二重管理だったものを統合。表示switchのdefaultが古代守護者に落ちる潜在バグも解消（未定義IDは効果ゼロ）。**挙動不変の検証**: 全20セット×2/3部位×4能力=160項目を移行前HEADと機械照合し差異0件。古代守護者の攻撃速度は実効果+0.05に表示を合わせた（旧表示+0.08は表示のみの不整合、実効果は不変）。
+- ②特殊対象分類 `EquipmentCodexEntryBuilder`: 全装備を 通常/セット/Rank9以上単独 に重複なく網羅分類。Rank9以上のセット品はセット側のみ。セット単位でグループ化しdisplayOrder順ソート。実データ内訳=通常94/セット69(20セット)/単独6=169点。
+- ③表示モデル `EquipmentSpecialPageModel`: 3スロット別候補・セット効果・説明文・特攻/特殊効果・登録数を持つ不変データ。発見判定は既存 `MerchantInventory.HasDiscoveredEquipment`（セーブ対象 discoveredEquipmentPersistentIds）を参照し、新規の発見管理は作らない。
+- ④特殊ページUI `EquipmentSpecialCodexPageUI`: 図鑑一画面フル。セット名(accentColor)+3スロット候補縦並び+セット効果+登録カウンタ+前後ページ送り。BookPageUI（モンスター図鑑と共用）は非改変で、装備図鑑側の兄弟コンポーネントとして追加。
+- ⑤タブ統合: [通常装備]=BookPageUI見開き（通常94件のみ）、[特殊装備]=特殊ページ26枚（セット20+単独6）。総数集計は全体基準で表示のみ分岐（二重計上・欠落なしをSol確認）。
+- ⑥説明文表示: 装備詳細の「最終性能」直後に item.description を表示。空なら行を出さない。特殊ページ限定でなく通常の装備詳細にも出る。
+- ⑦在庫/比較のセット名: EquipmentSetCatalog 由来の displayName+accentColor をリッチテキストで表示。None/未定義は空。旧 JapaneseDisplayText.GetEquipmentSet 経路は除去。
+- ⑧セット効果の発動色分け: 「2部位(n/2)」「3部位(n/3)」形式。発動済み=accentColor / 未発動=#777777。部位数は MercenaryInstance.GetEquippedSetCount 参照。Sol監査で BuildActiveSetSummary の必要部位数「2/3」ハードコードを指摘され definition.TwoPiece/ThreePiece.RequiredCount 参照へ統一（必要部位数の唯一のソースがcatalogに）。
+- ⑨画像監査: 特殊ページUIは画像を一切ロードしない（テキスト中心）ため本機能の新規画像は不要と確定。
+
+### Sol監査で修正した点
+- 未発見セットのネタバレ: 0発見のセットはタイトル「？？？」・効果「未発見」・控えめ色で伏せ、1件発見で解禁（発見カウンタは常時表示）。
+- 特殊ページのレイアウト: 候補パネルとセット効果欄の約30px重なり→候補パネル上寄せで約33px余白確保。その後の実機フィードバックで3列パネル216x250へ再設計し、候補TextをTruncate化+説明省略（2候補列64字/1候補列160字）+列Outlineで境界明示。
+
+### 実機フィードバックによる図鑑UI修正（複数往復）
+- **BookPageUI 既存バグ（共用）**: 名前用RectTransformが offsetMin.y=-12 / offsetMax.y=-42 で**高さが負(-30px)**になり、装備名・モンスター名が両図鑑で非表示だった。offsetの上下を正して高さ+30pxにし表示復活。共用側のバグのため、非改変方針を変更してここだけ修正（回避策はモンスター図鑑が直らず不適）。
+- 通常ページの詳細文はみ出し: 図鑑用の短縮書式へ（スロット/対象職業、HP・攻の行、防・速の行、価格短縮、効果文は改行を「、」統合し30字省略）。当初52字にしたがSol指摘で30字に。
+- 並び順: 装備を equipmentRank昇順→equipmentSlot(武器→防具→装飾)→表示名→asset名 でEntry化前にソート（出現順）。Entry化後はRank/Slotを失うため必ずItemDataSO段階でソートする。魔物図鑑は既存の monsterGrade昇順のまま変更なし。
+- ランク表示: 名前とランクを同一Textに詰めると帯に収まらず切れるため、`BookPageUI.Entry.Subtitle` を新設して別Text化。ランクは発見済みかつSubtitle非空のときのみ名前の下に色付き表示（モンスターはSubtitle未設定で行が出ない）。
+- カード化: エントリ高さ182・間隔20・背景alpha .17・Outline(alpha .45)で上下カードを明確に区切り。
+- **左右非対称の根治**: leftPage/rightPage が `anchorMin=anchorMax=pivot=(.25/.75, .53)` で、.25/.75をページ中心のつもりでpivotも同値にしていたため、親幅664pxで左右ページが約133px重なり内部座標基準がずれ「右ページの文字が寄って見える」違和感の原因になっていた。**anchorとpivotを分離**（中心 .2575/.7425、pivot=(0.5,0.5)）し幅310・外余白16px・中央間隔12pxの等幅対称に修正。
+- レイアウト: 一度「中央縦積みカード」に変更したがユーザー希望で**画像左上64px+右にテキストの横並び**へ復帰（ランク独立表示・カード枠・Truncateは維持、名前はBestFit 10〜14px）。
+- 見出し重複: BookPageUI内の中央タイトルが装備図鑑の左上タイトルと重複し中央で見切れていた→ `Initialize` の title が空文字なら見出しを作らない実装にし、装備・魔物とも空文字を渡して中央見出しを削除。
+
+### デバッグ機能（#if UNITY_EDITOR 限定）
+- 装備図鑑下部に「全て発見/一部発見/発見をリセット」。一部発見は表示順3セットごとに1セットを0件のまま残し、他は先頭1件のみ発見、Rank9単独は偶数番のみ発見＝伏せ字・部分発見・解禁が一画面で混在する確認用。MerchantInventory に `ClearEquipmentDiscoveryForEditor()` を追加（既存の discoveredEquipmentPersistentIds をクリアするのみ）。保存は呼ばずメモリ上のみで実セーブ非汚染。
+
+### 画像
+- 配置: 敵スプライト6枚 + 専用装備図鑑画像30枚 を Resources に配置。
+- **未配置52点が判明**: 武器61点中51点、装飾1点(MutantCoreCharm)の図鑑画像が未配置で「?」表示になる。防具53点は完備。詳細一覧は SHARED_PROJECT_STATUS.md の該当節。専用装備30枚を配置しても通常/セット/拡張の**武器**は元々未用意だった。
+- .gitignore に /tmp/ を追加（画像生成の中間物 tmp/imagegen, tmp/review を除外）。
+
+### 検証
+- build 警告0・エラー0。EditMode全緑（ユーザー確認済み）。新規テスト `EquipmentSetCatalogTests`（セット効果のピン留め、分類の排他性・網羅性、26ページ、6候補スロット、説明文の空/非空、2/3部位の発動境界）。
+- NUnit注意: `Has.Count` は IReadOnlyList 等で「Property Count was not found」になるため、LINQ `.Count()` + `Is.EqualTo(...)` を使う（今回も再発し修正）。

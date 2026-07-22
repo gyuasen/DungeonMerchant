@@ -119,6 +119,13 @@ public sealed class InventoryPageUI : ListPageUIBase
                 top,
                 RowColor,
                 FrameColor);
+        Canvas canvas = row.GetComponentInParent<Canvas>();
+        GenericHoverTooltipTrigger tooltip =
+            row.gameObject.AddComponent<GenericHoverTooltipTrigger>();
+        tooltip.Configure(
+            ItemUsageTextBuilder.Build(item),
+            RowFont,
+            canvas != null ? canvas.transform as RectTransform : ListRoot);
 
         CreateText(
             row,

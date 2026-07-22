@@ -52,7 +52,7 @@ public class MerchantInventory : MonoBehaviour
             return 0;
         }
 
-        int amount = bucket.equipmentInstances.Count;
+        int amount = 0;
         foreach (InventoryItemStack stack in bucket.items)
         {
             if (stack != null) amount += stack.Amount;
@@ -102,14 +102,6 @@ public class MerchantInventory : MonoBehaviour
     {
         if (equipment?.BaseItem == null)
         {
-            return;
-        }
-
-        ResolveReferences();
-        if (progressionManager != null &&
-            !progressionManager.CanStore())
-        {
-            Debug.LogWarning("Storage capacity exceeded.");
             return;
         }
 
@@ -431,14 +423,6 @@ public class MerchantInventory : MonoBehaviour
             return;
         }
 
-        ResolveReferences();
-        if (progressionManager != null &&
-            !progressionManager.CanStore())
-        {
-            Debug.LogWarning("Storage capacity exceeded.");
-            return;
-        }
-
         equipment.ToggleLock();
         InventoryChanged?.Invoke();
     }
@@ -480,6 +464,13 @@ public class MerchantInventory : MonoBehaviour
     public bool DepositItemTo(int townIndex, ItemDataSO item, int amount)
     {
         if (item == null || amount <= 0)
+        {
+            return false;
+        }
+
+        ResolveReferences();
+        if (progressionManager != null &&
+            !progressionManager.CanStoreIn(townIndex, amount))
         {
             return false;
         }

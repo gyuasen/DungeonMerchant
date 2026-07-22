@@ -1278,3 +1278,51 @@
 - デバッグ機能: 装備図鑑下部に #if UNITY_EDITOR 限定で「全て発見/一部発見/発見をリセット」ボタンを追加(発見状況の確認用、実セーブ非汚染)。
 - 画像配置: 敵スプライト6枚(Grade03_abyss_gatekeeper 等)+専用装備図鑑画像30枚を Resources に配置。従来「?」だった専用装備画像が解消される見込み。
 - .gitignore に /tmp/ を追加(画像生成の中間物を除外)。build 0エラー。
+- コミット済み: `5fa22fb` 装備図鑑・特殊ページ機能の実装と図鑑UIの表示調整。
+
+## 2026-07-22 家側・【要対応】装備図鑑画像の未配置52点が判明
+- 実機で「ショートボウ等が?表示」との指摘から全装備169点を照合した結果、**武器の図鑑画像がほぼ全面的に未配置**であることが判明。
+- 配置状況(Resources/UI/Codex/Equipment/{アセット名}.png、配置済み117枚):
+  - 武器 61点中 **51点が未配置**
+  - 防具 53点中 0点未配置(完備)
+  - 装飾 55点中 **1点未配置**(MutantCoreCharm)
+  - → **未配置は合計52点**。発見済みでも図鑑で「?」プレースホルダになる。
+- 未配置の武器51点の内訳:
+  - 通常/Traveler Blade系: NormalRank01/04/07/10、NormalRank02/03/05/06/08/09Weapon
+  - クラス別通常: IronSword, SteelSword, ShortBow, CompositeBow, ApprenticeStaff, ArcaneStaff, PriestPrayerStaff, RogueDagger, RogueSwiftDagger, LancerSpear, LancerSteelLance
+  - セット/専用: AncientGuardianBlade, AstralEdge, GlaadFrostbrand, MistRuneBlade, NornCanopyBlade, OniHunterCleaver, VelmBlackIronBreaker, AbyssFang, GoblinHunterSword, HexwoodStaff, PriestBlessedStaff, SanctifiedMace, BeastboneBow, OrcboneSpear, BlackIronHalberd, MinebreakerHammer, VenomFangDagger
+  - 拡張: item_expansion_dragonbane, item_expansion_beastbane, item_expansion_rank4_0〜7_2(Rank4〜7の戦士/弓/魔術師 各3=12点)
+- 補足: 先の作業で配置したのは専用限定装備30枚+敵スプライト6枚であり、通常装備・セット装備・拡張装備の「武器」画像は元々一度も用意されていなかった。防具・装飾は既存で完備。
+- 対応方針は未定(生成・配置するか保留か)。生成する場合は tmp/imagegen/*.ps1 の既存手順(生成→緑背景キーイング→256px透過→Resources配置、既存は上書き禁止)を踏襲すること。
+
+## 2026-07-22 家側・UI拡張7項目 実装完了(Sol設計/Terra実装/Sol監査)
+- ユーザー依頼のUI拡張7件を実装。build 0エラー/0警告。Unity確認待ち。
+
+### 【重要】「Rank4装備が作れない」報告の真因(ユーザー報告の因果は誤り)
+- 報告:「低級強化鉱石が入手不能でRank4装備が作れない」→ 調査の結果、因果が違った。
+- 事実1: 下級強化鉱石(LowerGradeEnhancementOre)は**入手可能**(封じられた廃坑クリア報酬×2)。用途は装備+3/+4強化。
+- 事実2: Rank4レシピが要求するのは **Low Grade Enhancement Ore = EnhancementOre.asset(初級, +1/+2用)** という**別アイテム**。名前が酷似しているため混同しやすい。両方とも入手経路あり。
+- **真因**: 鍛冶屋が「町ランク+1」に**完全一致**するレシピしか表示しない仕様のため、エルド交易都市(Rank4鍛冶)を離れて次の町へ進むとRank4レシピが消えていた。
+- 対処: 鍛冶ランク範囲を [1, min(町ランク+1, 10)] に変更し**累積解禁**に(下位ランクは以降も常時制作可能)。上限の進行制限とMutant Core Charm特例は維持。回帰テスト追加(ノルン樹冠都市でRank4が作れること)。
+- 補足: Rank4/5は武器のみ鍛冶、防具・装飾は市場入手、Rank6以降は全部鍛冶という進行設計と判明。Rank4防具・装飾のレシピ追加は**行わない**方針でユーザー確定。
+
+### 実装内容
+1. 鍛冶屋: 下位ランクのレシピも継続表示(累積解禁)。上記の真因対処。
+2. 倉庫: **装備は倉庫枠を消費しない**(使用量計算と装備追加時の容量チェックから除外)。アイテム経路の容量制限は維持。セーブ形式不変で、既存の容量超過セーブも自然解消。
+3. 倉庫拡張: 押下で即決済せず**確認オーバーレイ**を表示(現在→拡張後容量/必要金額/所持金/必要商人Lv)。条件未達は非活性+理由表示、上限時は「最大まで拡張済み」。容量段階30→60→100→160・費用1500→5000→12000Gは不変。
+4. 共通基盤 `ItemPresentationService`: 画像解決(UI/Codex/Equipment→UI/Items→null)と装備/消耗品/素材別の詳細テキスト。装備図鑑の画像解決もこれ経由に統一。
+5. 鍛冶屋UI: 行に画像+「詳細」。詳細で素材の所持/必要を色分け、必要Gold・所持Gold表示。「制作する」は既存CanCraftと同判定(ロジック非改変)。
+6. 市場UI: 行に画像+「詳細」。詳細で価格・所持Gold・在庫。「購入する」は既存CanBuyと同判定(ロジック非改変)。
+7. 倉庫ツールチップ: 新規 `GenericHoverTooltipTrigger` + `ItemUsageTextBuilder`。消耗品の効果/鉱石の強化段階(EnhancementOre=+1/+2, Lower=+3/+4, Middle=+5/+6, Upper=+7/+8, Highest=+9/+10)/素材のレシピ名(逆引き辞書を初回キャッシュ)/売却用/装備の職・部位を表示。
+8. 治療院: **治療が必要な傭兵のみ表示**(同じ町 かつ HP不足or戦闘不能)。資金不足者は表示したままボタン非活性+不足Gold表示(理由が分かるように)。行に「詳細」ボタンで既存の傭兵詳細へ。
+9. 転職神殿: 新規 `PromotionPreview` で**状態を変えずに転職後ステータスを算出**する確認オーバーレイ。現在値→転職後値(増減)、レベル上限、クリティカル・回避、装備適合警告、解禁スキル、消費する証を表示。「転職する」/「キャンセル」を内設。既存の行内簡易確認は置き換え。
+
+### Sol監査で指摘され修正した4点
+- 治療院の不足Gold表示が`unavailableReasonProvider`未参照で**実際には出ていなかった**→表示に反映。
+- 転職計算の二重管理(基礎加算値が2か所、パッシブ集計が別実装)→ `PromotionPreview.StatDelta` の単一定義と `MercenaryClassProgression.GetPassiveBonus` への集約で一元化。全基本職×全転職先で「プレビュー値==実転職後の値」を検証するテストを追加。
+- `DepositItemTo` に容量チェックが無く輸送・遠征・遠隔売却返却で無制限に入っていた→ `CanStoreIn` を追加し検査。満杯時は遠征報酬は獲得リストに含めず、輸送は成功分のみ計上、遠隔売却キャンセルは注文を復元してアイテム消失を防止。装備は従来どおり容量無視。
+- 装備図鑑の詳細文の共通サービス統一は、図鑑の見た目が変わるリスクがあるため**今回は見送り**(既存の短縮書式を維持)。
+- 軽微: 転職確定時のnull・妥当性チェック追加、ツールチップのレシピ名Distinct、JobChangePageUIの死んだコード削除。
+
+### 監査でCONFIRMEDされた挙動不変
+- 転職の結果値(HP+15/攻+5/防+3/魔力+15/速度+0.04とクラス別補正)、鍛冶の制作・市場の購入ロジック、倉庫の費用段階、鍛冶の上限(町ランク+1)、市場ランク範囲・ダンジョンドロップ範囲。

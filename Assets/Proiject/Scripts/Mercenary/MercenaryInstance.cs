@@ -298,13 +298,23 @@ public class MercenaryInstance
         }
 
         mercenaryClass = targetClass;
-        maxHP += 15;
-        attack += 5;
-        defense += 3;
-        maxMagicPower += 15;
-        attackSpeed += 0.04f;
+        PromotionPreview.ApplyBasePromotion(this);
         currentHP = Mathf.Min(MaxHP, currentHP + 15);
         return true;
+    }
+
+    internal void ApplyPromotionBaseStats(
+        int hp,
+        int attackValue,
+        int defenseValue,
+        int magic,
+        float speed)
+    {
+        maxHP += hp;
+        attack += attackValue;
+        defense += defenseValue;
+        maxMagicPower += magic;
+        attackSpeed += speed;
     }
 
     public void SetContract(
@@ -738,33 +748,19 @@ public class MercenaryInstance
     private int GetProgressionBonus(
         Func<MercenarySkillDefinition, int> selector)
     {
-        int total = 0;
-        foreach (MercenarySkillDefinition skill in
-                 MercenaryClassProgression.GetSkillProgression(
-                     mercenaryClass))
-        {
-            if (skill.IsPassive && level >= skill.UnlockLevel)
-            {
-                total += selector(skill);
-            }
-        }
-        return total;
+        return MercenaryClassProgression.GetPassiveBonus(
+            mercenaryClass,
+            level,
+            selector);
     }
 
     private float GetProgressionBonusFloat(
         Func<MercenarySkillDefinition, float> selector)
     {
-        float total = 0f;
-        foreach (MercenarySkillDefinition skill in
-                 MercenaryClassProgression.GetSkillProgression(
-                     mercenaryClass))
-        {
-            if (skill.IsPassive && level >= skill.UnlockLevel)
-            {
-                total += selector(skill);
-            }
-        }
-        return total;
+        return MercenaryClassProgression.GetPassiveBonusFloat(
+            mercenaryClass,
+            level,
+            selector);
     }
 
     private int GetEquipmentBonusAttack()

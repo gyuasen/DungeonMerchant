@@ -142,13 +142,14 @@ public sealed class ProgressionManagerTests
         Assert.That(progressionManager.ProfitableDungeonClears, Is.EqualTo(4));
     }
 
-    [TestCase(0, 30, false, 60, 4)]
-    [TestCase(1, 60, false, 100, 8)]
-    [TestCase(2, 100, false, 160, 12)]
-    [TestCase(3, 160, true, 160, 0)]
+    [TestCase(0, 30, 1500, false, 60, 4)]
+    [TestCase(1, 60, 5000, false, 100, 8)]
+    [TestCase(2, 100, 12000, false, 160, 12)]
+    [TestCase(3, 160, 0, true, 160, 0)]
     public void StorageProperties_ForEachTier_ReportCapacityAndNextUpgrade(
         int tier,
         int expectedCapacity,
+        int expectedCost,
         bool expectedMaximum,
         int expectedNextCapacity,
         int expectedRequiredLevel)
@@ -161,11 +162,32 @@ public sealed class ProgressionManagerTests
 
         Assert.That(progressionManager.StorageTier, Is.EqualTo(tier));
         Assert.That(progressionManager.StorageCapacity, Is.EqualTo(expectedCapacity));
+        Assert.That(progressionManager.StorageUpgradeCost, Is.EqualTo(expectedCost));
         Assert.That(progressionManager.IsStorageAtMaximumTier, Is.EqualTo(expectedMaximum));
         Assert.That(progressionManager.NextStorageCapacity, Is.EqualTo(expectedNextCapacity));
         Assert.That(
             progressionManager.NextStorageRequiredMerchantLevel,
             Is.EqualTo(expectedRequiredLevel));
+    }
+
+    [Test]
+    public void TryUpgradeStorage_PaysConfiguredCostAndAppliesNextCapacity()
+    {
+        GameObject upgradeRoot = Track(new GameObject("Storage Upgrade Test"));
+        MerchantData merchantData = upgradeRoot.AddComponent<MerchantData>();
+        upgradeRoot.AddComponent<MerchantInventory>();
+        ProgressionManager upgradeProgression =
+            upgradeRoot.AddComponent<ProgressionManager>();
+        merchantData.RestoreProgression(4, 0);
+        merchantData.AddGold(2000);
+        int goldBefore = merchantData.Gold;
+
+        Assert.That(upgradeProgression.CanUpgradeStorage(), Is.True);
+        Assert.That(upgradeProgression.TryUpgradeStorage(), Is.True);
+        Assert.That(upgradeProgression.StorageCapacity, Is.EqualTo(60));
+        Assert.That(
+            merchantData.Gold,
+            Is.EqualTo(goldBefore - 1500));
     }
 
     [Test]

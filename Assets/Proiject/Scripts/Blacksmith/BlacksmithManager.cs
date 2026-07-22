@@ -137,6 +137,13 @@ public class BlacksmithManager : MonoBehaviour
 
     private bool IsRecipeAvailableInCurrentTown(EquipmentRecipeSO recipe)
     {
+        return IsRecipeAvailableInTown(recipe, currentTownIndex);
+    }
+
+    public static bool IsRecipeAvailableInTown(
+        EquipmentRecipeSO recipe,
+        int townIndex)
+    {
         if (recipe?.resultItem == null)
         {
             return false;
@@ -145,13 +152,13 @@ public class BlacksmithManager : MonoBehaviour
         ItemDataSO item = recipe.resultItem;
         if (item.itemName == "Mutant Core Charm")
         {
-            return currentTownIndex == 6;
+            return townIndex == 6;
         }
 
         MercenaryClass itemClass =
             MercenaryClassProgression.GetBaseClass(item.requiredClass);
         return WorldMapService.IsBlacksmithEquipmentAllowedInTown(
-            currentTownIndex,
+            townIndex,
             itemClass,
             item.equipmentRank,
             item.equipmentSlot);

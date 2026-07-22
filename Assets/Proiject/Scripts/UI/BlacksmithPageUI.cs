@@ -11,6 +11,7 @@ public sealed class BlacksmithPageUI : ListPageUIBase
     private Func<EquipmentRecipeSO, bool> canCraftRecipe;
     private Action<EquipmentRecipeSO> craftAction;
     private Action<Button, EquipmentRecipeSO> registerCraftButton;
+    private Action<EquipmentRecipeSO> detailAction;
 
     public void ConfigureBlacksmith(
         Font font,
@@ -25,7 +26,8 @@ public sealed class BlacksmithPageUI : ListPageUIBase
         Func<ItemDataSO, int> targetOwnedAmountProvider,
         Func<EquipmentRecipeSO, bool> targetCanCraftRecipe,
         Action<EquipmentRecipeSO> targetCraftAction,
-        Action<Button, EquipmentRecipeSO> targetRegisterCraftButton)
+        Action<Button, EquipmentRecipeSO> targetRegisterCraftButton,
+        Action<EquipmentRecipeSO> targetDetailAction)
     {
         Configure(
             font,
@@ -42,6 +44,7 @@ public sealed class BlacksmithPageUI : ListPageUIBase
         canCraftRecipe = targetCanCraftRecipe;
         craftAction = targetCraftAction;
         registerCraftButton = targetRegisterCraftButton;
+        detailAction = targetDetailAction;
     }
 
     public override void Refresh()
@@ -68,6 +71,8 @@ public sealed class BlacksmithPageUI : ListPageUIBase
                 FrameColor);
         row.offsetMin = new Vector2(0f, top - 124f);
 
+        CreateItemIcon(row, item);
+
         CreateText(
             row,
             JapaneseDisplayText.GetItemName(item),
@@ -75,8 +80,8 @@ public sealed class BlacksmithPageUI : ListPageUIBase
             21,
             FontStyle.Bold,
             TextAnchor.MiddleLeft,
-            new Vector2(18f, -38f),
-            new Vector2(-160f, -8f),
+            new Vector2(82f, -38f),
+            new Vector2(-300f, -8f),
             RowTextColor);
 
         string stats =
@@ -91,8 +96,8 @@ public sealed class BlacksmithPageUI : ListPageUIBase
             13,
             FontStyle.Normal,
             TextAnchor.MiddleLeft,
-            new Vector2(18f, -70f),
-            new Vector2(-160f, -42f),
+            new Vector2(82f, -70f),
+            new Vector2(-300f, -42f),
             MutedTextColor);
 
         CreateText(
@@ -102,8 +107,8 @@ public sealed class BlacksmithPageUI : ListPageUIBase
             13,
             FontStyle.Normal,
             TextAnchor.MiddleLeft,
-            new Vector2(18f, -104f),
-            new Vector2(-160f, -76f),
+            new Vector2(82f, -104f),
+            new Vector2(-300f, -76f),
             MutedTextColor);
 
         Button craftButton = CreateActionButton(
@@ -116,6 +121,36 @@ public sealed class BlacksmithPageUI : ListPageUIBase
             () => craftAction?.Invoke(recipe));
         craftButton.interactable = canCraftRecipe?.Invoke(recipe) == true;
         registerCraftButton?.Invoke(craftButton, recipe);
+
+        Button detailButton = CreateActionButton(
+            row,
+            "詳細",
+            RowFont,
+            ButtonColor,
+            FrameColor,
+            ButtonTextColor,
+            () => detailAction?.Invoke(recipe));
+        RectTransform detailRect = detailButton.GetComponent<RectTransform>();
+        detailRect.anchoredPosition = new Vector2(-160f, 0f);
+    }
+
+    private void CreateItemIcon(RectTransform row, ItemDataSO item)
+    {
+        RectTransform iconRect = CreateUIObject("Item Icon", row);
+        iconRect.anchorMin = new Vector2(0f, 0.5f);
+        iconRect.anchorMax = new Vector2(0f, 0.5f);
+        iconRect.pivot = new Vector2(0f, 0.5f);
+        iconRect.sizeDelta = new Vector2(54f, 54f);
+        iconRect.anchoredPosition = new Vector2(18f, 0f);
+        Image icon = iconRect.gameObject.AddComponent<Image>();
+        Sprite sprite = ItemPresentationService.ResolveSprite(item);
+        icon.sprite = sprite;
+        icon.color = sprite != null ? Color.white : new Color(0.2f, 0.2f, 0.2f, 1f);
+        if (sprite == null)
+        {
+            CreateText(iconRect, "?", RowFont, 28, FontStyle.Bold,
+                TextAnchor.MiddleCenter, Vector2.zero, Vector2.zero, Color.white);
+        }
     }
 
     private string BuildRecipeMaterialText(EquipmentRecipeSO recipe)

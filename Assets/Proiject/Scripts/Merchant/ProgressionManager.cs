@@ -94,26 +94,35 @@ public class ProgressionManager : MonoBehaviour
                StorageCapacity;
     }
 
+    public bool CanStoreIn(int townIndex, int amount = 1)
+    {
+        ResolveReferences();
+        return inventory == null ||
+               inventory.GetUsedStorageSlotsIn(townIndex) +
+               Mathf.Max(0, amount) <= StorageCapacity;
+    }
+
     public bool TryUpgradeStorage()
     {
         ResolveReferences();
-        if (storageTier >= 3)
+        if (!CanUpgradeStorage())
         {
             return false;
         }
 
-        int requiredLevel = NextStorageRequiredMerchantLevel;
-        int cost = StorageUpgradeCost;
-        if (merchantData == null ||
-            merchantData.MerchantLevel < requiredLevel ||
-            !merchantData.TryPayGold(cost))
-        {
-            return false;
-        }
-
+        merchantData.TryPayGold(StorageUpgradeCost);
         storageTier++;
         ProgressionChanged?.Invoke();
         return true;
+    }
+
+    public bool CanUpgradeStorage()
+    {
+        ResolveReferences();
+        return !IsStorageAtMaximumTier &&
+               merchantData != null &&
+               merchantData.MerchantLevel >= NextStorageRequiredMerchantLevel &&
+               merchantData.CanPay(StorageUpgradeCost);
     }
 
     public bool AcceptQuest(int index)
