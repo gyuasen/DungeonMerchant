@@ -15,9 +15,9 @@ using UnityEngine;
 // graph on purpose: GetSellPrice(ItemDataSO) falls back to item.basePrice
 // whenever marketPriceManager is null (keeping equipment sell-price math
 // fully deterministic and controlled by the test), and the
-// progressionManager-gated storage-capacity checks in AddItem/
-// AddEquipmentInstance short-circuit to "always allowed" whenever
-// progressionManager is null.
+// progressionManager-gated storage-capacity checks in AddItem short-circuit
+// to "always allowed" whenever progressionManager is null, while equipment
+// instances are always permitted regardless of storage capacity.
 public sealed class MerchantInventoryTests
 {
     private GameObject root;
@@ -259,11 +259,37 @@ public sealed class MerchantInventoryTests
         Assert.That(inventory.GetUsedStorageSlots(), Is.EqualTo(30));
     }
 
+    [Test]
+    public void Equipment_DoesNotConsumeStorageSlots_AndCanBeStoredWhenFull()
+    {
+        root.AddComponent<ProgressionManager>();
+        ItemDataSO material = CreateItem("Full Storage Ore", basePrice: 10);
+        ItemDataSO equipmentItem = CreateEquipment("Stored Sword");
+        Assert.That(inventory.TryAddItem(material, 30), Is.True);
+
+        for (int index = 0; index < 40; index++)
+        {
+            inventory.AddEquipmentInstance(
+                EquipmentInstance.CreateFixed(equipmentItem));
+        }
+
+        Assert.That(inventory.EquipmentInstances.Count, Is.EqualTo(40));
+        Assert.That(inventory.GetUsedStorageSlots(), Is.EqualTo(30));
+        Assert.That(inventory.TryAddItem(material, 1), Is.False);
+    }
+
     private ItemDataSO CreateItem(string itemName, int basePrice)
     {
         ItemDataSO item = Track(ScriptableObject.CreateInstance<ItemDataSO>());
         item.itemName = itemName;
         item.basePrice = basePrice;
+        return item;
+    }
+
+    private ItemDataSO CreateEquipment(string itemName)
+    {
+        ItemDataSO item = CreateItem(itemName, basePrice: 10);
+        item.itemType = ItemType.Equipment;
         return item;
     }
 

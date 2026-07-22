@@ -9,8 +9,9 @@ public sealed class JobChangePageUI : ListPageUIBase
     private Func<IEnumerable<MercenaryInstance>> mercenaryProvider;
     private Func<MercenaryInstance, bool> shouldShowSpecialPromotion;
     private Action<MercenaryInstance, MercenaryClass> promoteAction;
+    private Action<MercenaryInstance, MercenaryClass> showPreviewAction;
     private MercenaryInstance pendingMercenary;
-    private MercenaryClass pendingTarget;
+    private MercenaryClass pendingTarget = MercenaryClass.Warrior;
 
     public void Initialize(
         Text title,
@@ -25,11 +26,13 @@ public sealed class JobChangePageUI : ListPageUIBase
     public void ConfigureJobChangeList(
         Func<IEnumerable<MercenaryInstance>> targetMercenaryProvider,
         Func<MercenaryInstance, bool> targetShouldShowSpecialPromotion,
-        Action<MercenaryInstance, MercenaryClass> targetPromoteAction)
+        Action<MercenaryInstance, MercenaryClass> targetPromoteAction,
+        Action<MercenaryInstance, MercenaryClass> targetShowPreviewAction)
     {
         mercenaryProvider = targetMercenaryProvider;
         shouldShowSpecialPromotion = targetShouldShowSpecialPromotion;
         promoteAction = targetPromoteAction;
+        showPreviewAction = targetShowPreviewAction;
     }
 
     public override void Refresh()
@@ -136,9 +139,7 @@ public sealed class JobChangePageUI : ListPageUIBase
         MercenaryInstance mercenary,
         MercenaryClass target)
     {
-        pendingMercenary = mercenary;
-        pendingTarget = target;
-        Refresh();
+        showPreviewAction?.Invoke(mercenary, target);
     }
 
     private void CreatePromotionConfirmation(

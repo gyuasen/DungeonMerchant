@@ -12,6 +12,7 @@ public sealed class MarketPageUI : ListPageUIBase
     private Action<Button, MarketStockEntry> registerBuyButton;
     private Text demandSummaryText;
     private Func<string> demandSummaryProvider;
+    private Action<MarketStockEntry> detailAction;
 
     public void ConfigureMarket(
         Font font,
@@ -27,7 +28,8 @@ public sealed class MarketPageUI : ListPageUIBase
         Action<MarketStockEntry> targetBuyAction,
         Action<Button, MarketStockEntry> targetRegisterBuyButton,
         Text targetDemandSummaryText,
-        Func<string> targetDemandSummaryProvider)
+        Func<string> targetDemandSummaryProvider,
+        Action<MarketStockEntry> targetDetailAction)
     {
         Configure(
             font,
@@ -45,6 +47,7 @@ public sealed class MarketPageUI : ListPageUIBase
         registerBuyButton = targetRegisterBuyButton;
         demandSummaryText = targetDemandSummaryText;
         demandSummaryProvider = targetDemandSummaryProvider;
+        detailAction = targetDetailAction;
     }
 
     public override void Refresh()
@@ -75,6 +78,8 @@ public sealed class MarketPageUI : ListPageUIBase
                 RowColor,
                 FrameColor);
 
+        CreateItemIcon(row, item);
+
         CreateText(
             row,
             $"{JapaneseDisplayText.GetItemName(item)} x{entry.Quantity}",
@@ -82,8 +87,8 @@ public sealed class MarketPageUI : ListPageUIBase
             22,
             FontStyle.Bold,
             TextAnchor.MiddleLeft,
-            new Vector2(18f, -42f),
-            new Vector2(-160f, -12f),
+            new Vector2(82f, -42f),
+            new Vector2(-300f, -12f),
             RowTextColor);
 
         string details =
@@ -100,8 +105,8 @@ public sealed class MarketPageUI : ListPageUIBase
             13,
             FontStyle.Normal,
             TextAnchor.MiddleLeft,
-            new Vector2(18f, -76f),
-            new Vector2(-160f, -48f),
+            new Vector2(82f, -76f),
+            new Vector2(-300f, -48f),
             MutedTextColor);
 
         Button buyButton = CreateActionButton(
@@ -114,5 +119,35 @@ public sealed class MarketPageUI : ListPageUIBase
             () => buyAction?.Invoke(entry));
         buyButton.interactable = canBuyEntry?.Invoke(entry) == true;
         registerBuyButton?.Invoke(buyButton, entry);
+
+        Button detailButton = CreateActionButton(
+            row,
+            "詳細",
+            RowFont,
+            ButtonColor,
+            FrameColor,
+            ButtonTextColor,
+            () => detailAction?.Invoke(entry));
+        RectTransform detailRect = detailButton.GetComponent<RectTransform>();
+        detailRect.anchoredPosition = new Vector2(-160f, 0f);
+    }
+
+    private void CreateItemIcon(RectTransform row, ItemDataSO item)
+    {
+        RectTransform iconRect = CreateUIObject("Item Icon", row);
+        iconRect.anchorMin = new Vector2(0f, 0.5f);
+        iconRect.anchorMax = new Vector2(0f, 0.5f);
+        iconRect.pivot = new Vector2(0f, 0.5f);
+        iconRect.sizeDelta = new Vector2(54f, 54f);
+        iconRect.anchoredPosition = new Vector2(18f, 0f);
+        Image icon = iconRect.gameObject.AddComponent<Image>();
+        Sprite sprite = ItemPresentationService.ResolveSprite(item);
+        icon.sprite = sprite;
+        icon.color = sprite != null ? Color.white : new Color(0.2f, 0.2f, 0.2f, 1f);
+        if (sprite == null)
+        {
+            CreateText(iconRect, "?", RowFont, 28, FontStyle.Bold,
+                TextAnchor.MiddleCenter, Vector2.zero, Vector2.zero, Color.white);
+        }
     }
 }

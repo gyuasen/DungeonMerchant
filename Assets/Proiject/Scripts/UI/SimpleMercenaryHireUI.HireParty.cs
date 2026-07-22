@@ -379,8 +379,106 @@ public partial class SimpleMercenaryHireUI
         pageUI.ConfigureJobChangeList(
             () => hireManager.HiredMercenaries,
             hireAndPartyController.ShouldShowSpecialPromotion,
-            hireAndPartyController.PromoteMercenary);
+            hireAndPartyController.PromoteMercenary,
+            ShowPromotionPreview);
         pageRouter.Register(jobChangePage);
+    }
+
+    private void BuildPromotionPreviewOverlay()
+    {
+        promotionPreviewOverlay = CreateUIObject("Promotion Preview Overlay", overlayRoot);
+        promotionPreviewOverlay.anchorMin = Vector2.zero;
+        promotionPreviewOverlay.anchorMax = Vector2.one;
+        promotionPreviewOverlay.offsetMin = Vector2.zero;
+        promotionPreviewOverlay.offsetMax = Vector2.zero;
+        promotionPreviewOverlay.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.82f);
+        RectTransform window = CreateUIObject("Promotion Preview Window", promotionPreviewOverlay);
+        window.anchorMin = window.anchorMax = window.pivot = new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(700f, 520f);
+        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
+        CreateText(window, "転職確認", 26, FontStyle.Bold, TextAnchor.MiddleCenter,
+            new Vector2(28f, -68f), new Vector2(-28f, -18f), ParchmentTextColor);
+        promotionPreviewText = CreateText(window, string.Empty, 15, FontStyle.Normal,
+            TextAnchor.UpperLeft, new Vector2(34f, -360f), new Vector2(-34f, -82f), ParchmentTextColor);
+        promotionPreviewReasonText = CreateText(window, string.Empty, 14, FontStyle.Bold,
+            TextAnchor.MiddleCenter, new Vector2(34f, -414f), new Vector2(-34f, -362f), MutedTextColor);
+        promotionPreviewConfirmButton = CreateActionButton(window, "転職する", ConfirmPromotionPreview);
+        RectTransform confirmRect = promotionPreviewConfirmButton.GetComponent<RectTransform>();
+        confirmRect.anchorMin = confirmRect.anchorMax = confirmRect.pivot = new Vector2(0.5f, 0f);
+        confirmRect.sizeDelta = new Vector2(180f, 48f);
+        confirmRect.anchoredPosition = new Vector2(-105f, 25f);
+        Button cancel = CreateActionButton(window, "キャンセル", HidePromotionPreview);
+        RectTransform cancelRect = cancel.GetComponent<RectTransform>();
+        cancelRect.anchorMin = cancelRect.anchorMax = cancelRect.pivot = new Vector2(0.5f, 0f);
+        cancelRect.sizeDelta = new Vector2(180f, 48f);
+        cancelRect.anchoredPosition = new Vector2(105f, 25f);
+        promotionPreviewOverlay.gameObject.SetActive(false);
+    }
+
+    private void ShowPromotionPreview(MercenaryInstance mercenary, MercenaryClass target)
+    {
+        promotionPreviewMercenary = mercenary;
+        promotionPreviewTarget = target;
+        PromotionPreview preview = new PromotionPreview(mercenary, target);
+        bool special = target == MercenaryClassProgression.GetSpecialClass(mercenary.MercenaryClass);
+        ItemDataSO certificate = special && !mercenary.IsUnique ? hireAndPartyController.GetSpecialJobCertificate() : null;
+        int certificateCount = certificate != null ? merchantInventory.GetItemAmount(certificate) : 0;
+        bool canPromote = mercenary.CanPromote && (!special || mercenary.IsUnique || certificateCount > 0);
+        promotionPreviewText.text = BuildPromotionPreviewText(mercenary, preview, certificate, certificateCount);
+        promotionPreviewReasonText.text = canPromote ? string.Empty : certificate != null ? "転職証が不足しています。" : "転職条件を満たしていません。";
+        promotionPreviewConfirmButton.interactable = canPromote;
+        promotionPreviewOverlay.SetAsLastSibling();
+        promotionPreviewOverlay.gameObject.SetActive(true);
+    }
+
+    private string BuildPromotionPreviewText(MercenaryInstance mercenary, PromotionPreview preview, ItemDataSO certificate, int certificateCount)
+    {
+        string equipmentWarning = BuildPromotionEquipmentWarning(mercenary, preview.TargetClass);
+        string certificateText = certificate == null ? "消費する証: なし" : $"消費する証: {JapaneseDisplayText.GetItemName(certificate)} {certificateCount}/1";
+        System.Collections.Generic.List<MercenarySkillDefinition> skills =
+            MercenaryClassProgression.GetCombatSkills(preview.TargetClass);
+        string skillText = "解禁予定スキル: " + string.Join("、", skills.ConvertAll(skill => skill.Name));
+        return $"{JapaneseDisplayText.GetMercenaryClass(mercenary.MercenaryClass)} → {JapaneseDisplayText.GetMercenaryClass(preview.TargetClass)}\n" +
+            $"HP {mercenary.MaxHP} → {preview.MaxHP} ({preview.MaxHP - mercenary.MaxHP:+#;-#;0})\n" +
+            $"攻撃 {mercenary.Attack} → {preview.Attack} ({preview.Attack - mercenary.Attack:+#;-#;0})\n" +
+            $"防御 {mercenary.Defense} → {preview.Defense} ({preview.Defense - mercenary.Defense:+#;-#;0})\n" +
+            $"魔力 {mercenary.MaxMagicPower} → {preview.MaxMagicPower} ({preview.MaxMagicPower - mercenary.MaxMagicPower:+#;-#;0})\n" +
+            $"速度 {mercenary.AttackSpeed:0.00} → {preview.AttackSpeed:0.00} ({preview.AttackSpeed - mercenary.AttackSpeed:+0.00;-0.00;0})\n" +
+            $"レベル上限: {preview.LevelCap}  |  クリティカル {preview.CriticalRate * 100f:0}%  |  回避 {preview.EvasionRate * 100f:0}%\n" +
+            certificateText + "\n" + skillText + "\n" + equipmentWarning;
+    }
+
+    private static string BuildPromotionEquipmentWarning(MercenaryInstance mercenary, MercenaryClass target)
+    {
+        System.Collections.Generic.List<string> names = new System.Collections.Generic.List<string>();
+        foreach (EquipmentSlot slot in new[] { EquipmentSlot.Weapon, EquipmentSlot.Armor, EquipmentSlot.Accessory })
+        {
+            ItemDataSO item = mercenary.GetEquippedItem(slot);
+            if (item != null && !item.CanEquip(target)) names.Add(JapaneseDisplayText.GetItemName(item));
+        }
+        return names.Count == 0 ? "装備適合: 問題なし" : "装備不可になる装備: " + string.Join("、", names);
+    }
+
+    private void ConfirmPromotionPreview()
+    {
+        if (promotionPreviewMercenary == null ||
+            !promotionPreviewMercenary.CanPromote ||
+            MercenaryClassProgression.GetBaseClass(promotionPreviewTarget) !=
+            promotionPreviewMercenary.OriginalClass ||
+            MercenaryClassProgression.IsBaseClass(promotionPreviewTarget))
+        {
+            HidePromotionPreview();
+            return;
+        }
+
+        hireAndPartyController.PromoteMercenary(promotionPreviewMercenary, promotionPreviewTarget);
+        HidePromotionPreview();
+    }
+
+    private void HidePromotionPreview()
+    {
+        promotionPreviewOverlay?.gameObject.SetActive(false);
+        promotionPreviewMercenary = null;
     }
 
     private void ConfigureHireListPage(HirePageUI pageUI)
@@ -430,7 +528,19 @@ public partial class SimpleMercenaryHireUI
             mercenary => healingManager.GetMissingHP(mercenary),
             mercenary => healingManager.GetFullHealCost(mercenary),
             mercenary => healingManager.CanHeal(mercenary),
-            hireAndPartyController.HealMercenary);
+            hireAndPartyController.HealMercenary,
+            ShowCharacterDetails,
+            mercenary => healingManager.GetMissingHP(mercenary) > 0 ||
+                         mercenary.IsIncapacitated,
+            GetHealingUnavailableReason);
+    }
+
+    private string GetHealingUnavailableReason(MercenaryInstance mercenary)
+    {
+        int cost = healingManager.GetFullHealCost(mercenary);
+        return merchantData.Gold >= cost
+            ? string.Empty
+            : $"資金不足: あと {cost - merchantData.Gold}G";
     }
 
     private void HandleMercenaryHired(MercenaryInstance mercenary)

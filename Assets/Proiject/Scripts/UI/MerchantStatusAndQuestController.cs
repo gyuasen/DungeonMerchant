@@ -193,16 +193,20 @@ public sealed class MerchantStatusAndQuestController
 
     public void UpgradeStorage()
     {
-        if (progressionManager != null &&
-            progressionManager.TryUpgradeStorage())
+        TryUpgradeStorage();
+    }
+
+    public bool TryUpgradeStorage()
+    {
+        if (progressionManager != null && progressionManager.TryUpgradeStorage())
         {
             setStatus("倉庫を拡張しました。");
+            refreshUI();
+            return true;
         }
-        else
-        {
-            setStatus("商人レベルまたはゴールドが不足しています。");
-        }
+        setStatus("商人レベルまたはゴールドが不足しています。");
         refreshUI();
+        return false;
     }
 
     public void RenewContract(MercenaryInstance mercenary)

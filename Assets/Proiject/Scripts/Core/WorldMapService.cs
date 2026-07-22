@@ -422,7 +422,7 @@ public static class WorldMapService
     public static EquipmentRankRange GetBlacksmithEquipmentRankRange(int townIndex)
     {
         int rank = Math.Min(GetTownEquipmentRank(townIndex) + 1, 10);
-        return new EquipmentRankRange(rank, rank);
+        return new EquipmentRankRange(1, rank);
     }
 
     public static int GetDungeonEquipmentRank(int townIndex)

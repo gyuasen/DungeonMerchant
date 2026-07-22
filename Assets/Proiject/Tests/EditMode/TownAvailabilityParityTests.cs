@@ -30,13 +30,13 @@ public sealed class TownAvailabilityParityTests
     [TestCase(4, 6)]
     [TestCase(5, 7)]
     [TestCase(6, 8)]
-    public void Blacksmith_UsesOneRankAboveTheTownMarket(
+    public void Blacksmith_UnlocksEquipmentUpToOneRankAboveTheTownMarket(
         int townIndex, int expectedRank)
     {
         WorldMapService.EquipmentRankRange range =
             WorldMapService.GetBlacksmithEquipmentRankRange(townIndex);
 
-        Assert.That(range.Minimum, Is.EqualTo(expectedRank));
+        Assert.That(range.Minimum, Is.EqualTo(1));
         Assert.That(range.Maximum, Is.EqualTo(expectedRank));
         Assert.That(WorldMapService.IsBlacksmithEquipmentAllowedInTown(
             townIndex,
@@ -47,7 +47,25 @@ public sealed class TownAvailabilityParityTests
             townIndex,
             MercenaryClass.Warrior,
             expectedRank - 1,
+            EquipmentSlot.Weapon), Is.True);
+        Assert.That(WorldMapService.IsBlacksmithEquipmentAllowedInTown(
+            townIndex,
+            MercenaryClass.Warrior,
+            expectedRank + 1,
             EquipmentSlot.Weapon), Is.False);
+    }
+
+    [Test]
+    public void Blacksmith_NornKeepsRankFourRecipesAvailableAfterLeavingEld()
+    {
+        const int nornTownIndex = 3;
+        const int eldBlacksmithRank = 4;
+
+        Assert.That(WorldMapService.IsBlacksmithEquipmentAllowedInTown(
+            nornTownIndex,
+            MercenaryClass.Warrior,
+            eldBlacksmithRank,
+            EquipmentSlot.Weapon), Is.True);
     }
 
     [TestCase(2, 3)]

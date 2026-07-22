@@ -191,7 +191,14 @@ public class RemoteSaleManager : MonoBehaviour
         }
         else
         {
-            inventory.DepositItemTo(order.TownIndex, order.Item, order.Amount);
+            if (!inventory.DepositItemTo(
+                    order.TownIndex,
+                    order.Item,
+                    order.Amount))
+            {
+                activeOrders.Add(order);
+                return false;
+            }
         }
         RemoteSaleChanged?.Invoke();
         return true;

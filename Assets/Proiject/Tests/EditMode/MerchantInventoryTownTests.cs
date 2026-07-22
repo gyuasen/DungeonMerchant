@@ -52,9 +52,26 @@ public sealed class MerchantInventoryTownTests
 
         towns.Initialize(1, new[] { 2, 1 });
         Assert.That(inventory.TryAddItem(item, 30), Is.True);
-        Assert.That(inventory.DepositItemTo(1, item, 5), Is.True);
-        Assert.That(inventory.GetUsedStorageSlotsIn(1), Is.EqualTo(35));
+        Assert.That(inventory.DepositItemTo(1, item, 5), Is.False);
+        Assert.That(inventory.GetUsedStorageSlotsIn(1), Is.EqualTo(30));
         Assert.That(inventory.GetUsedStorageSlotsIn(2), Is.EqualTo(30));
+    }
+
+    [Test]
+    public void EquipmentDeposit_IgnoresFullTownStorage()
+    {
+        root.AddComponent<ProgressionManager>();
+        ItemDataSO material = CreateItem("Full Town Ore");
+        ItemDataSO equipment = CreateItem("Town Stored Sword");
+        equipment.itemType = ItemType.Equipment;
+        Assert.That(inventory.DepositItemTo(1, material, 30), Is.True);
+
+        inventory.DepositEquipmentTo(
+            1,
+            EquipmentInstance.CreateFixed(equipment));
+
+        Assert.That(inventory.GetUsedStorageSlotsIn(1), Is.EqualTo(30));
+        Assert.That(inventory.GetEquipmentInstancesIn(1), Has.Count.EqualTo(1));
     }
 
     [Test]

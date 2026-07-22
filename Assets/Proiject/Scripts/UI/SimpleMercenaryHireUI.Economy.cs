@@ -64,7 +64,7 @@ public partial class SimpleMercenaryHireUI
             CreateActionButton(
                 inventoryPage,
                 "倉庫拡張",
-                merchantStatusAndQuestController.UpgradeStorage);
+                ShowStorageUpgradeConfirmation);
         RectTransform storageRect = storageButton.GetComponent<RectTransform>();
         storageRect.anchorMin = storageRect.anchorMax = new Vector2(0f, 1f);
         storageRect.pivot = new Vector2(0f, 1f);
@@ -186,7 +186,8 @@ public partial class SimpleMercenaryHireUI
             economyController.BuyMarketItem,
             economyController.RegisterMarketBuyButton,
             demandSummary,
-            GetCurrentTownDemandSummary);
+            GetCurrentTownDemandSummary,
+            ShowMarketItemDetail);
         pageRouter.Register(marketPage);
     }
 
@@ -248,7 +249,8 @@ public partial class SimpleMercenaryHireUI
             item => merchantInventory.GetItemAmount(item),
             recipe => blacksmithManager.CanCraft(recipe),
             economyController.CraftEquipment,
-            economyController.RegisterBlacksmithCraftButton);
+            economyController.RegisterBlacksmithCraftButton,
+            ShowBlacksmithRecipeDetail);
         pageRouter.Register(blacksmithPage);
     }
 
@@ -343,6 +345,316 @@ public partial class SimpleMercenaryHireUI
             : remaining <= Mathf.Max(3, Mathf.CeilToInt(capacity * 0.1f))
                 ? new Color(0.72f, 0.35f, 0.04f)
                 : ParchmentTextColor;
+    }
+
+    private void BuildStorageUpgradeConfirmationOverlay()
+    {
+        storageUpgradeConfirmationOverlay = CreateUIObject(
+            "Storage Upgrade Confirmation Overlay",
+            overlayRoot);
+        storageUpgradeConfirmationOverlay.anchorMin = Vector2.zero;
+        storageUpgradeConfirmationOverlay.anchorMax = Vector2.one;
+        storageUpgradeConfirmationOverlay.offsetMin = Vector2.zero;
+        storageUpgradeConfirmationOverlay.offsetMax = Vector2.zero;
+        storageUpgradeConfirmationOverlay.gameObject.AddComponent<Image>().color =
+            new Color(0f, 0f, 0f, 0.82f);
+
+        RectTransform window = CreateUIObject(
+            "Storage Upgrade Confirmation Window",
+            storageUpgradeConfirmationOverlay);
+        window.anchorMin = window.anchorMax = window.pivot =
+            new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(560f, 340f);
+        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
+
+        CreateText(
+            window,
+            "倉庫を拡張しますか？",
+            26,
+            FontStyle.Bold,
+            TextAnchor.MiddleCenter,
+            new Vector2(28f, -72f),
+            new Vector2(-28f, -22f),
+            ParchmentTextColor);
+
+        storageUpgradeConfirmationText = CreateText(
+            window,
+            string.Empty,
+            18,
+            FontStyle.Normal,
+            TextAnchor.MiddleCenter,
+            new Vector2(36f, -190f),
+            new Vector2(-36f, -82f),
+            ParchmentTextColor);
+        storageUpgradeConfirmationReasonText = CreateText(
+            window,
+            string.Empty,
+            15,
+            FontStyle.Bold,
+            TextAnchor.MiddleCenter,
+            new Vector2(36f, -238f),
+            new Vector2(-36f, -190f),
+            MutedTextColor);
+
+        storageUpgradeConfirmButton = CreateActionButton(
+            window,
+            "拡張する",
+            ConfirmStorageUpgrade);
+        RectTransform confirmRect =
+            storageUpgradeConfirmButton.GetComponent<RectTransform>();
+        confirmRect.anchorMin = confirmRect.anchorMax = confirmRect.pivot =
+            new Vector2(0.5f, 0f);
+        confirmRect.sizeDelta = new Vector2(180f, 48f);
+        confirmRect.anchoredPosition = new Vector2(-105f, 26f);
+        storageUpgradeConfirmButton.targetGraphic.color = AccentColor;
+
+        Button cancelButton = CreateActionButton(
+            window,
+            "キャンセル",
+            HideStorageUpgradeConfirmation);
+        RectTransform cancelRect = cancelButton.GetComponent<RectTransform>();
+        cancelRect.anchorMin = cancelRect.anchorMax = cancelRect.pivot =
+            new Vector2(0.5f, 0f);
+        cancelRect.sizeDelta = new Vector2(180f, 48f);
+        cancelRect.anchoredPosition = new Vector2(105f, 26f);
+
+        storageUpgradeConfirmationOverlay.gameObject.SetActive(false);
+    }
+
+    private void BuildItemDetailOverlay()
+    {
+        itemDetailOverlay = CreateUIObject("Item Detail Overlay", overlayRoot);
+        itemDetailOverlay.anchorMin = Vector2.zero;
+        itemDetailOverlay.anchorMax = Vector2.one;
+        itemDetailOverlay.offsetMin = Vector2.zero;
+        itemDetailOverlay.offsetMax = Vector2.zero;
+        itemDetailOverlay.gameObject.AddComponent<Image>().color =
+            new Color(0f, 0f, 0f, 0.82f);
+
+        RectTransform window = CreateUIObject("Item Detail Window", itemDetailOverlay);
+        window.anchorMin = window.anchorMax = window.pivot =
+            new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(680f, 480f);
+        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
+        itemDetailTitle = CreateText(window, string.Empty, 25, FontStyle.Bold,
+            TextAnchor.MiddleLeft, new Vector2(142f, -64f),
+            new Vector2(-34f, -20f), ParchmentTextColor);
+
+        RectTransform imageRect = CreateUIObject("Item Detail Image", window);
+        imageRect.anchorMin = imageRect.anchorMax = new Vector2(0f, 1f);
+        imageRect.pivot = new Vector2(0f, 1f);
+        imageRect.sizeDelta = new Vector2(92f, 92f);
+        imageRect.anchoredPosition = new Vector2(34f, -28f);
+        itemDetailImage = imageRect.gameObject.AddComponent<Image>();
+        itemDetailImagePlaceholder = CreateText(imageRect, "?", 42,
+            FontStyle.Bold, TextAnchor.MiddleCenter, Vector2.zero,
+            Vector2.zero, Color.white);
+        itemDetailImagePlaceholder.rectTransform.anchorMin = Vector2.zero;
+        itemDetailImagePlaceholder.rectTransform.anchorMax = Vector2.one;
+        itemDetailImagePlaceholder.rectTransform.offsetMin = Vector2.zero;
+        itemDetailImagePlaceholder.rectTransform.offsetMax = Vector2.zero;
+        itemDetailText = CreateText(window, string.Empty, 15, FontStyle.Normal,
+            TextAnchor.UpperLeft, new Vector2(34f, -280f),
+            new Vector2(-34f, -92f), ParchmentTextColor);
+        itemDetailTransactionText = CreateText(window, string.Empty, 15,
+            FontStyle.Bold, TextAnchor.UpperLeft, new Vector2(34f, -380f),
+            new Vector2(-34f, -282f), MutedTextColor);
+
+        itemDetailActionButton = CreateActionButton(
+            window,
+            string.Empty,
+            ExecuteItemDetailAction);
+        RectTransform actionRect = itemDetailActionButton.GetComponent<RectTransform>();
+        actionRect.anchorMin = actionRect.anchorMax = actionRect.pivot =
+            new Vector2(0.5f, 0f);
+        actionRect.sizeDelta = new Vector2(180f, 48f);
+        actionRect.anchoredPosition = new Vector2(-105f, 26f);
+        Button closeButton = CreateActionButton(
+            window,
+            "閉じる",
+            HideItemDetail);
+        RectTransform closeRect = closeButton.GetComponent<RectTransform>();
+        closeRect.anchorMin = closeRect.anchorMax = closeRect.pivot =
+            new Vector2(0.5f, 0f);
+        closeRect.sizeDelta = new Vector2(180f, 48f);
+        closeRect.anchoredPosition = new Vector2(105f, 26f);
+        itemDetailOverlay.gameObject.SetActive(false);
+    }
+
+    private void ShowBlacksmithRecipeDetail(EquipmentRecipeSO recipe)
+    {
+        if (recipe == null || recipe.resultItem == null)
+        {
+            return;
+        }
+
+        string materials = BuildRecipeDetailText(recipe);
+        string transaction = materials + "\n必要金額: " + recipe.goldCost +
+            "G  |  所持金: " + merchantData.Gold + "G";
+        ShowItemDetail(
+            recipe.resultItem,
+            transaction,
+            "制作する",
+            () => economyController.CraftEquipment(recipe),
+            blacksmithManager.CanCraft(recipe));
+    }
+
+    private void ShowMarketItemDetail(MarketStockEntry entry)
+    {
+        if (entry == null || entry.Item == null)
+        {
+            return;
+        }
+
+        string transaction = "価格: " + entry.BuyPrice + "G  |  所持金: " +
+            merchantData.Gold + "G\n在庫: " + entry.Quantity;
+        ShowItemDetail(
+            entry.Item,
+            transaction,
+            "購入する",
+            () => economyController.BuyMarketItem(entry),
+            marketStockManager.CanBuy(entry));
+    }
+
+    private string BuildRecipeDetailText(EquipmentRecipeSO recipe)
+    {
+        if (recipe.materials == null || recipe.materials.Length == 0)
+        {
+            return "必要素材: なし";
+        }
+
+        System.Text.StringBuilder result = new System.Text.StringBuilder(
+            "必要素材:");
+        foreach (CraftingMaterialRequirement requirement in recipe.materials)
+        {
+            if (requirement == null || requirement.item == null)
+            {
+                continue;
+            }
+
+            int owned = merchantInventory.GetItemAmount(requirement.item);
+            string color = owned >= requirement.amount ? "#3D8A45" : "#B43A2F";
+            result.Append("\n<color=").Append(color).Append(">")
+                .Append(JapaneseDisplayText.GetItemName(requirement.item))
+                .Append(" ").Append(owned).Append("/")
+                .Append(requirement.amount).Append("</color>");
+        }
+        return result.ToString();
+    }
+
+    private void ShowItemDetail(
+        ItemDataSO item,
+        string transactionText,
+        string actionLabel,
+        System.Action action,
+        bool canExecute)
+    {
+        itemDetailTitle.text = JapaneseDisplayText.GetItemName(item);
+        Sprite sprite = ItemPresentationService.ResolveSprite(item);
+        itemDetailImage.sprite = sprite;
+        itemDetailImage.color = sprite != null
+            ? Color.white
+            : new Color(0.2f, 0.2f, 0.2f, 1f);
+        itemDetailImagePlaceholder.gameObject.SetActive(sprite == null);
+        itemDetailText.text = ItemPresentationService.BuildDetailText(item);
+        itemDetailTransactionText.text = transactionText;
+        SetOrCreateButtonLabel(
+            itemDetailActionButton.GetComponent<RectTransform>(),
+            actionLabel,
+            17);
+        itemDetailAction = action;
+        itemDetailActionButton.interactable = canExecute;
+        itemDetailOverlay.SetAsLastSibling();
+        itemDetailOverlay.gameObject.SetActive(true);
+    }
+
+    private void ExecuteItemDetailAction()
+    {
+        itemDetailAction?.Invoke();
+        HideItemDetail();
+    }
+
+    private void HideItemDetail()
+    {
+        itemDetailOverlay?.gameObject.SetActive(false);
+        itemDetailAction = null;
+    }
+
+    private void ShowStorageUpgradeConfirmation()
+    {
+        RefreshStorageUpgradeConfirmation();
+        storageUpgradeConfirmationOverlay.SetAsLastSibling();
+        storageUpgradeConfirmationOverlay.gameObject.SetActive(true);
+    }
+
+    private void HideStorageUpgradeConfirmation()
+    {
+        storageUpgradeConfirmationOverlay?.gameObject.SetActive(false);
+    }
+
+    private void ConfirmStorageUpgrade()
+    {
+        if (merchantStatusAndQuestController.TryUpgradeStorage())
+        {
+            HideStorageUpgradeConfirmation();
+            return;
+        }
+
+        RefreshStorageUpgradeConfirmation();
+    }
+
+    private void RefreshStorageUpgradeConfirmation()
+    {
+        if (storageUpgradeConfirmationText == null ||
+            storageUpgradeConfirmationReasonText == null ||
+            storageUpgradeConfirmButton == null)
+        {
+            return;
+        }
+
+        if (progressionManager == null || merchantData == null)
+        {
+            storageUpgradeConfirmationText.text = "倉庫情報を取得できません。";
+            storageUpgradeConfirmationReasonText.text = string.Empty;
+            storageUpgradeConfirmButton.interactable = false;
+            return;
+        }
+
+        if (progressionManager.IsStorageAtMaximumTier)
+        {
+            storageUpgradeConfirmationText.text =
+                $"現在の容量: {progressionManager.StorageCapacity}枠\n倉庫は最大まで拡張済みです。";
+            storageUpgradeConfirmationReasonText.text =
+                "これ以上拡張できません。";
+            storageUpgradeConfirmButton.interactable = false;
+            return;
+        }
+
+        int cost = progressionManager.StorageUpgradeCost;
+        int requiredLevel = progressionManager.NextStorageRequiredMerchantLevel;
+        int missingGold = Mathf.Max(0, cost - merchantData.Gold);
+        storageUpgradeConfirmationText.text =
+            $"容量: {progressionManager.StorageCapacity}枠 → " +
+            $"{progressionManager.NextStorageCapacity}枠\n" +
+            $"必要金額: {cost:N0}G  |  所持金: {merchantData.Gold:N0}G\n" +
+            $"必要商人レベル: Lv{requiredLevel}（現在 Lv{merchantData.MerchantLevel}）";
+        if (merchantData.MerchantLevel < requiredLevel)
+        {
+            storageUpgradeConfirmationReasonText.text =
+                $"商人レベルが不足しています。（あと {requiredLevel - merchantData.MerchantLevel}）";
+        }
+        else if (missingGold > 0)
+        {
+            storageUpgradeConfirmationReasonText.text =
+                $"資金が不足しています。（あと {missingGold:N0}G）";
+        }
+        else
+        {
+            storageUpgradeConfirmationReasonText.text = "拡張できます。";
+        }
+
+        storageUpgradeConfirmButton.interactable =
+            progressionManager.CanUpgradeStorage();
     }
 
     private string GetCurrentTownDemandSummary()

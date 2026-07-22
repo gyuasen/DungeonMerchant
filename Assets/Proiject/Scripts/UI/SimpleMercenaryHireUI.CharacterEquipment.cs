@@ -819,7 +819,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
                 Name = JapaneseDisplayText.GetItemName(item),
                 Subtitle = EquipmentRankPresentation.GetRichText(item),
                 Detail = BuildEquipmentCodexDetail(item),
-                Sprite = Resources.Load<Sprite>("UI/Codex/Equipment/" + item.name),
+                Sprite = ItemPresentationService.ResolveSprite(item),
                 Discovered = discovered
             });
         }
