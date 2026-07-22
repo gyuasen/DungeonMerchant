@@ -57,6 +57,59 @@ public sealed class SpeciesDropMappingTests
     }
 
     [Test]
+    public void SaleRankTwoRecipes_UseOnlyStartingCaveMaterials()
+    {
+        DungeonDataSO dungeon = Resources.Load<DungeonDataSO>(
+            "GameData/Dungeons/DungeonData");
+        Assert.That(dungeon, Is.Not.Null);
+
+        HashSet<ItemDataSO> obtainableMaterials = new HashSet<ItemDataSO>(
+            dungeon.normalEnemies
+                .Where(enemy => enemy != null && enemy.itemDrops != null)
+                .SelectMany(enemy => enemy.itemDrops)
+                .Where(drop => drop?.item != null)
+                .Select(drop => drop.item));
+        foreach (EnemyDataSO enemy in dungeon.normalEnemies.Where(enemy => enemy != null))
+        {
+            ItemDataSO magicStone =
+                MaterialCatalog.GetMagicStoneForEnemyGrade(enemy.monsterGrade);
+            if (magicStone != null)
+            {
+                obtainableMaterials.Add(magicStone);
+            }
+        }
+        foreach (DungeonItemReward reward in dungeon.clearItemRewards ??
+                 new DungeonItemReward[0])
+        {
+            if (reward?.item != null)
+            {
+                obtainableMaterials.Add(reward.item);
+            }
+        }
+
+        string[] recipePaths =
+        {
+            "GameData/Blacksmith/ArcaneStaffRecipe",
+            "GameData/Blacksmith/CompositeBowRecipe",
+            "GameData/Blacksmith/LancerSteelLanceRecipe",
+            "GameData/Blacksmith/PriestBlessedStaffRecipe",
+            "GameData/Blacksmith/RogueSwiftDaggerRecipe",
+            "GameData/Blacksmith/SteelSwordRecipe"
+        };
+        foreach (string recipePath in recipePaths)
+        {
+            EquipmentRecipeSO recipe = Resources.Load<EquipmentRecipeSO>(recipePath);
+            Assert.That(recipe, Is.Not.Null, recipePath);
+            Assert.That(BlacksmithManager.IsRecipeAvailableInTown(recipe, 2), Is.True,
+                recipePath);
+            Assert.That(recipe.materials.All(requirement =>
+                requirement != null && obtainableMaterials.Contains(requirement.item)),
+                Is.True,
+                recipePath);
+        }
+    }
+
+    [Test]
     public void EveryRecipeMaterial_HasAnAcquisitionSource()
     {
         HashSet<ItemDataSO> enemyDrops = new HashSet<ItemDataSO>(
