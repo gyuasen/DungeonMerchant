@@ -80,7 +80,8 @@ public abstract class ListPageUIBase : UIPageBase
         bool createdAnyRow = false;
         if (entries != null)
         {
-            foreach (T entry in entries)
+            List<T> entrySnapshot = new List<T>(entries);
+            foreach (T entry in entrySnapshot)
             {
                 if (shouldShow != null && !shouldShow(entry))
                 {

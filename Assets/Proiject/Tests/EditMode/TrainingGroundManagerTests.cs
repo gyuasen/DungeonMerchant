@@ -88,6 +88,8 @@ public sealed class TrainingGroundManagerTests
             CreateMercenary("Benchmark", 20, MercenaryClass.Knight);
         Hire(capped, benchmark);
 
+        Assert.That(trainingGroundManager.GetUnavailableReason(capped),
+            Is.EqualTo(TrainingUnavailableReason.AtLevelCap));
         Assert.That(trainingGroundManager.TryStartTraining(capped), Is.False);
     }
 
@@ -136,7 +138,11 @@ public sealed class TrainingGroundManagerTests
         Hire(levelOne, levelEight, levelTen);
 
         Assert.That(trainingGroundManager.CanStartTraining(levelOne), Is.True);
+        Assert.That(trainingGroundManager.GetUnavailableReason(levelOne),
+            Is.EqualTo(TrainingUnavailableReason.None));
         Assert.That(trainingGroundManager.CanStartTraining(levelEight), Is.False);
+        Assert.That(trainingGroundManager.GetUnavailableReason(levelEight),
+            Is.EqualTo(TrainingUnavailableReason.LevelLimit));
         Assert.That(trainingGroundManager.CanStartTraining(levelTen), Is.False);
     }
 
@@ -161,6 +167,49 @@ public sealed class TrainingGroundManagerTests
     }
 
     [Test]
+    public void GetUnavailableReason_IdentifiesIndividualAvailabilityConditions()
+    {
+        MercenaryInstance benchmark = CreateMercenary("Benchmark", 10);
+        MercenaryInstance trainee = CreateMercenary("Trainee", 1);
+        MercenaryInstance untrained = CreateMercenary("Unhired", 1);
+        Hire(benchmark, trainee);
+
+        Assert.That(trainingGroundManager.GetUnavailableReason(untrained),
+            Is.EqualTo(TrainingUnavailableReason.NotHired));
+        AssertReasonMatchesCanStart(trainee, TrainingUnavailableReason.None);
+
+        trainee.SetContract(MercenaryContractType.Temporary, 1);
+        trainee.UpdateContractForDay(8);
+        AssertReasonMatchesCanStart(trainee,
+            TrainingUnavailableReason.ContractExpired);
+
+        trainee.SetContract(MercenaryContractType.Exclusive, 1);
+        trainee.TakeDamage(trainee.CurrentHP);
+        AssertReasonMatchesCanStart(trainee,
+            TrainingUnavailableReason.Incapacitated);
+
+        MercenaryInstance townMercenary = CreateMercenary("Town", 1);
+        Hire(benchmark, townMercenary);
+        townMercenary.SetCurrentTownIndex(2);
+        AssertReasonMatchesCanStart(townMercenary,
+            TrainingUnavailableReason.DifferentTown);
+
+        townMercenary.SetCurrentTownIndex(1);
+        trainingGroundManager.SetTownAvailabilityValidator(_ => false);
+        AssertReasonMatchesCanStart(townMercenary,
+            TrainingUnavailableReason.NoFacilityInTown);
+        trainingGroundManager.SetTownAvailabilityValidator(null);
+
+        Assert.That(partyManager.TryAdd(townMercenary), Is.True);
+        AssertReasonMatchesCanStart(townMercenary,
+            TrainingUnavailableReason.InParty);
+        Assert.That(partyManager.Remove(townMercenary), Is.True);
+        Assert.That(trainingGroundManager.TryStartTraining(townMercenary), Is.True);
+        AssertReasonMatchesCanStart(townMercenary,
+            TrainingUnavailableReason.AlreadyTraining);
+    }
+
+    [Test]
     public void TryStartTraining_RejectsFourthConcurrentReservation()
     {
         MercenaryInstance benchmark = CreateMercenary("Benchmark", 10);
@@ -173,6 +222,8 @@ public sealed class TrainingGroundManagerTests
         Assert.That(trainingGroundManager.TryStartTraining(first), Is.True);
         Assert.That(trainingGroundManager.TryStartTraining(second), Is.True);
         Assert.That(trainingGroundManager.TryStartTraining(third), Is.True);
+        Assert.That(trainingGroundManager.GetUnavailableReason(fourth),
+            Is.EqualTo(TrainingUnavailableReason.SlotsFull));
         Assert.That(trainingGroundManager.TryStartTraining(fourth), Is.False);
         Assert.That(trainingGroundManager.ActiveTrainingCount, Is.EqualTo(3));
     }
@@ -185,6 +236,8 @@ public sealed class TrainingGroundManagerTests
         Hire(trainee, benchmark);
         merchantData.SetGold(99);
 
+        Assert.That(trainingGroundManager.GetUnavailableReason(trainee),
+            Is.EqualTo(TrainingUnavailableReason.InsufficientGold));
         Assert.That(trainingGroundManager.TryStartTraining(trainee), Is.False);
         Assert.That(merchantData.Gold, Is.EqualTo(99));
         Assert.That(trainingGroundManager.ActiveTrainingCount, Is.Zero);
@@ -480,5 +533,16 @@ public sealed class TrainingGroundManagerTests
         }
 
         hireManager.RestoreHiredMercenaries(mercenaries);
+    }
+
+    private void AssertReasonMatchesCanStart(
+        MercenaryInstance mercenary,
+        TrainingUnavailableReason expectedReason)
+    {
+        TrainingUnavailableReason reason =
+            trainingGroundManager.GetUnavailableReason(mercenary);
+        Assert.That(reason, Is.EqualTo(expectedReason));
+        Assert.That(trainingGroundManager.CanStartTraining(mercenary),
+            Is.EqualTo(reason == TrainingUnavailableReason.None));
     }
 }

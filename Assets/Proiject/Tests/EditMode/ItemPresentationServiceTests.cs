@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -88,6 +89,39 @@ public sealed class ItemPresentationServiceTests
 
         Assert.That(inventory.TryRemoveItem(recipe.materials[0].item, 1), Is.True);
         Assert.That(blacksmith.CanCraft(recipe), Is.False);
+    }
+
+    [Test]
+    public void BlacksmithRecipes_AreStableDuringNestedAccessAndRefreshByTown()
+    {
+        root = new GameObject("Blacksmith Recipe Stability Test");
+        root.SetActive(false);
+        MerchantData merchantData = root.AddComponent<MerchantData>();
+        BlacksmithManager blacksmith = root.AddComponent<BlacksmithManager>();
+
+        IReadOnlyList<EquipmentRecipeSO> recipes = blacksmith.Recipes;
+        Assert.That(recipes, Is.Not.Empty);
+        foreach (EquipmentRecipeSO recipe in recipes)
+        {
+            Assert.That(blacksmith.Recipes, Is.SameAs(recipes));
+            blacksmith.CanCraft(recipe);
+        }
+
+        root.SetActive(true);
+        merchantData.GoldChanged += _ =>
+        {
+            foreach (EquipmentRecipeSO recipe in blacksmith.Recipes)
+            {
+                blacksmith.CanCraft(recipe);
+            }
+        };
+        Assert.DoesNotThrow(() => merchantData.TryPayGold(1));
+        blacksmith.SetTownIndex(0);
+        foreach (EquipmentRecipeSO recipe in blacksmith.Recipes)
+        {
+            Assert.That(BlacksmithManager.IsRecipeAvailableInTown(recipe, 0),
+                Is.True);
+        }
     }
 
     private static ItemDataSO CreateItem(ItemType itemType)

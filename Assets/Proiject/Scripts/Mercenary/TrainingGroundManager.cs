@@ -49,6 +49,26 @@ public sealed class TrainingReservation
     }
 }
 
+public enum TrainingUnavailableReason
+{
+    None,
+    MissingManagerReference,
+    InvalidMercenary,
+    NotHired,
+    AtLevelCap,
+    ContractExpired,
+    Incapacitated,
+    DifferentTown,
+    NoFacilityInTown,
+    InParty,
+    OnTransport,
+    OnExpedition,
+    AlreadyTraining,
+    SlotsFull,
+    LevelLimit,
+    InsufficientGold
+}
+
 public class TrainingGroundManager : MonoBehaviour
 {
     public const int MaximumConcurrentTrainings = 3;
@@ -108,37 +128,111 @@ public class TrainingGroundManager : MonoBehaviour
 
     public bool CanStartTraining(MercenaryInstance mercenary)
     {
-        return CanStartTraining(mercenary, out _);
+        return GetUnavailableReason(mercenary) == TrainingUnavailableReason.None;
     }
 
     public bool CanStartTraining(
         MercenaryInstance mercenary,
         out int cost)
     {
-        ResolveReferences();
         cost = GetTrainingCost(mercenary);
-        return merchantData != null &&
-               mercenary != null &&
-               IsHired(mercenary) &&
-               !mercenary.IsAtLevelCap &&
-               mercenary.IsContractActive &&
-               !mercenary.IsIncapacitated &&
-               IsAtCurrentTown(mercenary) &&
-               IsTownAvailable(mercenary.CurrentTownIndex) &&
-               !IsUnavailableForDuty(mercenary) &&
-               !IsMercenaryTraining(mercenary.InstanceId) &&
-               reservations.Count < MaximumConcurrentTrainings &&
-               mercenary.Level + 1 <= GetTrainingLevelCap() &&
-               merchantData.CanPay(cost);
+        return GetUnavailableReason(mercenary) == TrainingUnavailableReason.None;
+    }
+
+    public TrainingUnavailableReason GetUnavailableReason(
+        MercenaryInstance mercenary)
+    {
+        ResolveReferences();
+        if (merchantData == null || hireManager == null)
+        {
+            return TrainingUnavailableReason.MissingManagerReference;
+        }
+
+        if (mercenary == null)
+        {
+            return TrainingUnavailableReason.InvalidMercenary;
+        }
+
+        if (!IsHired(mercenary))
+        {
+            return TrainingUnavailableReason.NotHired;
+        }
+
+        if (mercenary.IsAtLevelCap)
+        {
+            return TrainingUnavailableReason.AtLevelCap;
+        }
+
+        if (!mercenary.IsContractActive)
+        {
+            return TrainingUnavailableReason.ContractExpired;
+        }
+
+        if (mercenary.IsIncapacitated)
+        {
+            return TrainingUnavailableReason.Incapacitated;
+        }
+
+        if (!IsAtCurrentTown(mercenary))
+        {
+            return TrainingUnavailableReason.DifferentTown;
+        }
+
+        if (!IsTownAvailable(mercenary.CurrentTownIndex))
+        {
+            return TrainingUnavailableReason.NoFacilityInTown;
+        }
+
+        if (partyManager != null && partyManager.Contains(mercenary))
+        {
+            return TrainingUnavailableReason.InParty;
+        }
+
+        if (transportManager != null &&
+            transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId))
+        {
+            return TrainingUnavailableReason.OnTransport;
+        }
+
+        if (dungeonExpeditionManager != null &&
+            dungeonExpeditionManager.IsMercenaryOnExpeditionDuty(
+                mercenary.InstanceId))
+        {
+            return TrainingUnavailableReason.OnExpedition;
+        }
+
+        if (IsMercenaryTraining(mercenary.InstanceId))
+        {
+            return TrainingUnavailableReason.AlreadyTraining;
+        }
+
+        if (reservations.Count >= MaximumConcurrentTrainings)
+        {
+            return TrainingUnavailableReason.SlotsFull;
+        }
+
+        if (mercenary.Level + 1 > GetMaximumTrainableLevel())
+        {
+            return TrainingUnavailableReason.LevelLimit;
+        }
+
+        if (!merchantData.CanPay(GetTrainingCost(mercenary)))
+        {
+            return TrainingUnavailableReason.InsufficientGold;
+        }
+
+        return TrainingUnavailableReason.None;
     }
 
     public bool TryStartTraining(MercenaryInstance mercenary)
     {
-        if (!CanStartTraining(mercenary, out int cost))
+        TrainingUnavailableReason reason = GetUnavailableReason(mercenary);
+        if (reason != TrainingUnavailableReason.None)
         {
             return false;
         }
 
+        int cost = GetTrainingCost(mercenary);
         if (!merchantData.TryPayGold(cost))
         {
             return false;
@@ -359,8 +453,9 @@ public class TrainingGroundManager : MonoBehaviour
         return true;
     }
 
-    private int GetTrainingLevelCap()
+    public int GetMaximumTrainableLevel()
     {
+        ResolveReferences();
         int highestLevel = 0;
         if (hireManager == null)
         {
@@ -406,17 +501,6 @@ public class TrainingGroundManager : MonoBehaviour
     {
         return townProgressState == null ||
                mercenary.CurrentTownIndex == townProgressState.CurrentTownIndex;
-    }
-
-    private bool IsUnavailableForDuty(MercenaryInstance mercenary)
-    {
-        return (partyManager != null && partyManager.Contains(mercenary)) ||
-               (transportManager != null &&
-                transportManager.IsMercenaryOnTransportDuty(
-                    mercenary.InstanceId)) ||
-               (dungeonExpeditionManager != null &&
-                dungeonExpeditionManager.IsMercenaryOnExpeditionDuty(
-                    mercenary.InstanceId));
     }
 
     private void SubscribeToDayChanged()

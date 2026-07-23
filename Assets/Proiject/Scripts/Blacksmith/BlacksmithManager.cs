@@ -12,13 +12,13 @@ public class BlacksmithManager : MonoBehaviour
         new List<EquipmentRecipeSO>();
     [SerializeField, Range(0, WorldMapService.HiddenIslandTownIndex)]
     private int currentTownIndex = 2;
+    [NonSerialized] private bool recipesPopulated;
 
     public IReadOnlyList<EquipmentRecipeSO> Recipes
     {
         get
         {
             EnsureRecipesPopulated();
-            RefreshAvailableRecipes();
             return availableRecipes;
         }
     }
@@ -28,12 +28,18 @@ public class BlacksmithManager : MonoBehaviour
 
     public void SetTownIndex(int townIndex)
     {
-        currentTownIndex = Mathf.Clamp(
+        int nextTownIndex = Mathf.Clamp(
             townIndex,
             0,
             WorldMapService.HiddenIslandTownIndex);
+        bool townChanged = currentTownIndex != nextTownIndex;
+        currentTownIndex = nextTownIndex;
         EnsureRecipesPopulated();
-        RefreshAvailableRecipes();
+        if (townChanged)
+        {
+            RefreshAvailableRecipes();
+        }
+
         CraftingChanged?.Invoke();
     }
 
@@ -41,14 +47,12 @@ public class BlacksmithManager : MonoBehaviour
     {
         ResolveReferences();
         EnsureRecipesPopulated();
-        RefreshAvailableRecipes();
     }
 
     public bool CanCraft(EquipmentRecipeSO recipe)
     {
         ResolveReferences();
         EnsureRecipesPopulated();
-        RefreshAvailableRecipes();
 
         if (recipe == null ||
             recipe.resultItem == null ||
@@ -116,6 +120,11 @@ public class BlacksmithManager : MonoBehaviour
 
     private void EnsureRecipesPopulated()
     {
+        if (recipesPopulated)
+        {
+            return;
+        }
+
         recipes.RemoveAll(recipe => recipe == null);
 
         foreach (EquipmentRecipeSO recipe in
@@ -123,6 +132,8 @@ public class BlacksmithManager : MonoBehaviour
         {
             AddRecipe(recipe);
         }
+
+        recipesPopulated = true;
         RefreshAvailableRecipes();
     }
 
