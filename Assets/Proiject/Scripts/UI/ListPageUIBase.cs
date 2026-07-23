@@ -11,6 +11,7 @@ public abstract class ListPageUIBase : UIPageBase
     [SerializeField] private RectTransform listRoot;
     private UnityAction refreshAction;
     public RectTransform ListRoot => listRoot;
+    protected Text DescriptionText => descriptionText;
     protected Font RowFont { get; private set; }
     protected Color RowTextColor { get; private set; } = Color.white;
     protected Color MutedTextColor { get; private set; } = Color.gray;

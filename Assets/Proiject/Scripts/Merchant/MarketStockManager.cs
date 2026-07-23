@@ -68,7 +68,19 @@ public class MarketStockManager : MonoBehaviour
             && amount > 0
             && entry.Quantity >= amount
             && merchantData != null
-            && merchantData.CanPay(entry.BuyPrice * amount);
+            && merchantData.CanPay(entry.BuyPrice * amount)
+            && CanStorePurchase(entry, amount);
+    }
+
+    public bool CanStorePurchase(MarketStockEntry entry, int amount = 1)
+    {
+        ResolveReferences();
+        return entry != null &&
+               entry.Item != null &&
+               amount > 0 &&
+               (entry.Item.IsEquipment ||
+                (merchantInventory != null &&
+                 merchantInventory.CanAddItem(entry.Item, amount)));
     }
 
     public bool TryBuy(MarketStockEntry entry, int amount = 1)
@@ -80,31 +92,47 @@ public class MarketStockManager : MonoBehaviour
             return false;
         }
 
+        if (!entry.Item.IsEquipment &&
+            !merchantInventory.TryAddItem(entry.Item, amount))
+        {
+            return false;
+        }
+
         int totalPrice = entry.BuyPrice * amount;
         if (!merchantData.TryPayGold(totalPrice))
         {
+            RollbackAddedItems(entry.Item, amount);
             return false;
         }
 
         if (!entry.Remove(amount))
         {
+            merchantData.AddGold(totalPrice);
+            RollbackAddedItems(entry.Item, amount);
             return false;
         }
 
-        for (int i = 0; i < amount; i++)
+        if (entry.Item.IsEquipment)
         {
-            if (entry.Item.IsEquipment)
+            for (int i = 0; i < amount; i++)
             {
                 merchantInventory.AddEquipmentInstance(
                     EquipmentInstance.CreateFixed(entry.Item));
             }
-            else
-            {
-                merchantInventory.AddItem(entry.Item);
-            }
         }
         StockChanged?.Invoke();
         return true;
+    }
+
+    private void RollbackAddedItems(ItemDataSO item, int amount)
+    {
+        if (item != null &&
+            !item.IsEquipment &&
+            amount > 0 &&
+            !merchantInventory.TryRemoveItem(item, amount))
+        {
+            Debug.LogError("Failed to roll back a market purchase inventory addition.", this);
+        }
     }
 
     public void GenerateDailyStock()

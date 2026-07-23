@@ -86,6 +86,8 @@ public partial class SimpleMercenaryHireUI
         battleVisualController.Configure(
             battleManager,
             uiBodyFont != null ? uiBodyFont : uiFont);
+        battleVisualController.PresentationLog += HandlePresentationLog;
+        battleVisualController.PresentationSound += HandlePresentationSound;
         battleVisualController.PresentationCompleted +=
             HandleBattleVisualPresentationCompleted;
 
@@ -599,18 +601,16 @@ public partial class SimpleMercenaryHireUI
 
     private void HandleBattleMessage(string message, BattleLogType logType)
     {
-        if (logType == BattleLogType.Reward)
-        {
-            audioFeedbackService?.Play(UISoundCue.Reward);
-        }
-        else if ((logType == BattleLogType.Player ||
-                  logType == BattleLogType.Enemy) &&
-                 (battleManager == null ||
-                  !battleManager.IsSkippingToBattleEnd))
-        {
-            audioFeedbackService?.Play(UISoundCue.BattleAttack);
-        }
+        AppendBattleMessage(message, logType);
+    }
 
+    private void HandlePresentationLog(string message, BattleLogType logType)
+    {
+        AppendBattleMessage(message, logType);
+    }
+
+    private void AppendBattleMessage(string message, BattleLogType logType)
+    {
         battleLogText.text =
             dungeonBattleController.AppendBattleMessage(message, logType);
 
@@ -620,6 +620,34 @@ public partial class SimpleMercenaryHireUI
         }
 
         ScrollBattleLogToLatest();
+    }
+
+    private void HandlePresentationSound(BattleSoundCue soundCue)
+    {
+        UISoundCue uiSoundCue;
+        switch (soundCue)
+        {
+            case BattleSoundCue.Attack:
+            case BattleSoundCue.Impact:
+            case BattleSoundCue.Evade:
+            case BattleSoundCue.Defeat:
+                uiSoundCue = UISoundCue.BattleAttack;
+                break;
+            case BattleSoundCue.Heal:
+            case BattleSoundCue.Skill:
+            case BattleSoundCue.Victory:
+                uiSoundCue = UISoundCue.Confirm;
+                break;
+            case BattleSoundCue.Loss:
+                uiSoundCue = UISoundCue.Warning;
+                break;
+            case BattleSoundCue.Reward:
+                uiSoundCue = UISoundCue.Reward;
+                break;
+            default:
+                return;
+        }
+        audioFeedbackService?.Play(uiSoundCue);
     }
 
     private void UpdateBattleLogContentHeight()
@@ -663,11 +691,30 @@ public partial class SimpleMercenaryHireUI
 
     private void HandleBattleCompleted(bool victory)
     {
-        startBattleButton.interactable = partyManager.Members.Count > 0;
+        startBattleButton.interactable =
+            partyManager.Members.Count > 0 && !IsProgressionLocked;
         RefreshPage(companyPage);
         RefreshPage(partyPage);
         RefreshPage(healPage);
         RefreshUI();
+
+        if (townTravelController.RoadTravelState.IsActive &&
+            battleVisualController != null &&
+            battleVisualController.isActiveAndEnabled &&
+            battleVisualController.IsPresentationBusy)
+        {
+            hasPendingRoadBattleOutcome = true;
+            pendingRoadBattleVictory = victory;
+            roadContinueButton?.gameObject.SetActive(false);
+            roadRetreatButton?.gameObject.SetActive(false);
+            RefreshUI();
+            if (pendingRoadBattleOutcomeCoroutine == null)
+            {
+                pendingRoadBattleOutcomeCoroutine = StartCoroutine(
+                    WaitForRoadBattlePresentationCompletion());
+            }
+            return;
+        }
 
         if (townTravelController.HandleRoadBattleOutcome(victory))
         {
@@ -763,11 +810,14 @@ public partial class SimpleMercenaryHireUI
 
     private void HandleBattleVisualPresentationCompleted()
     {
+        if (hasPendingRoadBattleOutcome)
+        {
+            CompletePendingRoadBattleOutcome();
+        }
+
         if (hasPendingDungeonCompletion)
         {
             CompletePendingDungeonResult();
-            ShowPendingDailyResultIfReady();
-            return;
         }
 
         if (dungeonRunManager.IsAwaitingEventChoice)
@@ -776,6 +826,73 @@ public partial class SimpleMercenaryHireUI
             ShowBattlePage();
         }
 
+        ShowPendingDailyResultIfReady();
+    }
+
+    private IEnumerator WaitForRoadBattlePresentationCompletion()
+    {
+        const float stalledPresentationTimeoutSeconds = 30f;
+        float stalledElapsed = 0f;
+        int lastProgressVersion = battleVisualController != null
+            ? battleVisualController.PresentationProgressVersion
+            : 0;
+        while (hasPendingRoadBattleOutcome &&
+               battleVisualController != null &&
+               battleVisualController.IsPresentationBusy)
+        {
+            if (battleVisualController.PresentationProgressVersion !=
+                lastProgressVersion)
+            {
+                lastProgressVersion =
+                    battleVisualController.PresentationProgressVersion;
+                stalledElapsed = 0f;
+            }
+            else if (battleManager == null || !battleManager.IsPaused)
+            {
+                stalledElapsed += Time.unscaledDeltaTime;
+            }
+
+            if (stalledElapsed >= stalledPresentationTimeoutSeconds)
+            {
+                break;
+            }
+
+            yield return null;
+        }
+
+        if (hasPendingRoadBattleOutcome)
+        {
+            try
+            {
+                if (battleVisualController != null &&
+                    battleVisualController.IsPresentationBusy)
+                {
+                    Debug.LogWarning(
+                        "Road battle presentation stalled. Completing it so travel can continue.",
+                        this);
+                    battleVisualController.FinishPresentationImmediately();
+                }
+            }
+            finally
+            {
+                CompletePendingRoadBattleOutcome();
+            }
+        }
+
+        pendingRoadBattleOutcomeCoroutine = null;
+    }
+
+    private void CompletePendingRoadBattleOutcome()
+    {
+        if (!hasPendingRoadBattleOutcome)
+        {
+            return;
+        }
+
+        bool victory = pendingRoadBattleVictory;
+        hasPendingRoadBattleOutcome = false;
+        pendingRoadBattleVictory = false;
+        townTravelController.HandleRoadBattleOutcome(victory);
         ShowPendingDailyResultIfReady();
     }
 
@@ -916,7 +1033,7 @@ public partial class SimpleMercenaryHireUI
     {
         UpdateDungeonEventUI();
         startBattleButton.interactable =
-            partyManager.Members.Count > 0 && !battleManager.IsBattling;
+            partyManager.Members.Count > 0 && !IsProgressionLocked;
         startBattleButton.gameObject.SetActive(false);
         battleSkipButton.interactable =
             battleManager.IsBattling &&
@@ -934,6 +1051,17 @@ public partial class SimpleMercenaryHireUI
         int originTownIndex,
         int destinationTownIndex)
     {
+        if (townTravelController == null ||
+            !townTravelController.RoadTravelState.IsActive ||
+            string.IsNullOrEmpty(WorldMapService.GetTownName(originTownIndex)) ||
+            string.IsNullOrEmpty(
+                WorldMapService.GetTownName(destinationTownIndex)))
+        {
+            return;
+        }
+
+        displayedRoadOriginTownIndex = originTownIndex;
+        displayedRoadDestinationTownIndex = destinationTownIndex;
         MoveBattleLogTo(roadBattlePage);
         SwitchToPage(roadBattlePage);
     }
@@ -941,12 +1069,24 @@ public partial class SimpleMercenaryHireUI
     private void RefreshRoadBattlePage()
     {
         RoadTravelState roadTravelState = townTravelController.RoadTravelState;
+        bool isActive = roadTravelState != null &&
+                        roadTravelState.IsActive &&
+                        !string.IsNullOrEmpty(WorldMapService.GetTownName(
+                            roadTravelState.DestinationTownIndex)) &&
+                        !string.IsNullOrEmpty(WorldMapService.GetTownName(
+                            displayedRoadOriginTownIndex)) &&
+                        !string.IsNullOrEmpty(WorldMapService.GetTownName(
+                            displayedRoadDestinationTownIndex));
         mapButton?.gameObject.SetActive(false);
         townMapButton?.gameObject.SetActive(false);
         roadContinueButton.gameObject.SetActive(
-            roadTravelState.IsAwaitingChoice);
+            isActive &&
+            roadTravelState.IsAwaitingChoice &&
+            !hasPendingRoadBattleOutcome);
         roadRetreatButton.gameObject.SetActive(
-            roadTravelState.IsAwaitingChoice);
+            isActive &&
+            roadTravelState.IsAwaitingChoice &&
+            !hasPendingRoadBattleOutcome);
         roadSkipButton.interactable =
             battleManager.IsBattling &&
             !battleManager.IsSkippingToBattleEnd;
@@ -956,9 +1096,20 @@ public partial class SimpleMercenaryHireUI
         SetButtonLabel(
             roadPauseButton,
             battleManager.IsPaused ? "再開" : "一時停止");
+        string originTownName = WorldMapService.GetTownName(
+            displayedRoadOriginTownIndex);
+        string destinationTownName = WorldMapService.GetTownName(
+            displayedRoadDestinationTownIndex);
+        if (!isActive ||
+            string.IsNullOrEmpty(originTownName) ||
+            string.IsNullOrEmpty(destinationTownName))
+        {
+            roadBattleRouteText.text = "街道移動は終了しました。";
+            return;
+        }
+
         roadBattleRouteText.text =
-            $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]} → " +
-            $"{WorldMapService.TownNames[roadTravelState.DestinationTownIndex]}\n" +
+            $"{originTownName} → {destinationTownName}\n" +
             $"接敵 {roadTravelState.EncounterIndex}/" +
             $"{roadTravelState.EncounterCount}  |  " +
             (roadTravelState.ContainsRareEncounter

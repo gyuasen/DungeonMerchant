@@ -56,9 +56,17 @@ public sealed class DungeonRewardService
                 continue;
             }
 
-            merchantInventory.AddItem(reward.item, reward.amount);
-            SendMessage(
-                $"踏破報酬: {JapaneseDisplayText.GetItemName(reward.item)} x{reward.amount}");
+            if (merchantInventory.TryAddItem(reward.item, reward.amount))
+            {
+                SendMessage(
+                    $"踏破報酬: {JapaneseDisplayText.GetItemName(reward.item)} x{reward.amount}");
+            }
+            else
+            {
+                SendMessage(
+                    $"倉庫が満杯で受け取れませんでした: " +
+                    $"{JapaneseDisplayText.GetItemName(reward.item)} x{reward.amount}");
+            }
         }
     }
 
