@@ -31,6 +31,11 @@ public sealed class EconomyController
 
     private InventoryFilter inventoryFilter = InventoryFilter.All;
     private EquipmentSort equipmentSort = EquipmentSort.Name;
+    private InventorySidebarCategory inventorySidebarCategory = InventorySidebarCategory.All;
+    private MarketSidebarCategory marketSidebarCategory = MarketSidebarCategory.All;
+    private BlacksmithSidebarCategory blacksmithSidebarCategory = BlacksmithSidebarCategory.All;
+    private bool blacksmithCraftableOnly;
+    private bool blacksmithRankAscending = true;
 
     public EconomyController(
         MerchantInventory merchantInventory,
@@ -70,6 +75,7 @@ public sealed class EconomyController
                stack.Item != null &&
                stack.Amount > 0 &&
                MatchesInventoryFilter(stack.Item) &&
+               MatchesInventorySidebar(stack.Item) &&
                inventoryFilter != InventoryFilter.Locked;
     }
 
@@ -77,6 +83,7 @@ public sealed class EconomyController
     {
         return equipment?.BaseItem != null &&
                MatchesInventoryFilter(equipment.BaseItem) &&
+               MatchesInventorySidebar(equipment.BaseItem) &&
                (inventoryFilter != InventoryFilter.Locked ||
                 equipment.IsLocked);
     }
@@ -95,6 +102,11 @@ public sealed class EconomyController
                entry.Quantity > 0;
     }
 
+    public bool ShouldShowMarketEntryForSidebar(MarketStockEntry entry)
+    {
+        return ShouldShowMarketEntry(entry) && MatchesMarketSidebar(entry.Item);
+    }
+
     public IEnumerable<EquipmentRecipeSO> GetBlacksmithRows()
     {
         blacksmithCraftButtons.Clear();
@@ -105,6 +117,27 @@ public sealed class EconomyController
     public static bool ShouldShowBlacksmithRecipe(EquipmentRecipeSO recipe)
     {
         return recipe != null && recipe.resultItem != null;
+    }
+
+    public bool ShouldShowBlacksmithRecipeForSidebar(EquipmentRecipeSO recipe)
+    {
+        return ShouldShowBlacksmithRecipe(recipe) &&
+               MatchesBlacksmithSidebar(recipe) &&
+               (!blacksmithCraftableOnly || blacksmithManager.CanCraft(recipe));
+    }
+
+    public IEnumerable<EquipmentRecipeSO> GetSortedBlacksmithRows()
+    {
+        List<EquipmentRecipeSO> recipes = new List<EquipmentRecipeSO>(
+            GetBlacksmithRows());
+        recipes.Sort((left, right) =>
+        {
+            int leftRank = left?.resultItem != null ? left.resultItem.equipmentRank : 0;
+            int rightRank = right?.resultItem != null ? right.resultItem.equipmentRank : 0;
+            int result = leftRank.CompareTo(rightRank);
+            return blacksmithRankAscending ? result : -result;
+        });
+        return recipes;
     }
 
     public void RegisterMarketBuyButton(
@@ -152,6 +185,91 @@ public sealed class EconomyController
         refreshUI();
     }
 
+    public List<InventoryItemStack> GetSellOnlyStacks()
+    {
+        List<InventoryItemStack> stacks = new List<InventoryItemStack>();
+        foreach (InventoryItemStack stack in merchantInventory.Items)
+        {
+            if (stack?.Item != null && stack.Amount > 0 &&
+                stack.Item.materialClassification == MaterialClassification.SellOnly)
+            {
+                stacks.Add(stack);
+            }
+        }
+        return stacks;
+    }
+
+    public int GetSellOnlyTotalGold()
+    {
+        int total = 0;
+        foreach (InventoryItemStack stack in GetSellOnlyStacks())
+        {
+            total += merchantInventory.GetSellPrice(stack.Item) * stack.Amount;
+        }
+        return total;
+    }
+
+    public int SellAllSellOnlyMaterials(out int soldCount, out bool stoppedEarly)
+    {
+        soldCount = 0;
+        stoppedEarly = false;
+        int earnedGold = 0;
+        List<InventoryItemStack> stacks = GetSellOnlyStacks();
+        foreach (InventoryItemStack stack in stacks)
+        {
+            int amount = merchantInventory.GetItemAmount(stack.Item);
+            if (amount <= 0)
+            {
+                continue;
+            }
+            int price = merchantInventory.GetSellPrice(stack.Item) * amount;
+            if (!merchantInventory.SellItem(stack.Item, amount))
+            {
+                stoppedEarly = true;
+                setStatus("一括売却中に所持数が変化したため、残りの売却を中止しました。");
+                break;
+            }
+            soldCount += amount;
+            earnedGold += price;
+        }
+        refreshInventoryPage();
+        refreshUI();
+        return earnedGold;
+    }
+
+    public void SetInventorySidebarCategory(InventorySidebarCategory category)
+    {
+        inventorySidebarCategory = category;
+        refreshInventoryPage();
+    }
+
+    public void SetMarketSidebarCategory(MarketSidebarCategory category)
+    {
+        marketSidebarCategory = category;
+        refreshMarketPage();
+    }
+
+    public void SetBlacksmithSidebarCategory(BlacksmithSidebarCategory category)
+    {
+        blacksmithSidebarCategory = category;
+        refreshBlacksmithPage();
+    }
+
+    public void ToggleBlacksmithCraftableOnly()
+    {
+        blacksmithCraftableOnly = !blacksmithCraftableOnly;
+        refreshBlacksmithPage();
+    }
+
+    public void ToggleBlacksmithRankSort()
+    {
+        blacksmithRankAscending = !blacksmithRankAscending;
+        refreshBlacksmithPage();
+    }
+
+    public bool IsBlacksmithCraftableOnly => blacksmithCraftableOnly;
+    public bool IsBlacksmithRankAscending => blacksmithRankAscending;
+
     public void SellEquipment(EquipmentInstance equipment)
     {
         if (equipment?.BaseItem == null)
@@ -182,7 +300,10 @@ public sealed class EconomyController
         int buyPrice = entry.BuyPrice;
         if (!marketStockManager.TryBuy(entry, 1))
         {
-            setStatus($"{JapaneseDisplayText.GetItemName(entry.Item)}を購入できませんでした。");
+            setStatus(!entry.Item.IsEquipment &&
+                      !marketStockManager.CanStorePurchase(entry)
+                ? "倉庫が満杯です。"
+                : $"{JapaneseDisplayText.GetItemName(entry.Item)}を購入できませんでした。");
             refreshUI();
             return;
         }
@@ -267,6 +388,46 @@ public sealed class EconomyController
         }
     }
 
+    private bool MatchesInventorySidebar(ItemDataSO item)
+    {
+        switch (inventorySidebarCategory)
+        {
+            case InventorySidebarCategory.Material:
+                return item.itemType == ItemType.Material &&
+                       item.materialClassification != MaterialClassification.SellOnly;
+            case InventorySidebarCategory.Consumable:
+                return item.itemType == ItemType.Consumable;
+            case InventorySidebarCategory.Equipment:
+                return item.IsEquipment;
+            case InventorySidebarCategory.SellOnly:
+                return item.materialClassification == MaterialClassification.SellOnly;
+            default:
+                return true;
+        }
+    }
+
+    private bool MatchesMarketSidebar(ItemDataSO item)
+    {
+        switch (marketSidebarCategory)
+        {
+            case MarketSidebarCategory.Equipment: return item.IsEquipment;
+            case MarketSidebarCategory.Consumable: return item.itemType == ItemType.Consumable;
+            case MarketSidebarCategory.Material: return item.itemType == ItemType.Material;
+            default: return true;
+        }
+    }
+
+    private bool MatchesBlacksmithSidebar(EquipmentRecipeSO recipe)
+    {
+        if (blacksmithSidebarCategory == BlacksmithSidebarCategory.All)
+        {
+            return true;
+        }
+        return recipe.resultItem != null &&
+               MercenaryClassProgression.GetBaseClass(recipe.resultItem.requiredClass) ==
+               (MercenaryClass)((int)blacksmithSidebarCategory - 1);
+    }
+
     private int CompareEquipment(
         EquipmentInstance left,
         EquipmentInstance right)
@@ -315,4 +476,32 @@ public sealed class EconomyController
             default: return "名前";
         }
     }
+}
+
+public enum InventorySidebarCategory
+{
+    All,
+    Material,
+    Consumable,
+    Equipment,
+    SellOnly
+}
+
+public enum MarketSidebarCategory
+{
+    All,
+    Equipment,
+    Consumable,
+    Material
+}
+
+public enum BlacksmithSidebarCategory
+{
+    All,
+    Warrior,
+    Archer,
+    Mage,
+    Priest,
+    Rogue,
+    Lancer
 }

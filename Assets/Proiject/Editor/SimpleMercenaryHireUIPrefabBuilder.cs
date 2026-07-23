@@ -166,8 +166,8 @@ public static class SimpleMercenaryHireUIPrefabBuilder
             }
             pages[(int)SimpleMercenaryHirePageSlot.JobChange]
                 .gameObject.AddComponent<JobChangePageUI>();
-            pages[(int)SimpleMercenaryHirePageSlot.TrainingGround]
-                .gameObject.AddComponent<TrainingGroundPageUI>();
+            CreateTrainingGroundLayout(
+                pages[(int)SimpleMercenaryHirePageSlot.TrainingGround]);
 
             SimpleMercenaryHireUIView.HireCompanyReferences hireCompany =
                 CreateHireCompanyLayout(pages);
@@ -181,6 +181,26 @@ public static class SimpleMercenaryHireUIPrefabBuilder
                 new Vector2(0.5f, 0f),
                 new Vector2(28f, 22f),
                 new Vector2(-28f, 54f));
+
+            chrome.onboardingBanner = CreateBox(
+                "Onboarding Guide Banner",
+                panel,
+                new Vector2(1f, 0f), new Vector2(1f, 0f),
+                new Vector2(-20f, 58f), new Vector2(410f, 42f));
+            chrome.onboardingObjectiveText = CreateStretchText(
+                "Onboarding Objective Text",
+                chrome.onboardingBanner,
+                string.Empty);
+            chrome.onboardingObjectiveText.rectTransform.offsetMin =
+                new Vector2(12f, 0f);
+            chrome.onboardingObjectiveText.rectTransform.offsetMax =
+                new Vector2(-126f, 0f);
+            chrome.onboardingSkipButton = CreateButton(
+                "Onboarding Skip Button",
+                chrome.onboardingBanner,
+                "案内を終了",
+                new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
+                new Vector2(-8f, 0f), new Vector2(108f, 30f));
 
             RectTransform overlayRoot = CreateOverlayRoot(panel);
             int overlayCount =
@@ -375,6 +395,36 @@ public static class SimpleMercenaryHireUIPrefabBuilder
             layout.companyScrollRect,
             layout.companyList);
         return layout;
+    }
+
+    private static void CreateTrainingGroundLayout(RectTransform page)
+    {
+        Text title = CreateText(
+            "Training Ground Title",
+            page,
+            "Training Ground",
+            new Vector2(0f, 1f),
+            new Vector2(1f, 1f),
+            new Vector2(0.5f, 1f),
+            new Vector2(24f, -48f),
+            new Vector2(-24f, -12f));
+        Text description = CreateText(
+            "Training Ground Description",
+            page,
+            string.Empty,
+            new Vector2(0f, 1f),
+            new Vector2(1f, 1f),
+            new Vector2(0.5f, 1f),
+            new Vector2(24f, -80f),
+            new Vector2(-24f, -52f));
+        ScrollRect scrollRect = CreateScrollArea(
+            "Training Ground",
+            page,
+            new Vector2(0f, -86f),
+            out RectTransform listRoot);
+        TrainingGroundPageUI pageUI =
+            page.gameObject.AddComponent<TrainingGroundPageUI>();
+        pageUI.Initialize(title, description, scrollRect, listRoot);
     }
 
     private static ScrollRect CreateScrollArea(

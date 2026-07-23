@@ -190,7 +190,7 @@ public partial class SimpleMercenaryHireUI
         UpdateStorageCapacityText();
         if (globalMenuButton != null)
         {
-            globalMenuButton.interactable = !battleManager.IsBattling;
+            globalMenuButton.interactable = !IsProgressionLocked;
         }
         goldText.text =
             $"商人Lv{merchantData.MerchantLevel}  所持金 {merchantData.Gold} G";
@@ -220,7 +220,7 @@ public partial class SimpleMercenaryHireUI
             startDungeonButton.gameObject.SetActive(!dungeonRunManager.IsRunning);
             startDungeonButton.interactable =
                 partyManager.Members.Count > 0 &&
-                !battleManager.IsBattling &&
+                !IsProgressionLocked &&
                 !dungeonRunManager.IsRunning &&
                 selectedDungeon != null &&
                 selectedDungeon.nearbyTownIndex == townProgressState.CurrentTownIndex;

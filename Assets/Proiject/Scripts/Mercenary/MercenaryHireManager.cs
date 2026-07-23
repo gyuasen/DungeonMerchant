@@ -9,6 +9,7 @@ public class MercenaryHireManager : MonoBehaviour
     [SerializeField] private DayManager dayManager;
     [SerializeField] private TownProgressState townProgressState;
     [SerializeField] private TrainingGroundManager trainingGroundManager;
+    [SerializeField] private MerchantInventory merchantInventory;
     [SerializeField] private MercenaryContractType selectedContract =
         MercenaryContractType.Local;
 
@@ -161,10 +162,13 @@ public class MercenaryHireManager : MonoBehaviour
         if (mercenary == null ||
             (trainingGroundManager != null &&
              trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId)) ||
-            !hiredMercenaries.Remove(mercenary))
+            !hiredMercenaries.Contains(mercenary) ||
+            !TryReturnEquippedEquipment(mercenary))
         {
             return false;
         }
+
+        hiredMercenaries.Remove(mercenary);
 
         MercenaryDismissed?.Invoke(mercenary);
         ContractsChanged?.Invoke();
@@ -321,5 +325,80 @@ public class MercenaryHireManager : MonoBehaviour
             trainingGroundManager = GetComponent<TrainingGroundManager>() ??
                                   FindObjectOfType<TrainingGroundManager>();
         }
+
+        if (merchantInventory == null)
+        {
+            merchantInventory = GetComponent<MerchantInventory>() ??
+                                FindObjectOfType<MerchantInventory>();
+        }
+    }
+
+    private bool TryReturnEquippedEquipment(MercenaryInstance mercenary)
+    {
+        EquipmentSlot[] slots =
+        {
+            EquipmentSlot.Weapon,
+            EquipmentSlot.Armor,
+            EquipmentSlot.Accessory
+        };
+        List<EquipmentInstance> equipmentToReturn =
+            new List<EquipmentInstance>();
+        foreach (EquipmentSlot slot in slots)
+        {
+            ItemDataSO item = mercenary.GetEquippedItem(slot);
+            if (item == null)
+            {
+                continue;
+            }
+
+            EquipmentInstance equipment = mercenary.GetEquippedInstance(slot) ??
+                EquipmentInstance.CreateFixed(item);
+            if (equipment.BaseItem == null)
+            {
+                Debug.LogWarning(
+                    "Could not return equipped item while releasing " +
+                    mercenary.MercenaryName + ".");
+                return false;
+            }
+
+            equipmentToReturn.Add(equipment);
+        }
+
+        if (equipmentToReturn.Count == 0)
+        {
+            return true;
+        }
+
+        if (merchantInventory == null)
+        {
+            Debug.LogWarning(
+                "Could not release " + mercenary.MercenaryName +
+                " because equipped items cannot be returned without inventory.");
+            return false;
+        }
+
+        try
+        {
+            foreach (EquipmentInstance equipment in equipmentToReturn)
+            {
+                merchantInventory.DepositEquipmentTo(
+                    mercenary.CurrentTownIndex,
+                    equipment);
+            }
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning(
+                "Could not return equipped items while releasing " +
+                mercenary.MercenaryName + ": " + exception.Message);
+            return false;
+        }
+
+        foreach (EquipmentSlot slot in slots)
+        {
+            mercenary.UnequipEquipment(slot);
+        }
+
+        return true;
     }
 }

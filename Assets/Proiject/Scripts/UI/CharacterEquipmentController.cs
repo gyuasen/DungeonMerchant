@@ -197,7 +197,19 @@ public sealed class CharacterEquipmentController
             return;
         }
 
-        merchantInventory.AddItem(item, amount);
+        if (!merchantInventory.CanAddItem(item, amount))
+        {
+            setStatus("倉庫が満杯のため、消耗品を戻せませんでした。");
+            SelectedDetailMercenary.TryLoadConsumable(slotIndex, item, amount);
+            return;
+        }
+
+        if (!merchantInventory.TryAddItem(item, amount))
+        {
+            SelectedDetailMercenary.TryLoadConsumable(slotIndex, item, amount);
+            setStatus("倉庫が満杯のため、消耗品を戻せませんでした。");
+            return;
+        }
         setStatus($"{item.itemName} x{amount}を倉庫へ戻しました。");
         showCharacterDetails(SelectedDetailMercenary);
         refreshInventoryPage();
@@ -273,7 +285,19 @@ public sealed class CharacterEquipmentController
         {
             ItemDataSO previousItem =
                 SelectedDetailMercenary.UnequipEquipment(slot);
-            merchantInventory.AddItem(previousItem);
+            if (previousItem != null &&
+                merchantInventory.TryAddItem(previousItem))
+            {
+                setStatus(
+                    $"{SelectedDetailMercenary.MercenaryName}の" +
+                    $"{JapaneseDisplayText.GetEquipmentSlot(slot)}を外しました。");
+            }
+            else
+            {
+                SelectedDetailMercenary.RestoreEquippedEquipment(slot, previousItem);
+                setStatus("倉庫が満杯のため、装備を外せませんでした。");
+                return;
+            }
         }
         setStatus(
             $"{SelectedDetailMercenary.MercenaryName}の" +

@@ -363,6 +363,226 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         ApplyCharacterDetailPageVisibility();
     }
 
+    private void BuildEquipmentSlotSelectionOverlay()
+    {
+        equipmentSlotSelectionOverlay = CreateUIObject(
+            "Equipment Slot Selection Overlay",
+            overlayRoot);
+        equipmentSlotSelectionOverlay.anchorMin = Vector2.zero;
+        equipmentSlotSelectionOverlay.anchorMax = Vector2.one;
+        equipmentSlotSelectionOverlay.offsetMin = Vector2.zero;
+        equipmentSlotSelectionOverlay.offsetMax = Vector2.zero;
+        equipmentSlotSelectionOverlay.gameObject.AddComponent<Image>().color =
+            new Color(0f, 0f, 0f, 0.82f);
+        RectTransform window = CreateUIObject(
+            "Equipment Slot Selection Window",
+            equipmentSlotSelectionOverlay);
+        window.anchorMin = window.anchorMax = window.pivot =
+            new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(760f, 600f);
+        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
+        equipmentSlotSelectionTitle = CreateText(
+            window,
+            string.Empty,
+            24,
+            FontStyle.Bold,
+            TextAnchor.MiddleLeft,
+            new Vector2(28f, -66f),
+            new Vector2(-28f, -20f),
+            ParchmentTextColor);
+        equipmentSlotSelectionContent = CreateScrollableContent(
+            window,
+            "Equipment Slot Selection Viewport",
+            "Equipment Slot Selection Content",
+            new Vector2(28f, 86f),
+            new Vector2(-28f, -82f));
+        Button closeButton = CreateActionButton(
+            window,
+            "閉じる",
+            HideEquipmentSlotSelection);
+        RectTransform closeRect = closeButton.GetComponent<RectTransform>();
+        closeRect.anchorMin = closeRect.anchorMax = closeRect.pivot =
+            new Vector2(0.5f, 0f);
+        closeRect.sizeDelta = new Vector2(180f, 48f);
+        closeRect.anchoredPosition = Vector2.zero + new Vector2(0f, 26f);
+        equipmentSlotSelectionOverlay.gameObject.SetActive(false);
+    }
+
+    private void ShowEquipmentSlotSelection(EquipmentSlot slot)
+    {
+        selectedEquipmentSlot = slot;
+        selectedConsumableSlotIndex = -1;
+        equipmentSlotSelectionTitle.text =
+            JapaneseDisplayText.GetEquipmentSlot(slot) + "を選択";
+        RebuildEquipmentSlotSelection();
+        equipmentSlotSelectionOverlay.SetAsLastSibling();
+        equipmentSlotSelectionOverlay.gameObject.SetActive(true);
+    }
+
+    private void ShowConsumableSlotSelection(int slotIndex)
+    {
+        selectedConsumableSlotIndex = slotIndex;
+        equipmentSlotSelectionTitle.text =
+            "消耗品スロット " + (slotIndex + 1) + " を選択";
+        RebuildEquipmentSlotSelection();
+        equipmentSlotSelectionOverlay.SetAsLastSibling();
+        equipmentSlotSelectionOverlay.gameObject.SetActive(true);
+    }
+
+    private void RebuildEquipmentSlotSelection()
+    {
+        ClearChildren(equipmentSlotSelectionContent);
+        MercenaryInstance mercenary = characterEquipmentController.SelectedDetailMercenary;
+        if (mercenary == null)
+        {
+            return;
+        }
+        float top = 0f;
+        if (selectedConsumableSlotIndex >= 0)
+        {
+            CreateSlotSelectionActionRow("取り外す", "このスロットの消耗品を倉庫へ戻します。", top, () =>
+            {
+                characterEquipmentController.UnloadConsumable(selectedConsumableSlotIndex);
+                HideEquipmentSlotSelection();
+            });
+            top -= 76f;
+            foreach (InventoryItemStack stack in merchantInventory.Items)
+            {
+                if (stack?.Item == null || stack.Amount <= 0 ||
+                    stack.Item.itemType != ItemType.Consumable)
+                {
+                    continue;
+                }
+                CreateConsumableSlotSelectionRow(stack, top);
+                top -= 92f;
+            }
+        }
+        else
+        {
+            CreateSlotSelectionActionRow("外す", "現在の装備を倉庫へ戻します。", top, () =>
+            {
+                characterEquipmentController.UnequipSelectedEquipment(selectedEquipmentSlot);
+                HideEquipmentSlotSelection();
+            });
+            top -= 76f;
+            foreach (EquipmentInstance equipment in merchantInventory.EquipmentInstances)
+            {
+                if (equipment?.BaseItem == null ||
+                    equipment.BaseItem.equipmentSlot != selectedEquipmentSlot ||
+                    !equipment.BaseItem.CanEquip(mercenary.MercenaryClass))
+                {
+                    continue;
+                }
+                CreateEquipmentInstanceSlotSelectionRow(equipment, top);
+                top -= 116f;
+            }
+            foreach (InventoryItemStack stack in merchantInventory.Items)
+            {
+                if (stack?.Item == null || stack.Amount <= 0 ||
+                    stack.Item.equipmentSlot != selectedEquipmentSlot ||
+                    !stack.Item.CanEquip(mercenary.MercenaryClass))
+                {
+                    continue;
+                }
+                CreateEquipmentSlotSelectionRow(stack, top);
+                top -= 116f;
+            }
+        }
+        if (top == (selectedConsumableSlotIndex >= 0 ? -76f : -76f))
+        {
+            CreateText(equipmentSlotSelectionContent, "選択できる所持品はありません。", 16, FontStyle.Normal, TextAnchor.UpperLeft, new Vector2(12f, -118f), new Vector2(-12f, -70f), MutedTextColor);
+        }
+        equipmentSlotSelectionContent.sizeDelta =
+            new Vector2(0f, Mathf.Max(398f, -top));
+    }
+
+    private void CreateSlotSelectionActionRow(string label, string detail, float top, UnityEngine.Events.UnityAction action)
+    {
+        RectTransform row = CreateSlotSelectionRow(label, top, 66f);
+        CreateText(row, "<b>" + label + "</b>\n" + detail, 15, FontStyle.Normal, TextAnchor.MiddleLeft, new Vector2(14f, -56f), new Vector2(-120f, -8f), ParchmentTextColor);
+        Button button = CreateActionButton(row, label, action);
+        button.GetComponent<RectTransform>().sizeDelta = new Vector2(96f, 40f);
+        button.GetComponent<RectTransform>().anchoredPosition = new Vector2(-12f, 0f);
+    }
+
+    private void CreateConsumableSlotSelectionRow(InventoryItemStack stack, float top)
+    {
+        RectTransform row = CreateSlotSelectionRow(stack.Item.itemName, top, 82f);
+        CreateSlotSelectionIcon(row, stack.Item);
+        CreateText(row, "<b>" + JapaneseDisplayText.GetItemName(stack.Item) + "</b>  所持 " + stack.Amount + "\n" + ItemPresentationService.BuildDetailText(stack.Item), 14, FontStyle.Normal, TextAnchor.UpperLeft, new Vector2(76f, -72f), new Vector2(-112f, -8f), ParchmentTextColor);
+        Button button = CreateActionButton(row, "設定", () =>
+        {
+            characterEquipmentController.LoadConsumable(selectedConsumableSlotIndex, stack.Item);
+            HideEquipmentSlotSelection();
+        });
+        button.GetComponent<RectTransform>().sizeDelta = new Vector2(82f, 40f);
+        button.GetComponent<RectTransform>().anchoredPosition = new Vector2(-12f, 0f);
+    }
+
+    private void CreateEquipmentSlotSelectionRow(InventoryItemStack stack, float top)
+    {
+        MercenaryInstance mercenary = characterEquipmentController.SelectedDetailMercenary;
+        RectTransform row = CreateSlotSelectionRow(stack.Item.itemName, top, 106f);
+        CreateSlotSelectionIcon(row, stack.Item);
+        string comparison = CharacterEquipmentController.BuildEquipmentComparisonText(stack.Item, mercenary.GetEquippedItem(selectedEquipmentSlot), mercenary.GetEquippedInstance(selectedEquipmentSlot));
+        CreateText(row, "<b>" + JapaneseDisplayText.GetItemName(stack.Item) + "</b>  R" + stack.Item.equipmentRank + "  所持 " + stack.Amount + "\n" + comparison, 14, FontStyle.Normal, TextAnchor.UpperLeft, new Vector2(76f, -96f), new Vector2(-112f, -8f), ParchmentTextColor);
+        Button button = CreateActionButton(row, "装備", () =>
+        {
+            characterEquipmentController.EquipSelectedEquipment(stack.Item);
+            HideEquipmentSlotSelection();
+        });
+        button.GetComponent<RectTransform>().sizeDelta = new Vector2(82f, 40f);
+        button.GetComponent<RectTransform>().anchoredPosition = new Vector2(-12f, 0f);
+    }
+
+    private void CreateEquipmentInstanceSlotSelectionRow(EquipmentInstance equipment, float top)
+    {
+        MercenaryInstance mercenary = characterEquipmentController.SelectedDetailMercenary;
+        RectTransform row = CreateSlotSelectionRow(equipment.InstanceId, top, 106f);
+        CreateSlotSelectionIcon(row, equipment.BaseItem);
+        string comparison = CharacterEquipmentController.BuildEquipmentInstanceComparisonText(equipment, mercenary.GetEquippedInstance(selectedEquipmentSlot), mercenary.GetEquippedItem(selectedEquipmentSlot));
+        CreateText(row, "<b>[" + JapaneseDisplayText.GetEquipmentQuality(equipment.Quality) + "] " + CharacterEquipmentController.GetEquipmentDisplayName(equipment) + "</b>\n" + comparison, 14, FontStyle.Normal, TextAnchor.UpperLeft, new Vector2(76f, -96f), new Vector2(-112f, -8f), CharacterEquipmentController.GetEquipmentQualityColor(equipment.Quality));
+        Button button = CreateActionButton(row, "装備", () =>
+        {
+            characterEquipmentController.EquipSelectedEquipment(equipment);
+            HideEquipmentSlotSelection();
+        });
+        button.GetComponent<RectTransform>().sizeDelta = new Vector2(82f, 40f);
+        button.GetComponent<RectTransform>().anchoredPosition = new Vector2(-12f, 0f);
+    }
+
+    private RectTransform CreateSlotSelectionRow(string name, float top, float height)
+    {
+        RectTransform row = CreateUIObject(name, equipmentSlotSelectionContent);
+        row.anchorMin = new Vector2(0f, 1f);
+        row.anchorMax = new Vector2(1f, 1f);
+        row.pivot = new Vector2(0.5f, 1f);
+        row.offsetMin = new Vector2(0f, top - height);
+        row.offsetMax = new Vector2(0f, top);
+        Image image = row.gameObject.AddComponent<Image>();
+        image.color = RowColor;
+        return row;
+    }
+
+    private void CreateSlotSelectionIcon(RectTransform row, ItemDataSO item)
+    {
+        RectTransform iconRect = CreateUIObject("Item Icon", row);
+        iconRect.anchorMin = iconRect.anchorMax = new Vector2(0f, 0.5f);
+        iconRect.pivot = new Vector2(0f, 0.5f);
+        iconRect.sizeDelta = new Vector2(52f, 52f);
+        iconRect.anchoredPosition = new Vector2(14f, 0f);
+        Image image = iconRect.gameObject.AddComponent<Image>();
+        Sprite sprite = ItemPresentationService.ResolveSprite(item);
+        image.sprite = sprite;
+        image.color = sprite != null ? Color.white : new Color(0.2f, 0.2f, 0.2f, 1f);
+    }
+
+    private void HideEquipmentSlotSelection()
+    {
+        equipmentSlotSelectionOverlay?.gameObject.SetActive(false);
+        selectedConsumableSlotIndex = -1;
+    }
+
     private void ApplyCharacterDetailPageVisibility()
     {
         if (characterStatusPage != null)
@@ -494,6 +714,11 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
                 CreateEquipmentOptionRow(equipped, true, top);
                 top -= 116f;
             }
+            else
+            {
+                CreateEmptyEquipmentSlotRow(slot, top);
+                top -= 76f;
+            }
         }
 
         foreach (EquipmentInstance equipment in merchantInventory.EquipmentInstances)
@@ -588,12 +813,48 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             Color.white);
         Button button = CreateActionButton(
             row,
+            "選択",
+            () => ShowConsumableSlotSelection(slotIndex));
+        RectTransform selectRect = button.GetComponent<RectTransform>();
+        selectRect.sizeDelta = new Vector2(76f, 40f);
+        selectRect.anchoredPosition = new Vector2(-88f, 0f);
+        Button unloadButton = CreateActionButton(
+            row,
             "取り外し",
             () => characterEquipmentController.UnloadConsumable(slotIndex));
-        button.interactable = !slot.IsEmpty;
-        RectTransform buttonRect = button.GetComponent<RectTransform>();
-        buttonRect.sizeDelta = new Vector2(76f, 40f);
-        buttonRect.anchoredPosition = new Vector2(-8f, 0f);
+        unloadButton.interactable = !slot.IsEmpty;
+        RectTransform unloadRect = unloadButton.GetComponent<RectTransform>();
+        unloadRect.sizeDelta = new Vector2(76f, 40f);
+        unloadRect.anchoredPosition = new Vector2(-8f, 0f);
+    }
+
+    private void CreateEmptyEquipmentSlotRow(EquipmentSlot slot, float top)
+    {
+        RectTransform row = CreateUIObject(
+            "Empty " + slot + " Slot",
+            characterEquipmentList);
+        row.anchorMin = new Vector2(0f, 1f);
+        row.anchorMax = new Vector2(1f, 1f);
+        row.pivot = new Vector2(0.5f, 1f);
+        row.offsetMin = new Vector2(0f, top - 66f);
+        row.offsetMax = new Vector2(0f, top);
+        row.gameObject.AddComponent<Image>().color = RowColor;
+        CreateText(
+            row,
+            "<b>" + JapaneseDisplayText.GetEquipmentSlot(slot) + "</b>  未装備",
+            15,
+            FontStyle.Normal,
+            TextAnchor.MiddleLeft,
+            new Vector2(12f, -56f),
+            new Vector2(-96f, -10f),
+            Color.white);
+        Button button = CreateActionButton(
+            row,
+            "選択",
+            () => ShowEquipmentSlotSelection(slot));
+        RectTransform rect = button.GetComponent<RectTransform>();
+        rect.sizeDelta = new Vector2(76f, 40f);
+        rect.anchoredPosition = new Vector2(-8f, 0f);
     }
 
     private void CreateConsumableLoadRow(
@@ -684,6 +945,16 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         RectTransform buttonRect = button.GetComponent<RectTransform>();
         buttonRect.sizeDelta = new Vector2(76f, 40f);
         buttonRect.anchoredPosition = new Vector2(-8f, 0f);
+        if (isEquipped)
+        {
+            Button selectButton = CreateActionButton(
+                row,
+                "選択",
+                () => ShowEquipmentSlotSelection(item.equipmentSlot));
+            RectTransform selectRect = selectButton.GetComponent<RectTransform>();
+            selectRect.sizeDelta = new Vector2(76f, 40f);
+            selectRect.anchoredPosition = new Vector2(-88f, 0f);
+        }
     }
 
     private void CreateEquipmentInstanceOptionRow(
@@ -746,6 +1017,16 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         RectTransform detailRect = detailButton.GetComponent<RectTransform>();
         detailRect.sizeDelta = new Vector2(64f, 40f);
         detailRect.anchoredPosition = new Vector2(-92f, 0f);
+        if (isEquipped)
+        {
+            Button selectButton = CreateActionButton(
+                row,
+                "選択",
+                () => ShowEquipmentSlotSelection(item.equipmentSlot));
+            RectTransform selectRect = selectButton.GetComponent<RectTransform>();
+            selectRect.sizeDelta = new Vector2(64f, 40f);
+            selectRect.anchoredPosition = new Vector2(-160f, 0f);
+        }
     }
 
     private void SaveEquipmentChanges()
