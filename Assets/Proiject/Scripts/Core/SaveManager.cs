@@ -15,6 +15,7 @@ public class SaveManager : MonoBehaviour
     private MercenaryHireManager hireManager;
     private MercenaryPartyManager partyManager;
     private HealingManager healingManager;
+    private TrainingGroundManager trainingGroundManager;
     private BattleManager battleManager;
     private DungeonRunManager dungeonRunManager;
     private ProgressionManager progressionManager;
@@ -439,6 +440,10 @@ public class SaveManager : MonoBehaviour
         {
             data.dungeonExpeditions = dungeonExpeditionManager.CreateSaveData();
         }
+        if (trainingGroundManager != null)
+        {
+            data.trainingAssignments = trainingGroundManager.CreateSaveData();
+        }
         if (remoteSaleManager != null)
         {
             data.remoteSaleOrders = remoteSaleManager.CreateSaveData();
@@ -567,6 +572,7 @@ public class SaveManager : MonoBehaviour
             }
         }
         hireManager?.RestoreHiredMercenaries(restoredMercenaries);
+        trainingGroundManager?.Restore(data.trainingAssignments);
         if (merchantInventory != null)
         {
             foreach (MercenaryInstance mercenary in restoredMercenaries)
@@ -823,6 +829,7 @@ public class SaveManager : MonoBehaviour
         if (remoteSaleManager != null) remoteSaleManager.RemoteSaleChanged += HandleChanged;
         if (partyManager != null) partyManager.PartyChanged += HandleChanged;
         if (healingManager != null) healingManager.HealingChanged += HandleChanged;
+        if (trainingGroundManager != null) trainingGroundManager.TrainingChanged += HandleChanged;
         if (battleManager != null) battleManager.BattleCompleted += HandleBattleCompleted;
         if (dungeonRunManager != null)
         {
@@ -854,6 +861,7 @@ public class SaveManager : MonoBehaviour
         if (remoteSaleManager != null) remoteSaleManager.RemoteSaleChanged -= HandleChanged;
         if (partyManager != null) partyManager.PartyChanged -= HandleChanged;
         if (healingManager != null) healingManager.HealingChanged -= HandleChanged;
+        if (trainingGroundManager != null) trainingGroundManager.TrainingChanged -= HandleChanged;
         if (battleManager != null) battleManager.BattleCompleted -= HandleBattleCompleted;
         if (dungeonRunManager != null)
         {
@@ -973,6 +981,9 @@ public class SaveManager : MonoBehaviour
             GetComponent<MercenaryPartyManager>() ?? FindObjectOfType<MercenaryPartyManager>();
         healingManager =
             GetComponent<HealingManager>() ?? FindObjectOfType<HealingManager>();
+        trainingGroundManager =
+            GetComponent<TrainingGroundManager>() ??
+            FindObjectOfType<TrainingGroundManager>();
         battleManager = GetComponent<BattleManager>() ?? FindObjectOfType<BattleManager>();
         dungeonRunManager =
             GetComponent<DungeonRunManager>() ?? FindObjectOfType<DungeonRunManager>();

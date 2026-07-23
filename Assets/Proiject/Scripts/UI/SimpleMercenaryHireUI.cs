@@ -29,6 +29,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     [SerializeField] private TransportManager transportManager;
     [SerializeField] private DungeonExpeditionManager dungeonExpeditionManager;
     [SerializeField] private RemoteSaleManager remoteSaleManager;
+    [SerializeField] private TrainingGroundManager trainingGroundManager;
 
     [Header("UI Prefab")]
     [SerializeField] private SimpleMercenaryHireUIView uiViewPrefab;
@@ -113,8 +114,10 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform blacksmithPage;
     private RectTransform inventoryPage;
     private RectTransform jobChangePage;
+    private RectTransform trainingGroundPage;
     private RectTransform jobChangeList;
     private Button jobFacilityButton;
+    private Button trainingGroundFacilityButton;
     private RectTransform companyScrollContent;
     private RectTransform companyList;
     private RectTransform partyList;
@@ -458,6 +461,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         dungeonRunManager.DungeonStateChanged += HandleDungeonStateChanged;
         dungeonRunManager.DungeonCompleted += HandleDungeonCompleted;
         healingManager.HealingChanged += HandleHealingChanged;
+        trainingGroundManager.TrainingChanged += HandleTrainingGroundChanged;
+        trainingGroundManager.TrainingCompleted += HandleTrainingCompleted;
         merchantInventory.InventoryChanged += HandleInventoryChanged;
         dayManager.DayChanged += HandleDayChanged;
         marketPriceManager.PricesChanged += HandlePricesChanged;
@@ -607,6 +612,17 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         if (healingManager == null)
         {
             healingManager = gameObject.AddComponent<HealingManager>();
+        }
+
+        if (trainingGroundManager == null)
+        {
+            trainingGroundManager = GetComponent<TrainingGroundManager>() ??
+                                  FindObjectOfType<TrainingGroundManager>();
+        }
+
+        if (trainingGroundManager == null)
+        {
+            trainingGroundManager = gameObject.AddComponent<TrainingGroundManager>();
         }
 
         if (merchantData == null)
@@ -895,6 +911,12 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             healingManager.HealingChanged -= HandleHealingChanged;
         }
 
+        if (trainingGroundManager != null)
+        {
+            trainingGroundManager.TrainingChanged -= HandleTrainingGroundChanged;
+            trainingGroundManager.TrainingCompleted -= HandleTrainingCompleted;
+        }
+
         if (merchantInventory != null)
         {
             merchantInventory.InventoryChanged -= HandleInventoryChanged;
@@ -1065,6 +1087,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         BuildBlacksmithPage();
         BuildInventoryPage();
         BuildJobChangePage();
+        BuildTrainingGroundPage();
 
         if (!view.HasChromeLayout)
         {

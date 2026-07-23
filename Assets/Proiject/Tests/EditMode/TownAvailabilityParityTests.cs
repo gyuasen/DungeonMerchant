@@ -4,6 +4,22 @@ using UnityEngine;
 
 public sealed class TownAvailabilityParityTests
 {
+    [TestCase(0, true)]
+    [TestCase(1, true)]
+    [TestCase(2, false)]
+    [TestCase(3, true)]
+    [TestCase(4, true)]
+    [TestCase(5, true)]
+    [TestCase(6, true)]
+    [TestCase(WorldMapService.HiddenIslandTownIndex, false)]
+    public void TrainingGroundAvailability_ExcludesSailAndHiddenIsland(
+        int townIndex,
+        bool expected)
+    {
+        Assert.That(TownServicePolicy.IsTrainingGroundAvailable(townIndex),
+            Is.EqualTo(expected));
+    }
+
     [TestCase(2, 1)]
     [TestCase(1, 2)]
     [TestCase(0, 3)]

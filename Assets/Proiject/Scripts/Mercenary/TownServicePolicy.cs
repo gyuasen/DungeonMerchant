@@ -14,4 +14,11 @@ public static class TownServicePolicy
     {
         return townIndex == WorldMapService.HiddenIslandTownIndex;
     }
+
+    public static bool IsTrainingGroundAvailable(int townIndex)
+    {
+        return townIndex >= 0 &&
+               townIndex <= 6 &&
+               townIndex != 2;
+    }
 }

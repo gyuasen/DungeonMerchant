@@ -166,6 +166,8 @@ public static class SimpleMercenaryHireUIPrefabBuilder
             }
             pages[(int)SimpleMercenaryHirePageSlot.JobChange]
                 .gameObject.AddComponent<JobChangePageUI>();
+            pages[(int)SimpleMercenaryHirePageSlot.TrainingGround]
+                .gameObject.AddComponent<TrainingGroundPageUI>();
 
             SimpleMercenaryHireUIView.HireCompanyReferences hireCompany =
                 CreateHireCompanyLayout(pages);
@@ -586,6 +588,8 @@ public static class SimpleMercenaryHireUIPrefabBuilder
                 return "Inventory Page";
             case SimpleMercenaryHirePageSlot.JobChange:
                 return "Job Change Page";
+            case SimpleMercenaryHirePageSlot.TrainingGround:
+                return "Training Ground Page";
             default:
                 return slot + " Page";
         }

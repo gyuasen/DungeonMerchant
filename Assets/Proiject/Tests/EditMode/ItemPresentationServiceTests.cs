@@ -1,3 +1,4 @@
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -68,15 +69,17 @@ public sealed class ItemPresentationServiceTests
     public void BlacksmithCanCraft_MatchesRecipeMaterialSufficiency()
     {
         root = new GameObject("Blacksmith Detail Availability Test");
-        root.AddComponent<MerchantData>();
+        MerchantData merchantData = root.AddComponent<MerchantData>();
         MerchantInventory inventory = root.AddComponent<MerchantInventory>();
         BlacksmithManager blacksmith = root.AddComponent<BlacksmithManager>();
-        EquipmentRecipeSO recipe = Resources.Load<EquipmentRecipeSO>(
-            "GameData/Blacksmith/Expansion/item_expansion_rank4_0Recipe");
         blacksmith.SetTownIndex(0);
+        EquipmentRecipeSO recipe = blacksmith.Recipes.SingleOrDefault(
+            candidate => candidate != null &&
+                candidate.name == "item_expansion_rank4_0Recipe");
 
         Assert.That(recipe, Is.Not.Null);
         Assert.That(blacksmith.CanCraft(recipe), Is.False);
+        merchantData.SetGold(recipe.goldCost);
         foreach (CraftingMaterialRequirement requirement in recipe.materials)
         {
             Assert.That(inventory.TryAddItem(requirement.item, requirement.amount), Is.True);

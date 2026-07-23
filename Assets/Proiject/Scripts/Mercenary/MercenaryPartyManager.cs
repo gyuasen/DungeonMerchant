@@ -7,6 +7,7 @@ public class MercenaryPartyManager : MonoBehaviour
     [SerializeField] private MercenaryHireManager hireManager;
     [SerializeField] private TransportManager transportManager;
     [SerializeField] private DungeonExpeditionManager dungeonExpeditionManager;
+    [SerializeField] private TrainingGroundManager trainingGroundManager;
     [SerializeField] private TownProgressState townProgressState;
     [SerializeField, Min(1)] private int maxPartySize = 3;
     [SerializeField] private List<MercenaryInstance> members = new List<MercenaryInstance>();
@@ -51,6 +52,8 @@ public class MercenaryPartyManager : MonoBehaviour
              transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId)) ||
             (dungeonExpeditionManager != null &&
              dungeonExpeditionManager.IsMercenaryOnExpeditionDuty(mercenary.InstanceId)) ||
+            (trainingGroundManager != null &&
+             trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId)) ||
             Contains(mercenary) ||
             IsFull)
         {
@@ -82,6 +85,9 @@ public class MercenaryPartyManager : MonoBehaviour
             {
                 if (mercenary != null &&
                     mercenary.IsContractActive &&
+                    (trainingGroundManager == null ||
+                     !trainingGroundManager.IsMercenaryTraining(
+                         mercenary.InstanceId)) &&
                     members.Count < maxPartySize &&
                     IsHired(mercenary))
                 {
@@ -111,6 +117,11 @@ public class MercenaryPartyManager : MonoBehaviour
         {
             dungeonExpeditionManager = GetComponent<DungeonExpeditionManager>() ??
                                        FindObjectOfType<DungeonExpeditionManager>();
+        }
+        if (trainingGroundManager == null)
+        {
+            trainingGroundManager = GetComponent<TrainingGroundManager>() ??
+                                  FindObjectOfType<TrainingGroundManager>();
         }
 
         foreach (MercenaryInstance hiredMercenary in hireManager.HiredMercenaries)

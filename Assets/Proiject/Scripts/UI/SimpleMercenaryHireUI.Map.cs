@@ -385,6 +385,13 @@ public partial class SimpleMercenaryHireUI
             new Vector2(110f, 48f),
             () => OpenFacilityWithGreeting(FacilityGreetingController.TempleKey, ShowJobChangePage));
         standardTownFacilityButtons.Add(jobFacilityButton);
+        trainingGroundFacilityButton = CreateMapButton(
+            townMapPage, "修練場", new Vector2(-105f, -105f),
+            new Vector2(110f, 48f),
+            () => OpenFacilityWithGreeting(
+                FacilityGreetingController.TrainingGroundKey,
+                ShowTrainingGroundPage));
+        standardTownFacilityButtons.Add(trainingGroundFacilityButton);
         Button continentButton = CreateMapButton(
             townMapPage, "← 地域マップへ", new Vector2(-300f, -172f),
             new Vector2(142f, 52f), ShowWorldMap);
@@ -556,6 +563,12 @@ public partial class SimpleMercenaryHireUI
         {
             hireFacilityButton.gameObject.SetActive(
                 TownServicePolicy.IsHiringAvailable(townProgressState.CurrentTownIndex));
+        }
+        if (trainingGroundFacilityButton != null)
+        {
+            trainingGroundFacilityButton.gameObject.SetActive(
+                TownServicePolicy.IsTrainingGroundAvailable(
+                    townProgressState.CurrentTownIndex));
         }
     }
 

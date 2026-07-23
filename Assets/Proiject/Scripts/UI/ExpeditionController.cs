@@ -48,9 +48,11 @@ public sealed class ExpeditionController
         {
             yield break;
         }
+        TrainingGroundManager trainingGroundManager =
+            UnityEngine.Object.FindObjectOfType<TrainingGroundManager>();
         foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
         {
-            if (mercenary != null && mercenary.IsContractActive && (partyManager == null || !partyManager.Contains(mercenary)) && (transportManager == null || !transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId)) && (expeditionManager == null || !expeditionManager.IsMercenaryOnExpeditionDuty(mercenary.InstanceId)))
+            if (mercenary != null && mercenary.IsContractActive && (trainingGroundManager == null || !trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId)) && (partyManager == null || !partyManager.Contains(mercenary)) && (transportManager == null || !transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId)) && (expeditionManager == null || !expeditionManager.IsMercenaryOnExpeditionDuty(mercenary.InstanceId)))
             {
                 yield return mercenary;
             }

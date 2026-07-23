@@ -69,9 +69,14 @@ public sealed class TransportController
         {
             yield break;
         }
+        TrainingGroundManager trainingGroundManager =
+            UnityEngine.Object.FindObjectOfType<TrainingGroundManager>();
         foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
         {
             if (mercenary != null && mercenary.IsContractActive &&
+                (trainingGroundManager == null ||
+                 !trainingGroundManager.IsMercenaryTraining(
+                     mercenary.InstanceId)) &&
                 (townProgressState == null ||
                  mercenary.CurrentTownIndex ==
                  townProgressState.CurrentTownIndex) &&

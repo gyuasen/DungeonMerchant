@@ -59,6 +59,7 @@ public class DungeonExpeditionManager : MonoBehaviour
     [SerializeField] private TransportManager transportManager;
     [SerializeField] private TownProgressState townProgressState;
     [SerializeField] private DayManager dayManager;
+    [SerializeField] private TrainingGroundManager trainingGroundManager;
     private Func<float> randomValue = () => UnityEngine.Random.value;
     private bool isDayChangedSubscribed;
 
@@ -174,6 +175,7 @@ public class DungeonExpeditionManager : MonoBehaviour
 
     public void Restore(List<SavedDungeonExpedition> saved, IReadOnlyDictionary<string, MercenaryInstance> mercenaries)
     {
+        ResolveReferences();
         activeExpeditions.Clear();
         if (saved != null && mercenaries != null)
         {
@@ -188,8 +190,19 @@ public class DungeonExpeditionManager : MonoBehaviour
                 bool valid = true;
                 foreach (string id in value.memberInstanceIds)
                 {
-                    if (string.IsNullOrWhiteSpace(id) || !mercenaries.ContainsKey(id) || expedition.memberInstanceIds.Contains(id))
+                    if (string.IsNullOrWhiteSpace(id) ||
+                        !mercenaries.ContainsKey(id) ||
+                        expedition.memberInstanceIds.Contains(id) ||
+                        (trainingGroundManager != null &&
+                         trainingGroundManager.IsMercenaryTraining(id)))
                     {
+                        if (trainingGroundManager != null &&
+                            trainingGroundManager.IsMercenaryTraining(id))
+                        {
+                            Debug.LogWarning(
+                                "Discarded saved expedition assigned to training.");
+                        }
+
                         valid = false;
                         break;
                     }
@@ -226,7 +239,7 @@ public class DungeonExpeditionManager : MonoBehaviour
         HashSet<string> ids = new HashSet<string>();
         foreach (MercenaryInstance member in members)
         {
-            if (member == null || !member.IsContractActive || !ids.Add(member.InstanceId) || !IsHired(member) || (partyManager != null && partyManager.Contains(member)) || (transportManager != null && transportManager.IsMercenaryOnTransportDuty(member.InstanceId)) || IsMercenaryOnExpeditionDuty(member.InstanceId))
+            if (member == null || !member.IsContractActive || !ids.Add(member.InstanceId) || !IsHired(member) || (partyManager != null && partyManager.Contains(member)) || (transportManager != null && transportManager.IsMercenaryOnTransportDuty(member.InstanceId)) || (trainingGroundManager != null && trainingGroundManager.IsMercenaryTraining(member.InstanceId)) || IsMercenaryOnExpeditionDuty(member.InstanceId))
             {
                 return ExpeditionFormationResult.InvalidMembers;
             }
@@ -435,6 +448,7 @@ public class DungeonExpeditionManager : MonoBehaviour
         if (transportManager == null) transportManager = GetComponent<TransportManager>() ?? FindObjectOfType<TransportManager>();
         if (townProgressState == null) townProgressState = GetComponent<TownProgressState>() ?? FindObjectOfType<TownProgressState>();
         if (dayManager == null) dayManager = GetComponent<DayManager>() ?? FindObjectOfType<DayManager>();
+        if (trainingGroundManager == null) trainingGroundManager = GetComponent<TrainingGroundManager>() ?? FindObjectOfType<TrainingGroundManager>();
         EnsureDayChangedSubscription();
     }
 
