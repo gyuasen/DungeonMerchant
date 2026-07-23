@@ -23,8 +23,10 @@ public static class SaveDataMigrator
         MigrateTownInventories(data, sourceVersion);
         MigrateMercenaryConsumables(data, sourceVersion);
         MigrateMercenaryLocations(data, sourceVersion);
+        NormalizeEquipmentReferences(data);
         PopulatePersistentIds(data);
         MigrateStoryProgress(data, sourceVersion);
+        MigrateOnboardingGuide(data, sourceVersion);
         data.version = GameSaveData.CurrentVersion;
         return data;
     }
@@ -105,6 +107,22 @@ public static class SaveDataMigrator
             if (data.unlockedTownIndices.Contains(WorldMapService.HiddenIslandTownIndex)) AddStoryMilestone(data, StoryMilestone.HiddenIslandReached);
         }
         if (data.remainingDebt <= 0) AddStoryMilestone(data, StoryMilestone.DebtCleared);
+    }
+
+    private static void MigrateOnboardingGuide(
+        GameSaveData data,
+        int sourceVersion)
+    {
+        if (sourceVersion < 30)
+        {
+            data.onboardingEnabled = false;
+            data.onboardingStep = OnboardingGuideStep.Completed;
+        }
+
+        if (sourceVersion < 31 || data.onboardingShownCards == null)
+        {
+            data.onboardingShownCards = new List<OnboardingGuideCard>();
+        }
     }
 
     private static void MigrateTownInventories(
@@ -223,6 +241,10 @@ public static class SaveDataMigrator
         if (data.encounteredEnemyIds == null) data.encounteredEnemyIds = new List<string>();
         if (data.completedStoryMilestones == null) data.completedStoryMilestones = new List<StoryMilestone>();
         if (data.progression == null) data.progression = new ProgressionSaveData();
+        if (data.onboardingShownCards == null)
+        {
+            data.onboardingShownCards = new List<OnboardingGuideCard>();
+        }
     }
 
     private static void PopulatePersistentIds(GameSaveData data)
@@ -324,6 +346,43 @@ public static class SaveDataMigrator
                 slot.count = Mathf.Clamp(slot.count, 0, MercenaryConsumableSlot.MaxCount);
             }
         }
+    }
+
+    private static void NormalizeEquipmentReferences(GameSaveData data)
+    {
+        foreach (SavedMercenary mercenary in data.hiredMercenaries)
+        {
+            if (mercenary == null)
+            {
+                continue;
+            }
+
+            mercenary.equippedWeaponInstance = NormalizeEquipmentReference(
+                mercenary.equippedWeaponInstance);
+            mercenary.equippedArmorInstance = NormalizeEquipmentReference(
+                mercenary.equippedArmorInstance);
+            mercenary.equippedAccessoryInstance = NormalizeEquipmentReference(
+                mercenary.equippedAccessoryInstance);
+        }
+    }
+
+    private static SavedEquipmentInstance NormalizeEquipmentReference(
+        SavedEquipmentInstance equipment)
+    {
+        if (!IsEmptyEquipmentReference(equipment))
+        {
+            return equipment;
+        }
+
+        return null;
+    }
+
+    private static bool IsEmptyEquipmentReference(
+        SavedEquipmentInstance equipment)
+    {
+        return equipment != null &&
+               string.IsNullOrWhiteSpace(equipment.baseItemPersistentId) &&
+               string.IsNullOrWhiteSpace(equipment.baseItemAssetName);
     }
 
     private static void PopulateEquipmentId(SavedEquipmentInstance equipment)

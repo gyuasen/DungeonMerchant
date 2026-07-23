@@ -26,6 +26,26 @@ public readonly struct StoryMilestoneInfo
     public string Body { get; }
 }
 
+public readonly struct StoryPresentation
+{
+    public StoryPresentation(
+        string title,
+        string body,
+        StoryMilestone? milestone,
+        Action onClosed)
+    {
+        Title = title;
+        Body = body;
+        Milestone = milestone;
+        OnClosed = onClosed;
+    }
+
+    public string Title { get; }
+    public string Body { get; }
+    public StoryMilestone? Milestone { get; }
+    public Action OnClosed { get; }
+}
+
 public sealed class StoryProgressManager : MonoBehaviour
 {
     [SerializeField] private MercenaryHireManager hireManager;
@@ -35,11 +55,14 @@ public sealed class StoryProgressManager : MonoBehaviour
 
     private readonly HashSet<StoryMilestone> completedMilestones =
         new HashSet<StoryMilestone>();
-    private readonly Queue<StoryMilestone> pendingPresentations =
+    private readonly Queue<StoryPresentation> pendingPresentations =
+        new Queue<StoryPresentation>();
+    private readonly Queue<StoryMilestone> pendingMilestonesForLegacy =
         new Queue<StoryMilestone>();
     private bool isRestoring;
 
     public event Action<StoryMilestone> MilestoneCompleted;
+    public event Action PresentationQueued;
 
     public IReadOnlyCollection<StoryMilestone> CompletedMilestones =>
         completedMilestones;
@@ -74,6 +97,7 @@ public sealed class StoryProgressManager : MonoBehaviour
     {
         completedMilestones.Clear();
         pendingPresentations.Clear();
+        pendingMilestonesForLegacy.Clear();
         if (restoredMilestones != null)
         {
             foreach (StoryMilestone milestone in restoredMilestones)
@@ -104,21 +128,81 @@ public sealed class StoryProgressManager : MonoBehaviour
             return false;
         }
 
-        pendingPresentations.Enqueue(milestone);
+        StoryMilestoneInfo info = GetMilestoneInfo(milestone);
+        if (milestone == StoryMilestone.FirstMercenary)
+        {
+            info = new StoryMilestoneInfo(
+                info.Title,
+                info.Body + "\n\n最初の傭兵が商会に加わった。次は上部メニューの「パーティー編成」で、探索隊に加えよう。");
+        }
+        pendingPresentations.Enqueue(new StoryPresentation(
+            info.Title,
+            info.Body,
+            milestone,
+            null));
+        pendingMilestonesForLegacy.Enqueue(milestone);
         MilestoneCompleted?.Invoke(milestone);
+        PresentationQueued?.Invoke();
+        return true;
+    }
+
+    public void EnqueueOnboardingPresentation(
+        OnboardingGuideCard card,
+        Action onClosed)
+    {
+        GetOnboardingCardText(card, out string title, out string body);
+        pendingPresentations.Enqueue(new StoryPresentation(
+            title,
+            body,
+            null,
+            onClosed));
+        PresentationQueued?.Invoke();
+    }
+
+    public bool TryDequeuePresentation(out StoryPresentation presentation)
+    {
+        if (pendingPresentations.Count == 0)
+        {
+            presentation = default;
+            return false;
+        }
+
+        presentation = pendingPresentations.Dequeue();
         return true;
     }
 
     public bool TryDequeuePendingPresentation(out StoryMilestone milestone)
     {
-        if (pendingPresentations.Count == 0)
+        if (pendingMilestonesForLegacy.Count == 0)
         {
             milestone = default;
             return false;
         }
 
-        milestone = pendingPresentations.Dequeue();
+        milestone = pendingMilestonesForLegacy.Dequeue();
         return true;
+    }
+
+    private static void GetOnboardingCardText(
+        OnboardingGuideCard card,
+        out string title,
+        out string body)
+    {
+        switch (card)
+        {
+            case OnboardingGuideCard.Warehouse:
+                title = "戦利品を利益に変える";
+                body = "探索で得た素材や装備は倉庫に保管されます。アイテムを選ぶと、その日の価格で売却できます。\n\n売値は日によって変動し、町ごとの需要によっても異なります。急いで売るか、より高い日や町を待つかを選びましょう。";
+                return;
+            case OnboardingGuideCard.Market:
+                title = "市場で仕入れる";
+                body = "市場では、その町で流通する品を仕入れられます。価格と品揃えは日や町によって変わります。安く仕入れ、需要の高い町へ運べば交易利益を得られます。";
+                return;
+            default:
+                title = "素材を装備に変える";
+                body = "鍛冶屋では、素材と代金を使って装備を作れます。探索が難しくなったら、傭兵の装備を整えてから再挑戦しましょう。\n\nこれで最初の案内は完了です。探索と交易で利益を積み上げ、月10,000Gの返済に備えてください。";
+                return;
+        }
     }
 
     public StoryMilestoneInfo GetMilestoneInfo(StoryMilestone milestone)

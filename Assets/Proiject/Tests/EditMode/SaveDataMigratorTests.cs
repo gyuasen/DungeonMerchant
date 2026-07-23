@@ -89,7 +89,7 @@ public sealed class SaveDataMigratorTests
 
         SaveDataMigrator.Migrate(data);
 
-        Assert.That(data.version, Is.EqualTo(29));
+        Assert.That(data.version, Is.EqualTo(GameSaveData.CurrentVersion));
         Assert.That(data.trainingAssignments, Is.Not.Null);
         Assert.That(data.trainingAssignments, Is.Empty);
     }

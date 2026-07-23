@@ -54,7 +54,7 @@ public sealed class FacilityGreetingControllerTests
     }
 
     [Test]
-    public void VisitSkipState_AppliesOnlyToSameDayTownAndFacility()
+    public void VisitSkipState_ShowsEachFacilityOncePerSession()
     {
         FacilityGreetingController controller = new FacilityGreetingController();
 
@@ -62,8 +62,8 @@ public sealed class FacilityGreetingControllerTests
         controller.MarkEntered(2, 0, FacilityGreetingController.TavernKey);
 
         Assert.That(controller.ShouldShowGreeting(2, 0, FacilityGreetingController.TavernKey), Is.False);
-        Assert.That(controller.ShouldShowGreeting(3, 0, FacilityGreetingController.TavernKey), Is.True);
-        Assert.That(controller.ShouldShowGreeting(2, 1, FacilityGreetingController.TavernKey), Is.True);
+        Assert.That(controller.ShouldShowGreeting(3, 0, FacilityGreetingController.TavernKey), Is.False);
+        Assert.That(controller.ShouldShowGreeting(2, 1, FacilityGreetingController.TavernKey), Is.False);
         Assert.That(controller.ShouldShowGreeting(2, 0, FacilityGreetingController.MarketKey), Is.True);
     }
 }

@@ -3,7 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// Owns the tutorial content (step titles/bodies), the step navigation
-/// state and the PlayerPrefs completion flag. Extracted from
+/// state. Extracted from
 /// SimpleMercenaryHireUI (2nd improvement plan A-1). Overlay
 /// construction and Show/Hide routing stay in
 /// SimpleMercenaryHireUI.Tutorial.cs; only the state, content and
@@ -14,13 +14,8 @@ public sealed class TutorialController
     public const string FirstJourneyRoute =
         "町マップ  →  酒場  →  メニューのパーティー編成  →  近隣ダンジョン";
 
-    private const string TutorialCompletedPlayerPrefsKey =
-        "DungeonMerchant.Tutorial.Completed";
-
     public static void ResetCompletion()
     {
-        PlayerPrefs.DeleteKey(TutorialCompletedPlayerPrefsKey);
-        PlayerPrefs.Save();
     }
 
     private readonly string[] tutorialTitles =
@@ -95,10 +90,6 @@ public sealed class TutorialController
 
     public void ShowTutorialIfNeeded()
     {
-        if (PlayerPrefs.GetInt(TutorialCompletedPlayerPrefsKey, 0) == 0)
-        {
-            ShowTutorial();
-        }
     }
 
     public void ShowTutorial()
@@ -118,8 +109,6 @@ public sealed class TutorialController
     {
         if (tutorialStepIndex >= tutorialTitles.Length - 1)
         {
-            PlayerPrefs.SetInt(TutorialCompletedPlayerPrefsKey, 1);
-            PlayerPrefs.Save();
             hideOverlay();
             setStatus("チュートリアルを完了しました。メニューからいつでも見返せます。");
             return;

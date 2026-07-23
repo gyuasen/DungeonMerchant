@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public class GameSaveData
 {
-    public const int CurrentVersion = 29;
+    public const int CurrentVersion = 31;
 
     public int version = CurrentVersion;
     public int gold = 500;
@@ -47,6 +47,10 @@ public class GameSaveData
     public List<StoryMilestone> completedStoryMilestones =
         new List<StoryMilestone>();
     public ProgressionSaveData progression = new ProgressionSaveData();
+    public bool onboardingEnabled;
+    public OnboardingGuideStep onboardingStep = OnboardingGuideStep.Completed;
+    public List<OnboardingGuideCard> onboardingShownCards =
+        new List<OnboardingGuideCard>();
 }
 
 [Serializable]

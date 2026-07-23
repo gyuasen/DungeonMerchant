@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 
 /// <summary>
-/// Owns facility greeting definitions, deterministic daily dialogue selection,
-/// and the in-memory per-day greeting skip state.
+/// Owns facility greeting definitions, deterministic dialogue selection, and the
+/// in-memory skip state. Each facility greets the player once per session.
 /// </summary>
 public sealed class FacilityGreetingController
 {
@@ -115,9 +115,13 @@ public sealed class FacilityGreetingController
         }
     }
 
+    /// <summary>
+    /// Greetings are shown once per facility for the whole session, so the key
+    /// intentionally ignores the day and the town.
+    /// </summary>
     private static string BuildVisitKey(int day, int townIndex, string facilityKey)
     {
-        return day + ":" + townIndex + ":" + facilityKey;
+        return facilityKey;
     }
 
     private sealed class FacilityGreetingDefinition
