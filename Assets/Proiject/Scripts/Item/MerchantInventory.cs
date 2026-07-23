@@ -533,6 +533,18 @@ public class MerchantInventory : MonoBehaviour
         return true;
     }
 
+    public bool CanDepositItemsTo(int townIndex, int amount)
+    {
+        if (amount < 0)
+        {
+            return false;
+        }
+
+        ResolveReferences();
+        return progressionManager == null ||
+               progressionManager.CanStoreIn(townIndex, amount);
+    }
+
     public bool TryRemoveItemFrom(int townIndex, ItemDataSO item, int amount)
     {
         if (item == null || amount <= 0)

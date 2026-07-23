@@ -11,7 +11,6 @@ public sealed class TrainingGroundManagerTests
     private MercenaryPartyManager partyManager;
     private HealingManager healingManager;
     private MerchantInventory inventory;
-    private TransportManager transportManager;
     private TrainingGroundManager trainingGroundManager;
     private TownProgressState townProgressState;
     private readonly List<MercenaryDataSO> createdData =
@@ -29,8 +28,6 @@ public sealed class TrainingGroundManagerTests
         townProgressState.Initialize(1, new[] { 2, 1 });
         hireManager = root.AddComponent<MercenaryHireManager>();
         partyManager = root.AddComponent<MercenaryPartyManager>();
-        transportManager = root.AddComponent<TransportManager>();
-        root.AddComponent<DungeonExpeditionManager>();
         healingManager = root.AddComponent<HealingManager>();
         trainingGroundManager = root.AddComponent<TrainingGroundManager>();
         merchantData.SetGold(100000);
@@ -267,9 +264,6 @@ public sealed class TrainingGroundManagerTests
         MercenaryInstance benchmark = CreateMercenary("Benchmark", 10);
         trainee.TakeDamage(10);
         Hire(trainee, benchmark);
-        ItemDataSO cargo = ScriptableObject.CreateInstance<ItemDataSO>();
-        cargo.itemName = "Cargo";
-        inventory.AddItem(cargo, 1);
         int damagedHP = trainee.CurrentHP;
         int baseMaxHPBeforeTraining = trainee.BaseMaxHP;
 
@@ -280,11 +274,6 @@ public sealed class TrainingGroundManagerTests
         Assert.That(healingManager.CanHeal(trainee), Is.False);
         Assert.That(healingManager.TryHealFull(trainee), Is.False);
         Assert.That(hireManager.TryReleaseMercenary(trainee), Is.False);
-        Assert.That(transportManager.TryDepartConvoy(
-            2,
-            new[] { (cargo, 1) },
-            new[] { trainee }),
-            Is.EqualTo(TransportDepartureResult.InvalidEscort));
 
         dayManager.AdvanceDay();
 
@@ -294,7 +283,6 @@ public sealed class TrainingGroundManagerTests
         Assert.That(partyManager.Remove(trainee), Is.True);
         Assert.That(healingManager.CanHeal(trainee), Is.True);
         Assert.That(hireManager.TryReleaseMercenary(trainee), Is.True);
-        Object.DestroyImmediate(cargo);
     }
 
     [Test]

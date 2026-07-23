@@ -5,8 +5,6 @@ using UnityEngine;
 public class MercenaryPartyManager : MonoBehaviour
 {
     [SerializeField] private MercenaryHireManager hireManager;
-    [SerializeField] private TransportManager transportManager;
-    [SerializeField] private DungeonExpeditionManager dungeonExpeditionManager;
     [SerializeField] private TrainingGroundManager trainingGroundManager;
     [SerializeField] private TownProgressState townProgressState;
     [SerializeField, Min(1)] private int maxPartySize = 3;
@@ -48,10 +46,6 @@ public class MercenaryPartyManager : MonoBehaviour
             !mercenary.IsContractActive ||
             !IsHired(mercenary) ||
             !IsAtCurrentTown(mercenary) ||
-            (transportManager != null &&
-             transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId)) ||
-            (dungeonExpeditionManager != null &&
-             dungeonExpeditionManager.IsMercenaryOnExpeditionDuty(mercenary.InstanceId)) ||
             (trainingGroundManager != null &&
              trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId)) ||
             Contains(mercenary) ||
@@ -108,16 +102,6 @@ public class MercenaryPartyManager : MonoBehaviour
             return false;
         }
 
-        if (transportManager == null)
-        {
-            transportManager = GetComponent<TransportManager>() ??
-                               FindObjectOfType<TransportManager>();
-        }
-        if (dungeonExpeditionManager == null)
-        {
-            dungeonExpeditionManager = GetComponent<DungeonExpeditionManager>() ??
-                                       FindObjectOfType<DungeonExpeditionManager>();
-        }
         if (trainingGroundManager == null)
         {
             trainingGroundManager = GetComponent<TrainingGroundManager>() ??
