@@ -214,6 +214,10 @@ public static class SaveDataMigrator
         {
             data.dungeonExpeditions = new List<SavedDungeonExpedition>();
         }
+        if (data.trainingAssignments == null)
+        {
+            data.trainingAssignments = new List<SavedTrainingAssignment>();
+        }
         if (data.discoveredEquipmentAssetNames == null) data.discoveredEquipmentAssetNames = new List<string>();
         if (data.discoveredEquipmentPersistentIds == null) data.discoveredEquipmentPersistentIds = new List<string>();
         if (data.encounteredEnemyIds == null) data.encounteredEnemyIds = new List<string>();

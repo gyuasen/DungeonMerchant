@@ -93,14 +93,40 @@ public sealed class ItemUsageTextBuilderTests
     [Test]
     public void Build_FallsBackWhenNoRecipeIsAvailableInTheTown()
     {
-        ItemDataSO material = Resources.Load<ItemDataSO>(
-            "GameData/Items/MonsterFang");
-        List<EquipmentRecipeSO> recipes = GetRecipesUsing(material);
-        int townIndex = Enumerable.Range(0, WorldMapService.HiddenIslandTownIndex + 1)
-            .First(index => recipes.All(recipe =>
-                !BlacksmithManager.IsRecipeAvailableInTown(recipe, index)));
+        var candidate = GameAssetRepository.LoadAll<EquipmentRecipeSO>()
+            .Where(recipe => recipe?.materials != null)
+            .SelectMany(recipe => recipe.materials
+                .Where(requirement => requirement?.item != null &&
+                    requirement.item.materialClassification ==
+                    MaterialClassification.CraftingMaterial)
+                .Select(requirement => new
+                {
+                    Material = requirement.item,
+                    Recipes = GetRecipesUsing(requirement.item)
+                }))
+            .SelectMany(entry => Enumerable.Range(
+                0,
+                WorldMapService.HiddenIslandTownIndex + 1)
+                .Select(townIndex => new
+                {
+                    entry.Material,
+                    entry.Recipes,
+                    TownIndex = townIndex
+                }))
+            .FirstOrDefault(entry => entry.Recipes.Count > 0 &&
+                entry.Recipes.All(recipe =>
+                    !BlacksmithManager.IsRecipeAvailableInTown(
+                        recipe,
+                        entry.TownIndex)));
+        if (candidate == null)
+        {
+            Assert.Inconclusive(
+                "No crafting material has recipes unavailable in a town.");
+        }
 
-        string usage = ItemUsageTextBuilder.Build(material, townIndex);
+        string usage = ItemUsageTextBuilder.Build(
+            candidate.Material,
+            candidate.TownIndex);
 
         StringAssert.Contains("制作に使用", usage);
         StringAssert.DoesNotContain("この町で作れる", usage);

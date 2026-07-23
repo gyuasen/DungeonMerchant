@@ -5,6 +5,19 @@ using UnityEngine.UI;
 // The snapshot data and text building live in DailyResultController.
 public partial class SimpleMercenaryHireUI
 {
+    private void HandleTrainingCompleted(TrainingReservation reservation)
+    {
+        string line = dailyResultController.RecordTrainingCompleted(reservation);
+        if (!string.IsNullOrEmpty(line) &&
+            dailyResultOverlay != null &&
+            dailyResultOverlay.gameObject.activeSelf &&
+            dailyResultText != null)
+        {
+            dailyResultText.text += "\n" + line;
+            dailyResultController.ConsumeRecordedTrainingCompletion(line);
+        }
+    }
+
     private void BuildDailyResultOverlay()
     {
         dailyResultOverlay =

@@ -92,7 +92,7 @@ public sealed class MercenaryLocationTests
 
         SaveDataMigrator.Migrate(save);
 
-        Assert.That(save.version, Is.EqualTo(28));
+        Assert.That(save.version, Is.EqualTo(GameSaveData.CurrentVersion));
         Assert.That(save.hiredMercenaries[0].townIndex, Is.EqualTo(3));
     }
 

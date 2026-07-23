@@ -79,6 +79,7 @@ public class TransportManager : MonoBehaviour
     [SerializeField] private MarketPriceManager marketPriceManager;
     [SerializeField] private DayManager dayManager;
     [SerializeField] private DungeonExpeditionManager dungeonExpeditionManager;
+    [SerializeField] private TrainingGroundManager trainingGroundManager;
 
     private Func<float> randomValue = () => UnityEngine.Random.value;
     private bool isDayChangedSubscribed;
@@ -244,6 +245,7 @@ public class TransportManager : MonoBehaviour
         List<SavedTransportConvoy> saved,
         IReadOnlyDictionary<string, MercenaryInstance> mercenaries)
     {
+        ResolveReferences();
         activeConvoys.Clear();
         if (saved != null)
         {
@@ -331,6 +333,9 @@ public class TransportManager : MonoBehaviour
                     escort.CurrentTownIndex != townProgressState.CurrentTownIndex ||
                     (partyManager != null && partyManager.Contains(escort)) ||
                     IsMercenaryOnTransportDuty(escort.InstanceId) ||
+                    (trainingGroundManager != null &&
+                     trainingGroundManager.IsMercenaryTraining(
+                         escort.InstanceId)) ||
                     (dungeonExpeditionManager != null &&
                      dungeonExpeditionManager.IsMercenaryOnExpeditionDuty(escort.InstanceId)))
                 {
@@ -561,7 +566,7 @@ public class TransportManager : MonoBehaviour
         }
     }
 
-    private static void RestoreEscorts(
+    private void RestoreEscorts(
         SavedTransportConvoy saved,
         TransportConvoy convoy,
         IReadOnlyDictionary<string, MercenaryInstance> mercenaries)
@@ -573,6 +578,14 @@ public class TransportManager : MonoBehaviour
 
         foreach (string instanceId in saved.escortInstanceIds)
         {
+            if (trainingGroundManager != null &&
+                trainingGroundManager.IsMercenaryTraining(instanceId))
+            {
+                Debug.LogWarning(
+                    "Discarded saved transport escort assigned to training.");
+                continue;
+            }
+
             if (mercenaries.ContainsKey(instanceId))
             {
                 convoy.escortInstanceIds.Add(instanceId);
@@ -645,6 +658,14 @@ public class TransportManager : MonoBehaviour
         if (dungeonExpeditionManager == null)
         {
             dungeonExpeditionManager = FindObjectOfType<DungeonExpeditionManager>();
+        }
+        if (trainingGroundManager == null)
+        {
+            trainingGroundManager = GetComponent<TrainingGroundManager>();
+        }
+        if (trainingGroundManager == null)
+        {
+            trainingGroundManager = FindObjectOfType<TrainingGroundManager>();
         }
         EnsureDayChangedSubscription();
     }

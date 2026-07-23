@@ -14,6 +14,7 @@ public sealed class FacilityGreetingController
     public const string WarehouseKey = "Warehouse";
     public const string ClinicKey = "Clinic";
     public const string TempleKey = "Temple";
+    public const string TrainingGroundKey = "TrainingGround";
 
     private readonly HashSet<string> enteredFacilities = new HashSet<string>();
 
@@ -52,6 +53,10 @@ public sealed class FacilityGreetingController
             "ご両親の商会が納めた寄進は記録にある。適性と奉納が揃えば、ここで職を改められる。",
             "神意にも手続きと対価は要る。転職を望む者がいるなら、祭壇の前へ連れてきなさい。",
             "商いの家の子よ、道を変えるなら覚悟を示せ。この神殿では傭兵の転職を執り行う。");
+        AddDefinition(definitions, TrainingGroundKey, "{0}の修練場",
+            "一日で一段、確かな力を積み上げましょう。",
+            "新入りにも追いつく道はあります。焦らず鍛えましょう。",
+            "修練中の者は、明日にはひと回り頼もしくなります。");
         return definitions;
     }
 

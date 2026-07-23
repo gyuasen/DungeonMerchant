@@ -312,6 +312,9 @@ public partial class SimpleMercenaryHireUI
             view, panel, SimpleMercenaryHirePageSlot.Inventory, "Inventory Page");
         jobChangePage = GetOrCreatePage(
             view, panel, SimpleMercenaryHirePageSlot.JobChange, "Job Change Page");
+        trainingGroundPage = GetOrCreatePage(
+            view, panel, SimpleMercenaryHirePageSlot.TrainingGround,
+            "Training Ground Page");
 
         // The prefab stores every page as a sibling. Hide them before any
         // runtime content is built so an initialization error cannot leave all

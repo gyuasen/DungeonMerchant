@@ -17,7 +17,8 @@ public enum SimpleMercenaryHirePageSlot
     Market,
     Blacksmith,
     Inventory,
-    JobChange
+    JobChange,
+    TrainingGround
 }
 
 public enum SimpleMercenaryHireOverlaySlot
@@ -117,7 +118,7 @@ public sealed class SimpleMercenaryHireUIView : MonoBehaviour
         }
     }
 
-    public const int CurrentLayoutVersion = 15;
+    public const int CurrentLayoutVersion = 16;
 
     [SerializeField] private Canvas canvas;
     [SerializeField] private RectTransform guildPanel;

@@ -377,7 +377,7 @@ public partial class SimpleMercenaryHireUI
             null,
             17);
         pageUI.ConfigureJobChangeList(
-            () => hireManager.HiredMercenaries,
+            hireAndPartyController.GetPromotionCandidates,
             hireAndPartyController.ShouldShowSpecialPromotion,
             hireAndPartyController.PromoteMercenary,
             ShowPromotionPreview);
@@ -502,7 +502,7 @@ public partial class SimpleMercenaryHireUI
     private void ConfigureCompanyListPage(CompanyPageUI pageUI)
     {
         pageUI.ConfigureCompanyList(
-            () => hireManager.HiredMercenaries,
+            hireAndPartyController.GetCompanyMercenaries,
             mercenary => partyManager.Contains(mercenary),
             mercenary => hireManager.GetRenewalCost(mercenary),
             hireAndPartyController.TogglePartyMember,

@@ -79,6 +79,22 @@ public sealed class SaveDataMigratorTests
     }
 
     [Test]
+    public void Migrate_Version28_InitializesEmptyTrainingAssignments()
+    {
+        GameSaveData data = new GameSaveData
+        {
+            version = 28,
+            trainingAssignments = null
+        };
+
+        SaveDataMigrator.Migrate(data);
+
+        Assert.That(data.version, Is.EqualTo(29));
+        Assert.That(data.trainingAssignments, Is.Not.Null);
+        Assert.That(data.trainingAssignments, Is.Empty);
+    }
+
+    [Test]
     public void Migrate_PreStorySave_InfersCompletedMilestones()
     {
         DungeonDataSO dungeon = FirstAsset<DungeonDataSO>();

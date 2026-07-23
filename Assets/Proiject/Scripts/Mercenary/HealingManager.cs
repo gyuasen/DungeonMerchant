@@ -9,6 +9,7 @@ public class HealingManager : MonoBehaviour
     [SerializeField] private MercenaryHireManager hireManager;
     [SerializeField] private DayManager dayManager;
     [SerializeField] private TownProgressState townProgressState;
+    [SerializeField] private TrainingGroundManager trainingGroundManager;
 
     [Header("Healing Settings")]
     [SerializeField, Min(0)] private int naturalHealPerDay = 10;
@@ -71,6 +72,7 @@ public class HealingManager : MonoBehaviour
         int cost = GetFullHealCost(mercenary);
         return merchantData != null &&
                mercenary != null &&
+               !IsMercenaryTraining(mercenary) &&
                IsAtCurrentTown(mercenary) &&
                cost > 0 &&
                merchantData.CanPay(cost);
@@ -80,7 +82,8 @@ public class HealingManager : MonoBehaviour
     {
         ResolveReferences();
 
-        if (merchantData == null || mercenary == null)
+        if (merchantData == null || mercenary == null ||
+            IsMercenaryTraining(mercenary))
         {
             return false;
         }
@@ -117,7 +120,9 @@ public class HealingManager : MonoBehaviour
 
         foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
         {
-            if (mercenary != null && IsAtCurrentTown(mercenary))
+            if (mercenary != null &&
+                !IsMercenaryTraining(mercenary) &&
+                IsAtCurrentTown(mercenary))
             {
                 yield return mercenary;
             }
@@ -128,6 +133,13 @@ public class HealingManager : MonoBehaviour
     {
         return townProgressState == null ||
                mercenary.CurrentTownIndex == townProgressState.CurrentTownIndex;
+    }
+
+    private bool IsMercenaryTraining(MercenaryInstance mercenary)
+    {
+        return mercenary != null &&
+               trainingGroundManager != null &&
+               trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId);
     }
 
     private void HandleDayChanged(int currentDay)
@@ -143,6 +155,7 @@ public class HealingManager : MonoBehaviour
         foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
         {
             if (mercenary == null ||
+                IsMercenaryTraining(mercenary) ||
                 mercenary.IsIncapacitated ||
                 mercenary.CurrentHP >= mercenary.MaxHP)
             {
@@ -196,6 +209,12 @@ public class HealingManager : MonoBehaviour
         {
             townProgressState = GetComponent<TownProgressState>() ??
                                 FindObjectOfType<TownProgressState>();
+        }
+
+        if (trainingGroundManager == null)
+        {
+            trainingGroundManager = GetComponent<TrainingGroundManager>() ??
+                                  FindObjectOfType<TrainingGroundManager>();
         }
     }
 }

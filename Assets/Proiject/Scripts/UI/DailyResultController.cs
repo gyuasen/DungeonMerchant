@@ -41,6 +41,9 @@ public sealed class DailyResultController
     private readonly List<string> dailyAcquiredEquipment =
         new List<string>();
     private readonly List<string> dailyTransportEvents = new List<string>();
+    private readonly List<string> trainingCompletionLines = new List<string>();
+    private readonly HashSet<string> trainingCompletionKeys =
+        new HashSet<string>();
 
     private sealed class DailyMercenarySnapshot
     {
@@ -289,6 +292,10 @@ public sealed class DailyResultController
 
         result.AppendLine();
         result.AppendLine("【傭兵の成長・現在状況】");
+        foreach (string trainingLine in trainingCompletionLines)
+        {
+            result.AppendLine(trainingLine);
+        }
         if (mercenaryLines.Count == 0)
         {
             result.AppendLine("雇用中の傭兵はいません。");
@@ -349,6 +356,47 @@ public sealed class DailyResultController
         }
         ResetDailyInventoryTracking();
         dailyTransportEvents.Clear();
+        trainingCompletionLines.Clear();
+        trainingCompletionKeys.Clear();
+    }
+
+    public string RecordTrainingCompleted(TrainingReservation reservation)
+    {
+        if (reservation == null)
+        {
+            return string.Empty;
+        }
+
+        string key = reservation.MercenaryInstanceId + ":" +
+            reservation.CompletionDay;
+        if (!trainingCompletionKeys.Add(key))
+        {
+            return string.Empty;
+        }
+
+        MercenaryInstance mercenary = null;
+        foreach (MercenaryInstance candidate in hireManager.HiredMercenaries)
+        {
+            if (candidate != null &&
+                candidate.InstanceId == reservation.MercenaryInstanceId)
+            {
+                mercenary = candidate;
+                break;
+            }
+        }
+
+        string name = mercenary != null ? mercenary.MercenaryName : "傭兵";
+        string line = $"★ 修練完了: {name}がLv{reservation.TargetLevel}になった";
+        trainingCompletionLines.Add(line);
+        return line;
+    }
+
+    public void ConsumeRecordedTrainingCompletion(string line)
+    {
+        if (!string.IsNullOrEmpty(line))
+        {
+            trainingCompletionLines.Remove(line);
+        }
     }
 
     public void RecordTransportEvent(TransportEvent transportEvent)

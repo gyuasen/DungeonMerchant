@@ -252,10 +252,35 @@ public sealed class HireAndPartyController
                (mercenary.IsUnique || HasSpecialJobCertificate());
     }
 
+    public IEnumerable<MercenaryInstance> GetCompanyMercenaries()
+    {
+        foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
+        {
+            if (mercenary != null && !IsMercenaryTraining(mercenary))
+            {
+                yield return mercenary;
+            }
+        }
+    }
+
+    public IEnumerable<MercenaryInstance> GetPromotionCandidates()
+    {
+        foreach (MercenaryInstance mercenary in GetCompanyMercenaries())
+        {
+            yield return mercenary;
+        }
+    }
+
     public void PromoteMercenary(
         MercenaryInstance mercenary,
         MercenaryClass target)
     {
+        if (mercenary == null || IsMercenaryTraining(mercenary))
+        {
+            setStatus("修練中の傭兵は転職できません。");
+            return;
+        }
+
         bool isSpecial =
             target == MercenaryClassProgression.GetSpecialClass(
                 mercenary.MercenaryClass);
@@ -297,6 +322,15 @@ public sealed class HireAndPartyController
     {
         ItemDataSO item = GetSpecialJobCertificate();
         return item != null && merchantInventory.HasItem(item);
+    }
+
+    private static bool IsMercenaryTraining(MercenaryInstance mercenary)
+    {
+        TrainingGroundManager trainingGroundManager =
+            UnityEngine.Object.FindObjectOfType<TrainingGroundManager>();
+        return mercenary != null &&
+               trainingGroundManager != null &&
+               trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId);
     }
 
     public MercenaryContractType GetUnlockedContractType()

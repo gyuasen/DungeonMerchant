@@ -8,6 +8,7 @@ public class MercenaryHireManager : MonoBehaviour
     [SerializeField] private MerchantData merchantData;
     [SerializeField] private DayManager dayManager;
     [SerializeField] private TownProgressState townProgressState;
+    [SerializeField] private TrainingGroundManager trainingGroundManager;
     [SerializeField] private MercenaryContractType selectedContract =
         MercenaryContractType.Local;
 
@@ -156,7 +157,11 @@ public class MercenaryHireManager : MonoBehaviour
 
     public bool TryReleaseMercenary(MercenaryInstance mercenary)
     {
-        if (mercenary == null || !hiredMercenaries.Remove(mercenary))
+        ResolveReferences();
+        if (mercenary == null ||
+            (trainingGroundManager != null &&
+             trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId)) ||
+            !hiredMercenaries.Remove(mercenary))
         {
             return false;
         }
@@ -309,6 +314,12 @@ public class MercenaryHireManager : MonoBehaviour
         {
             townProgressState = GetComponent<TownProgressState>() ??
                                 FindObjectOfType<TownProgressState>();
+        }
+
+        if (trainingGroundManager == null)
+        {
+            trainingGroundManager = GetComponent<TrainingGroundManager>() ??
+                                  FindObjectOfType<TrainingGroundManager>();
         }
     }
 }

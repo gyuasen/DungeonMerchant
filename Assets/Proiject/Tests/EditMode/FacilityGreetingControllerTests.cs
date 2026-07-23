@@ -39,6 +39,21 @@ public sealed class FacilityGreetingControllerTests
     }
 
     [Test]
+    public void TrainingGround_HasFacilityGreeting()
+    {
+        FacilityGreetingController controller = new FacilityGreetingController();
+
+        FacilityGreeting greeting = controller.GetGreeting(
+            1,
+            1,
+            "リーフ",
+            FacilityGreetingController.TrainingGroundKey);
+
+        Assert.That(greeting.Title, Is.Not.Empty);
+        Assert.That(greeting.Dialogue, Is.Not.Empty);
+    }
+
+    [Test]
     public void VisitSkipState_AppliesOnlyToSameDayTownAndFacility()
     {
         FacilityGreetingController controller = new FacilityGreetingController();
