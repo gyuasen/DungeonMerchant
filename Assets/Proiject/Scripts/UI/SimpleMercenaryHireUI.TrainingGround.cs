@@ -69,11 +69,13 @@ public partial class SimpleMercenaryHireUI
             top -= 82f;
             int targetLevel = mercenary.Level + 1;
             int cost = TrainingCostService.GetCost(targetLevel);
-            bool training = trainingGroundManager.IsMercenaryTraining(
-                mercenary.InstanceId);
+            TrainingUnavailableReason unavailableReason =
+                trainingGroundManager.GetUnavailableReason(mercenary);
+            bool training = unavailableReason ==
+                TrainingUnavailableReason.AlreadyTraining;
             string state = training
                 ? GetTrainingState(mercenary)
-                : GetTrainingUnavailableReason(mercenary, cost);
+                : GetTrainingUnavailableReason(unavailableReason, cost);
             CreateText(row,
                 $"{mercenary.MercenaryName}  Lv{mercenary.Level} → Lv{targetLevel}  |  {cost} G",
                 16, FontStyle.Bold, TextAnchor.MiddleLeft,
@@ -85,9 +87,8 @@ public partial class SimpleMercenaryHireUI
             Button button = CreateActionButton(row,
                 training ? "修練中" : "修練させる",
                 () => TryStartTrainingFromPage(mercenary));
-            button.interactable = !training &&
-                                  trainingGroundManager.CanStartTraining(
-                                      mercenary);
+            button.interactable = unavailableReason ==
+                                  TrainingUnavailableReason.None;
             RectTransform buttonRect = button.GetComponent<RectTransform>();
             buttonRect.sizeDelta = new Vector2(130f, 46f);
             buttonRect.anchoredPosition = new Vector2(-18f, 0f);
@@ -103,7 +104,7 @@ public partial class SimpleMercenaryHireUI
         else
         {
             statusText.text = GetTrainingUnavailableReason(
-                mercenary,
+                trainingGroundManager.GetUnavailableReason(mercenary),
                 TrainingCostService.GetCost(mercenary.Level + 1));
         }
 
@@ -126,20 +127,43 @@ public partial class SimpleMercenaryHireUI
     }
 
     private string GetTrainingUnavailableReason(
-        MercenaryInstance mercenary,
+        TrainingUnavailableReason reason,
         int cost)
     {
-        if (!TownServicePolicy.IsTrainingGroundAvailable(
-                townProgressState.CurrentTownIndex)) return "この町には修練場がありません。";
-        if (mercenary.IsAtLevelCap) return "レベル上限に到達しています。";
-        if (!mercenary.IsContractActive) return "契約が切れています。";
-        if (mercenary.IsIncapacitated) return "戦闘不能の傭兵は利用できません。";
-        if (mercenary.CurrentTownIndex != townProgressState.CurrentTownIndex) return "別の町にいます。";
-        if (trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId)) return "修練中です。";
-        if (trainingGroundManager.ActiveTrainingCount >= TrainingGroundManager.MaximumConcurrentTrainings) return "同時修練枠が埋まっています。";
-        if (merchantData.Gold < cost) return $"資金不足（あと{cost - merchantData.Gold} G）。";
-        return trainingGroundManager.CanStartTraining(mercenary)
-            ? string.Empty
-            : "他任務中、または最高Lv-2の上限を超えています。";
+        switch (reason)
+        {
+            case TrainingUnavailableReason.None:
+                return string.Empty;
+            case TrainingUnavailableReason.MissingManagerReference:
+            case TrainingUnavailableReason.InvalidMercenary:
+            case TrainingUnavailableReason.NotHired:
+                return "傭兵情報を確認できません。";
+            case TrainingUnavailableReason.AtLevelCap:
+                return "レベル上限に到達しています。";
+            case TrainingUnavailableReason.ContractExpired:
+                return "契約が切れています。";
+            case TrainingUnavailableReason.Incapacitated:
+                return "戦闘不能の傭兵は利用できません。";
+            case TrainingUnavailableReason.DifferentTown:
+                return "別の町にいます。";
+            case TrainingUnavailableReason.NoFacilityInTown:
+                return "この町には修練場がありません。";
+            case TrainingUnavailableReason.InParty:
+                return "編成に加わっています。";
+            case TrainingUnavailableReason.OnTransport:
+                return "輸送任務中です。";
+            case TrainingUnavailableReason.OnExpedition:
+                return "遠征中です。";
+            case TrainingUnavailableReason.AlreadyTraining:
+                return "修練中です。";
+            case TrainingUnavailableReason.SlotsFull:
+                return "同時修練枠が埋まっています。";
+            case TrainingUnavailableReason.LevelLimit:
+                return $"他の傭兵より2レベル以上低い必要があります。（現在の上限 Lv{trainingGroundManager.GetMaximumTrainableLevel()}）";
+            case TrainingUnavailableReason.InsufficientGold:
+                return $"資金不足（あと{cost - merchantData.Gold} G）。";
+            default:
+                return "修練を開始できません。";
+        }
     }
 }
