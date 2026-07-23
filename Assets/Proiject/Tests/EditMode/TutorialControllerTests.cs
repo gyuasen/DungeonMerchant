@@ -76,7 +76,7 @@ public sealed class TutorialControllerTests
     }
 
     [Test]
-    public void CompletingTutorial_SetsPreferenceAndClosesOverlay()
+    public void CompletingTutorial_ClosesOverlayWithoutSavingPreference()
     {
         bool hidden = false;
         string status = null;
@@ -95,16 +95,14 @@ public sealed class TutorialControllerTests
         }
         controller.ShowNextStep();
 
-        Assert.That(PlayerPrefs.GetInt(CompletionKey), Is.EqualTo(1));
+        Assert.That(PlayerPrefs.HasKey(CompletionKey), Is.False);
         Assert.That(hidden, Is.True);
         StringAssert.Contains("完了", status);
     }
 
     [Test]
-    public void ResetCompletion_AllowsTutorialToRunForNewGame()
+    public void ResetCompletion_DoesNotUsePlayerPrefs()
     {
-        PlayerPrefs.SetInt(CompletionKey, 1);
-
         TutorialController.ResetCompletion();
 
         Assert.That(PlayerPrefs.HasKey(CompletionKey), Is.False);

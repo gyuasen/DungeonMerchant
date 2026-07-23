@@ -26,6 +26,7 @@ public class SaveManager : MonoBehaviour
     private DungeonExpeditionManager dungeonExpeditionManager;
     private RemoteSaleManager remoteSaleManager;
     private MonsterCodexManager monsterCodexManager;
+    private OnboardingGuideController onboardingGuideController;
     private bool initialized;
     private bool isLoading;
     private bool suppressAutoSaveAfterDelete;
@@ -52,6 +53,7 @@ public class SaveManager : MonoBehaviour
         ? savePathOverride
         : DefaultSavePath;
     public bool HasSaveData => File.Exists(SavePath);
+    public bool HasExistingSaveAtInitialization { get; private set; }
 
     public void InitializeAndLoad()
     {
@@ -61,17 +63,25 @@ public class SaveManager : MonoBehaviour
         }
 
         ResolveReferences();
-        bool hasExistingSave = File.Exists(SavePath);
-        if (hasExistingSave)
+        HasExistingSaveAtInitialization = File.Exists(SavePath);
+        if (HasExistingSaveAtInitialization)
         {
             LoadGame();
         }
         else
         {
-            ApplySaveData(new GameSaveData());
+            ApplySaveData(new GameSaveData
+            {
+                onboardingEnabled = true,
+                onboardingStep = OnboardingGuideStep.Opening
+            });
         }
         Subscribe();
-        if (!hasExistingSave)
+        if (HasExistingSaveAtInitialization)
+        {
+            onboardingGuideController?.CompleteOpeningAfterExistingSaveLoad();
+        }
+        if (!HasExistingSaveAtInitialization)
         {
             storyProgressManager?.BeginNewGame();
         }
@@ -348,7 +358,7 @@ public class SaveManager : MonoBehaviour
                     continue;
                 }
 
-                data.hiredMercenaries.Add(new SavedMercenary
+                SavedMercenary savedMercenary = new SavedMercenary
                 {
                     instanceId = mercenary.InstanceId,
                     townIndex = mercenary.CurrentTownIndex,
@@ -412,7 +422,23 @@ public class SaveManager : MonoBehaviour
                                 mercenary.EquippedAccessoryInstance)
                             : null,
                     consumableSlots = CreateSavedConsumableSlots(mercenary)
-                });
+                };
+                NormalizeSavedMercenaryEquipment(
+                    savedMercenary,
+                    EquipmentSlot.Weapon,
+                    mercenary.EquippedWeapon,
+                    mercenary.EquippedWeaponInstance);
+                NormalizeSavedMercenaryEquipment(
+                    savedMercenary,
+                    EquipmentSlot.Armor,
+                    mercenary.EquippedArmor,
+                    mercenary.EquippedArmorInstance);
+                NormalizeSavedMercenaryEquipment(
+                    savedMercenary,
+                    EquipmentSlot.Accessory,
+                    mercenary.EquippedAccessory,
+                    mercenary.EquippedAccessoryInstance);
+                data.hiredMercenaries.Add(savedMercenary);
             }
         }
 
@@ -452,6 +478,15 @@ public class SaveManager : MonoBehaviour
         {
             data.encounteredEnemyIds.AddRange(
                 monsterCodexManager.EncounteredEnemyIds);
+        }
+
+        if (onboardingGuideController != null)
+        {
+            data.onboardingEnabled = onboardingGuideController.IsEnabled;
+            data.onboardingStep = onboardingGuideController.CurrentStep;
+            data.onboardingShownCards.Clear();
+            data.onboardingShownCards.AddRange(
+                onboardingGuideController.ShownCards);
         }
 
         return data;
@@ -622,6 +657,10 @@ public class SaveManager : MonoBehaviour
         dungeonRunManager?.SetCurrentWorldMapIndex(townProgressState.CurrentWorldMapIndex);
         storyProgressManager?.RestoreCompletedMilestones(
             data.completedStoryMilestones);
+        onboardingGuideController?.Restore(
+            data.onboardingEnabled,
+            data.onboardingStep,
+            data.onboardingShownCards);
     }
 
     private MercenaryInstance RestoreMercenary(SavedMercenary saved)
@@ -695,6 +734,33 @@ public class SaveManager : MonoBehaviour
         return savedSlots;
     }
 
+    private static void NormalizeSavedMercenaryEquipment(
+        SavedMercenary saved,
+        EquipmentSlot slot,
+        ItemDataSO item,
+        EquipmentInstance instance)
+    {
+        if (item == null || !item.IsEquipment || item.equipmentSlot != slot)
+        {
+            return;
+        }
+
+        SavedEquipmentInstance savedInstance = CreateSavedEquipment(
+            instance ?? EquipmentInstance.CreateFixed(item));
+        if (slot == EquipmentSlot.Weapon)
+        {
+            saved.equippedWeaponInstance = savedInstance;
+        }
+        else if (slot == EquipmentSlot.Armor)
+        {
+            saved.equippedArmorInstance = savedInstance;
+        }
+        else
+        {
+            saved.equippedAccessoryInstance = savedInstance;
+        }
+    }
+
     private static void RestoreMercenaryConsumableSlots(
         MercenaryInstance mercenary,
         SavedMercenaryConsumableSlot[] savedSlots)
@@ -731,13 +797,57 @@ public class SaveManager : MonoBehaviour
         EquipmentInstance equipment = RestoreEquipment(savedInstance);
         if (equipment != null)
         {
+            LogMismatchedEquipmentReference(
+                slot,
+                itemPersistentId,
+                itemAssetName,
+                equipment.BaseItem);
             mercenary.RestoreEquippedEquipment(slot, equipment);
+            return;
+        }
+
+        ItemDataSO legacyItem = FindItem(
+            itemPersistentId,
+            itemAssetName,
+            string.Empty);
+        if (legacyItem == null || !legacyItem.IsEquipment ||
+            legacyItem.equipmentSlot != slot)
+        {
+            if (!string.IsNullOrWhiteSpace(itemPersistentId) ||
+                !string.IsNullOrWhiteSpace(itemAssetName))
+            {
+                Debug.LogWarning("Skipped an invalid legacy equipped item reference.");
+            }
             return;
         }
 
         mercenary.RestoreEquippedEquipment(
             slot,
-            FindItem(itemPersistentId, itemAssetName, string.Empty));
+            EquipmentInstance.CreateFixed(legacyItem));
+    }
+
+    private void LogMismatchedEquipmentReference(
+        EquipmentSlot slot,
+        string itemPersistentId,
+        string itemAssetName,
+        ItemDataSO instanceItem)
+    {
+        if (instanceItem == null ||
+            (string.IsNullOrWhiteSpace(itemPersistentId) &&
+             string.IsNullOrWhiteSpace(itemAssetName)))
+        {
+            return;
+        }
+
+        ItemDataSO outerItem = FindItem(
+            itemPersistentId,
+            itemAssetName,
+            string.Empty);
+        if (outerItem != null && outerItem != instanceItem)
+        {
+            Debug.LogWarning(
+                $"Equipped {slot} reference disagreed with its instance. The instance was used.");
+        }
     }
 
     private static SavedEquipmentInstance CreateSavedEquipment(
@@ -789,7 +899,7 @@ public class SaveManager : MonoBehaviour
             saved.baseItemPersistentId,
             saved.baseItemAssetName,
             string.Empty);
-        if (baseItem == null)
+        if (baseItem == null || !baseItem.IsEquipment)
         {
             return null;
         }
@@ -844,6 +954,10 @@ public class SaveManager : MonoBehaviour
         {
             debtManager.DebtChanged += HandleChanged;
         }
+        if (onboardingGuideController != null)
+        {
+            onboardingGuideController.StateChanged += HandleOnboardingGuideChanged;
+        }
     }
 
     private void Unsubscribe()
@@ -876,6 +990,10 @@ public class SaveManager : MonoBehaviour
         {
             debtManager.DebtChanged -= HandleChanged;
         }
+        if (onboardingGuideController != null)
+        {
+            onboardingGuideController.StateChanged -= HandleOnboardingGuideChanged;
+        }
     }
 
     private void HandleChanged() => RequestAutoSave();
@@ -884,6 +1002,7 @@ public class SaveManager : MonoBehaviour
     private void HandleBattleCompleted(bool victory) => RequestAutoSave();
     private void HandleDungeonCompleted(bool cleared) => RequestAutoSave();
     private void HandleStoryMilestoneCompleted(StoryMilestone milestone) => RequestAutoSave();
+    private void HandleOnboardingGuideChanged(OnboardingGuideStep step) => RequestAutoSave();
 
     private void RequestAutoSave()
     {
@@ -1009,5 +1128,8 @@ public class SaveManager : MonoBehaviour
         monsterCodexManager =
             GetComponent<MonsterCodexManager>() ??
             FindObjectOfType<MonsterCodexManager>();
+        onboardingGuideController =
+            GetComponent<OnboardingGuideController>() ??
+            FindObjectOfType<OnboardingGuideController>();
     }
 }

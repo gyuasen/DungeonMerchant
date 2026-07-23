@@ -8,6 +8,7 @@ public partial class SimpleMercenaryHireUI
     private Text storyTitleText;
     private Text storyBodyText;
     private Coroutine storyEntryCoroutine;
+    private StoryPresentation activeStoryPresentation;
 
     private void OnEnable()
     {
@@ -77,21 +78,27 @@ public partial class SimpleMercenaryHireUI
         }
     }
 
+    private void HandleStoryPresentationQueued()
+    {
+        if (storyOverlay != null && !storyOverlay.gameObject.activeSelf)
+        {
+            ShowNextPendingStory();
+        }
+    }
+
     private void ShowNextPendingStory()
     {
         BuildStoryOverlay();
         if (storyProgressManager == null ||
-            !storyProgressManager.TryDequeuePendingPresentation(
-                out StoryMilestone milestone))
+            !storyProgressManager.TryDequeuePresentation(
+                out StoryPresentation presentation))
         {
-            tutorialController?.ShowTutorialIfNeeded();
             return;
         }
 
-        StoryMilestoneInfo info =
-            storyProgressManager.GetMilestoneInfo(milestone);
-        storyTitleText.text = info.Title;
-        storyBodyText.text = info.Body;
+        activeStoryPresentation = presentation;
+        storyTitleText.text = presentation.Title;
+        storyBodyText.text = presentation.Body;
         storyOverlay.SetAsLastSibling();
         storyOverlay.gameObject.SetActive(true);
     }
@@ -99,6 +106,14 @@ public partial class SimpleMercenaryHireUI
     private void CloseStoryOverlay()
     {
         storyOverlay.gameObject.SetActive(false);
+        if (activeStoryPresentation.Milestone ==
+            StoryMilestone.OpeningDebtNotice)
+        {
+            onboardingGuideController?.TryComplete(
+                OnboardingGuideStep.Opening);
+        }
+        activeStoryPresentation.OnClosed?.Invoke();
+        activeStoryPresentation = default;
         ShowNextPendingStory();
     }
 

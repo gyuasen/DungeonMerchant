@@ -113,6 +113,20 @@ public sealed class StoryProgressManagerTests
             Is.False);
     }
 
+    [Test]
+    public void OpeningPresentation_RetainsItsMilestoneForCloseHandling()
+    {
+        storyProgressManager.TryComplete(StoryMilestone.OpeningDebtNotice);
+
+        Assert.That(
+            storyProgressManager.TryDequeuePresentation(
+                out StoryPresentation presentation),
+            Is.True);
+        Assert.That(
+            presentation.Milestone,
+            Is.EqualTo(StoryMilestone.OpeningDebtNotice));
+    }
+
     private T Track<T>(T created) where T : Object
     {
         createdObjects.Add(created);

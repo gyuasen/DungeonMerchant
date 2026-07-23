@@ -44,6 +44,8 @@ public sealed class SaveManagerNewGameResetTests
         DebtManager debt = root.AddComponent<DebtManager>();
         TownProgressState towns = root.AddComponent<TownProgressState>();
         StoryProgressManager story = root.AddComponent<StoryProgressManager>();
+        OnboardingGuideController onboarding =
+            root.AddComponent<OnboardingGuideController>();
         SaveManager saveManager = root.AddComponent<SaveManager>();
         SetSavePath(saveManager);
 
@@ -85,6 +87,11 @@ public sealed class SaveManagerNewGameResetTests
         Assert.That(progression.StorageTier, Is.Zero);
         Assert.That(progression.TotalDungeonClears, Is.Zero);
         Assert.That(progression.ProfitableDungeonClears, Is.Zero);
+        Assert.That(saveManager.HasExistingSaveAtInitialization, Is.False);
+        Assert.That(onboarding.IsEnabled, Is.True);
+        Assert.That(
+            onboarding.CurrentStep,
+            Is.EqualTo(OnboardingGuideStep.Opening));
         Assert.That(
             story.CompletedMilestones,
             Is.EquivalentTo(new[] { StoryMilestone.OpeningDebtNotice }));

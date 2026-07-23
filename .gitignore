@@ -8,6 +8,10 @@
 .utmp/
 # 画像生成などの一時作業ディレクトリ（中間生成物はコミットしない）
 /tmp/
+# セーブデータのバックアップ（個人のプレイ記録なのでリポジトリに含めない）
+/savebackup/
+*.json.savebak
+game-save*.json
 /[Ll]ibrary/
 /[Tt]emp/
 /[Oo]bj/
