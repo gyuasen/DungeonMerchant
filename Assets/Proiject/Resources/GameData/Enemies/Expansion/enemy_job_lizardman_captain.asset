@@ -23,7 +23,7 @@ MonoBehaviour:
   specialVariantTitle: 
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
-  battleVisualKey: Grade06_lizardman_captain
+  battleVisualKey: enemy_job_lizardman_captain
   maxHP: 150
   attack: 24
   defense: 11

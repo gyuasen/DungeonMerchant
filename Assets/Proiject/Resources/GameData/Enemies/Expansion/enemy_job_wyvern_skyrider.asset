@@ -23,7 +23,7 @@ MonoBehaviour:
   specialVariantTitle: 
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
-  battleVisualKey: Grade03_wyvern_skyrider
+  battleVisualKey: enemy_job_wyvern_skyrider
   maxHP: 627
   attack: 74
   defense: 39

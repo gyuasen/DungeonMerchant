@@ -23,7 +23,7 @@ MonoBehaviour:
   specialVariantTitle: 
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
-  battleVisualKey: Grade05_slime_verdant
+  battleVisualKey: enemy_slime_slime_verdant
   maxHP: 250
   attack: 36
   defense: 18

@@ -23,7 +23,7 @@ MonoBehaviour:
   specialVariantTitle: 
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
-  battleVisualKey: Grade03_wyvern_ironwing
+  battleVisualKey: enemy_job_wyvern_ironwing
   maxHP: 995
   attack: 70
   defense: 52

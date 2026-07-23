@@ -23,7 +23,7 @@ MonoBehaviour:
   specialVariantTitle: 
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
-  battleVisualKey: Grade07_skeleton_guard
+  battleVisualKey: enemy_job_skeleton_guard
   maxHP: 128
   attack: 14
   defense: 8

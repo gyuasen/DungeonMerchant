@@ -23,7 +23,7 @@ MonoBehaviour:
   specialVariantTitle: 
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
-  battleVisualKey: Grade03_wyvern_ravager
+  battleVisualKey: enemy_job_wyvern_ravager
   maxHP: 663
   attack: 89
   defense: 39

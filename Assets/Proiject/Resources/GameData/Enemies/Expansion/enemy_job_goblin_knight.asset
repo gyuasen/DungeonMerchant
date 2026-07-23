@@ -23,7 +23,7 @@ MonoBehaviour:
   specialVariantTitle: 
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
-  battleVisualKey: Grade09_goblin_knight
+  battleVisualKey: enemy_job_goblin_knight
   maxHP: 51
   attack: 6
   defense: 2

@@ -23,7 +23,7 @@ MonoBehaviour:
   specialVariantTitle: 
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
-  battleVisualKey: Grade06_lizardman_ravager
+  battleVisualKey: enemy_job_lizardman_ravager
   maxHP: 135
   attack: 28
   defense: 10

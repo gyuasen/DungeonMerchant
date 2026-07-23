@@ -101,3 +101,43 @@
 - `Assets/Proiject/UI/`: UUID名のPNG 1枚
 
 全 `Assets` 配下の実画像は233枚（必要画像の配置済み216枚＋集計外17枚）として確認した。必要画像の未配置6枚は実画像枚数には含めていない。
+
+## 2026-07-23 画像参照ずれの調査と修正
+
+ユーザー報告「画像は保存されているのに参照が間違っているものが多々ある」を受けて全カテゴリを横断調査した。**画像は存在するのに参照名が食い違っていたものが 44 組**あり、いずれも参照側を実画像名へ合わせる形で修正済み。
+
+### 修正済み（参照ずれ 44 組）
+
+- **敵の `battleVisualKey` 40 件**（`Resources/GameData/Enemies/Expansion/` 配下）
+  - `GradeXX_{goblin,kobold,lizardman,orc,skeleton,wyvern}_{suffix}` → `enemy_job_{同種}_{同suffix}`（各5件・計30件）
+  - `GradeXX_slime_{suffix}` → `enemy_slime_slime_{同suffix}`（9件）
+  - `Grade03_wyvern` → `Grade03Wyvern`（1件）
+- **ダンジョン背景キー 4 件**
+  - `DungeonData` → `Dungeon_OriginCave`（はじまりの洞窟）
+  - `LowerMine` → `Dungeon_SealedMine`（封じられた廃坑）
+  - `MiddleRuins` → `Dungeon_MistRuins`（霧の古代遺跡）
+  - `AstralDepths` → `Dungeon_AstralDepths`
+
+### 修正済み（コード側のフォールバック不足）
+
+敵SOのうち **53 体は `battleVisualKey` が空欄**で、通常戦闘はアセット名で解決していたが**魔物図鑑には同じフォールバックが無く画像が出ていなかった**（99体中6体しか表示されていない状態）。共通の `EnemySpriteResolver` を新設し、図鑑と戦闘が同じ解決順（直接Sprite → キー → `Battle/Enemies/`+キー → アセット名 → 特殊個体は元敵へフォールバック）を使うよう統一した。データは変更していない。
+
+回帰テスト（`GameAssetRepositoryTests`）で、**全敵99体の画像解決**と**背景キーの解決**（未配置7件を除く）を検証している。
+
+### 未配置（画像そのものが存在しない。参照ずれではない）
+
+**ダンジョン背景 7 枚**（`Resources/Battle/Backgrounds/{キー}.png`）:
+`EldOldQuarry`, `EldUndergroundWaterway`, `FinalBlackSoilAbyss`, `GlaadSkyFortress`, `LeafForestTrail`, `NornCanopyLabyrinth`, `VelmBlackIronMine`
+
+**施設職員 1 枚**（`Resources/UI/Staff/TrainingGround.png`）:
+新施設「修練場」の職員画像。他7施設（酒場/ギルド/市場/鍛冶屋/倉庫/診療所/神殿）は配置済み。
+
+**非装備アイテム 57 点**（`Resources/UI/Items/{item.name}.png`。ディレクトリ自体が未作成）:
+素材42点・遺物6点・消耗品9点。`ItemPresentationService` は `UI/Codex/Equipment/` → `UI/Items/` の順で解決するため、未配置の間はプレースホルダ表示になる。
+
+**装備武器・装飾 15 点**（`Resources/UI/Codex/Equipment/`）:
+`item_expansion_beastbane`, `item_expansion_dragonbane`, `item_expansion_rank4_0`〜`rank7_2`（12点）, `MutantCoreCharm`
+
+### 補足
+
+`Resources/UI/Equipment/` の `AbyssSeal.png` / `AstralAegis.png` は、同名画像が `UI/Codex/Equipment/` から先に解決されるため現行コードでは到達しない重複ファイル。動作上の害はない。

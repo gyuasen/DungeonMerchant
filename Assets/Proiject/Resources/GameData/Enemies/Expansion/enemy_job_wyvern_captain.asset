@@ -23,7 +23,7 @@ MonoBehaviour:
   specialVariantTitle: 
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
-  battleVisualKey: Grade03_wyvern_captain
+  battleVisualKey: enemy_job_wyvern_captain
   maxHP: 737
   attack: 78
   defense: 44

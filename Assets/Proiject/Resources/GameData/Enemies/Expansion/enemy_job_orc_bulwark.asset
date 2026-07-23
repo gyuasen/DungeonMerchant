@@ -23,7 +23,7 @@ MonoBehaviour:
   specialVariantTitle: 
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
-  battleVisualKey: Grade05_orc_bulwark
+  battleVisualKey: enemy_job_orc_bulwark
   maxHP: 338
   attack: 32
   defense: 22
