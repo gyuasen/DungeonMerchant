@@ -77,8 +77,6 @@ public class TrainingGroundManager : MonoBehaviour
     [SerializeField] private MerchantData merchantData;
     [SerializeField] private MercenaryHireManager hireManager;
     [SerializeField] private MercenaryPartyManager partyManager;
-    [SerializeField] private TransportManager transportManager;
-    [SerializeField] private DungeonExpeditionManager dungeonExpeditionManager;
     [SerializeField] private DayManager dayManager;
     [SerializeField] private TownProgressState townProgressState;
     [SerializeField] private List<TrainingReservation> reservations =
@@ -186,19 +184,6 @@ public class TrainingGroundManager : MonoBehaviour
         if (partyManager != null && partyManager.Contains(mercenary))
         {
             return TrainingUnavailableReason.InParty;
-        }
-
-        if (transportManager != null &&
-            transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId))
-        {
-            return TrainingUnavailableReason.OnTransport;
-        }
-
-        if (dungeonExpeditionManager != null &&
-            dungeonExpeditionManager.IsMercenaryOnExpeditionDuty(
-                mercenary.InstanceId))
-        {
-            return TrainingUnavailableReason.OnExpedition;
         }
 
         if (IsMercenaryTraining(mercenary.InstanceId))
@@ -532,19 +517,6 @@ public class TrainingGroundManager : MonoBehaviour
         {
             partyManager = GetComponent<MercenaryPartyManager>() ??
                 FindObjectOfType<MercenaryPartyManager>();
-        }
-
-        if (transportManager == null)
-        {
-            transportManager = GetComponent<TransportManager>() ??
-                FindObjectOfType<TransportManager>();
-        }
-
-        if (dungeonExpeditionManager == null)
-        {
-            dungeonExpeditionManager =
-                GetComponent<DungeonExpeditionManager>() ??
-                FindObjectOfType<DungeonExpeditionManager>();
         }
 
         if (dayManager == null)

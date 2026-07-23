@@ -101,6 +101,7 @@ public partial class SimpleMercenaryHireUI
         transportRect.pivot = new Vector2(1f, 1f);
         transportRect.sizeDelta = new Vector2(110f, 38f);
         transportRect.anchoredPosition = new Vector2(-118f, -4f);
+        transportButton.gameObject.SetActive(false);
         Button expeditionButton = CreateActionButton(companyPage, "遠征部隊", ShowExpeditionOverlay);
         expeditionButton.name = "Expedition Button";
         RectTransform expeditionRect = expeditionButton.GetComponent<RectTransform>();
@@ -109,6 +110,7 @@ public partial class SimpleMercenaryHireUI
         expeditionRect.sizeDelta = new Vector2(110f, 38f);
         expeditionRect.anchoredPosition = new Vector2(-236f, -4f);
         expeditionButton.transform.SetAsLastSibling();
+        expeditionButton.gameObject.SetActive(false);
         Button remoteSaleButton = CreateActionButton(companyPage, "全町倉庫", ShowRemoteSaleOverlay);
         remoteSaleButton.name = "Remote Sale Button";
         RectTransform remoteSaleRect = remoteSaleButton.GetComponent<RectTransform>();
@@ -200,7 +202,7 @@ public partial class SimpleMercenaryHireUI
             ShowQuestOverlay,
             null);
         ConfigureCompanyListPage(pageUI);
-        if (companyPage.Find("Transport Button") == null)
+        if (false && companyPage.Find("Transport Button") == null)
         {
             Button transportButton =
                 CreateActionButton(companyPage, "輸送部隊", ShowTransportOverlay);
@@ -211,7 +213,7 @@ public partial class SimpleMercenaryHireUI
             transportRect.sizeDelta = new Vector2(110f, 38f);
             transportRect.anchoredPosition = new Vector2(-118f, -4f);
         }
-        if (companyPage.Find("Expedition Button") == null)
+        if (false && companyPage.Find("Expedition Button") == null)
         {
             Button expeditionButton = CreateActionButton(companyPage, "遠征部隊", ShowExpeditionOverlay);
             expeditionButton.name = "Expedition Button";
@@ -509,8 +511,8 @@ public partial class SimpleMercenaryHireUI
             ShowCharacterDetails,
             merchantStatusAndQuestController.RenewContract,
             ShowReleaseConfirmation,
-            mercenary => transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId),
-            mercenary => dungeonExpeditionManager.IsMercenaryOnExpeditionDuty(mercenary.InstanceId));
+            mercenary => false,
+            mercenary => false);
     }
 
     private void BuildReleaseConfirmationOverlay()
@@ -599,12 +601,12 @@ public partial class SimpleMercenaryHireUI
             return "修練中の傭兵は契約を解除できません";
         }
 
-        if (transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId))
+        if (trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId))
         {
             return "輸送中の傭兵は契約を解除できません";
         }
 
-        if (dungeonExpeditionManager.IsMercenaryOnExpeditionDuty(mercenary.InstanceId))
+        if (trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId))
         {
             return "遠征中の傭兵は契約を解除できません";
         }
@@ -747,6 +749,14 @@ public partial class SimpleMercenaryHireUI
             $"技能ポイント {merchantData.MerchantSkillPoints}  |  " +
             $"傭兵 {hireManager.HiredMercenaries.Count}人  |  " +
             $"雇用成功率 {merchantData.GetHireSuccessRate() * 100f:0}%";
+    }
+
+    private void ShowTransportOverlay()
+    {
+    }
+
+    private void ShowExpeditionOverlay()
+    {
     }
 
     private void ShowPartyPage()

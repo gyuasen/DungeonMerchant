@@ -54,8 +54,7 @@ public static class DungeonMerchantBootstrap
         EnsureComponent<HealingManager>(root);
         EnsureComponent<TrainingGroundManager>(root);
         EnsureComponent<MercenaryPartyManager>(root);
-        EnsureComponent<TransportManager>(root);
-        EnsureComponent<DungeonExpeditionManager>(root);
+        EnsureComponent<RoadCargoSession>(root);
         EnsureComponent<RemoteSaleManager>(root);
         EnsureComponent<MercenaryGenerator>(root);
         EnsureComponent<BattleManager>(root);

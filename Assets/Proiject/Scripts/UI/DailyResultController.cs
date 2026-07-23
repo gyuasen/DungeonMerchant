@@ -399,6 +399,7 @@ public sealed class DailyResultController
         }
     }
 
+    #if false
     public void RecordTransportEvent(TransportEvent transportEvent)
     {
         if (transportEvent?.Convoy == null)
@@ -423,6 +424,8 @@ public sealed class DailyResultController
         }
     }
 
+    #endif
+
     public void RecordRemoteSaleEvent(RemoteSaleEvent remoteSaleEvent)
     {
         if (remoteSaleEvent == null || remoteSaleEvent.Order == null)
@@ -438,6 +441,7 @@ public sealed class DailyResultController
             remoteSaleEvent.Gold + "Gで売却");
     }
 
+    #if false
     public void RecordExpeditionEvent(ExpeditionEvent expeditionEvent)
     {
         if (expeditionEvent?.Expedition?.dungeon == null)
@@ -465,6 +469,8 @@ public sealed class DailyResultController
             JapaneseDisplayText.GetItemName(equipment.BaseItem) +
             "』を持ち帰った！");
     }
+
+    #endif
 
     public void CaptureMercenarySnapshot(MercenaryInstance mercenary)
     {

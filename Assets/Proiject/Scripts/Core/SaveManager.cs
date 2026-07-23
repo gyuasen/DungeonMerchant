@@ -22,8 +22,7 @@ public class SaveManager : MonoBehaviour
     private DebtManager debtManager;
     private TownProgressState townProgressState;
     private StoryProgressManager storyProgressManager;
-    private TransportManager transportManager;
-    private DungeonExpeditionManager dungeonExpeditionManager;
+    private RoadCargoSession roadCargoSession;
     private RemoteSaleManager remoteSaleManager;
     private MonsterCodexManager monsterCodexManager;
     private OnboardingGuideController onboardingGuideController;
@@ -458,13 +457,9 @@ public class SaveManager : MonoBehaviour
             data.progression = progressionManager.CreateSaveData();
         }
 
-        if (transportManager != null)
+        if (roadCargoSession != null)
         {
-            data.transportConvoys = transportManager.CreateSaveData();
-        }
-        if (dungeonExpeditionManager != null)
-        {
-            data.dungeonExpeditions = dungeonExpeditionManager.CreateSaveData();
+            data.roadCargoSession = roadCargoSession.CreateSaveData();
         }
         if (trainingGroundManager != null)
         {
@@ -641,8 +636,7 @@ public class SaveManager : MonoBehaviour
             }
         }
         partyManager?.RestoreParty(restoredParty);
-        transportManager?.Restore(data.transportConvoys, mercenaryById);
-        dungeonExpeditionManager?.Restore(data.dungeonExpeditions, mercenaryById);
+        roadCargoSession?.Restore(data.roadCargoSession);
         remoteSaleManager?.Restore(data.remoteSaleOrders);
         progressionManager?.Restore(data.progression);
 
@@ -934,8 +928,7 @@ public class SaveManager : MonoBehaviour
         if (hireManager != null) hireManager.MercenaryDismissed += HandleMercenaryChanged;
         if (hireManager != null) hireManager.ContractsChanged += HandleChanged;
         if (storyProgressManager != null) storyProgressManager.MilestoneCompleted += HandleStoryMilestoneCompleted;
-        if (transportManager != null) transportManager.TransportChanged += HandleChanged;
-        if (dungeonExpeditionManager != null) dungeonExpeditionManager.ExpeditionChanged += HandleChanged;
+        if (roadCargoSession != null) roadCargoSession.CargoChanged += HandleChanged;
         if (remoteSaleManager != null) remoteSaleManager.RemoteSaleChanged += HandleChanged;
         if (partyManager != null) partyManager.PartyChanged += HandleChanged;
         if (healingManager != null) healingManager.HealingChanged += HandleChanged;
@@ -970,8 +963,7 @@ public class SaveManager : MonoBehaviour
         if (hireManager != null) hireManager.MercenaryDismissed -= HandleMercenaryChanged;
         if (hireManager != null) hireManager.ContractsChanged -= HandleChanged;
         if (storyProgressManager != null) storyProgressManager.MilestoneCompleted -= HandleStoryMilestoneCompleted;
-        if (transportManager != null) transportManager.TransportChanged -= HandleChanged;
-        if (dungeonExpeditionManager != null) dungeonExpeditionManager.ExpeditionChanged -= HandleChanged;
+        if (roadCargoSession != null) roadCargoSession.CargoChanged -= HandleChanged;
         if (remoteSaleManager != null) remoteSaleManager.RemoteSaleChanged -= HandleChanged;
         if (partyManager != null) partyManager.PartyChanged -= HandleChanged;
         if (healingManager != null) healingManager.HealingChanged -= HandleChanged;
@@ -1116,12 +1108,8 @@ public class SaveManager : MonoBehaviour
         storyProgressManager =
             GetComponent<StoryProgressManager>() ??
             FindObjectOfType<StoryProgressManager>();
-        transportManager =
-            GetComponent<TransportManager>() ??
-            FindObjectOfType<TransportManager>();
-        dungeonExpeditionManager =
-            GetComponent<DungeonExpeditionManager>() ??
-            FindObjectOfType<DungeonExpeditionManager>();
+        roadCargoSession = GetComponent<RoadCargoSession>() ??
+            FindObjectOfType<RoadCargoSession>();
         remoteSaleManager =
             GetComponent<RemoteSaleManager>() ??
             FindObjectOfType<RemoteSaleManager>();

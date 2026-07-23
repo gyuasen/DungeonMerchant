@@ -23,6 +23,7 @@ public static class SaveDataMigrator
         MigrateTownInventories(data, sourceVersion);
         MigrateMercenaryConsumables(data, sourceVersion);
         MigrateMercenaryLocations(data, sourceVersion);
+        MigrateLegacyTransportAndExpeditions(data, sourceVersion);
         NormalizeEquipmentReferences(data);
         PopulatePersistentIds(data);
         MigrateStoryProgress(data, sourceVersion);
@@ -191,6 +192,101 @@ public static class SaveDataMigrator
         }
     }
 
+    private static void MigrateLegacyTransportAndExpeditions(
+        GameSaveData data,
+        int sourceVersion)
+    {
+        if (sourceVersion >= 32)
+        {
+            return;
+        }
+
+        foreach (SavedTransportConvoy convoy in data.transportConvoys)
+        {
+            ReturnLegacyConvoyCargo(data, convoy);
+            ReleaseLegacyConvoyEscorts(data, convoy);
+        }
+        data.transportConvoys.Clear();
+        data.dungeonExpeditions.Clear();
+    }
+
+    private static void ReturnLegacyConvoyCargo(
+        GameSaveData data,
+        SavedTransportConvoy convoy)
+    {
+        if (convoy?.cargo == null)
+        {
+            return;
+        }
+
+        foreach (SavedTransportCargo cargo in convoy.cargo)
+        {
+            if (cargo == null || cargo.amount <= 0)
+            {
+                continue;
+            }
+
+            ItemDataSO item = GameAssetRepository.FindByPersistentId<ItemDataSO>(
+                cargo.itemPersistentId,
+                cargo.itemAssetName);
+            if (item == null)
+            {
+                Debug.LogWarning(
+                    $"Legacy transport cargo could not be restored: " +
+                    $"{cargo.itemPersistentId} / {cargo.itemAssetName}.");
+                continue;
+            }
+
+            AddReturnedInventory(data, convoy.originTownIndex, item, cargo.amount);
+        }
+    }
+
+    private static void AddReturnedInventory(
+        GameSaveData data,
+        int townIndex,
+        ItemDataSO item,
+        int amount)
+    {
+        SavedInventoryItem existing = data.inventory.Find(value =>
+            value != null &&
+            value.townIndex == townIndex &&
+            value.itemPersistentId == item.PersistentId);
+        if (existing != null)
+        {
+            existing.amount += amount;
+            return;
+        }
+
+        data.inventory.Add(new SavedInventoryItem
+        {
+            townIndex = townIndex,
+            itemPersistentId = item.PersistentId,
+            itemAssetName = item.name,
+            itemName = item.itemName,
+            amount = amount
+        });
+    }
+
+    private static void ReleaseLegacyConvoyEscorts(
+        GameSaveData data,
+        SavedTransportConvoy convoy)
+    {
+        if (convoy?.escortInstanceIds == null)
+        {
+            return;
+        }
+
+        foreach (string escortId in convoy.escortInstanceIds)
+        {
+            SavedMercenary mercenary = data.hiredMercenaries.Find(value =>
+                value != null && value.instanceId == escortId);
+            if (mercenary != null)
+            {
+                mercenary.townIndex = convoy.originTownIndex;
+            }
+        }
+    }
+
     private static bool HasFullyClearedDungeon(
         List<SavedDungeonFloorProgress> progressEntries)
     {
@@ -227,6 +323,7 @@ public static class SaveDataMigrator
         if (data.hiredMercenaries == null) data.hiredMercenaries = new List<SavedMercenary>();
         if (data.partyMemberIds == null) data.partyMemberIds = new List<string>();
         if (data.transportConvoys == null) data.transportConvoys = new List<SavedTransportConvoy>();
+        if (data.roadCargoSession != null && data.roadCargoSession.cargo == null) data.roadCargoSession.cargo = new List<SavedTransportCargo>();
         if (data.remoteSaleOrders == null) data.remoteSaleOrders = new List<SavedRemoteSaleOrder>();
         if (data.dungeonExpeditions == null)
         {
