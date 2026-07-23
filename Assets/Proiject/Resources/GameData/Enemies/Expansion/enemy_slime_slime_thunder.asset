@@ -23,7 +23,7 @@ MonoBehaviour:
   specialVariantTitle: 
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
-  battleVisualKey: Grade04_slime_thunder
+  battleVisualKey: enemy_slime_slime_thunder
   maxHP: 366
   attack: 51
   defense: 26

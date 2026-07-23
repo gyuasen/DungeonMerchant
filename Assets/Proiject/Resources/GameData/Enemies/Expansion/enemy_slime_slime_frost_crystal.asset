@@ -23,7 +23,7 @@ MonoBehaviour:
   specialVariantTitle: 
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
-  battleVisualKey: Grade03_slime_frost_crystal
+  battleVisualKey: enemy_slime_slime_frost_crystal
   maxHP: 995
   attack: 70
   defense: 52

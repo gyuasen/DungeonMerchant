@@ -23,7 +23,7 @@ MonoBehaviour:
   specialVariantTitle: 
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
-  battleVisualKey: Grade09_kobold_packleader
+  battleVisualKey: enemy_job_kobold_packleader
   maxHP: 38
   attack: 7
   defense: 2

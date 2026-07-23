@@ -260,7 +260,7 @@ public sealed class BattleVisualController : MonoBehaviour
             Image image = portrait.gameObject.AddComponent<Image>();
             image.preserveAspect = true;
             image.raycastTarget = false;
-            image.sprite = ResolveEnemySprite(descriptor.EnemyData);
+            image.sprite = EnemySpriteResolver.Resolve(descriptor.EnemyData);
             hasImage = image.sprite != null;
             image.color = hasImage
                 ? Color.white
@@ -694,52 +694,6 @@ public sealed class BattleVisualController : MonoBehaviour
             : new Color(1f, 0.38f, 0.32f);
         resultText.gameObject.SetActive(true);
         resultText.transform.SetAsLastSibling();
-    }
-
-    private Sprite ResolveEnemySprite(EnemyDataSO data)
-    {
-        if (data == null)
-        {
-            return null;
-        }
-        if (data.battleSprite != null)
-        {
-            return data.battleSprite;
-        }
-
-        string key = string.IsNullOrWhiteSpace(data.battleVisualKey)
-            ? data.name
-            : data.battleVisualKey.Trim();
-        Sprite sprite = Resources.Load<Sprite>($"Battle/Enemies/{key}");
-        if (sprite != null)
-        {
-            return sprite;
-        }
-
-        if (data.isSpecialVariant)
-        {
-            EnemyDataSO source =
-                GameAssetRepository.FindByPersistentId<EnemyDataSO>(
-                    data.runtimeSourcePersistentId);
-            if (source != null && source != data)
-            {
-                return ResolveEnemySprite(source);
-            }
-
-            const string suffix = " Special Variant";
-            if (data.name.EndsWith(suffix, StringComparison.Ordinal))
-            {
-                string sourceName =
-                    data.name.Substring(0, data.name.Length - suffix.Length);
-                sprite = Resources.Load<Sprite>($"Battle/Enemies/{sourceName}");
-                if (sprite != null)
-                {
-                    return sprite;
-                }
-            }
-        }
-
-        return null;
     }
 
     private void AddSpecialVariantEffect(

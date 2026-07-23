@@ -23,7 +23,7 @@ MonoBehaviour:
   specialVariantTitle: 
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
-  battleVisualKey: Grade07_slime_stone
+  battleVisualKey: enemy_slime_slime_stone
   maxHP: 128
   attack: 14
   defense: 8

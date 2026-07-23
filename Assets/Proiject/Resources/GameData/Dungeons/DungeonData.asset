@@ -36,7 +36,7 @@ MonoBehaviour:
   specialBossChance: 0.03
   specialVariantSkillPool: 0100000002000000090000000f00000011000000
   battleBackground: {fileID: 0}
-  battleBackgroundKey: 
+  battleBackgroundKey: Dungeon_OriginCave
   floorClearGoldReward: 40
   clearGoldReward: 1000
   clearItemRewards:

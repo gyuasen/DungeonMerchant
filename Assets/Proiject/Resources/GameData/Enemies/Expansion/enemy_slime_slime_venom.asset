@@ -23,7 +23,7 @@ MonoBehaviour:
   specialVariantTitle: 
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
-  battleVisualKey: Grade08_slime_venom
+  battleVisualKey: enemy_slime_slime_venom
   maxHP: 60
   attack: 10
   defense: 4
