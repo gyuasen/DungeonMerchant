@@ -508,9 +508,145 @@ public partial class SimpleMercenaryHireUI
             hireAndPartyController.TogglePartyMember,
             ShowCharacterDetails,
             merchantStatusAndQuestController.RenewContract,
-            hireAndPartyController.ReleaseMercenary,
+            ShowReleaseConfirmation,
             mercenary => transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId),
             mercenary => dungeonExpeditionManager.IsMercenaryOnExpeditionDuty(mercenary.InstanceId));
+    }
+
+    private void BuildReleaseConfirmationOverlay()
+    {
+        releaseConfirmationOverlay = CreateUIObject(
+            "Release Confirmation Overlay",
+            overlayRoot);
+        releaseConfirmationOverlay.anchorMin = Vector2.zero;
+        releaseConfirmationOverlay.anchorMax = Vector2.one;
+        releaseConfirmationOverlay.offsetMin = Vector2.zero;
+        releaseConfirmationOverlay.offsetMax = Vector2.zero;
+        releaseConfirmationOverlay.gameObject.AddComponent<Image>().color =
+            new Color(0f, 0f, 0f, 0.82f);
+
+        RectTransform window = CreateUIObject(
+            "Release Confirmation Window",
+            releaseConfirmationOverlay);
+        window.anchorMin = window.anchorMax = window.pivot =
+            new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(600f, 390f);
+        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
+        CreateText(
+            window,
+            "契約を解除しますか？",
+            26,
+            FontStyle.Bold,
+            TextAnchor.MiddleCenter,
+            new Vector2(28f, -72f),
+            new Vector2(-28f, -22f),
+            ParchmentTextColor);
+        releaseConfirmationText = CreateText(
+            window,
+            string.Empty,
+            17,
+            FontStyle.Normal,
+            TextAnchor.MiddleCenter,
+            new Vector2(36f, -285f),
+            new Vector2(-36f, -80f),
+            ParchmentTextColor);
+        Button confirmButton = CreateActionButton(
+            window,
+            "契約を解除する",
+            ConfirmRelease);
+        RectTransform confirmRect = confirmButton.GetComponent<RectTransform>();
+        confirmRect.anchorMin = confirmRect.anchorMax = confirmRect.pivot =
+            new Vector2(0.5f, 0f);
+        confirmRect.sizeDelta = new Vector2(200f, 48f);
+        confirmRect.anchoredPosition = new Vector2(-110f, 26f);
+        confirmButton.targetGraphic.color = ImportantButtonColor;
+        Button cancelButton = CreateActionButton(
+            window,
+            "やめる",
+            HideReleaseConfirmation);
+        RectTransform cancelRect = cancelButton.GetComponent<RectTransform>();
+        cancelRect.anchorMin = cancelRect.anchorMax = cancelRect.pivot =
+            new Vector2(0.5f, 0f);
+        cancelRect.sizeDelta = new Vector2(180f, 48f);
+        cancelRect.anchoredPosition = new Vector2(110f, 26f);
+        releaseConfirmationOverlay.gameObject.SetActive(false);
+    }
+
+    private void ShowReleaseConfirmation(MercenaryInstance mercenary)
+    {
+        string unavailableReason = GetReleaseUnavailableReason(mercenary);
+        if (!string.IsNullOrEmpty(unavailableReason))
+        {
+            statusText.text = unavailableReason;
+            return;
+        }
+
+        releaseConfirmationMercenary = mercenary;
+        releaseConfirmationText.text = BuildReleaseConfirmationText(mercenary);
+        releaseConfirmationOverlay.SetAsLastSibling();
+        releaseConfirmationOverlay.gameObject.SetActive(true);
+    }
+
+    private string GetReleaseUnavailableReason(MercenaryInstance mercenary)
+    {
+        if (mercenary == null)
+        {
+            return "契約を解除できる傭兵が選択されていません";
+        }
+
+        if (trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId))
+        {
+            return "修練中の傭兵は契約を解除できません";
+        }
+
+        if (transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId))
+        {
+            return "輸送中の傭兵は契約を解除できません";
+        }
+
+        if (dungeonExpeditionManager.IsMercenaryOnExpeditionDuty(mercenary.InstanceId))
+        {
+            return "遠征中の傭兵は契約を解除できません";
+        }
+
+        return string.Empty;
+    }
+
+    private static string BuildReleaseConfirmationText(MercenaryInstance mercenary)
+    {
+        bool hasEquipment =
+            mercenary.GetEquippedItem(EquipmentSlot.Weapon) != null ||
+            mercenary.GetEquippedItem(EquipmentSlot.Armor) != null ||
+            mercenary.GetEquippedItem(EquipmentSlot.Accessory) != null;
+        string equipmentWarning = hasEquipment
+            ? "\n装備していた武具は傭兵の所在町の倉庫へ戻ります。"
+            : string.Empty;
+        return
+            mercenary.MercenaryName + "\n" +
+            "レベル " + mercenary.Level + "  |  " +
+            JapaneseDisplayText.GetMercenaryClass(mercenary.MercenaryClass) +
+            equipmentWarning +
+            "\n契約を解除すると元に戻せません。";
+    }
+
+    private void ConfirmRelease()
+    {
+        MercenaryInstance mercenary = releaseConfirmationMercenary;
+        HideReleaseConfirmation();
+        if (string.IsNullOrEmpty(GetReleaseUnavailableReason(mercenary)))
+        {
+            hireAndPartyController.ReleaseMercenary(mercenary);
+        }
+        else
+        {
+            statusText.text = GetReleaseUnavailableReason(mercenary);
+        }
+    }
+
+    private void HideReleaseConfirmation()
+    {
+        releaseConfirmationOverlay?.gameObject.SetActive(false);
+        releaseConfirmationMercenary = null;
     }
 
     private void ConfigurePartyListPage(PartyPageUI pageUI)

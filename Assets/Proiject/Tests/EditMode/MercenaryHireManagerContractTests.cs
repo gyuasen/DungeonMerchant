@@ -11,6 +11,7 @@ public sealed class MercenaryHireManagerContractTests
     private DayManager dayManager;
     private MercenaryHireManager hireManager;
     private MercenaryPartyManager partyManager;
+    private MerchantInventory merchantInventory;
     private readonly List<Object> createdObjects = new List<Object>();
 
     [SetUp]
@@ -20,6 +21,7 @@ public sealed class MercenaryHireManagerContractTests
         root.SetActive(false);
         merchantData = root.AddComponent<MerchantData>();
         dayManager = root.AddComponent<DayManager>();
+        merchantInventory = root.AddComponent<MerchantInventory>();
         hireManager = root.AddComponent<MercenaryHireManager>();
         partyManager = root.AddComponent<MercenaryPartyManager>();
         root.SetActive(true);
@@ -96,6 +98,59 @@ public sealed class MercenaryHireManagerContractTests
     }
 
     [Test]
+    public void TryReleaseMercenary_ReturnsAllEquipmentToMercenaryTown()
+    {
+        merchantData.SetGold(100);
+        Assert.That(hireManager.TryHireMercenary(CreateMercenary(30), out var mercenary),
+            Is.True);
+        mercenary.SetCurrentTownIndex(1);
+        EquipmentInstance weapon = EquipmentInstance.CreateFixed(
+            CreateEquipment("Release Weapon", EquipmentSlot.Weapon));
+        EquipmentInstance armor = EquipmentInstance.CreateFixed(
+            CreateEquipment("Release Armor", EquipmentSlot.Armor));
+        EquipmentInstance accessory = EquipmentInstance.CreateFixed(
+            CreateEquipment("Release Accessory", EquipmentSlot.Accessory));
+        Assert.That(mercenary.EquipEquipment(weapon), Is.True);
+        Assert.That(mercenary.EquipEquipment(armor), Is.True);
+        Assert.That(mercenary.EquipEquipment(accessory), Is.True);
+
+        Assert.That(hireManager.TryReleaseMercenary(mercenary), Is.True);
+
+        Assert.That(merchantInventory.GetEquipmentInstancesIn(1),
+            Does.Contain(weapon));
+        Assert.That(merchantInventory.GetEquipmentInstancesIn(1),
+            Does.Contain(armor));
+        Assert.That(merchantInventory.GetEquipmentInstancesIn(1),
+            Does.Contain(accessory));
+        Assert.That(merchantInventory.GetEquipmentInstancesIn(2),
+            Is.Empty);
+    }
+
+    [Test]
+    public void TryReleaseMercenary_ReturnsLegacyEquipmentWhenStorageIsFull()
+    {
+        root.AddComponent<ProgressionManager>();
+        ItemDataSO material = Track(ScriptableObject.CreateInstance<ItemDataSO>());
+        material.itemName = "Full Storage Material";
+        Assert.That(merchantInventory.DepositItemTo(1, material, 30), Is.True);
+        merchantData.SetGold(100);
+        Assert.That(hireManager.TryHireMercenary(CreateMercenary(30), out var mercenary),
+            Is.True);
+        mercenary.SetCurrentTownIndex(1);
+        ItemDataSO legacyWeapon = CreateEquipment(
+            "Legacy Release Weapon",
+            EquipmentSlot.Weapon);
+        Assert.That(mercenary.EquipEquipment(legacyWeapon), Is.True);
+
+        Assert.That(hireManager.TryReleaseMercenary(mercenary), Is.True);
+
+        Assert.That(merchantInventory.GetUsedStorageSlotsIn(1), Is.EqualTo(30));
+        Assert.That(merchantInventory.GetEquipmentInstancesIn(1), Has.Count.EqualTo(1));
+        Assert.That(merchantInventory.GetEquipmentInstancesIn(1)[0].BaseItem,
+            Is.SameAs(legacyWeapon));
+    }
+
+    [Test]
     public void ExclusiveContract_FailedRoll_DoesNotChargeHireCost()
     {
         merchantData.SetGold(100);
@@ -122,6 +177,17 @@ public sealed class MercenaryHireManagerContractTests
         data.mercenaryClass = MercenaryClass.Warrior;
         data.hireCost = hireCost;
         return data;
+    }
+
+    private ItemDataSO CreateEquipment(string itemName, EquipmentSlot slot)
+    {
+        ItemDataSO item = Track(ScriptableObject.CreateInstance<ItemDataSO>());
+        item.name = itemName;
+        item.itemName = itemName;
+        item.itemType = ItemType.Equipment;
+        item.equipmentSlot = slot;
+        item.allClassesCanEquip = true;
+        return item;
     }
 
     private T Track<T>(T created) where T : Object

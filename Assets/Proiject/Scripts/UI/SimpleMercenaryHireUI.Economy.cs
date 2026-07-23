@@ -71,10 +71,22 @@ public partial class SimpleMercenaryHireUI
         storageRect.sizeDelta = new Vector2(130f, 38f);
         storageRect.anchoredPosition = new Vector2(478f, -78f);
 
+        Button sellOnlyButton = CreateActionButton(
+            inventoryPage,
+            "売却用素材を一括売却",
+            ShowSellOnlyConfirmation);
+        RectTransform sellOnlyRect = sellOnlyButton.GetComponent<RectTransform>();
+        sellOnlyRect.anchorMin = sellOnlyRect.anchorMax = new Vector2(1f, 1f);
+        sellOnlyRect.pivot = new Vector2(1f, 1f);
+        sellOnlyRect.sizeDelta = new Vector2(190f, 38f);
+        sellOnlyRect.anchoredPosition = new Vector2(0f, -78f);
+
+        CreateInventorySidebar();
+
         RectTransform viewport = CreateUIObject("Inventory Viewport", inventoryPage);
         viewport.anchorMin = new Vector2(0f, 0f);
         viewport.anchorMax = new Vector2(1f, 1f);
-        viewport.offsetMin = Vector2.zero;
+        viewport.offsetMin = new Vector2(142f, 0f);
         viewport.offsetMax = new Vector2(0f, -126f);
 
         Image viewportImage = viewport.gameObject.AddComponent<Image>();
@@ -143,10 +155,12 @@ public partial class SimpleMercenaryHireUI
             new Vector2(0f, -38f),
             ParchmentMutedColor);
 
+        CreateMarketSidebar();
+
         RectTransform viewport = CreateUIObject("Market Viewport", marketPage);
         viewport.anchorMin = new Vector2(0f, 0f);
         viewport.anchorMax = new Vector2(1f, 1f);
-        viewport.offsetMin = Vector2.zero;
+        viewport.offsetMin = new Vector2(142f, 0f);
         viewport.offsetMax = new Vector2(0f, -84f);
 
         Image viewportImage = viewport.gameObject.AddComponent<Image>();
@@ -181,7 +195,7 @@ public partial class SimpleMercenaryHireUI
             WoodButtonColor,
             FrameColor,
             economyController.GetMarketRows,
-            EconomyController.ShouldShowMarketEntry,
+            economyController.ShouldShowMarketEntryForSidebar,
             entry => marketStockManager.CanBuy(entry),
             economyController.BuyMarketItem,
             economyController.RegisterMarketBuyButton,
@@ -207,10 +221,32 @@ public partial class SimpleMercenaryHireUI
             new Vector2(0f, -38f),
             ParchmentMutedColor);
 
+        CreateBlacksmithSidebar();
+
+        Button craftableButton = CreateActionButton(
+            blacksmithPage,
+            "製作可能のみ: OFF",
+            ToggleBlacksmithCraftableOnly);
+        RectTransform craftableRect = craftableButton.GetComponent<RectTransform>();
+        craftableRect.anchorMin = craftableRect.anchorMax = new Vector2(1f, 1f);
+        craftableRect.pivot = new Vector2(1f, 1f);
+        craftableRect.sizeDelta = new Vector2(150f, 32f);
+        craftableRect.anchoredPosition = new Vector2(0f, -34f);
+
+        Button rankSortButton = CreateActionButton(
+            blacksmithPage,
+            "ランク順: 昇順",
+            ToggleBlacksmithRankSort);
+        RectTransform rankSortRect = rankSortButton.GetComponent<RectTransform>();
+        rankSortRect.anchorMin = rankSortRect.anchorMax = new Vector2(1f, 1f);
+        rankSortRect.pivot = new Vector2(1f, 1f);
+        rankSortRect.sizeDelta = new Vector2(150f, 32f);
+        rankSortRect.anchoredPosition = new Vector2(-160f, -34f);
+
         RectTransform viewport = CreateUIObject("Blacksmith Viewport", blacksmithPage);
         viewport.anchorMin = Vector2.zero;
         viewport.anchorMax = Vector2.one;
-        viewport.offsetMin = Vector2.zero;
+        viewport.offsetMin = new Vector2(142f, 0f);
         viewport.offsetMax = new Vector2(0f, -84f);
 
         Image viewportImage = viewport.gameObject.AddComponent<Image>();
@@ -244,8 +280,8 @@ public partial class SimpleMercenaryHireUI
             RowColor,
             WoodButtonColor,
             FrameColor,
-            economyController.GetBlacksmithRows,
-            EconomyController.ShouldShowBlacksmithRecipe,
+            economyController.GetSortedBlacksmithRows,
+            economyController.ShouldShowBlacksmithRecipeForSidebar,
             item => merchantInventory.GetItemAmount(item),
             recipe => blacksmithManager.CanCraft(recipe),
             economyController.CraftEquipment,
@@ -421,6 +457,99 @@ public partial class SimpleMercenaryHireUI
         storageUpgradeConfirmationOverlay.gameObject.SetActive(false);
     }
 
+    private void CreateInventorySidebar()
+    {
+        inventorySidebarButtons.Clear();
+        CreateSidebarButton(inventoryPage, inventorySidebarButtons, "全て", 0, () => economyController.SetInventorySidebarCategory(InventorySidebarCategory.All));
+        CreateSidebarButton(inventoryPage, inventorySidebarButtons, "素材", 1, () => economyController.SetInventorySidebarCategory(InventorySidebarCategory.Material));
+        CreateSidebarButton(inventoryPage, inventorySidebarButtons, "消耗品", 2, () => economyController.SetInventorySidebarCategory(InventorySidebarCategory.Consumable));
+        CreateSidebarButton(inventoryPage, inventorySidebarButtons, "装備", 3, () => economyController.SetInventorySidebarCategory(InventorySidebarCategory.Equipment));
+        CreateSidebarButton(inventoryPage, inventorySidebarButtons, "売却用", 4, () => economyController.SetInventorySidebarCategory(InventorySidebarCategory.SellOnly));
+        SetSidebarSelection(inventorySidebarButtons, 0);
+    }
+
+    private void CreateMarketSidebar()
+    {
+        marketSidebarButtons.Clear();
+        CreateSidebarButton(marketPage, marketSidebarButtons, "全て", 0, () => economyController.SetMarketSidebarCategory(MarketSidebarCategory.All));
+        CreateSidebarButton(marketPage, marketSidebarButtons, "装備", 1, () => economyController.SetMarketSidebarCategory(MarketSidebarCategory.Equipment));
+        CreateSidebarButton(marketPage, marketSidebarButtons, "消耗品", 2, () => economyController.SetMarketSidebarCategory(MarketSidebarCategory.Consumable));
+        CreateSidebarButton(marketPage, marketSidebarButtons, "素材", 3, () => economyController.SetMarketSidebarCategory(MarketSidebarCategory.Material));
+        SetSidebarSelection(marketSidebarButtons, 0);
+    }
+
+    private void CreateBlacksmithSidebar()
+    {
+        blacksmithSidebarButtons.Clear();
+        CreateSidebarButton(blacksmithPage, blacksmithSidebarButtons, "全職種", 0, () => economyController.SetBlacksmithSidebarCategory(BlacksmithSidebarCategory.All));
+        CreateSidebarButton(blacksmithPage, blacksmithSidebarButtons, "戦士", 1, () => economyController.SetBlacksmithSidebarCategory(BlacksmithSidebarCategory.Warrior));
+        CreateSidebarButton(blacksmithPage, blacksmithSidebarButtons, "弓使い", 2, () => economyController.SetBlacksmithSidebarCategory(BlacksmithSidebarCategory.Archer));
+        CreateSidebarButton(blacksmithPage, blacksmithSidebarButtons, "魔術師", 3, () => economyController.SetBlacksmithSidebarCategory(BlacksmithSidebarCategory.Mage));
+        CreateSidebarButton(blacksmithPage, blacksmithSidebarButtons, "僧侶", 4, () => economyController.SetBlacksmithSidebarCategory(BlacksmithSidebarCategory.Priest));
+        CreateSidebarButton(blacksmithPage, blacksmithSidebarButtons, "盗賊", 5, () => economyController.SetBlacksmithSidebarCategory(BlacksmithSidebarCategory.Rogue));
+        CreateSidebarButton(blacksmithPage, blacksmithSidebarButtons, "槍使い", 6, () => economyController.SetBlacksmithSidebarCategory(BlacksmithSidebarCategory.Lancer));
+        SetSidebarSelection(blacksmithSidebarButtons, 0);
+    }
+
+    private void CreateSidebarButton(RectTransform page, List<Button> buttons, string label, int index, System.Action action)
+    {
+        Button button = CreateActionButton(page, label, () =>
+        {
+            action();
+            SetSidebarSelection(buttons, index);
+        });
+        RectTransform rect = button.GetComponent<RectTransform>();
+        rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
+        rect.pivot = new Vector2(0f, 1f);
+        rect.sizeDelta = new Vector2(126f, 36f);
+        rect.anchoredPosition = new Vector2(0f, -94f - index * 42f);
+        buttons.Add(button);
+    }
+
+    private void SetSidebarSelection(List<Button> buttons, int selectedIndex)
+    {
+        for (int i = 0; i < buttons.Count; i++)
+        {
+            Image image = buttons[i].targetGraphic as Image;
+            if (image != null)
+            {
+                image.color = i == selectedIndex ? AccentColor : WoodButtonColor;
+            }
+        }
+    }
+
+    private void ToggleBlacksmithCraftableOnly()
+    {
+        economyController.ToggleBlacksmithCraftableOnly();
+        RefreshBlacksmithFilterLabels();
+    }
+
+    private void ToggleBlacksmithRankSort()
+    {
+        economyController.ToggleBlacksmithRankSort();
+        RefreshBlacksmithFilterLabels();
+    }
+
+    private void RefreshBlacksmithFilterLabels()
+    {
+        foreach (Button button in blacksmithPage.GetComponentsInChildren<Button>())
+        {
+            Text label = button.GetComponentInChildren<Text>();
+            if (label == null)
+            {
+                continue;
+            }
+            if (label.text.StartsWith("製作可能のみ:"))
+            {
+                label.text = "製作可能のみ: " + (economyController.IsBlacksmithCraftableOnly ? "ON" : "OFF");
+            }
+            else if (label.text.StartsWith("ランク順:"))
+            {
+                label.text = "ランク順: " + (economyController.IsBlacksmithRankAscending ? "昇順" : "降順");
+            }
+        }
+    }
+
     private void BuildItemDetailOverlay()
     {
         itemDetailOverlay = CreateUIObject("Item Detail Overlay", overlayRoot);
@@ -434,7 +563,7 @@ public partial class SimpleMercenaryHireUI
         RectTransform window = CreateUIObject("Item Detail Window", itemDetailOverlay);
         window.anchorMin = window.anchorMax = window.pivot =
             new Vector2(0.5f, 0.5f);
-        window.sizeDelta = new Vector2(680f, 480f);
+        window.sizeDelta = new Vector2(680f, 600f);
         ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
         itemDetailTitle = CreateText(window, string.Empty, 25, FontStyle.Bold,
             TextAnchor.MiddleLeft, new Vector2(142f, -64f),
@@ -454,11 +583,11 @@ public partial class SimpleMercenaryHireUI
         itemDetailImagePlaceholder.rectTransform.offsetMin = Vector2.zero;
         itemDetailImagePlaceholder.rectTransform.offsetMax = Vector2.zero;
         itemDetailText = CreateText(window, string.Empty, 15, FontStyle.Normal,
-            TextAnchor.UpperLeft, new Vector2(34f, -280f),
+            TextAnchor.UpperLeft, new Vector2(34f, -230f),
             new Vector2(-34f, -92f), ParchmentTextColor);
         itemDetailTransactionText = CreateText(window, string.Empty, 15,
-            FontStyle.Bold, TextAnchor.UpperLeft, new Vector2(34f, -380f),
-            new Vector2(-34f, -282f), MutedTextColor);
+            FontStyle.Bold, TextAnchor.UpperLeft, new Vector2(34f, -490f),
+            new Vector2(-34f, -232f), MutedTextColor);
 
         itemDetailActionButton = CreateActionButton(
             window,
@@ -479,6 +608,65 @@ public partial class SimpleMercenaryHireUI
         closeRect.sizeDelta = new Vector2(180f, 48f);
         closeRect.anchoredPosition = new Vector2(105f, 26f);
         itemDetailOverlay.gameObject.SetActive(false);
+    }
+
+    private void BuildSellOnlyConfirmationOverlay()
+    {
+        sellOnlyConfirmationOverlay = CreateUIObject("Sell Only Confirmation Overlay", overlayRoot);
+        sellOnlyConfirmationOverlay.anchorMin = Vector2.zero;
+        sellOnlyConfirmationOverlay.anchorMax = Vector2.one;
+        sellOnlyConfirmationOverlay.offsetMin = Vector2.zero;
+        sellOnlyConfirmationOverlay.offsetMax = Vector2.zero;
+        sellOnlyConfirmationOverlay.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.82f);
+        RectTransform window = CreateUIObject("Sell Only Confirmation Window", sellOnlyConfirmationOverlay);
+        window.anchorMin = window.anchorMax = window.pivot = new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(560f, 340f);
+        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
+        CreateText(window, "売却用素材を一括売却しますか？", 24, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(28f, -72f), new Vector2(-28f, -22f), ParchmentTextColor);
+        sellOnlyConfirmationText = CreateText(window, string.Empty, 18, FontStyle.Normal, TextAnchor.MiddleCenter, new Vector2(36f, -194f), new Vector2(-36f, -82f), ParchmentTextColor);
+        Button confirm = CreateActionButton(window, "すべて売却", ConfirmSellOnlyMaterials);
+        RectTransform confirmRect = confirm.GetComponent<RectTransform>();
+        confirmRect.anchorMin = confirmRect.anchorMax = confirmRect.pivot = new Vector2(0.5f, 0f);
+        confirmRect.sizeDelta = new Vector2(180f, 48f);
+        confirmRect.anchoredPosition = new Vector2(-105f, 26f);
+        confirm.targetGraphic.color = ImportantButtonColor;
+        Button cancel = CreateActionButton(window, "キャンセル", HideSellOnlyConfirmation);
+        RectTransform cancelRect = cancel.GetComponent<RectTransform>();
+        cancelRect.anchorMin = cancelRect.anchorMax = cancelRect.pivot = new Vector2(0.5f, 0f);
+        cancelRect.sizeDelta = new Vector2(180f, 48f);
+        cancelRect.anchoredPosition = new Vector2(105f, 26f);
+        sellOnlyConfirmationOverlay.gameObject.SetActive(false);
+    }
+
+    private void ShowSellOnlyConfirmation()
+    {
+        List<InventoryItemStack> stacks = economyController.GetSellOnlyStacks();
+        int itemCount = 0;
+        foreach (InventoryItemStack stack in stacks)
+        {
+            itemCount += stack.Amount;
+        }
+        sellOnlyConfirmationText.text = itemCount > 0
+            ? $"売却対象: {stacks.Count}種類 / {itemCount}個\n合計獲得: {economyController.GetSellOnlyTotalGold():N0}G\n制作素材は対象に含まれません。"
+            : "売却できる売却用素材はありません。\n制作素材は対象に含まれません。";
+        sellOnlyConfirmationOverlay.SetAsLastSibling();
+        sellOnlyConfirmationOverlay.gameObject.SetActive(true);
+    }
+
+    private void ConfirmSellOnlyMaterials()
+    {
+        int earnedGold = economyController.SellAllSellOnlyMaterials(out int soldCount, out bool stoppedEarly);
+        HideSellOnlyConfirmation();
+        statusText.text = stoppedEarly
+            ? $"{soldCount}個を売却し、{earnedGold:N0}Gを獲得しました。残りは売却していません。"
+            : soldCount > 0
+            ? $"売却用素材を{soldCount}個まとめて売却し、{earnedGold:N0}Gを獲得しました。"
+            : "売却できる売却用素材はありません。";
+    }
+
+    private void HideSellOnlyConfirmation()
+    {
+        sellOnlyConfirmationOverlay?.gameObject.SetActive(false);
     }
 
     private void ShowBlacksmithRecipeDetail(EquipmentRecipeSO recipe)
@@ -537,7 +725,9 @@ public partial class SimpleMercenaryHireUI
             result.Append("\n<color=").Append(color).Append(">")
                 .Append(JapaneseDisplayText.GetItemName(requirement.item))
                 .Append(" ").Append(owned).Append("/")
-                .Append(requirement.amount).Append("</color>");
+                .Append(requirement.amount).Append("</color>")
+                .Append("\n  入手: ")
+                .Append(ItemUsageTextBuilder.BuildAcquisitionText(requirement.item));
         }
         return result.ToString();
     }

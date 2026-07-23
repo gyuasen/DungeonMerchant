@@ -7,6 +7,46 @@ public static class ItemUsageTextBuilder
     private const int MaximumNamesPerCategory = 3;
     private static Dictionary<ItemDataSO, List<EquipmentRecipeSO>> recipesByMaterial;
     private static Dictionary<ItemDataSO, List<EnemyDataSO>> enemiesByDropItem;
+    private static Dictionary<ItemDataSO, List<DungeonDataSO>> dungeonsByClearReward;
+
+    public static string BuildAcquisitionText(ItemDataSO item)
+    {
+        if (item == null)
+        {
+            return "入手経路不明";
+        }
+        EnsureUsageCaches();
+        List<string> sources = new List<string>();
+        if (enemiesByDropItem.TryGetValue(item, out List<EnemyDataSO> enemies))
+        {
+            foreach (EnemyDataSO enemy in enemies)
+            {
+                string name = GetJapaneseEnemyNameOrEmpty(enemy);
+                if (!string.IsNullOrEmpty(name))
+                {
+                    sources.Add(name + "がドロップ");
+                }
+            }
+        }
+        if (dungeonsByClearReward.TryGetValue(item, out List<DungeonDataSO> dungeons))
+        {
+            foreach (DungeonDataSO dungeon in dungeons)
+            {
+                string name = dungeon.dungeonName;
+                if (ContainsJapaneseCharacter(name))
+                {
+                    sources.Add(name + "のクリア報酬");
+                }
+            }
+        }
+        if (item.acquisitionType == ItemAcquisitionType.Market)
+        {
+            sources.Add("市場で購入可");
+        }
+        return sources.Count > 0
+            ? string.Join(" / ", sources.Distinct().Take(MaximumNamesPerCategory))
+            : "入手経路不明";
+    }
 
     public static string Build(ItemDataSO item)
     {
@@ -223,13 +263,15 @@ public static class ItemUsageTextBuilder
 
     private static void EnsureUsageCaches()
     {
-        if (recipesByMaterial != null && enemiesByDropItem != null)
+        if (recipesByMaterial != null && enemiesByDropItem != null &&
+            dungeonsByClearReward != null)
         {
             return;
         }
 
         recipesByMaterial = new Dictionary<ItemDataSO, List<EquipmentRecipeSO>>();
         enemiesByDropItem = new Dictionary<ItemDataSO, List<EnemyDataSO>>();
+        dungeonsByClearReward = new Dictionary<ItemDataSO, List<DungeonDataSO>>();
         foreach (EquipmentRecipeSO recipe in GameAssetRepository.LoadAll<EquipmentRecipeSO>())
         {
             if (recipe?.materials == null || recipe.resultItem == null)
@@ -278,6 +320,30 @@ public static class ItemUsageTextBuilder
                 if (!enemies.Contains(enemy))
                 {
                     enemies.Add(enemy);
+                }
+            }
+        }
+
+        foreach (DungeonDataSO dungeon in GameAssetRepository.LoadAll<DungeonDataSO>())
+        {
+            if (dungeon?.clearItemRewards == null)
+            {
+                continue;
+            }
+            foreach (DungeonItemReward reward in dungeon.clearItemRewards)
+            {
+                if (reward?.item == null)
+                {
+                    continue;
+                }
+                if (!dungeonsByClearReward.TryGetValue(reward.item, out List<DungeonDataSO> dungeons))
+                {
+                    dungeons = new List<DungeonDataSO>();
+                    dungeonsByClearReward.Add(reward.item, dungeons);
+                }
+                if (!dungeons.Contains(dungeon))
+                {
+                    dungeons.Add(dungeon);
                 }
             }
         }

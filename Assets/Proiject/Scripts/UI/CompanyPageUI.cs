@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -17,6 +18,18 @@ public sealed class CompanyPageUI : ListPageUIBase
     private Action<MercenaryInstance> releaseContractAction;
     private Func<MercenaryInstance, bool> isOnTransportDuty;
     private Func<MercenaryInstance, bool> isOnExpeditionDuty;
+    private CompanySortMode sortMode;
+    private MercenaryClass? classFilter;
+    private Button sortButton;
+    private Button filterButton;
+
+    private enum CompanySortMode
+    {
+        JoinOrderAscending,
+        JoinOrderDescending,
+        LevelAscending,
+        LevelDescending
+    }
 
     public void Initialize(
         Text title,
@@ -76,6 +89,7 @@ public sealed class CompanyPageUI : ListPageUIBase
         releaseContractAction = targetReleaseContractAction;
         isOnTransportDuty = targetIsOnTransportDuty;
         isOnExpeditionDuty = targetIsOnExpeditionDuty;
+        EnsureListControls();
     }
 
     public override void Refresh()
@@ -87,13 +101,118 @@ public sealed class CompanyPageUI : ListPageUIBase
         }
 
         RebuildRows(
-            mercenaryProvider.Invoke(),
+            GetDisplayedMercenaries(),
             128f,
             430f,
-            "雇用済みの傭兵はいません。",
+            "該当する傭兵はいません",
             mercenary => mercenary != null,
             (_, mercenary, rowTop) => CreateCompanyRow(mercenary, rowTop),
             (_, message) => CreateEmptyMessage(message));
+    }
+
+    private IEnumerable<MercenaryInstance> GetDisplayedMercenaries()
+    {
+        IEnumerable<MercenaryInstance> mercenaries =
+            mercenaryProvider?.Invoke() ?? Enumerable.Empty<MercenaryInstance>();
+        IEnumerable<MercenaryInstance> filtered = mercenaries.Where(
+            mercenary => mercenary != null &&
+                         (!classFilter.HasValue ||
+                          mercenary.MercenaryClass == classFilter.Value));
+        switch (sortMode)
+        {
+            case CompanySortMode.JoinOrderDescending:
+                return filtered.Reverse();
+            case CompanySortMode.LevelAscending:
+                return filtered.OrderBy(mercenary => mercenary.Level);
+            case CompanySortMode.LevelDescending:
+                return filtered.OrderByDescending(mercenary => mercenary.Level);
+            default:
+                return filtered;
+        }
+    }
+
+    private void EnsureListControls()
+    {
+        if (sortButton != null || ListRoot == null ||
+            ListRoot.parent?.parent is not RectTransform pageRoot)
+        {
+            return;
+        }
+
+        sortButton = CreateActionButton(
+            pageRoot, string.Empty, RowFont, ButtonColor, FrameColor,
+            ButtonTextColor, CycleSortMode);
+        sortButton.name = "Company Sort Button";
+        SetHeaderButtonPosition(sortButton, -472f);
+        filterButton = CreateActionButton(
+            pageRoot, string.Empty, RowFont, ButtonColor, FrameColor,
+            ButtonTextColor, CycleClassFilter);
+        filterButton.name = "Company Class Filter Button";
+        SetHeaderButtonPosition(filterButton, -590f);
+        UpdateListControlLabels();
+    }
+
+    private static void SetHeaderButtonPosition(Button button, float x)
+    {
+        RectTransform rect = button.GetComponent<RectTransform>();
+        rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(1f, 1f);
+        rect.sizeDelta = new Vector2(112f, 38f);
+        rect.anchoredPosition = new Vector2(x, -4f);
+    }
+
+    private void CycleSortMode()
+    {
+        sortMode = (CompanySortMode)(((int)sortMode + 1) % 4);
+        UpdateListControlLabels();
+        Refresh();
+    }
+
+    private void CycleClassFilter()
+    {
+        Array classes = Enum.GetValues(typeof(MercenaryClass));
+        int currentIndex = classFilter.HasValue
+            ? Array.IndexOf(classes, classFilter.Value)
+            : -1;
+        classFilter = currentIndex + 1 >= classes.Length
+            ? (MercenaryClass?)null
+            : (MercenaryClass)classes.GetValue(currentIndex + 1);
+        UpdateListControlLabels();
+        Refresh();
+    }
+
+    private void UpdateListControlLabels()
+    {
+        SetButtonLabel(sortButton, GetSortLabel());
+        SetButtonLabel(
+            filterButton,
+            classFilter.HasValue
+                ? "職種: " + JapaneseDisplayText.GetMercenaryClass(
+                    classFilter.Value)
+                : "職種: すべて");
+    }
+
+    private static void SetButtonLabel(Button button, string label)
+    {
+        Text text = button != null ? button.GetComponentInChildren<Text>() : null;
+        if (text != null)
+        {
+            text.text = label;
+        }
+    }
+
+    private string GetSortLabel()
+    {
+        switch (sortMode)
+        {
+            case CompanySortMode.JoinOrderDescending:
+                return "並替: 加入順↓";
+            case CompanySortMode.LevelAscending:
+                return "並替: Lv↑";
+            case CompanySortMode.LevelDescending:
+                return "並替: Lv↓";
+            default:
+                return "並替: 加入順↑";
+        }
     }
 
     private void CreateCompanyRow(
