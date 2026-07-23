@@ -60,7 +60,11 @@ public class BlacksmithManager : MonoBehaviour
             !availableRecipes.Contains(recipe) ||
             merchantData == null ||
             merchantInventory == null ||
-            !merchantData.CanPay(recipe.goldCost))
+            !merchantData.CanPay(recipe.goldCost) ||
+            (!recipe.resultItem.IsEquipment &&
+             !merchantInventory.CanAddItem(
+                 recipe.resultItem,
+                 recipe.resultAmount)))
         {
             return false;
         }
@@ -89,33 +93,57 @@ public class BlacksmithManager : MonoBehaviour
         ResolveReferences();
         LastCraftedEquipment = null;
 
-        if (!CanCraft(recipe) || !merchantData.TryPayGold(recipe.goldCost))
+        if (!CanCraft(recipe))
         {
+            return false;
+        }
+
+        bool addedItems = !recipe.resultItem.IsEquipment;
+        if (addedItems &&
+            !merchantInventory.TryAddItem(recipe.resultItem, recipe.resultAmount))
+        {
+            return false;
+        }
+
+        if (!merchantData.TryPayGold(recipe.goldCost))
+        {
+            RollbackCraftedItems(recipe, addedItems);
             return false;
         }
 
         if (!merchantInventory.TryConsumeMaterials(recipe.materials))
         {
+            merchantData.AddGold(recipe.goldCost);
+            RollbackCraftedItems(recipe, addedItems);
             return false;
         }
 
-        for (int i = 0; i < recipe.resultAmount; i++)
+        if (recipe.resultItem.IsEquipment)
         {
-            if (recipe.resultItem.IsEquipment)
+            for (int i = 0; i < recipe.resultAmount; i++)
             {
                 EquipmentInstance equipment =
                     EquipmentInstance.CreateFixed(recipe.resultItem);
                 merchantInventory.AddEquipmentInstance(equipment);
                 LastCraftedEquipment = equipment;
             }
-            else
-            {
-                merchantInventory.AddItem(recipe.resultItem);
-            }
         }
         Debug.Log($"Crafted {recipe.resultItem.itemName} x{recipe.resultAmount}");
         CraftingChanged?.Invoke();
         return true;
+    }
+
+    private void RollbackCraftedItems(
+        EquipmentRecipeSO recipe,
+        bool addedItems)
+    {
+        if (addedItems &&
+            !merchantInventory.TryRemoveItem(
+                recipe.resultItem,
+                recipe.resultAmount))
+        {
+            Debug.LogError("Failed to roll back a crafted item inventory addition.", this);
+        }
     }
 
     private void EnsureRecipesPopulated()

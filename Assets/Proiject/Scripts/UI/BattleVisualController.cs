@@ -24,7 +24,10 @@ public sealed class BattleVisualController : MonoBehaviour
     private bool skipPresentationRequested;
 
     public bool IsPresentationBusy { get; private set; }
+    public int PresentationProgressVersion { get; private set; }
     public event Action PresentationCompleted;
+    public event Action<string, BattleLogType> PresentationLog;
+    public event Action<BattleSoundCue> PresentationSound;
 
     public void FinishPresentationImmediately()
     {
@@ -33,11 +36,17 @@ public sealed class BattleVisualController : MonoBehaviour
             return;
         }
 
-        StopPlayback();
-        skipPresentationRequested = true;
-        SynchronizeSlotsToBattleState();
-
-        CompletePresentation();
+        try
+        {
+            StopPlayback();
+            skipPresentationRequested = true;
+            ApplyQueuedEventsImmediately();
+            SynchronizeSlotsToBattleState();
+        }
+        finally
+        {
+            CompletePresentation();
+        }
     }
 
     public void Configure(BattleManager manager, Font displayFont)
@@ -72,6 +81,7 @@ public sealed class BattleVisualController : MonoBehaviour
 
     private void OnDestroy()
     {
+        ApplyQueuedEventsImmediately();
         Unsubscribe();
     }
 
@@ -93,6 +103,7 @@ public sealed class BattleVisualController : MonoBehaviour
     private void HandleRosterPrepared(BattlePresentationRoster roster)
     {
         StopPlayback();
+        ApplyQueuedEventsImmediately();
         skipPresentationRequested = false;
         IsPresentationBusy = true;
         slots.Clear();
@@ -368,13 +379,14 @@ public sealed class BattleVisualController : MonoBehaviour
         {
             StopPlayback();
             skipPresentationRequested = true;
+            ApplyQueuedEventsImmediately();
             return;
         }
 
         if (skipPresentationRequested ||
             (battleManager != null && battleManager.IsSkippingToBattleEnd))
         {
-            ApplyImmediately(presentationEvent);
+            ApplyImmediately(presentationEvent, true);
             return;
         }
 
@@ -400,6 +412,7 @@ public sealed class BattleVisualController : MonoBehaviour
         while (eventQueue.Count > 0)
         {
             BattlePresentationEvent presentationEvent = eventQueue.Dequeue();
+            PresentationProgressVersion++;
             yield return PlayEvent(presentationEvent);
         }
         playbackRoutine = null;
@@ -407,6 +420,7 @@ public sealed class BattleVisualController : MonoBehaviour
 
     private IEnumerator PlayEvent(BattlePresentationEvent presentationEvent)
     {
+        NotifyPresentationStarted(presentationEvent, false);
         switch (presentationEvent.Type)
         {
             case BattlePresentationEventType.Action:
@@ -454,6 +468,14 @@ public sealed class BattleVisualController : MonoBehaviour
             case BattlePresentationEventType.BattleCompleted:
                 ShowResult(presentationEvent.Victory);
                 yield return Wait(BattleResultDisplaySeconds);
+                break;
+            case BattlePresentationEventType.Reward:
+                yield return Wait(0.01f);
+                break;
+            case BattlePresentationEventType.Log:
+                yield return Wait(0.01f);
+                break;
+            case BattlePresentationEventType.PresentationComplete:
                 CompletePresentation();
                 break;
         }
@@ -625,8 +647,11 @@ public sealed class BattleVisualController : MonoBehaviour
         }
     }
 
-    private void ApplyImmediately(BattlePresentationEvent presentationEvent)
+    private void ApplyImmediately(
+        BattlePresentationEvent presentationEvent,
+        bool suppressActionSounds = false)
     {
+        NotifyPresentationStarted(presentationEvent, suppressActionSounds);
         if (presentationEvent.Type == BattlePresentationEventType.Damage ||
             presentationEvent.Type == BattlePresentationEventType.Heal ||
             presentationEvent.Type == BattlePresentationEventType.Defeated)
@@ -645,6 +670,10 @@ public sealed class BattleVisualController : MonoBehaviour
         if (presentationEvent.Type == BattlePresentationEventType.BattleCompleted)
         {
             ShowResult(presentationEvent.Victory);
+        }
+        if (presentationEvent.Type ==
+            BattlePresentationEventType.PresentationComplete)
+        {
             CompletePresentation();
         }
     }
@@ -658,7 +687,66 @@ public sealed class BattleVisualController : MonoBehaviour
 
         IsPresentationBusy = false;
         skipPresentationRequested = false;
+        PresentationProgressVersion++;
         PresentationCompleted?.Invoke();
+    }
+
+    private void ApplyQueuedEventsImmediately()
+    {
+        while (eventQueue.Count > 0)
+        {
+            ApplyImmediately(eventQueue.Dequeue(), true);
+        }
+    }
+
+    private void NotifyPresentationStarted(
+        BattlePresentationEvent presentationEvent,
+        bool suppressActionSounds)
+    {
+        if (!string.IsNullOrWhiteSpace(presentationEvent.LogMessage))
+        {
+            Delegate[] handlers = PresentationLog?.GetInvocationList();
+            if (handlers != null)
+            {
+                for (int i = 0; i < handlers.Length; i++)
+                {
+                    try
+                    {
+                        ((Action<string, BattleLogType>)handlers[i]).Invoke(
+                            presentationEvent.LogMessage,
+                            presentationEvent.LogType);
+                    }
+                    catch (Exception exception)
+                    {
+                        Debug.LogException(exception, this);
+                    }
+                }
+            }
+        }
+
+        BattleSoundCue soundCue = presentationEvent.SoundCue;
+        bool isResultSound = soundCue == BattleSoundCue.Victory ||
+                             soundCue == BattleSoundCue.Loss ||
+                             soundCue == BattleSoundCue.Reward;
+        if (soundCue != BattleSoundCue.None &&
+            (!suppressActionSounds || isResultSound))
+        {
+            Delegate[] handlers = PresentationSound?.GetInvocationList();
+            if (handlers != null)
+            {
+                for (int i = 0; i < handlers.Length; i++)
+                {
+                    try
+                    {
+                        ((Action<BattleSoundCue>)handlers[i]).Invoke(soundCue);
+                    }
+                    catch (Exception exception)
+                    {
+                        Debug.LogException(exception, this);
+                    }
+                }
+            }
+        }
     }
 
     private void UpdateHP(BattlePresentationEvent presentationEvent)
@@ -847,7 +935,6 @@ public sealed class BattleVisualController : MonoBehaviour
             StopCoroutine(introRoutine);
             introRoutine = null;
         }
-        eventQueue.Clear();
     }
 
     private void TryStartIntro()

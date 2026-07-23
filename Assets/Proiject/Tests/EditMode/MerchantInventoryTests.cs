@@ -122,6 +122,13 @@ public sealed class MerchantInventoryTests
         inventory.AddEquipmentInstance(equipment);
 
         int expectedSellPrice = inventory.GetSellPrice(equipment);
+        MerchantInventorySale sale = default;
+        int saleCount = 0;
+        inventory.ItemSold += value =>
+        {
+            sale = value;
+            saleCount++;
+        };
         Assert.That(expectedSellPrice, Is.EqualTo(120));
         int goldBefore = merchantData.Gold;
 
@@ -130,6 +137,11 @@ public sealed class MerchantInventoryTests
         Assert.That(result, Is.True);
         CollectionAssert.DoesNotContain(inventory.EquipmentInstances, equipment);
         Assert.That(merchantData.Gold, Is.EqualTo(goldBefore + expectedSellPrice));
+        Assert.That(saleCount, Is.EqualTo(1));
+        Assert.That(sale.Equipment, Is.EqualTo(equipment));
+        Assert.That(sale.Item, Is.EqualTo(baseItem));
+        Assert.That(sale.Amount, Is.EqualTo(1));
+        Assert.That(sale.TotalPrice, Is.EqualTo(expectedSellPrice));
     }
 
     [Test]
@@ -229,6 +241,30 @@ public sealed class MerchantInventoryTests
 
         Assert.That(result, Is.False);
         Assert.That(inventory.GetItemAmount(item), Is.EqualTo(3));
+    }
+
+    [Test]
+    public void ItemSold_FiresOnlyAfterASuccessfulItemSale()
+    {
+        ItemDataSO item = CreateItem("Sale Event Ore", basePrice: 10);
+        int saleCount = 0;
+        MerchantInventorySale sale = default;
+        inventory.ItemSold += value =>
+        {
+            sale = value;
+            saleCount++;
+        };
+
+        inventory.AddItem(item, 2);
+        inventory.TryRemoveItem(item, 1);
+        bool sold = inventory.SellItem(item, 1);
+
+        Assert.That(sold, Is.True);
+        Assert.That(saleCount, Is.EqualTo(1));
+        Assert.That(sale.Item, Is.EqualTo(item));
+        Assert.That(sale.Equipment, Is.Null);
+        Assert.That(sale.Amount, Is.EqualTo(1));
+        Assert.That(sale.TotalPrice, Is.EqualTo(10));
     }
 
     [Test]
