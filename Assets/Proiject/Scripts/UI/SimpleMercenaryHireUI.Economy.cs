@@ -132,7 +132,7 @@ public partial class SimpleMercenaryHireUI
                 : 1f,
             CharacterEquipmentController.GetEquipmentDisplayName,
             CharacterEquipmentController.GetEquipmentQualityColor,
-            economyController.SellItem,
+            ShowSellQuantityOverlay,
             characterEquipmentController.UseConsumable,
             characterEquipmentController.ShowEquipmentDetails);
         pageRouter.Register(inventoryPage);
@@ -667,6 +667,147 @@ public partial class SimpleMercenaryHireUI
     private void HideSellOnlyConfirmation()
     {
         sellOnlyConfirmationOverlay?.gameObject.SetActive(false);
+    }
+
+    private void BuildSellQuantityOverlay()
+    {
+        sellQuantityOverlay = CreateUIObject("Sell Quantity Overlay", overlayRoot);
+        sellQuantityOverlay.anchorMin = Vector2.zero;
+        sellQuantityOverlay.anchorMax = Vector2.one;
+        sellQuantityOverlay.offsetMin = Vector2.zero;
+        sellQuantityOverlay.offsetMax = Vector2.zero;
+        sellQuantityOverlay.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.82f);
+        RectTransform window = CreateUIObject("Sell Quantity Window", sellQuantityOverlay);
+        window.anchorMin = window.anchorMax = window.pivot = new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(560f, 360f);
+        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
+        sellQuantityTitleText = CreateText(window, string.Empty, 24, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(28f, -72f), new Vector2(-28f, -22f), ParchmentTextColor);
+        sellQuantityDetailText = CreateText(window, string.Empty, 18, FontStyle.Normal, TextAnchor.MiddleCenter, new Vector2(36f, -214f), new Vector2(-36f, -84f), ParchmentTextColor);
+        Button minusButton = CreateActionButton(window, "－", () => AdjustSellQuantity(-1));
+        RectTransform minusRect = minusButton.GetComponent<RectTransform>();
+        minusRect.anchorMin = minusRect.anchorMax = minusRect.pivot = new Vector2(0.5f, 0f);
+        minusRect.sizeDelta = new Vector2(64f, 48f);
+        minusRect.anchoredPosition = new Vector2(-150f, 96f);
+        Button plusButton = CreateActionButton(window, "＋", () => AdjustSellQuantity(1));
+        RectTransform plusRect = plusButton.GetComponent<RectTransform>();
+        plusRect.anchorMin = plusRect.anchorMax = plusRect.pivot = new Vector2(0.5f, 0f);
+        plusRect.sizeDelta = new Vector2(64f, 48f);
+        plusRect.anchoredPosition = new Vector2(-78f, 96f);
+        Button allButton = CreateActionButton(window, "全部", SelectAllSellQuantity);
+        RectTransform allRect = allButton.GetComponent<RectTransform>();
+        allRect.anchorMin = allRect.anchorMax = allRect.pivot = new Vector2(0.5f, 0f);
+        allRect.sizeDelta = new Vector2(120f, 48f);
+        allRect.anchoredPosition = new Vector2(120f, 96f);
+        Button confirm = CreateActionButton(window, "売却する", ConfirmSellQuantity);
+        RectTransform confirmRect = confirm.GetComponent<RectTransform>();
+        confirmRect.anchorMin = confirmRect.anchorMax = confirmRect.pivot = new Vector2(0.5f, 0f);
+        confirmRect.sizeDelta = new Vector2(180f, 48f);
+        confirmRect.anchoredPosition = new Vector2(-105f, 26f);
+        confirm.targetGraphic.color = ImportantButtonColor;
+        Button cancel = CreateActionButton(window, "やめる", HideSellQuantityOverlay);
+        RectTransform cancelRect = cancel.GetComponent<RectTransform>();
+        cancelRect.anchorMin = cancelRect.anchorMax = cancelRect.pivot = new Vector2(0.5f, 0f);
+        cancelRect.sizeDelta = new Vector2(180f, 48f);
+        cancelRect.anchoredPosition = new Vector2(105f, 26f);
+        sellQuantityOverlay.gameObject.SetActive(false);
+    }
+
+    private void ShowSellQuantityOverlay(ItemDataSO item)
+    {
+        if (item == null || economyController == null)
+        {
+            return;
+        }
+
+        int owned = economyController.GetItemAmount(item);
+        if (owned <= 0)
+        {
+            statusText.text = $"{JapaneseDisplayText.GetItemName(item)}は所持していません。";
+            return;
+        }
+
+        sellQuantityItem = item;
+        sellQuantityAmount = 1;
+        sellQuantityTitleText.text = JapaneseDisplayText.GetItemName(item);
+        RefreshSellQuantityDetail();
+        sellQuantityOverlay.SetAsLastSibling();
+        sellQuantityOverlay.gameObject.SetActive(true);
+    }
+
+    private void AdjustSellQuantity(int delta)
+    {
+        if (sellQuantityItem == null)
+        {
+            return;
+        }
+
+        int owned = economyController.GetItemAmount(sellQuantityItem);
+        if (owned <= 0)
+        {
+            statusText.text = $"{JapaneseDisplayText.GetItemName(sellQuantityItem)}は所持していません。";
+            HideSellQuantityOverlay();
+            return;
+        }
+        sellQuantityAmount = Mathf.Clamp(sellQuantityAmount + delta, 1, Mathf.Max(1, owned));
+        RefreshSellQuantityDetail();
+    }
+
+    private void SelectAllSellQuantity()
+    {
+        if (sellQuantityItem == null)
+        {
+            return;
+        }
+
+        int owned = economyController.GetItemAmount(sellQuantityItem);
+        if (owned <= 0)
+        {
+            statusText.text = $"{JapaneseDisplayText.GetItemName(sellQuantityItem)}は所持していません。";
+            HideSellQuantityOverlay();
+            return;
+        }
+        sellQuantityAmount = owned;
+        RefreshSellQuantityDetail();
+    }
+
+    private void RefreshSellQuantityDetail()
+    {
+        if (sellQuantityItem == null)
+        {
+            return;
+        }
+
+        int owned = economyController.GetItemAmount(sellQuantityItem);
+        int unitPrice = economyController.GetSellPrice(sellQuantityItem);
+        sellQuantityDetailText.text =
+            $"数量: {sellQuantityAmount} / 所持 {owned}\n単価: {unitPrice:N0}G\n合計獲得: {unitPrice * sellQuantityAmount:N0}G";
+    }
+
+    private void ConfirmSellQuantity()
+    {
+        if (sellQuantityItem == null)
+        {
+            HideSellQuantityOverlay();
+            return;
+        }
+
+        ItemDataSO item = sellQuantityItem;
+        int owned = economyController.GetItemAmount(item);
+        if (owned <= 0)
+        {
+            HideSellQuantityOverlay();
+            statusText.text = $"{JapaneseDisplayText.GetItemName(item)}は所持していません。";
+            return;
+        }
+        int amount = Mathf.Clamp(sellQuantityAmount, 1, owned);
+        HideSellQuantityOverlay();
+        economyController.SellItem(item, amount);
+    }
+
+    private void HideSellQuantityOverlay()
+    {
+        sellQuantityItem = null;
+        sellQuantityOverlay?.gameObject.SetActive(false);
     }
 
     private void ShowBlacksmithRecipeDetail(EquipmentRecipeSO recipe)

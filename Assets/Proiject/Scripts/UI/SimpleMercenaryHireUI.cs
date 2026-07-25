@@ -104,6 +104,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Button roadCargoReceiveButton;
     private readonly Dictionary<ItemDataSO, int> selectedTravelCargo =
         new Dictionary<ItemDataSO, int>();
+    private readonly HashSet<string> selectedTravelCompanions =
+        new HashSet<string>();
     private RectTransform hirePage;
     private RectTransform globalMapPage;
     private RectTransform worldMapPage;
@@ -188,6 +190,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Button storageUpgradeConfirmButton;
     private RectTransform sellOnlyConfirmationOverlay;
     private Text sellOnlyConfirmationText;
+    private RectTransform sellQuantityOverlay;
+    private Text sellQuantityTitleText;
+    private Text sellQuantityDetailText;
+    private ItemDataSO sellQuantityItem;
+    private int sellQuantityAmount;
     private RectTransform releaseConfirmationOverlay;
     private Text releaseConfirmationText;
     private MercenaryInstance releaseConfirmationMercenary;
@@ -413,6 +420,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             {
                 travelConfirmationText.text = message;
                 selectedTravelCargo.Clear();
+                selectedTravelCompanions.Clear();
                 RefreshTravelCargoSelection();
                 travelConfirmationOverlay.SetAsLastSibling();
                 travelConfirmationOverlay.gameObject.SetActive(true);
@@ -1112,6 +1120,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         BuildReleaseConfirmationOverlay();
         BuildStorageUpgradeConfirmationOverlay();
         BuildSellOnlyConfirmationOverlay();
+        BuildSellQuantityOverlay();
         BuildItemDetailOverlay();
         BuildPromotionPreviewOverlay();
         BuildGlobalMenuOverlay();

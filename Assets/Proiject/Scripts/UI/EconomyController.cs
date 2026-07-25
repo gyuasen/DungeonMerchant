@@ -173,16 +173,39 @@ public sealed class EconomyController
 
     public void SellItem(ItemDataSO item)
     {
-        int sellPrice = merchantInventory.GetSellPrice(item);
-        if (!merchantInventory.SellItem(item, 1))
+        SellItem(item, 1);
+    }
+
+    public void SellItem(ItemDataSO item, int amount)
+    {
+        if (item == null || amount <= 0)
+        {
+            return;
+        }
+
+        int unitPrice = merchantInventory.GetSellPrice(item);
+        if (!merchantInventory.SellItem(item, amount))
         {
             setStatus($"{JapaneseDisplayText.GetItemName(item)}を売却できませんでした。");
             refreshUI();
             return;
         }
 
-        setStatus($"{JapaneseDisplayText.GetItemName(item)}を{sellPrice} Gで売却しました。");
+        int earnedGold = unitPrice * amount;
+        setStatus(amount > 1
+            ? $"{JapaneseDisplayText.GetItemName(item)}を{amount}個売却し、{earnedGold:N0}Gを獲得しました。"
+            : $"{JapaneseDisplayText.GetItemName(item)}を{earnedGold:N0} Gで売却しました。");
         refreshUI();
+    }
+
+    public int GetItemAmount(ItemDataSO item)
+    {
+        return item == null ? 0 : merchantInventory.GetItemAmount(item);
+    }
+
+    public int GetSellPrice(ItemDataSO item)
+    {
+        return item == null ? 0 : merchantInventory.GetSellPrice(item);
     }
 
     public List<InventoryItemStack> GetSellOnlyStacks()
