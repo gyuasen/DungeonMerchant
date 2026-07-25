@@ -20,7 +20,7 @@ public partial class SimpleMercenaryHireUI
             pageRouter.Register(trainingGroundPage);
             return;
         }
-        Text title = CreateText(trainingGroundPage, "Training Ground", 24,
+        Text title = CreateText(trainingGroundPage, "修練場", 24,
             FontStyle.Bold, TextAnchor.MiddleLeft, new Vector2(24f, -48f),
             new Vector2(-24f, -12f), ParchmentTextColor);
         Text description = CreateText(trainingGroundPage, string.Empty, 15,
@@ -63,7 +63,7 @@ public partial class SimpleMercenaryHireUI
             BuildTrainingState,
             CanStartTraining,
             TryStartTrainingFromPage,
-            () => $"Training {trainingGroundManager.ActiveTrainingCount} / {TrainingGroundManager.MaximumConcurrentTrainings}");
+            () => $"修練中 {trainingGroundManager.ActiveTrainingCount} / {TrainingGroundManager.MaximumConcurrentTrainings}");
     }
 
     private void ShowTrainingGroundPage()
@@ -71,7 +71,7 @@ public partial class SimpleMercenaryHireUI
         if (!TownServicePolicy.IsTrainingGroundAvailable(
                 townProgressState.CurrentTownIndex))
         {
-            statusText.text = "A training ground is not available in this town.";
+            statusText.text = "この町には修練場がありません。";
             return;
         }
 
@@ -83,7 +83,7 @@ public partial class SimpleMercenaryHireUI
     {
         int targetLevel = mercenary.Level + 1;
         int cost = TrainingCostService.GetCost(targetLevel);
-        return $"{mercenary.MercenaryName}  Lv{mercenary.Level} -> Lv{targetLevel}  |  {cost} G";
+        return $"{mercenary.MercenaryName}  Lv{mercenary.Level} → Lv{targetLevel}  |  {cost} G";
     }
 
     private string BuildTrainingState(MercenaryInstance mercenary)
@@ -106,7 +106,7 @@ public partial class SimpleMercenaryHireUI
     {
         if (trainingGroundManager.TryStartTraining(mercenary))
         {
-            statusText.text = $"{mercenary.MercenaryName} started training.";
+            statusText.text = $"{mercenary.MercenaryName}を修練に預けました。";
         }
         else
         {
@@ -126,11 +126,11 @@ public partial class SimpleMercenaryHireUI
             if (reservation != null &&
                 reservation.MercenaryInstanceId == mercenary.InstanceId)
             {
-                return $"Training: {Mathf.Max(0, reservation.CompletionDay - dayManager.CurrentDay)} days remaining";
+                return $"修練中（あと{Mathf.Max(0, reservation.CompletionDay - dayManager.CurrentDay)}日）";
             }
         }
 
-        return "Training";
+        return "修練中";
     }
 
     private string GetTrainingUnavailableReason(
@@ -144,33 +144,32 @@ public partial class SimpleMercenaryHireUI
             case TrainingUnavailableReason.MissingManagerReference:
             case TrainingUnavailableReason.InvalidMercenary:
             case TrainingUnavailableReason.NotHired:
-                return "The mercenary cannot be confirmed.";
+                return "この傭兵は確認できません。";
             case TrainingUnavailableReason.AtLevelCap:
-                return "Already at the maximum level.";
+                return "レベル上限に到達しています。";
             case TrainingUnavailableReason.ContractExpired:
-                return "The contract has expired.";
+                return "契約が切れています。";
             case TrainingUnavailableReason.Incapacitated:
-                return "Incapacitated mercenaries cannot train.";
+                return "戦闘不能の傭兵は修練できません。";
             case TrainingUnavailableReason.DifferentTown:
-                return "The mercenary is in another town.";
+                return "別の町にいます。";
             case TrainingUnavailableReason.NoFacilityInTown:
-                return "A training ground is not available in this town.";
+                return "この町には修練場がありません。";
             case TrainingUnavailableReason.InParty:
-                return "Remove the mercenary from the party first.";
+                return "先に編成から外してください。";
             case TrainingUnavailableReason.OnTransport:
-                return "The mercenary is on transport duty.";
             case TrainingUnavailableReason.OnExpedition:
-                return "The mercenary is on an expedition.";
+                return "他の任務に就いています。";
             case TrainingUnavailableReason.AlreadyTraining:
-                return "Already training.";
+                return "修練中です。";
             case TrainingUnavailableReason.SlotsFull:
-                return "All training slots are occupied.";
+                return "同時修練枠が埋まっています。";
             case TrainingUnavailableReason.LevelLimit:
-                return $"Requires two levels below the town limit (Lv{trainingGroundManager.GetMaximumTrainableLevel()}).";
+                return $"他の傭兵より2レベル以上低い必要があります。（現在の上限 Lv{trainingGroundManager.GetMaximumTrainableLevel()}）";
             case TrainingUnavailableReason.InsufficientGold:
-                return $"Need {cost - merchantData.Gold} G more.";
+                return $"資金不足（あと{cost - merchantData.Gold} G）。";
             default:
-                return "Unable to start training.";
+                return "修練を開始できません。";
         }
     }
 }

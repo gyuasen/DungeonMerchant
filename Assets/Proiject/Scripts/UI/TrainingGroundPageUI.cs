@@ -102,7 +102,7 @@ public sealed class TrainingGroundPageUI : ListPageUIBase
             MutedTextColor);
         Button button = CreateActionButton(
             row,
-            "Train",
+            "修練させる",
             RowFont,
             ButtonColor,
             FrameColor,
