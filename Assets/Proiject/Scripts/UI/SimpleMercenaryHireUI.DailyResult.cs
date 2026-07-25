@@ -74,6 +74,7 @@ public partial class SimpleMercenaryHireUI
             new Vector2(16f, 16f),
             new Vector2(-16f, -16f),
             ParchmentTextColor);
+        dailyResultText.supportRichText = true;
         dailyResultText.rectTransform.anchorMin = Vector2.zero;
         dailyResultText.rectTransform.anchorMax = Vector2.one;
 

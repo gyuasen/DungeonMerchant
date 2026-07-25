@@ -211,6 +211,60 @@ public sealed class ProgressionManagerTests
         Assert.That(progressionManager.LastExplorationResult, Does.Contain("3日"));
     }
 
+    [Test]
+    public void CanAcceptQuestHere_ExpiresQuestWhenDeadlineHasPassed()
+    {
+        DayManager dayManager = root.AddComponent<DayManager>();
+        dayManager.SetCurrentDay(5);
+        QuestRecord quest = new QuestRecord
+        {
+            questId = "deadline-test",
+            issuedTownIndex = 2,
+            questType = QuestType.ItemDelivery,
+            targetName = "Missing Item",
+            deadlineDay = 4
+        };
+
+        progressionManager.Restore(new ProgressionSaveData
+        {
+            quests = new List<QuestRecord> { quest }
+        });
+
+        Assert.That(progressionManager.CanAcceptQuestHere(quest), Is.False);
+        Assert.That(quest.expired, Is.True);
+    }
+
+    [Test]
+    public void GetAvailableQuestsForCurrentTown_ValidatesSpecialQuestTargets()
+    {
+        QuestRecord quest = new QuestRecord
+        {
+            questId = "special-target-test",
+            issuedTownIndex = 2,
+            isSpecial = true,
+            questType = QuestType.ItemDelivery,
+            targetName = "Missing Item",
+            deadlineDay = 10
+        };
+
+        progressionManager.Restore(new ProgressionSaveData
+        {
+            quests = new List<QuestRecord> { quest }
+        });
+
+        bool containsQuest = false;
+        foreach (QuestRecord availableQuest in
+                 progressionManager.GetAvailableQuestsForCurrentTown())
+        {
+            if (availableQuest == quest)
+            {
+                containsQuest = true;
+            }
+        }
+
+        Assert.That(containsQuest, Is.False);
+    }
+
     private T Track<T>(T created) where T : Object
     {
         createdObjects.Add(created);

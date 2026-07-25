@@ -17,6 +17,8 @@ public sealed class EconomyControllerTests
     [SetUp]
     public void SetUp()
     {
+        status = null;
+        refreshCount = 0;
         root = new GameObject("Economy Controller Test");
         inventory = root.AddComponent<MerchantInventory>();
         merchantData = root.AddComponent<MerchantData>();

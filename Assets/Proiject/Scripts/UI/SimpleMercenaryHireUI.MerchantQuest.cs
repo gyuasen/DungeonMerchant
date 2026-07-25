@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -317,17 +318,18 @@ public partial class SimpleMercenaryHireUI
         const float paperHeight = 132f;
         const float horizontalSpacing = 18f;
         const float verticalSpacing = 20f;
+        IReadOnlyList<QuestRecord> visibleQuests =
+            progressionManager.GetAvailableQuestsForCurrentTown();
         int rowCount = Mathf.Max(
             1,
-            Mathf.CeilToInt(progressionManager.Quests.Count / (float)columns));
+            Mathf.CeilToInt(visibleQuests.Count / (float)columns));
         float boardHeight = 24f + rowCount * paperHeight +
             Mathf.Max(0, rowCount - 1) * verticalSpacing;
         board.sizeDelta = new Vector2(0f, boardHeight);
         board.anchoredPosition = new Vector2(0f, -88f);
-        for (int i = 0; i < progressionManager.Quests.Count; i++)
+        for (int i = 0; i < visibleQuests.Count; i++)
         {
-            int index = i;
-            QuestRecord quest = progressionManager.Quests[i];
+            QuestRecord quest = visibleQuests[i];
             RectTransform paper = CreateUIObject($"Quest Paper {i}", board);
             int column = i % columns;
             int row = i / columns;
@@ -349,7 +351,7 @@ public partial class SimpleMercenaryHireUI
                 : new Color(1f, 0.96f, 0.82f, 1f);
             Button paperButton = paper.gameObject.AddComponent<Button>();
             paperButton.targetGraphic = paperImage;
-            paperButton.onClick.AddListener(() => ShowQuestDetailWindow(index));
+            paperButton.onClick.AddListener(() => ShowQuestDetailWindow(quest));
             ApplyButtonTransitions(paperButton);
             CreateText(
                 paper,
@@ -383,17 +385,14 @@ public partial class SimpleMercenaryHireUI
         questDetailWindow.gameObject.SetActive(false);
     }
 
-    private void ShowQuestDetailWindow(int index)
+    private void ShowQuestDetailWindow(QuestRecord quest)
     {
-        if (progressionManager == null ||
-            index < 0 ||
-            index >= progressionManager.Quests.Count)
+        if (progressionManager == null || quest == null)
         {
             return;
         }
 
         ClearChildren(questDetailWindow);
-        QuestRecord quest = progressionManager.Quests[index];
         CreateText(
             questDetailWindow,
             merchantStatusAndQuestController.BuildQuestTitle(quest),
@@ -405,9 +404,9 @@ public partial class SimpleMercenaryHireUI
             ParchmentTextColor);
         CreateText(
             questDetailWindow,
-            $"{quest.title}\n\n{merchantStatusAndQuestController.BuildQuestDetail(quest)}\n\n" +
-            $"報酬: {progressionManager.GetQuestGoldReward(quest):N0}G / " +
-            $"経験値 {progressionManager.GetQuestExperienceReward(quest):N0}\n" +
+            quest.title + "\n\n" +
+            merchantStatusAndQuestController.BuildQuestDetail(quest) + "\n\n" +
+            $"報酬: {progressionManager.GetQuestGoldReward(quest):N0}G\n" +
             $"進行状況: {quest.currentAmount}/{quest.requiredAmount}\n" +
             $"期限: {quest.deadlineDay}日目",
             16,
@@ -421,10 +420,10 @@ public partial class SimpleMercenaryHireUI
             merchantStatusAndQuestController.GetQuestButtonLabel(quest),
             () =>
             {
-                merchantStatusAndQuestController.AcceptQuest(index);
+                merchantStatusAndQuestController.AcceptQuest(quest.questId);
                 HideQuestDetailWindow();
             });
-        actionButton.interactable = MerchantStatusAndQuestController.CanAcceptQuest(quest);
+        actionButton.interactable = progressionManager.CanAcceptQuestHere(quest);
         RectTransform actionRect = actionButton.GetComponent<RectTransform>();
         actionRect.anchorMin = actionRect.anchorMax = actionRect.pivot =
             new Vector2(0.5f, 0f);

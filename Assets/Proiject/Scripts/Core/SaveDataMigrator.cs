@@ -17,6 +17,7 @@ public static class SaveDataMigrator
 
         int sourceVersion = Mathf.Max(0, data.version);
         MigrateMerchantProgression(data, sourceVersion);
+        MigrateQuestLocations(data, sourceVersion);
         MigrateDebt(data, sourceVersion);
         PreserveLegacyCollectionSemantics(data, sourceVersion);
         EnsureCollections(data);
@@ -108,6 +109,28 @@ public static class SaveDataMigrator
             if (data.unlockedTownIndices.Contains(WorldMapService.HiddenIslandTownIndex)) AddStoryMilestone(data, StoryMilestone.HiddenIslandReached);
         }
         if (data.remainingDebt <= 0) AddStoryMilestone(data, StoryMilestone.DebtCleared);
+    }
+
+    private static void MigrateQuestLocations(GameSaveData data, int sourceVersion)
+    {
+        if (sourceVersion >= 34 || data.progression?.quests == null)
+        {
+            return;
+        }
+
+        foreach (QuestRecord quest in data.progression.quests)
+        {
+            if (quest == null)
+            {
+                continue;
+            }
+
+            quest.issuedTownIndex = data.currentTownIndex;
+            if (string.IsNullOrWhiteSpace(quest.questId))
+            {
+                quest.questId = System.Guid.NewGuid().ToString("N");
+            }
+        }
     }
 
     private static void MigrateOnboardingGuide(

@@ -28,6 +28,18 @@ public class MercenaryHireManager : MonoBehaviour
     public event Action<MercenaryInstance> MercenaryDismissed;
     public event Action ContractsChanged;
 
+    public enum ContractChangeUnavailableReason
+    {
+        None,
+        SameOrLower,
+        ContractLocked,
+        InTraining,
+        InTransit,
+        InsufficientGold,
+        AtMaxContract,
+        NotHired
+    }
+
     private void OnEnable()
     {
         ResolveReferences();
@@ -105,21 +117,24 @@ public class MercenaryHireManager : MonoBehaviour
             return false;
         }
 
-        if (!merchantData.CanPay(mercenary.HireCost))
-        {
-            Debug.Log($"Not enough gold to hire {mercenary.MercenaryName}.");
-            return false;
-        }
-
         MercenaryContractType contractType = merchantData.IsContractUnlocked(
             selectedContract)
             ? selectedContract
             : MercenaryContractType.Local;
+        int initialContractCost = GetInitialContractCost(mercenary, contractType);
+        if (!merchantData.CanPay(initialContractCost))
+        {
+            Debug.Log($"Not enough gold to hire {mercenary.MercenaryName}.");
+            return false;
+        }
         if (UnityEngine.Random.value > GetSelectedContractSuccessRate())
         {
             return false;
         }
-        if (!merchantData.TryPayGold(mercenary.HireCost))
+        if (!merchantData.TryPayGold(
+                initialContractCost,
+                GoldTransactionReason.MercenaryHire,
+                mercenary.MercenaryName))
         {
             return false;
         }
@@ -146,7 +161,10 @@ public class MercenaryHireManager : MonoBehaviour
         if (mercenary == null ||
             !hiredMercenaries.Contains(mercenary) ||
             !mercenary.ContractNeedsRenewal ||
-            !merchantData.TryPayGold(GetRenewalCost(mercenary)))
+            !merchantData.TryPayGold(
+                GetRenewalCost(mercenary),
+                GoldTransactionReason.ContractRenewal,
+                mercenary.MercenaryName))
         {
             return false;
         }
@@ -185,13 +203,155 @@ public class MercenaryHireManager : MonoBehaviour
             return 0;
         }
 
+        if (mercenary.ContractType == MercenaryContractType.Exclusive)
+        {
+            return 0;
+        }
+
         ResolveReferences();
         float multiplier = merchantData != null
             ? merchantData.GetRenewalCostMultiplier()
             : 1f;
-        return Mathf.Max(
-            1,
-            Mathf.RoundToInt(mercenary.GetRenewalCost() * multiplier));
+        return MercenaryContractRules.CalculateRenewalCost(
+            mercenary.HireCost,
+            mercenary.ContractType,
+            multiplier);
+    }
+
+    public int GetRenewalCost(
+        MercenaryDataSO mercenary,
+        MercenaryContractType contractType)
+    {
+        if (mercenary == null)
+        {
+            return 0;
+        }
+
+        ResolveReferences();
+        float multiplier = merchantData != null
+            ? merchantData.GetRenewalCostMultiplier()
+            : 1f;
+        return MercenaryContractRules.CalculateRenewalCost(
+            mercenary.hireCost,
+            contractType,
+            multiplier);
+    }
+
+    public int GetRenewalCost(
+        MercenaryInstance mercenary,
+        MercenaryContractType contractType)
+    {
+        if (mercenary == null)
+        {
+            return 0;
+        }
+
+        ResolveReferences();
+        float multiplier = merchantData != null
+            ? merchantData.GetRenewalCostMultiplier()
+            : 1f;
+        return MercenaryContractRules.CalculateRenewalCost(
+            mercenary.HireCost,
+            contractType,
+            multiplier);
+    }
+
+    public int GetInitialContractCost(
+        MercenaryDataSO mercenary,
+        MercenaryContractType contractType)
+    {
+        return mercenary == null
+            ? 0
+            : MercenaryContractRules.CalculateInitialCost(
+                mercenary.hireCost,
+                contractType);
+    }
+
+    public int GetInitialContractCost(
+        MercenaryInstance mercenary,
+        MercenaryContractType contractType)
+    {
+        return mercenary == null
+            ? 0
+            : MercenaryContractRules.CalculateInitialCost(
+                mercenary.HireCost,
+                contractType);
+    }
+
+    public bool TryChangeContract(
+        MercenaryInstance mercenary,
+        MercenaryContractType newContractType)
+    {
+        if (!CanChangeContract(mercenary, newContractType))
+        {
+            return false;
+        }
+
+        int cost = GetInitialContractCost(mercenary, newContractType);
+        if (!merchantData.TryPayGold(
+                cost,
+                GoldTransactionReason.ContractChange,
+                mercenary.MercenaryName))
+        {
+            return false;
+        }
+
+        mercenary.SetContract(
+            newContractType,
+            dayManager != null ? dayManager.CurrentDay : 1);
+        ContractsChanged?.Invoke();
+        return true;
+    }
+
+    public bool CanChangeContract(
+        MercenaryInstance mercenary,
+        MercenaryContractType newContractType)
+    {
+        return GetContractChangeUnavailableReason(
+            mercenary,
+            newContractType) == ContractChangeUnavailableReason.None;
+    }
+
+    public ContractChangeUnavailableReason GetContractChangeUnavailableReason(
+        MercenaryInstance mercenary,
+        MercenaryContractType newContractType)
+    {
+        ResolveReferences();
+        if (mercenary == null ||
+            merchantData == null ||
+            !hiredMercenaries.Contains(mercenary))
+        {
+            return ContractChangeUnavailableReason.NotHired;
+        }
+        if (mercenary.ContractType == MercenaryContractType.Exclusive)
+        {
+            return ContractChangeUnavailableReason.AtMaxContract;
+        }
+        if (!MercenaryContractRules.IsUpgrade(
+                mercenary.ContractType,
+                newContractType))
+        {
+            return ContractChangeUnavailableReason.SameOrLower;
+        }
+        if (!merchantData.IsContractUnlocked(newContractType))
+        {
+            return ContractChangeUnavailableReason.ContractLocked;
+        }
+        if (trainingGroundManager != null &&
+            trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId))
+        {
+            return ContractChangeUnavailableReason.InTraining;
+        }
+        if (roadCargoSession != null &&
+            roadCargoSession.IsCompanionInTransit(mercenary.InstanceId))
+        {
+            return ContractChangeUnavailableReason.InTransit;
+        }
+        return merchantData.CanPay(GetInitialContractCost(
+            mercenary,
+            newContractType))
+            ? ContractChangeUnavailableReason.None
+            : ContractChangeUnavailableReason.InsufficientGold;
     }
 
     private MercenaryContractType GetBestUnlockedContract()
@@ -249,10 +409,15 @@ public class MercenaryHireManager : MonoBehaviour
             }
 
             mercenary.UpdateContractForDay(currentDay);
-            if (mercenary.ContractType == MercenaryContractType.Local &&
+            if ((mercenary.ContractType == MercenaryContractType.Local ||
+                 mercenary.ContractType == MercenaryContractType.Temporary) &&
                 mercenary.ContractNeedsRenewal &&
                 merchantData != null &&
-                merchantData.TryPayGold(GetRenewalCost(mercenary)))
+                merchantData.TryPayGold(
+                    GetRenewalCost(mercenary),
+                    GoldTransactionReason.ContractRenewal,
+                    mercenary.MercenaryName,
+                    currentDay - 1))
             {
                 mercenary.RenewContract(currentDay);
             }
@@ -267,7 +432,9 @@ public class MercenaryHireManager : MonoBehaviour
         return merchantData != null &&
                mercenary != null &&
                mercenary.hireCost >= 0 &&
-               merchantData.CanPay(mercenary.hireCost);
+               merchantData.CanPay(GetInitialContractCost(
+                   mercenary,
+                   selectedContract));
     }
 
     public bool CanAfford(MercenaryInstance mercenary)
@@ -277,7 +444,9 @@ public class MercenaryHireManager : MonoBehaviour
         return merchantData != null &&
                mercenary != null &&
                mercenary.HireCost >= 0 &&
-               merchantData.CanPay(mercenary.HireCost);
+               merchantData.CanPay(GetInitialContractCost(
+                   mercenary,
+                   selectedContract));
     }
 
     public void RestoreHiredMercenaries(

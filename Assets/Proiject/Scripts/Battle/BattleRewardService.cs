@@ -89,7 +89,9 @@ public sealed class BattleRewardService
             battleMercenaries == null ? 0 : battleMercenaries.Count,
             randomValueProvider,
             GetFallbackDropItem());
-        merchantData?.AddGold(calculation.Gold);
+        merchantData?.AddGold(
+            calculation.Gold,
+            GoldTransactionReason.BattleReward);
         SendMessage(
             BattleLogFormatter.FormatVictoryGold(calculation.Gold),
             BattleLogType.Reward);

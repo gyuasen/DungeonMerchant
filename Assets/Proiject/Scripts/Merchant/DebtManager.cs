@@ -62,7 +62,9 @@ public class DebtManager : MonoBehaviour
         }
 
         int payment = Mathf.Min(requestedAmount, remainingDebt, merchantData.Gold);
-        if (payment <= 0 || !merchantData.TryPayGold(payment))
+        if (payment <= 0 || !merchantData.TryPayGold(
+                payment,
+                GoldTransactionReason.DebtRepayment))
         {
             return 0;
         }

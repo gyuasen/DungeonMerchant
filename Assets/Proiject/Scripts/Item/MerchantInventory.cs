@@ -172,7 +172,10 @@ public class MerchantInventory : MonoBehaviour
             return EquipmentEnhancementResult.NotEnoughMaterial;
         }
 
-        if (!merchantData.TryPayGold(cost))
+        if (!merchantData.TryPayGold(
+                cost,
+                GoldTransactionReason.Blacksmith,
+                equipment.BaseItem.itemName))
         {
             return EquipmentEnhancementResult.NotEnoughGold;
         }
@@ -213,7 +216,10 @@ public class MerchantInventory : MonoBehaviour
         }
 
         int totalPrice = GetSellPrice(item) * amount;
-        merchantData.AddGold(totalPrice);
+        merchantData.AddGold(
+            totalPrice,
+            GoldTransactionReason.ItemSale,
+            item.itemName);
 
         if (stack.Amount <= 0)
         {
@@ -276,7 +282,10 @@ public class MerchantInventory : MonoBehaviour
         }
 
         int totalPrice = GetSellPrice(equipment);
-        merchantData.AddGold(totalPrice);
+        merchantData.AddGold(
+            totalPrice,
+            GoldTransactionReason.ItemSale,
+            equipment.BaseItem.itemName);
         InventoryChanged?.Invoke();
         ItemSold?.Invoke(new MerchantInventorySale(
             equipment.BaseItem,

@@ -321,7 +321,9 @@ public class RemoteSaleManager : MonoBehaviour
                 continue;
             }
             int gold = GetEstimatedGold(order);
-            merchantData?.AddGold(gold);
+            merchantData?.AddGold(
+                gold,
+                GoldTransactionReason.RemoteSale);
             activeOrders.RemoveAt(i);
             RemoteSaleEventOccurred?.Invoke(new RemoteSaleEvent(
                 RemoteSaleEventType.Settled,

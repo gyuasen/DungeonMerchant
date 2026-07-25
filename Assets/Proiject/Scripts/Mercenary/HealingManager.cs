@@ -101,7 +101,10 @@ public class HealingManager : MonoBehaviour
             return false;
         }
 
-        if (!merchantData.TryPayGold(cost))
+        if (!merchantData.TryPayGold(
+                cost,
+                GoldTransactionReason.Healing,
+                mercenary.MercenaryName))
         {
             return false;
         }

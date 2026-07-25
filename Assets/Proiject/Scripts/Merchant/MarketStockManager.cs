@@ -99,7 +99,11 @@ public class MarketStockManager : MonoBehaviour
         }
 
         int totalPrice = entry.BuyPrice * amount;
-        if (!merchantData.TryPayGold(totalPrice))
+        if (!merchantData.TryPayGold(
+                totalPrice,
+                GoldTransactionReason.MarketPurchase,
+                entry.Item.itemName,
+                out string purchaseTransactionId))
         {
             RollbackAddedItems(entry.Item, amount);
             return false;
@@ -107,7 +111,11 @@ public class MarketStockManager : MonoBehaviour
 
         if (!entry.Remove(amount))
         {
-            merchantData.AddGold(totalPrice);
+            merchantData.AddGold(
+                totalPrice,
+                GoldTransactionReason.Refund,
+                entry.Item.itemName,
+                purchaseTransactionId);
             RollbackAddedItems(entry.Item, amount);
             return false;
         }

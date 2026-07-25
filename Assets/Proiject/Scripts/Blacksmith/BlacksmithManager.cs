@@ -105,7 +105,11 @@ public class BlacksmithManager : MonoBehaviour
             return false;
         }
 
-        if (!merchantData.TryPayGold(recipe.goldCost))
+        if (!merchantData.TryPayGold(
+                recipe.goldCost,
+                GoldTransactionReason.Blacksmith,
+                recipe.resultItem.itemName,
+                out string craftingTransactionId))
         {
             RollbackCraftedItems(recipe, addedItems);
             return false;
@@ -113,7 +117,11 @@ public class BlacksmithManager : MonoBehaviour
 
         if (!merchantInventory.TryConsumeMaterials(recipe.materials))
         {
-            merchantData.AddGold(recipe.goldCost);
+            merchantData.AddGold(
+                recipe.goldCost,
+                GoldTransactionReason.Refund,
+                recipe.resultItem.itemName,
+                craftingTransactionId);
             RollbackCraftedItems(recipe, addedItems);
             return false;
         }

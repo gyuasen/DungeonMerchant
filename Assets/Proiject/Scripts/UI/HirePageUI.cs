@@ -20,12 +20,16 @@ public sealed class HirePageUI : ListPageUIBase
     private Func<MercenaryInstance, bool> shouldShowGeneratedCandidate;
     private Func<MercenaryContractType> contractProvider;
     private Func<float> successRateProvider;
+    private Func<MercenaryDataSO, int> initialCostForFixedCandidate;
+    private Func<MercenaryInstance, int> initialCostForGeneratedCandidate;
     private Func<MercenaryDataSO, bool> canHireFixedCandidate;
     private Func<MercenaryInstance, bool> canHireGeneratedCandidate;
     private Action<MercenaryDataSO> hireFixedAction;
     private Action<MercenaryInstance> hireGeneratedAction;
     private Action<Button, MercenaryDataSO> registerFixedButton;
     private Action<Button, MercenaryInstance> registerGeneratedButton;
+    private Action<MercenaryDataSO> showFixedContractDetailsAction;
+    private Action<MercenaryInstance> showGeneratedContractDetailsAction;
     private Button previousButton;
     private Button nextButton;
     private Text pageIndicator;
@@ -95,12 +99,16 @@ public sealed class HirePageUI : ListPageUIBase
         Func<MercenaryInstance, bool> generatedFilter,
         Func<MercenaryContractType> targetContractProvider,
         Func<float> targetSuccessRateProvider,
+        Func<MercenaryDataSO, int> targetInitialCostForFixedCandidate,
+        Func<MercenaryInstance, int> targetInitialCostForGeneratedCandidate,
         Func<MercenaryDataSO, bool> targetCanHireFixedCandidate,
         Func<MercenaryInstance, bool> targetCanHireGeneratedCandidate,
         Action<MercenaryDataSO> targetHireFixedAction,
         Action<MercenaryInstance> targetHireGeneratedAction,
         Action<Button, MercenaryDataSO> targetRegisterFixedButton,
-        Action<Button, MercenaryInstance> targetRegisterGeneratedButton)
+        Action<Button, MercenaryInstance> targetRegisterGeneratedButton,
+        Action<MercenaryDataSO> targetShowFixedContractDetailsAction,
+        Action<MercenaryInstance> targetShowGeneratedContractDetailsAction)
     {
         beforeRebuild = resetLists;
         fixedCandidateProvider = fixedCandidates;
@@ -109,12 +117,16 @@ public sealed class HirePageUI : ListPageUIBase
         shouldShowGeneratedCandidate = generatedFilter;
         contractProvider = targetContractProvider;
         successRateProvider = targetSuccessRateProvider;
+        initialCostForFixedCandidate = targetInitialCostForFixedCandidate;
+        initialCostForGeneratedCandidate = targetInitialCostForGeneratedCandidate;
         canHireFixedCandidate = targetCanHireFixedCandidate;
         canHireGeneratedCandidate = targetCanHireGeneratedCandidate;
         hireFixedAction = targetHireFixedAction;
         hireGeneratedAction = targetHireGeneratedAction;
         registerFixedButton = targetRegisterFixedButton;
         registerGeneratedButton = targetRegisterGeneratedButton;
+        showFixedContractDetailsAction = targetShowFixedContractDetailsAction;
+        showGeneratedContractDetailsAction = targetShowGeneratedContractDetailsAction;
         UpdateContractButtonLabel();
     }
 
@@ -192,17 +204,20 @@ public sealed class HirePageUI : ListPageUIBase
             candidate.defense,
             candidate.maxMagicPower,
             candidate.attackSpeed,
-            candidate.hireCost,
+            initialCostForFixedCandidate?.Invoke(candidate) ?? candidate.hireCost,
             true,
             index);
 
         Button hireButton = CreateHireButton(
             card,
-            candidate.hireCost,
+            initialCostForFixedCandidate?.Invoke(candidate) ?? candidate.hireCost,
             () => hireFixedAction?.Invoke(candidate));
         hireButton.interactable =
             canHireFixedCandidate?.Invoke(candidate) == true;
         registerFixedButton?.Invoke(hireButton, candidate);
+        CreateContractDetailsButton(
+            card,
+            () => showFixedContractDetailsAction?.Invoke(candidate));
     }
 
     private void CreateGeneratedCandidateCard(
@@ -218,17 +233,20 @@ public sealed class HirePageUI : ListPageUIBase
             candidate.Defense,
             candidate.MaxMagicPower,
             candidate.AttackSpeed,
-            candidate.HireCost,
+            initialCostForGeneratedCandidate?.Invoke(candidate) ?? candidate.HireCost,
             false,
             index);
 
         Button hireButton = CreateHireButton(
             card,
-            candidate.HireCost,
+            initialCostForGeneratedCandidate?.Invoke(candidate) ?? candidate.HireCost,
             () => hireGeneratedAction?.Invoke(candidate));
         hireButton.interactable =
             canHireGeneratedCandidate?.Invoke(candidate) == true;
         registerGeneratedButton?.Invoke(hireButton, candidate);
+        CreateContractDetailsButton(
+            card,
+            () => showGeneratedContractDetailsAction?.Invoke(candidate));
     }
 
     private RectTransform CreateResumeCard(
@@ -347,6 +365,25 @@ public sealed class HirePageUI : ListPageUIBase
         rect.sizeDelta = new Vector2(166f, 48f);
         rect.anchoredPosition = new Vector2(-18f, 16f);
         return button;
+    }
+
+    private void CreateContractDetailsButton(
+        RectTransform card,
+        UnityAction action)
+    {
+        Button button = CreateActionButton(
+            card,
+            "契約について",
+            RowFont,
+            ButtonColor,
+            FrameColor,
+            ButtonTextColor,
+            action);
+        RectTransform rect = button.GetComponent<RectTransform>();
+        rect.anchorMin = rect.anchorMax = new Vector2(1f, 0f);
+        rect.pivot = new Vector2(1f, 0f);
+        rect.sizeDelta = new Vector2(150f, 38f);
+        rect.anchoredPosition = new Vector2(-194f, 20f);
     }
 
     private void EnsureNavigation(Font buttonFont, Color textColor)

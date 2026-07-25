@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public class GameSaveData
 {
-    public const int CurrentVersion = 33;
+    public const int CurrentVersion = 34;
 
     public int version = CurrentVersion;
     public int gold = 500;

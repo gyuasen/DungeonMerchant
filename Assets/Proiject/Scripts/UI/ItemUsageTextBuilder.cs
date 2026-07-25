@@ -48,6 +48,22 @@ public static class ItemUsageTextBuilder
             : "入手経路不明";
     }
 
+    public static IReadOnlyList<EnemyDataSO> GetDropEnemies(ItemDataSO item)
+    {
+        EnsureUsageCaches();
+        return item != null && enemiesByDropItem.TryGetValue(item, out List<EnemyDataSO> enemies)
+            ? enemies
+            : new List<EnemyDataSO>();
+    }
+
+    public static IReadOnlyList<DungeonDataSO> GetClearRewardDungeons(ItemDataSO item)
+    {
+        EnsureUsageCaches();
+        return item != null && dungeonsByClearReward.TryGetValue(item, out List<DungeonDataSO> dungeons)
+            ? dungeons
+            : new List<DungeonDataSO>();
+    }
+
     public static string Build(ItemDataSO item)
     {
         return Build(item, TryGetCurrentTownIndex());

@@ -29,6 +29,7 @@ public class MerchantData : MonoBehaviour
     public int Logistics => logistics;
 
     public event Action<int> GoldChanged;
+    public event Action<GoldTransaction> GoldTransactionRecorded;
     public event Action ProgressionChanged;
 
     private void OnValidate()
@@ -43,6 +44,43 @@ public class MerchantData : MonoBehaviour
 
     public bool TryPayGold(int amount)
     {
+        return TryPayGold(amount, GoldTransactionReason.Unclassified);
+    }
+
+    public bool TryPayGold(
+        int amount,
+        GoldTransactionReason reason,
+        string detail = null)
+    {
+        return TryPayGold(amount, reason, detail, out _);
+    }
+
+    public bool TryPayGold(
+        int amount,
+        GoldTransactionReason reason,
+        string detail,
+        out string transactionId)
+    {
+        return TryPayGold(amount, reason, detail, out transactionId, null);
+    }
+
+    public bool TryPayGold(
+        int amount,
+        GoldTransactionReason reason,
+        string detail,
+        int accountingDay)
+    {
+        return TryPayGold(amount, reason, detail, out _, accountingDay);
+    }
+
+    private bool TryPayGold(
+        int amount,
+        GoldTransactionReason reason,
+        string detail,
+        out string transactionId,
+        int? accountingDay)
+    {
+        transactionId = null;
         if (amount < 0)
         {
             Debug.LogError("Invalid payment amount.");
@@ -57,6 +95,11 @@ public class MerchantData : MonoBehaviour
 
         gold -= amount;
         GoldChanged?.Invoke(gold);
+        transactionId = RecordGoldTransaction(
+            -amount,
+            reason,
+            detail,
+            accountingDay: accountingDay);
         Debug.Log($"Paid {amount} G. Current gold: {gold} G");
         return true;
     }
@@ -68,6 +111,15 @@ public class MerchantData : MonoBehaviour
 
     public void AddGold(int amount)
     {
+        AddGold(amount, GoldTransactionReason.Unclassified);
+    }
+
+    public void AddGold(
+        int amount,
+        GoldTransactionReason reason,
+        string detail = null,
+        string relatedTransactionId = null)
+    {
         if (amount < 0)
         {
             Debug.LogError("Invalid gold reward amount.");
@@ -78,6 +130,36 @@ public class MerchantData : MonoBehaviour
         lifetimeGoldEarned += amount;
         RecalculateLevelFromEarnings();
         GoldChanged?.Invoke(gold);
+        RecordGoldTransaction(amount, reason, detail, relatedTransactionId);
+        Debug.Log($"Gained {amount} G. Current gold: {gold} G");
+    }
+
+    public void AddGold(
+        int amount,
+        GoldTransactionReason reason,
+        string detail,
+        int accountingDay)
+    {
+        AddGoldAtAccountingDay(amount, reason, detail, accountingDay);
+    }
+
+    private void AddGoldAtAccountingDay(
+        int amount,
+        GoldTransactionReason reason,
+        string detail,
+        int accountingDay)
+    {
+        if (amount < 0)
+        {
+            Debug.LogError("Invalid gold reward amount.");
+            return;
+        }
+
+        gold += amount;
+        lifetimeGoldEarned += amount;
+        RecalculateLevelFromEarnings();
+        GoldChanged?.Invoke(gold);
+        RecordGoldTransaction(amount, reason, detail, accountingDay: accountingDay);
         Debug.Log($"Gained {amount} G. Current gold: {gold} G");
     }
 
@@ -85,6 +167,27 @@ public class MerchantData : MonoBehaviour
     {
         gold = Mathf.Max(0, value);
         GoldChanged?.Invoke(gold);
+    }
+
+    private string RecordGoldTransaction(
+        int signedAmount,
+        GoldTransactionReason reason,
+        string detail,
+        string relatedTransactionId = null,
+        int? accountingDay = null)
+    {
+        DayManager dayManager = GetComponent<DayManager>();
+        int resolvedAccountingDay = accountingDay ??
+            (dayManager != null ? dayManager.CurrentDay : 0);
+        string transactionId = Guid.NewGuid().ToString("N");
+        GoldTransactionRecorded?.Invoke(new GoldTransaction(
+            transactionId,
+            signedAmount,
+            reason,
+            detail,
+            resolvedAccountingDay,
+            relatedTransactionId));
+        return transactionId;
     }
 
     public void AddExperience(int amount)
@@ -155,12 +258,8 @@ public class MerchantData : MonoBehaviour
 
     public bool IsContractUnlocked(MercenaryContractType type)
     {
-        switch (type)
-        {
-            case MercenaryContractType.Exclusive: return merchantLevel >= 5;
-            case MercenaryContractType.Temporary: return merchantLevel >= 2;
-            default: return true;
-        }
+        return merchantLevel >=
+            MercenaryContractRules.GetRequiredMerchantLevel(type);
     }
 
     public float GetHireSuccessRate()

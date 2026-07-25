@@ -348,9 +348,9 @@ public class MercenaryInstance
 
     public int GetRenewalCost()
     {
-        return contractType == MercenaryContractType.Temporary
-            ? Mathf.Max(1, hireCost / 2)
-            : Mathf.Max(1, hireCost / 3);
+        return MercenaryContractRules.CalculateRenewalCost(
+            hireCost,
+            contractType);
     }
 
     public void RenewContract(int currentDay)

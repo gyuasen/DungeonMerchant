@@ -15,6 +15,8 @@ public sealed class CompanyPageUI : ListPageUIBase
     private Action<MercenaryInstance> togglePartyAction;
     private Action<MercenaryInstance> showDetailsAction;
     private Action<MercenaryInstance> renewContractAction;
+    private Action<MercenaryInstance> changeContractAction;
+    private Func<MercenaryInstance, bool> canChangeContract;
     private Action<MercenaryInstance> releaseContractAction;
     private Func<MercenaryInstance, bool> isOnTransportDuty;
     private Func<MercenaryInstance, bool> isOnExpeditionDuty;
@@ -76,6 +78,8 @@ public sealed class CompanyPageUI : ListPageUIBase
         Action<MercenaryInstance> targetTogglePartyAction,
         Action<MercenaryInstance> targetShowDetailsAction,
         Action<MercenaryInstance> targetRenewContractAction,
+        Action<MercenaryInstance> targetChangeContractAction,
+        Func<MercenaryInstance, bool> targetCanChangeContract,
         Action<MercenaryInstance> targetReleaseContractAction,
         Func<MercenaryInstance, bool> targetIsOnTransportDuty = null,
         Func<MercenaryInstance, bool> targetIsOnExpeditionDuty = null)
@@ -86,6 +90,8 @@ public sealed class CompanyPageUI : ListPageUIBase
         togglePartyAction = targetTogglePartyAction;
         showDetailsAction = targetShowDetailsAction;
         renewContractAction = targetRenewContractAction;
+        changeContractAction = targetChangeContractAction;
+        canChangeContract = targetCanChangeContract;
         releaseContractAction = targetReleaseContractAction;
         isOnTransportDuty = targetIsOnTransportDuty;
         isOnExpeditionDuty = targetIsOnExpeditionDuty;
@@ -299,6 +305,23 @@ public sealed class CompanyPageUI : ListPageUIBase
         releaseRect.anchoredPosition = new Vector2(-190f, 0f);
         releaseButton.interactable = !isInTransit;
 
+        if (mercenary.ContractType != MercenaryContractType.Exclusive)
+        {
+            Button changeButton = CreateActionButton(
+                row,
+                "契約変更",
+                RowFont,
+                ButtonColor,
+                FrameColor,
+                ButtonTextColor,
+                () => changeContractAction?.Invoke(mercenary));
+            RectTransform changeRect = changeButton.GetComponent<RectTransform>();
+            changeRect.sizeDelta = new Vector2(80f, 44f);
+            changeRect.anchoredPosition = new Vector2(-276f, 0f);
+            changeButton.interactable =
+                canChangeContract?.Invoke(mercenary) == true;
+        }
+
         if (!mercenary.ContractNeedsRenewal)
         {
             return;
@@ -315,7 +338,7 @@ public sealed class CompanyPageUI : ListPageUIBase
             () => renewContractAction?.Invoke(mercenary));
         RectTransform renewRect = renewButton.GetComponent<RectTransform>();
         renewRect.sizeDelta = new Vector2(80f, 44f);
-        renewRect.anchoredPosition = new Vector2(-276f, 0f);
+        renewRect.anchoredPosition = new Vector2(-362f, 0f);
     }
 
     private string BuildMercenaryDetails(MercenaryInstance mercenary)

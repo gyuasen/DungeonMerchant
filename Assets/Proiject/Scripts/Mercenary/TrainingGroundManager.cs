@@ -225,7 +225,10 @@ public class TrainingGroundManager : MonoBehaviour
         }
 
         int cost = GetTrainingCost(mercenary);
-        if (!merchantData.TryPayGold(cost))
+        if (!merchantData.TryPayGold(
+                cost,
+                GoldTransactionReason.Training,
+                mercenary.MercenaryName))
         {
             return false;
         }

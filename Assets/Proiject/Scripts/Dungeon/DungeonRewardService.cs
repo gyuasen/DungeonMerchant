@@ -26,7 +26,9 @@ public sealed class DungeonRewardService
             return;
         }
 
-        merchantData?.AddGold(safeAmount);
+        merchantData?.AddGold(
+            safeAmount,
+            GoldTransactionReason.DungeonReward);
         SendMessage($"{safeAmount} Gを獲得しました。");
     }
 
@@ -40,7 +42,9 @@ public sealed class DungeonRewardService
         int goldReward = Mathf.Max(0, dungeonData.clearGoldReward);
         if (goldReward > 0)
         {
-            merchantData?.AddGold(goldReward);
+            merchantData?.AddGold(
+                goldReward,
+                GoldTransactionReason.DungeonReward);
             SendMessage($"踏破報酬: {goldReward} G");
         }
 

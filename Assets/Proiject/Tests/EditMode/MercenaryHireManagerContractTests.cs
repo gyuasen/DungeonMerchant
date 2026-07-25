@@ -80,6 +80,226 @@ public sealed class MercenaryHireManagerContractTests
     }
 
     [Test]
+    public void TemporaryContract_DoesNotAutoRenewBeforeExpiry()
+    {
+        merchantData.SetGold(1000);
+        Assert.That(hireManager.TryHireMercenary(CreateMercenary(100), out var mercenary),
+            Is.True);
+        mercenary.SetContract(MercenaryContractType.Temporary, dayManager.CurrentDay);
+        int goldBeforeDayChanges = merchantData.Gold;
+
+        for (int day = 0; day < 6; day++)
+        {
+            dayManager.AdvanceDay();
+        }
+
+        Assert.That(dayManager.CurrentDay, Is.EqualTo(7));
+        Assert.That(merchantData.Gold, Is.EqualTo(goldBeforeDayChanges));
+        Assert.That(mercenary.ContractNeedsRenewal, Is.False);
+        Assert.That(mercenary.ContractEndDay, Is.EqualTo(7));
+    }
+
+    [Test]
+    public void TemporaryContract_AutoRenewsAfterExpiryWithConfiguredRenewalCost()
+    {
+        merchantData.SetGold(1000);
+        Assert.That(hireManager.TryHireMercenary(CreateMercenary(100), out var mercenary),
+            Is.True);
+        SetPrivateField(merchantData, "leadership", 4);
+        mercenary.SetContract(MercenaryContractType.Temporary, dayManager.CurrentDay);
+        int renewalCost = hireManager.GetRenewalCost(mercenary);
+        int expectedRenewalCost = MercenaryContractRules.CalculateRenewalCost(
+            mercenary.HireCost,
+            MercenaryContractType.Temporary,
+            merchantData.GetRenewalCostMultiplier());
+        int goldBeforeDayChanges = merchantData.Gold;
+
+        for (int day = 0; day < 7; day++)
+        {
+            dayManager.AdvanceDay();
+        }
+
+        Assert.That(dayManager.CurrentDay, Is.EqualTo(8));
+        Assert.That(renewalCost, Is.EqualTo(expectedRenewalCost));
+        Assert.That(merchantData.Gold, Is.EqualTo(goldBeforeDayChanges - renewalCost));
+        Assert.That(mercenary.ContractNeedsRenewal, Is.False);
+        Assert.That(mercenary.ContractEndDay, Is.EqualTo(dayManager.CurrentDay + 6));
+    }
+
+    [Test]
+    public void TemporaryContract_WithoutRenewalGold_WaitsAndCanBeManuallyRenewed()
+    {
+        merchantData.SetGold(100);
+        Assert.That(hireManager.TryHireMercenary(CreateMercenary(100), out var mercenary),
+            Is.True);
+        mercenary.SetContract(MercenaryContractType.Temporary, dayManager.CurrentDay);
+        Assert.That(partyManager.TryAdd(mercenary), Is.True);
+
+        for (int day = 0; day < 7; day++)
+        {
+            dayManager.AdvanceDay();
+        }
+
+        int renewalCost = hireManager.GetRenewalCost(mercenary);
+        Assert.That(mercenary.ContractNeedsRenewal, Is.True);
+        Assert.That(hireManager.HiredMercenaries.Contains(mercenary), Is.True);
+        Assert.That(partyManager.Members.Contains(mercenary), Is.False);
+        merchantData.SetGold(renewalCost);
+
+        Assert.That(hireManager.TryRenewContract(mercenary), Is.True);
+        Assert.That(mercenary.ContractNeedsRenewal, Is.False);
+        Assert.That(mercenary.ContractEndDay, Is.EqualTo(dayManager.CurrentDay + 6));
+    }
+
+    [Test]
+    public void TemporaryContract_WaitsForNextDayAutoRetryAfterGoldIsAdded()
+    {
+        merchantData.SetGold(100);
+        Assert.That(hireManager.TryHireMercenary(CreateMercenary(100), out var mercenary),
+            Is.True);
+        mercenary.SetContract(MercenaryContractType.Temporary, dayManager.CurrentDay);
+
+        for (int day = 0; day < 7; day++)
+        {
+            dayManager.AdvanceDay();
+        }
+
+        int renewalCost = hireManager.GetRenewalCost(mercenary);
+        Assert.That(mercenary.ContractNeedsRenewal, Is.True);
+        merchantData.SetGold(renewalCost);
+
+        dayManager.AdvanceDay();
+
+        Assert.That(mercenary.ContractNeedsRenewal, Is.False);
+        Assert.That(mercenary.ContractEndDay, Is.EqualTo(dayManager.CurrentDay + 6));
+        Assert.That(merchantData.Gold, Is.EqualTo(0));
+    }
+
+    [Test]
+    public void ExclusiveContract_IsNotAutoRenewedOnDayChange()
+    {
+        merchantData.SetGold(1000);
+        Assert.That(hireManager.TryHireMercenary(CreateMercenary(100), out var mercenary),
+            Is.True);
+        mercenary.SetContract(MercenaryContractType.Exclusive, dayManager.CurrentDay);
+        Assert.That(partyManager.TryAdd(mercenary), Is.True);
+        int goldBeforeDayChanges = merchantData.Gold;
+
+        for (int day = 0; day < 8; day++)
+        {
+            dayManager.AdvanceDay();
+        }
+
+        Assert.That(merchantData.Gold, Is.EqualTo(goldBeforeDayChanges));
+        Assert.That(mercenary.ContractNeedsRenewal, Is.False);
+        Assert.That(partyManager.Members.Contains(mercenary), Is.True);
+    }
+
+    [TestCase(MercenaryContractType.Local, 1)]
+    [TestCase(MercenaryContractType.Temporary, 7)]
+    public void AutoRenewal_RecordsClosingAccountingDayForRenewableContracts(
+        MercenaryContractType contractType,
+        int daysUntilRenewal)
+    {
+        merchantData.SetGold(1000);
+        Assert.That(hireManager.TryHireMercenary(CreateMercenary(100), out var mercenary),
+            Is.True);
+        mercenary.SetContract(contractType, dayManager.CurrentDay);
+        GoldTransaction renewalTransaction = null;
+        merchantData.GoldTransactionRecorded += transaction =>
+        {
+            if (transaction.Reason == GoldTransactionReason.ContractRenewal)
+            {
+                renewalTransaction = transaction;
+            }
+        };
+
+        for (int day = 0; day < daysUntilRenewal; day++)
+        {
+            dayManager.AdvanceDay();
+        }
+
+        Assert.That(renewalTransaction, Is.Not.Null);
+        Assert.That(renewalTransaction.AccountingDay,
+            Is.EqualTo(dayManager.CurrentDay - 1));
+    }
+
+    [Test]
+    public void AutoRenewal_AndStorageMaintenance_AppearInClosingDailyResult()
+    {
+        ProgressionManager progressionManager = root.AddComponent<ProgressionManager>();
+        SetPrivateField(progressionManager, "storageTier", 2);
+        InvokeOnEnable(progressionManager);
+        merchantData.SetGold(500);
+        Assert.That(progressionManager.StorageMaintenanceCost, Is.EqualTo(100));
+        DailyResultController controller = new DailyResultController(
+            merchantData,
+            hireManager,
+            partyManager,
+            merchantInventory,
+            progressionManager,
+            equipment => string.Empty);
+        controller.CaptureDailySnapshot(dayManager.CurrentDay);
+        Assert.That(hireManager.TryHireMercenary(CreateMercenary(100), out _), Is.True);
+        GoldTransaction storageMaintenance = null;
+        GoldTransaction contractRenewal = null;
+        merchantData.GoldTransactionRecorded += transaction =>
+        {
+            if (transaction.Reason == GoldTransactionReason.StorageMaintenance)
+            {
+                storageMaintenance = transaction;
+            }
+            if (transaction.Reason == GoldTransactionReason.ContractRenewal)
+            {
+                contractRenewal = transaction;
+            }
+        };
+
+        dayManager.AdvanceDay();
+
+        string result = controller.BuildDailyResultText(dayManager.CurrentDay);
+
+        Assert.That(storageMaintenance, Is.Not.Null);
+        Assert.That(storageMaintenance.SignedAmount, Is.EqualTo(-100));
+        Assert.That(storageMaintenance.AccountingDay,
+            Is.EqualTo(dayManager.CurrentDay - 1));
+        Assert.That(contractRenewal, Is.Not.Null);
+        Assert.That(contractRenewal.SignedAmount, Is.EqualTo(-33));
+        Assert.That(contractRenewal.AccountingDay,
+            Is.EqualTo(dayManager.CurrentDay - 1));
+        Assert.That(merchantData.Gold, Is.EqualTo(267));
+        Assert.That(result, Does.Contain("契約更新"));
+        Assert.That(result, Does.Contain("倉庫維持費"));
+        Assert.That(result, Does.Contain("差引  -233G"));
+        Assert.That(result, Does.Not.Contain("その他/未分類"));
+    }
+
+    [Test]
+    public void ManualRenewal_RecordsTheCurrentAccountingDay()
+    {
+        merchantData.SetGold(100);
+        Assert.That(hireManager.TryHireMercenary(CreateMercenary(100), out var mercenary),
+            Is.True);
+        mercenary.SetContract(MercenaryContractType.Local, dayManager.CurrentDay);
+        dayManager.AdvanceDay();
+        merchantData.SetGold(hireManager.GetRenewalCost(mercenary));
+        GoldTransaction renewalTransaction = null;
+        merchantData.GoldTransactionRecorded += transaction =>
+        {
+            if (transaction.Reason == GoldTransactionReason.ContractRenewal)
+            {
+                renewalTransaction = transaction;
+            }
+        };
+
+        Assert.That(hireManager.TryRenewContract(mercenary), Is.True);
+
+        Assert.That(renewalTransaction, Is.Not.Null);
+        Assert.That(renewalTransaction.AccountingDay,
+            Is.EqualTo(dayManager.CurrentDay));
+    }
+
+    [Test]
     public void TryReleaseMercenary_RemovesHiredPartyMember_AndRaisesEvent()
     {
         merchantData.SetGold(100);
@@ -169,6 +389,164 @@ public sealed class MercenaryHireManagerContractTests
         Assert.That(merchantData.Gold, Is.EqualTo(100));
     }
 
+    [Test]
+    public void InitialContractCost_UsesConfiguredMultipliers()
+    {
+        MercenaryDataSO data = CreateMercenary(100);
+
+        Assert.That(hireManager.GetInitialContractCost(
+            data, MercenaryContractType.Local), Is.EqualTo(100));
+        Assert.That(hireManager.GetInitialContractCost(
+            data, MercenaryContractType.Temporary), Is.EqualTo(1000));
+        Assert.That(hireManager.GetInitialContractCost(
+            data, MercenaryContractType.Exclusive), Is.EqualTo(2000));
+    }
+
+    [Test]
+    public void TryChangeContract_ChargesFullNewContractCostAndResetsTerm()
+    {
+        merchantData.SetGold(3000);
+        Assert.That(hireManager.TryHireMercenary(CreateMercenary(100), out var mercenary),
+            Is.True);
+        SetPrivateField(merchantData, "merchantLevel", 2);
+
+        Assert.That(hireManager.TryChangeContract(
+            mercenary, MercenaryContractType.Temporary), Is.True);
+
+        Assert.That(merchantData.Gold, Is.EqualTo(1900));
+        Assert.That(mercenary.ContractType, Is.EqualTo(MercenaryContractType.Temporary));
+        Assert.That(mercenary.ContractEndDay, Is.EqualTo(dayManager.CurrentDay + 6));
+        Assert.That(mercenary.ContractNeedsRenewal, Is.False);
+    }
+
+    [Test]
+    public void TryChangeContract_InsufficientGoldLeavesContractUnchanged()
+    {
+        merchantData.SetGold(150);
+        Assert.That(hireManager.TryHireMercenary(CreateMercenary(100), out var mercenary),
+            Is.True);
+        SetPrivateField(merchantData, "merchantLevel", 2);
+
+        Assert.That(hireManager.TryChangeContract(
+            mercenary, MercenaryContractType.Temporary), Is.False);
+
+        Assert.That(mercenary.ContractType, Is.EqualTo(MercenaryContractType.Local));
+        Assert.That(merchantData.Gold, Is.EqualTo(50));
+    }
+
+    [Test]
+    public void ExclusiveContract_SuccessfulHireChargesTwentyTimesBaseCost()
+    {
+        merchantData.SetGold(2000);
+        SetPrivateField(merchantData, "merchantLevel", 5);
+        SetPrivateField(
+            hireManager,
+            "selectedContract",
+            MercenaryContractType.Exclusive);
+        Random.InitState(FindSeedWithRollAtMost(
+            hireManager.GetSelectedContractSuccessRate()));
+
+        Assert.That(hireManager.TryHireMercenary(CreateMercenary(100), out var mercenary),
+            Is.True);
+
+        Assert.That(merchantData.Gold, Is.EqualTo(0));
+        Assert.That(mercenary.ContractType, Is.EqualTo(MercenaryContractType.Exclusive));
+    }
+
+    [Test]
+    public void CanAfford_UsesSelectedContractCostForFixedAndGeneratedCandidates()
+    {
+        MercenaryDataSO fixedCandidate = CreateMercenary(100);
+        MercenaryInstance generatedCandidate = new MercenaryInstance(CreateMercenary(100));
+        SetPrivateField(
+            hireManager,
+            "selectedContract",
+            MercenaryContractType.Temporary);
+        merchantData.SetGold(999);
+
+        Assert.That(hireManager.CanAfford(fixedCandidate), Is.False);
+        Assert.That(hireManager.CanAfford(generatedCandidate), Is.False);
+        merchantData.SetGold(1000);
+        Assert.That(hireManager.CanAfford(fixedCandidate), Is.True);
+        Assert.That(hireManager.CanAfford(generatedCandidate), Is.True);
+    }
+
+    [Test]
+    public void RenewalCost_SharedRuleMatchesInstanceAndManagerForAllContracts()
+    {
+        merchantData.SetGold(100);
+        Assert.That(hireManager.TryHireMercenary(CreateMercenary(90), out var mercenary),
+            Is.True);
+        SetPrivateField(merchantData, "leadership", 4);
+        float multiplier = merchantData.GetRenewalCostMultiplier();
+
+        foreach (MercenaryContractType contractType in new[]
+        {
+            MercenaryContractType.Local,
+            MercenaryContractType.Temporary,
+            MercenaryContractType.Exclusive
+        })
+        {
+            mercenary.SetContract(contractType, dayManager.CurrentDay);
+            int expected = MercenaryContractRules.CalculateRenewalCost(
+                mercenary.HireCost, contractType, multiplier);
+
+            Assert.That(hireManager.GetRenewalCost(mercenary), Is.EqualTo(expected),
+                contractType.ToString());
+            Assert.That(hireManager.GetRenewalCost(mercenary, contractType),
+                Is.EqualTo(expected), contractType.ToString());
+        }
+
+        mercenary.SetContract(MercenaryContractType.Local, dayManager.CurrentDay);
+        Assert.That(mercenary.GetRenewalCost(), Is.EqualTo(
+            MercenaryContractRules.CalculateRenewalCost(
+                mercenary.HireCost, MercenaryContractType.Local)));
+    }
+
+    [Test]
+    public void RenewalCost_ExclusiveHasNoRenewalAndLocalKeepsMinimumOne()
+    {
+        Assert.That(MercenaryContractRules.CalculateRenewalCost(
+            1000, MercenaryContractType.Exclusive), Is.EqualTo(0));
+        Assert.That(MercenaryContractRules.CalculateRenewalCost(
+            1, MercenaryContractType.Local), Is.EqualTo(1));
+        Assert.That(MercenaryContractRules.CalculateRenewalCost(
+            1, MercenaryContractType.Temporary), Is.EqualTo(1));
+    }
+
+    [Test]
+    public void InitialContractCost_ClampsToIntMaxValue()
+    {
+        Assert.That(MercenaryContractRules.CalculateInitialCost(
+            int.MaxValue,
+            MercenaryContractType.Exclusive), Is.EqualTo(int.MaxValue));
+    }
+
+    [Test]
+    public void ContractChangeValidation_MatchesExecutionForRejectedChanges()
+    {
+        merchantData.SetGold(5000);
+        Assert.That(hireManager.TryHireMercenary(CreateMercenary(100), out var mercenary),
+            Is.True);
+        Assert.That(hireManager.GetContractChangeUnavailableReason(
+            mercenary, MercenaryContractType.Temporary),
+            Is.EqualTo(MercenaryHireManager.ContractChangeUnavailableReason.ContractLocked));
+        SetPrivateField(merchantData, "merchantLevel", 2);
+
+        Assert.That(hireManager.GetContractChangeUnavailableReason(
+            mercenary, MercenaryContractType.Local),
+            Is.EqualTo(MercenaryHireManager.ContractChangeUnavailableReason.SameOrLower));
+        Assert.That(hireManager.CanChangeContract(
+            mercenary, MercenaryContractType.Local), Is.False);
+        Assert.That(hireManager.TryChangeContract(
+            mercenary, MercenaryContractType.Local), Is.False);
+        Assert.That(hireManager.TryChangeContract(
+            mercenary, MercenaryContractType.Temporary), Is.True);
+        Assert.That(hireManager.GetContractChangeUnavailableReason(
+            mercenary, MercenaryContractType.Local),
+            Is.EqualTo(MercenaryHireManager.ContractChangeUnavailableReason.SameOrLower));
+    }
+
     private MercenaryDataSO CreateMercenary(int hireCost)
     {
         MercenaryDataSO data = Track(
@@ -215,6 +593,21 @@ public sealed class MercenaryHireManagerContractTests
         }
 
         Assert.Fail($"Could not find a failed hire roll above {threshold}.");
+        return 0;
+    }
+
+    private static int FindSeedWithRollAtMost(float threshold)
+    {
+        for (int seed = 0; seed < 10000; seed++)
+        {
+            Random.InitState(seed);
+            if (Random.value <= threshold)
+            {
+                return seed;
+            }
+        }
+
+        Assert.Fail($"Could not find a successful hire roll at or below {threshold}.");
         return 0;
     }
 

@@ -181,9 +181,9 @@ public sealed class MerchantStatusAndQuestController
         return !quest.accepted && !quest.completed && !quest.expired;
     }
 
-    public void AcceptQuest(int index)
+    public void AcceptQuest(string questId)
     {
-        if (progressionManager.AcceptQuest(index))
+        if (progressionManager.AcceptQuest(questId))
         {
             setStatus("依頼を受注しました。");
         }

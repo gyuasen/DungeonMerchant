@@ -198,6 +198,12 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform releaseConfirmationOverlay;
     private Text releaseConfirmationText;
     private MercenaryInstance releaseConfirmationMercenary;
+    private RectTransform contractChangeConfirmationOverlay;
+    private RectTransform contractDetailsOverlay;
+    private Text contractChangeConfirmationText;
+    private Button contractChangeConfirmButton;
+    private MercenaryInstance contractChangeMercenary;
+    private MercenaryContractType contractChangeTarget;
     private RectTransform itemDetailOverlay;
     private Image itemDetailImage;
     private Text itemDetailImagePlaceholder;
@@ -1118,6 +1124,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         BuildMerchantStatusOverlay();
         BuildTravelConfirmationOverlay();
         BuildReleaseConfirmationOverlay();
+        BuildContractChangeConfirmationOverlay();
         BuildStorageUpgradeConfirmationOverlay();
         BuildSellOnlyConfirmationOverlay();
         BuildSellQuantityOverlay();
