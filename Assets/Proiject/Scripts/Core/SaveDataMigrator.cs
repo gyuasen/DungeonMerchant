@@ -219,18 +219,22 @@ public static class SaveDataMigrator
         GameSaveData data,
         int sourceVersion)
     {
-        if (sourceVersion >= 32)
+        if (sourceVersion < 32)
         {
-            return;
+            foreach (SavedTransportConvoy convoy in data.transportConvoys)
+            {
+                ReturnLegacyConvoyCargo(data, convoy);
+                ReleaseLegacyConvoyEscorts(data, convoy);
+            }
+            data.transportConvoys.Clear();
         }
-
-        foreach (SavedTransportConvoy convoy in data.transportConvoys)
+        if (sourceVersion < 35)
         {
-            ReturnLegacyConvoyCargo(data, convoy);
-            ReleaseLegacyConvoyEscorts(data, convoy);
+            if (data.dungeonExpeditions != null)
+            {
+                data.dungeonExpeditions.Clear();
+            }
         }
-        data.transportConvoys.Clear();
-        data.dungeonExpeditions.Clear();
     }
 
     private static void ReturnLegacyConvoyCargo(

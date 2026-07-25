@@ -60,6 +60,7 @@ public static class DungeonMerchantBootstrap
         EnsureComponent<BattleManager>(root);
         EnsureComponent<MonsterCodexManager>(root);
         EnsureComponent<DungeonRunManager>(root);
+        EnsureComponent<DungeonExpeditionManager>(root);
         EnsureComponent<RoadEncounterService>(root);
         EnsureComponent<DebtManager>(root);
         EnsureComponent<ProgressionManager>(root);

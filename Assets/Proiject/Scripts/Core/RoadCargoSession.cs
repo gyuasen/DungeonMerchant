@@ -464,9 +464,7 @@ public sealed class RoadCargoSession : MonoBehaviour
         return mercenary != null &&
                mercenary.CurrentTownIndex == originTownIndex &&
                mercenary.IsContractActive &&
-               (partyManager == null || !partyManager.Contains(mercenary)) &&
-               (trainingGroundManager == null ||
-                !trainingGroundManager.IsMercenaryTraining(instanceId));
+               !MercenaryDutyService.IsOnDuty(instanceId);
     }
 
     private MercenaryInstance FindHiredMercenary(string instanceId)

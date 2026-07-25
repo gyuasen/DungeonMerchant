@@ -20,6 +20,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     [SerializeField] private MarketStockManager marketStockManager;
     [SerializeField] private BlacksmithManager blacksmithManager;
     [SerializeField] private DungeonRunManager dungeonRunManager;
+    [SerializeField] private DungeonExpeditionManager dungeonExpeditionManager;
     [SerializeField] private HealingManager healingManager;
     [SerializeField] private SaveManager saveManager;
     [SerializeField] private ProgressionManager progressionManager;
@@ -241,7 +242,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         (battleVisualController != null && battleVisualController.IsPresentationBusy) ||
         hasPendingRoadBattleOutcome;
     private bool hasPendingDailyResult;
-    private int pendingDailyResultDay;
+    private readonly Queue<string> pendingDailyResultTexts =
+        new Queue<string>();
     private DailyResultController dailyResultController;
     private HireAndPartyController hireAndPartyController;
     private EconomyController economyController;
@@ -295,7 +297,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             partyManager,
             merchantInventory,
             progressionManager,
-            CharacterEquipmentController.GetEquipmentDisplayName);
+            CharacterEquipmentController.GetEquipmentDisplayName,
+            dungeonExpeditionManager);
         hireAndPartyController = new HireAndPartyController(
             hireManager,
             partyManager,
@@ -500,6 +503,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         trainingGroundManager.TrainingCompleted += HandleTrainingCompleted;
         merchantInventory.InventoryChanged += HandleInventoryChanged;
         dayManager.DayChanged += HandleDayChanged;
+        dayManager.DayChangeFinalized += HandleDayChangeFinalized;
         marketPriceManager.PricesChanged += HandlePricesChanged;
         marketStockManager.StockChanged += HandleMarketStockChanged;
         blacksmithManager.CraftingChanged += HandleCraftingChanged;
@@ -628,6 +632,12 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         if (dungeonRunManager == null)
         {
             dungeonRunManager = gameObject.AddComponent<DungeonRunManager>();
+        }
+
+        if (dungeonExpeditionManager == null)
+        {
+            dungeonExpeditionManager = GetComponent<DungeonExpeditionManager>() ??
+                                       FindObjectOfType<DungeonExpeditionManager>();
         }
 
         if (healingManager == null)
@@ -946,6 +956,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         if (dayManager != null)
         {
             dayManager.DayChanged -= HandleDayChanged;
+            dayManager.DayChangeFinalized -= HandleDayChangeFinalized;
         }
 
         if (marketPriceManager != null)

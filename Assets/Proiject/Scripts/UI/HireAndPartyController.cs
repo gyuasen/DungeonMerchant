@@ -185,14 +185,17 @@ public sealed class HireAndPartyController
 
         if (!partyManager.TryAdd(mercenary))
         {
-            bool isInTransit = roadCargoSession != null && mercenary != null &&
-                roadCargoSession.IsCompanionInTransit(mercenary.InstanceId);
+            MercenaryDuty duty = mercenary != null
+                ? MercenaryDutyService.GetDuty(mercenary.InstanceId)
+                : MercenaryDuty.None;
             setStatus(townProgressState != null &&
                       mercenary.CurrentTownIndex !=
                       townProgressState.CurrentTownIndex
                 ? $"{mercenary.MercenaryName}は別の町にいます"
-                : isInTransit
+                : duty == MercenaryDuty.RoadTransit
                 ? "街道移動中の傭兵は編成できません"
+                : duty == MercenaryDuty.Expedition
+                ? "別動隊中の傭兵は編成できません"
                 : "パーティーは満員です。");
         }
     }
@@ -256,7 +259,7 @@ public sealed class HireAndPartyController
     {
         foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
         {
-            if (mercenary != null && !IsMercenaryTraining(mercenary))
+            if (mercenary != null && !IsUnavailableForPromotion(mercenary))
             {
                 yield return mercenary;
             }
@@ -275,7 +278,7 @@ public sealed class HireAndPartyController
         MercenaryInstance mercenary,
         MercenaryClass target)
     {
-        if (mercenary == null || IsMercenaryTraining(mercenary))
+        if (mercenary == null || IsUnavailableForPromotion(mercenary))
         {
             setStatus("修練中の傭兵は転職できません。");
             return;
@@ -324,18 +327,20 @@ public sealed class HireAndPartyController
         return item != null && merchantInventory.HasItem(item);
     }
 
-    private static bool IsMercenaryTraining(MercenaryInstance mercenary)
-    {
-        TrainingGroundManager trainingGroundManager =
-            UnityEngine.Object.FindObjectOfType<TrainingGroundManager>();
-        return mercenary != null &&
-               trainingGroundManager != null &&
-               trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId);
-    }
-
     public MercenaryContractType GetUnlockedContractType()
     {
         return hireManager.SelectedContract;
+    }
+
+    private static bool IsUnavailableForPromotion(MercenaryInstance mercenary)
+    {
+        if (mercenary == null)
+        {
+            return false;
+        }
+        MercenaryDuty duty = MercenaryDutyService.GetDuty(mercenary.InstanceId);
+        return duty == MercenaryDuty.Training ||
+               duty == MercenaryDuty.Expedition;
     }
 
     public void CycleHireContract()

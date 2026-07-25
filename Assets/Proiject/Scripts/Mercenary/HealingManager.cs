@@ -73,8 +73,7 @@ public class HealingManager : MonoBehaviour
         int cost = GetFullHealCost(mercenary);
         return merchantData != null &&
                mercenary != null &&
-               !IsMercenaryTraining(mercenary) &&
-               !IsCompanionInTransit(mercenary) &&
+               !IsUnavailableForHealing(mercenary) &&
                IsAtCurrentTown(mercenary) &&
                cost > 0 &&
                merchantData.CanPay(cost);
@@ -85,7 +84,7 @@ public class HealingManager : MonoBehaviour
         ResolveReferences();
 
         if (merchantData == null || mercenary == null ||
-            IsMercenaryTraining(mercenary) || IsCompanionInTransit(mercenary))
+            IsUnavailableForHealing(mercenary))
         {
             return false;
         }
@@ -126,8 +125,7 @@ public class HealingManager : MonoBehaviour
         foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
         {
             if (mercenary != null &&
-                !IsMercenaryTraining(mercenary) &&
-                !IsCompanionInTransit(mercenary) &&
+                !IsUnavailableForHealing(mercenary) &&
                 IsAtCurrentTown(mercenary))
             {
                 yield return mercenary;
@@ -141,17 +139,12 @@ public class HealingManager : MonoBehaviour
                mercenary.CurrentTownIndex == townProgressState.CurrentTownIndex;
     }
 
-    private bool IsMercenaryTraining(MercenaryInstance mercenary)
+    private static bool IsUnavailableForHealing(MercenaryInstance mercenary)
     {
         return mercenary != null &&
-               trainingGroundManager != null &&
-               trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId);
-    }
-
-    private bool IsCompanionInTransit(MercenaryInstance mercenary)
-    {
-        return mercenary != null && roadCargoSession != null &&
-               roadCargoSession.IsCompanionInTransit(mercenary.InstanceId);
+               MercenaryDutyService.IsOnDutyExcept(
+                   mercenary.InstanceId,
+                   MercenaryDuty.Party);
     }
 
     private void HandleDayChanged(int currentDay)
@@ -167,7 +160,7 @@ public class HealingManager : MonoBehaviour
         foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
         {
             if (mercenary == null ||
-                IsMercenaryTraining(mercenary) ||
+                IsUnavailableForHealing(mercenary) ||
                 mercenary.IsIncapacitated ||
                 mercenary.CurrentHP >= mercenary.MaxHP)
             {

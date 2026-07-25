@@ -3,6 +3,25 @@ using NUnit.Framework;
 public sealed class SaveDataMigratorTests
 {
     [Test]
+    public void Migrate_Version34_DiscardsRetiredExpeditions()
+    {
+        GameSaveData data = new GameSaveData { version = 34 };
+        data.dungeonExpeditions.Add(new SavedDungeonExpedition
+        {
+            dungeonPersistentId = "retired-dungeon",
+            memberInstanceIds = new System.Collections.Generic.List<string>
+            {
+                "retired-mercenary"
+            }
+        });
+
+        SaveDataMigrator.Migrate(data);
+
+        Assert.That(data.version, Is.EqualTo(35));
+        Assert.That(data.dungeonExpeditions, Is.Empty);
+    }
+
+    [Test]
     public void Migrate_PreVersion16_PopulatesProgressionAndDebt()
     {
         GameSaveData data = new GameSaveData

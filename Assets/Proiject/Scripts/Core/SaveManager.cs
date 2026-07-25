@@ -18,6 +18,7 @@ public class SaveManager : MonoBehaviour
     private TrainingGroundManager trainingGroundManager;
     private BattleManager battleManager;
     private DungeonRunManager dungeonRunManager;
+    private DungeonExpeditionManager dungeonExpeditionManager;
     private ProgressionManager progressionManager;
     private DebtManager debtManager;
     private TownProgressState townProgressState;
@@ -469,6 +470,10 @@ public class SaveManager : MonoBehaviour
         {
             data.remoteSaleOrders = remoteSaleManager.CreateSaveData();
         }
+        if (dungeonExpeditionManager != null)
+        {
+            data.dungeonExpeditions = dungeonExpeditionManager.CreateSaveData();
+        }
         if (monsterCodexManager != null)
         {
             data.encounteredEnemyIds.AddRange(
@@ -602,6 +607,10 @@ public class SaveManager : MonoBehaviour
             }
         }
         hireManager?.RestoreHiredMercenaries(restoredMercenaries);
+        partyManager?.RestoreParty(null);
+        trainingGroundManager?.Restore(null);
+        roadCargoSession?.Restore(null);
+        dungeonExpeditionManager?.ClearActiveExpeditions();
         trainingGroundManager?.Restore(data.trainingAssignments);
         if (merchantInventory != null)
         {
@@ -650,6 +659,9 @@ public class SaveManager : MonoBehaviour
             data.selectedDungeonPersistentId,
             data.dungeonFloorProgress);
         dungeonRunManager?.SetCurrentWorldMapIndex(townProgressState.CurrentWorldMapIndex);
+        dungeonExpeditionManager?.Restore(
+            data.dungeonExpeditions,
+            mercenaryById);
         storyProgressManager?.RestoreCompletedMilestones(
             data.completedStoryMilestones);
         onboardingGuideController?.Restore(
@@ -959,6 +971,10 @@ public class SaveManager : MonoBehaviour
             dungeonRunManager.DungeonCompleted += HandleDungeonCompleted;
             dungeonRunManager.DungeonStateChanged += HandleChanged;
         }
+        if (dungeonExpeditionManager != null)
+        {
+            dungeonExpeditionManager.ExpeditionChanged += HandleChanged;
+        }
         if (progressionManager != null)
         {
             progressionManager.ProgressionChanged += HandleChanged;
@@ -993,6 +1009,10 @@ public class SaveManager : MonoBehaviour
         {
             dungeonRunManager.DungeonCompleted -= HandleDungeonCompleted;
             dungeonRunManager.DungeonStateChanged -= HandleChanged;
+        }
+        if (dungeonExpeditionManager != null)
+        {
+            dungeonExpeditionManager.ExpeditionChanged -= HandleChanged;
         }
         if (progressionManager != null)
         {
@@ -1118,6 +1138,9 @@ public class SaveManager : MonoBehaviour
         battleManager = GetComponent<BattleManager>() ?? FindObjectOfType<BattleManager>();
         dungeonRunManager =
             GetComponent<DungeonRunManager>() ?? FindObjectOfType<DungeonRunManager>();
+        dungeonExpeditionManager =
+            GetComponent<DungeonExpeditionManager>() ??
+            FindObjectOfType<DungeonExpeditionManager>();
         progressionManager =
             GetComponent<ProgressionManager>() ?? FindObjectOfType<ProgressionManager>();
         debtManager =

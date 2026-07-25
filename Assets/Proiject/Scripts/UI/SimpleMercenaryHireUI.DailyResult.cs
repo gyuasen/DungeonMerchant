@@ -101,6 +101,7 @@ public partial class SimpleMercenaryHireUI
     private void HideDailyResult()
     {
         dailyResultOverlay?.gameObject.SetActive(false);
+        ShowPendingDailyResultIfReady();
     }
 
     private void HandleDayChanged(int currentDay)
@@ -123,20 +124,19 @@ public partial class SimpleMercenaryHireUI
             : string.Empty;
         statusText.text =
             $"{currentDay}日目になりました。市場価格が更新されました。{debtNotice}";
-        if (battleVisualController != null &&
-            battleVisualController.IsPresentationBusy)
-        {
-            hasPendingDailyResult = true;
-            pendingDailyResultDay = currentDay;
-            return;
-        }
+    }
 
-        ShowDailyResult(currentDay);
+    private void HandleDayChangeFinalized(int currentDay)
+    {
+        QueueDailyResult(currentDay);
+        ShowPendingDailyResultIfReady();
     }
 
     private void ShowPendingDailyResultIfReady()
     {
-        if (!hasPendingDailyResult)
+        if (!hasPendingDailyResult ||
+            (dailyResultOverlay != null &&
+             dailyResultOverlay.gameObject.activeSelf))
         {
             return;
         }
@@ -147,13 +147,12 @@ public partial class SimpleMercenaryHireUI
             return;
         }
 
-        int resultDay = pendingDailyResultDay;
-        hasPendingDailyResult = false;
-        pendingDailyResultDay = 0;
-        ShowDailyResult(resultDay);
+        string resultText = pendingDailyResultTexts.Dequeue();
+        hasPendingDailyResult = pendingDailyResultTexts.Count > 0;
+        ShowDailyResult(resultText);
     }
 
-    private void ShowDailyResult(int currentDay)
+    private void QueueDailyResult(int currentDay)
     {
         string resultText =
             dailyResultOverlay == null || dailyResultText == null
@@ -165,12 +164,18 @@ public partial class SimpleMercenaryHireUI
             return;
         }
 
+        pendingDailyResultTexts.Enqueue(resultText);
+        hasPendingDailyResult = true;
+        dailyResultController.CaptureDailySnapshot(currentDay);
+    }
+
+    private void ShowDailyResult(string resultText)
+    {
         dailyResultText.text = resultText;
         int lineCount = resultText.Split('\n').Length;
         dailyResultContent.sizeDelta =
             new Vector2(0f, Mathf.Max(420f, 40f + lineCount * 34f));
         dailyResultOverlay.SetAsLastSibling();
         dailyResultOverlay.gameObject.SetActive(true);
-        dailyResultController.CaptureDailySnapshot(currentDay);
     }
 }

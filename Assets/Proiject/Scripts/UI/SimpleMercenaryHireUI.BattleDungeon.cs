@@ -358,7 +358,10 @@ public partial class SimpleMercenaryHireUI
             dungeonRunManager.GetClearedFloors,
             dungeonRunManager.IsDungeonUnlocked,
             () => dungeonRunManager.SelectedDungeon,
-            dungeonBattleController.SelectDungeon);
+            dungeonBattleController.SelectDungeon,
+            CanShowExpeditionAction,
+            HasExpedition,
+            ShowExpeditionForDungeon);
         pageRouter.Register(dungeonPage);
         RefreshPage(dungeonPage);
     }

@@ -302,11 +302,7 @@ public partial class SimpleMercenaryHireUI
     {
         return mercenary != null && mercenary.IsContractActive &&
                mercenary.CurrentTownIndex == origin &&
-               !partyManager.Contains(mercenary) &&
-               (trainingGroundManager == null ||
-                !trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId)) &&
-               (roadCargoSession == null ||
-                !roadCargoSession.IsCompanionInTransit(mercenary.InstanceId));
+               !MercenaryDutyService.IsOnDuty(mercenary.InstanceId);
     }
 
     private void CreateTravelCompanionRow(

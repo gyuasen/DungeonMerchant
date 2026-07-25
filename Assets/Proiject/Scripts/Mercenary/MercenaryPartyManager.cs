@@ -47,10 +47,7 @@ public class MercenaryPartyManager : MonoBehaviour
             !mercenary.IsContractActive ||
             !IsHired(mercenary) ||
             !IsAtCurrentTown(mercenary) ||
-            (trainingGroundManager != null &&
-             trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId)) ||
-            (roadCargoSession != null &&
-             roadCargoSession.IsCompanionInTransit(mercenary.InstanceId)) ||
+            MercenaryDutyService.IsOnDuty(mercenary.InstanceId) ||
             Contains(mercenary) ||
             IsFull)
         {
@@ -82,9 +79,7 @@ public class MercenaryPartyManager : MonoBehaviour
             {
                 if (mercenary != null &&
                     mercenary.IsContractActive &&
-                    (trainingGroundManager == null ||
-                     !trainingGroundManager.IsMercenaryTraining(
-                         mercenary.InstanceId)) &&
+                    !MercenaryDutyService.IsOnDuty(mercenary.InstanceId) &&
                     members.Count < maxPartySize &&
                     IsHired(mercenary))
                 {

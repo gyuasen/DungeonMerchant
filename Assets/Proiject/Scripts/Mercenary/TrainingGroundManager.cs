@@ -177,8 +177,8 @@ public class TrainingGroundManager : MonoBehaviour
             return TrainingUnavailableReason.DifferentTown;
         }
 
-        if (roadCargoSession != null &&
-            roadCargoSession.IsCompanionInTransit(mercenary.InstanceId))
+        MercenaryDuty duty = MercenaryDutyService.GetDuty(mercenary.InstanceId);
+        if (duty == MercenaryDuty.RoadTransit)
         {
             return TrainingUnavailableReason.OnTransport;
         }
@@ -188,12 +188,17 @@ public class TrainingGroundManager : MonoBehaviour
             return TrainingUnavailableReason.NoFacilityInTown;
         }
 
-        if (partyManager != null && partyManager.Contains(mercenary))
+        if (duty == MercenaryDuty.Party)
         {
             return TrainingUnavailableReason.InParty;
         }
 
-        if (IsMercenaryTraining(mercenary.InstanceId))
+        if (duty == MercenaryDuty.Expedition)
+        {
+            return TrainingUnavailableReason.OnExpedition;
+        }
+
+        if (duty == MercenaryDuty.Training)
         {
             return TrainingUnavailableReason.AlreadyTraining;
         }

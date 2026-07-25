@@ -54,6 +54,9 @@ public sealed class DailyResultController
         new HashSet<string>();
     private readonly List<GoldTransaction> dailyGoldLedger =
         new List<GoldTransaction>();
+    private readonly Dictionary<int, List<ExpeditionEvent>>
+        expeditionEventsByAccountingDay =
+        new Dictionary<int, List<ExpeditionEvent>>();
 
     private sealed class DailyMercenarySnapshot
     {
@@ -79,7 +82,8 @@ public sealed class DailyResultController
         MercenaryPartyManager partyManager,
         MerchantInventory merchantInventory,
         ProgressionManager progressionManager,
-        Func<EquipmentInstance, string> getEquipmentDisplayName)
+        Func<EquipmentInstance, string> getEquipmentDisplayName,
+        DungeonExpeditionManager dungeonExpeditionManager = null)
     {
         this.merchantData = merchantData;
         this.hireManager = hireManager;
@@ -94,6 +98,10 @@ public sealed class DailyResultController
         if (merchantData != null)
         {
             merchantData.GoldTransactionRecorded += HandleGoldTransactionRecorded;
+        }
+        if (dungeonExpeditionManager != null)
+        {
+            dungeonExpeditionManager.ExpeditionDayResolved += RecordExpeditionEvent;
         }
     }
 
@@ -244,6 +252,9 @@ public sealed class DailyResultController
             }
         }
 
+        int accountingDay = currentDay - 1;
+        AppendExpeditionResults(result, accountingDay);
+
         List<string> mercenaryLines = new List<string>();
         List<string> contractLines = new List<string>();
         foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
@@ -321,6 +332,7 @@ public sealed class DailyResultController
             currentDay,
             goldChange);
         RemoveGoldLedgerEntries(dailySnapshotDay, currentDay);
+        expeditionEventsByAccountingDay.Remove(accountingDay);
 
         return result.ToString().TrimEnd();
     }
@@ -423,6 +435,60 @@ public sealed class DailyResultController
         if (!string.IsNullOrEmpty(line))
         {
             trainingCompletionLines.Remove(line);
+        }
+    }
+
+    public void RecordExpeditionEvent(
+        ExpeditionEvent expeditionEvent,
+        int accountingDay)
+    {
+        if (expeditionEvent?.Expedition?.dungeon != null)
+        {
+            if (!expeditionEventsByAccountingDay.TryGetValue(
+                    accountingDay,
+                    out List<ExpeditionEvent> events))
+            {
+                events = new List<ExpeditionEvent>();
+                expeditionEventsByAccountingDay[accountingDay] = events;
+            }
+            events.Add(expeditionEvent);
+        }
+    }
+
+    private void AppendExpeditionResults(StringBuilder result, int accountingDay)
+    {
+        result.AppendLine();
+        result.AppendLine(Heading("【別動隊の成果】"));
+        if (!expeditionEventsByAccountingDay.TryGetValue(
+                accountingDay,
+                out List<ExpeditionEvent> events) ||
+            events.Count == 0)
+        {
+            result.AppendLine(Neutral("別動隊の周回結果はありません。"));
+            return;
+        }
+        foreach (ExpeditionEvent expeditionEvent in events)
+        {
+            string dungeonName = EscapeRichText(expeditionEvent.Expedition.dungeon.dungeonName);
+            if (expeditionEvent.Type == ExpeditionEventType.Failed)
+            {
+                result.AppendLine(Negative(dungeonName + ": 戦力不足で報酬なし・HP減少"));
+                continue;
+            }
+            List<string> rewards = new List<string>();
+            if (expeditionEvent.ExperiencePerMercenary > 0)
+            {
+                rewards.Add("経験値 +" + expeditionEvent.ExperiencePerMercenary + "（各隊員）");
+            }
+            if (expeditionEvent.Materials != null && expeditionEvent.Materials.Count > 0)
+            {
+                rewards.Add("素材 " + expeditionEvent.Materials.Count + "個");
+            }
+            if (expeditionEvent.LimitedEquipment != null)
+            {
+                rewards.Add("限定装備 " + EscapeRichText(getEquipmentDisplayName(expeditionEvent.LimitedEquipment)));
+            }
+            result.AppendLine(Positive(dungeonName + ": " + (rewards.Count > 0 ? string.Join(" / ", rewards) : "周回完了")));
         }
     }
 
@@ -895,6 +961,7 @@ public sealed class DailyResultController
             case GoldTransactionReason.MercenaryHire: return "雇用";
             case GoldTransactionReason.ContractRenewal: return "契約更新";
             case GoldTransactionReason.ContractChange: return "契約変更";
+            case GoldTransactionReason.ExpeditionReward: return "別動隊報酬";
             case GoldTransactionReason.Healing: return "治療費";
             case GoldTransactionReason.Training: return "修練";
             case GoldTransactionReason.DebtRepayment: return "借金返済";

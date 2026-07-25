@@ -35,6 +35,7 @@ public class MercenaryHireManager : MonoBehaviour
         ContractLocked,
         InTraining,
         InTransit,
+        OnExpedition,
         InsufficientGold,
         AtMaxContract,
         NotHired
@@ -179,10 +180,9 @@ public class MercenaryHireManager : MonoBehaviour
     {
         ResolveReferences();
         if (mercenary == null ||
-            (trainingGroundManager != null &&
-             trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId)) ||
-            (roadCargoSession != null &&
-             roadCargoSession.IsCompanionInTransit(mercenary.InstanceId)) ||
+            MercenaryDutyService.IsOnDutyExcept(
+                mercenary.InstanceId,
+                MercenaryDuty.Party) ||
             !hiredMercenaries.Contains(mercenary) ||
             !TryReturnEquippedEquipment(mercenary))
         {
@@ -337,15 +337,18 @@ public class MercenaryHireManager : MonoBehaviour
         {
             return ContractChangeUnavailableReason.ContractLocked;
         }
-        if (trainingGroundManager != null &&
-            trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId))
+        MercenaryDuty duty = MercenaryDutyService.GetDuty(mercenary.InstanceId);
+        if (duty == MercenaryDuty.Training)
         {
             return ContractChangeUnavailableReason.InTraining;
         }
-        if (roadCargoSession != null &&
-            roadCargoSession.IsCompanionInTransit(mercenary.InstanceId))
+        if (duty == MercenaryDuty.RoadTransit)
         {
             return ContractChangeUnavailableReason.InTransit;
+        }
+        if (duty == MercenaryDuty.Expedition)
+        {
+            return ContractChangeUnavailableReason.OnExpedition;
         }
         return merchantData.CanPay(GetInitialContractCost(
             mercenary,

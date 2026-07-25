@@ -102,7 +102,7 @@ public partial class SimpleMercenaryHireUI
         transportRect.sizeDelta = new Vector2(110f, 38f);
         transportRect.anchoredPosition = new Vector2(-118f, -4f);
         transportButton.gameObject.SetActive(false);
-        Button expeditionButton = CreateActionButton(companyPage, "遠征部隊", ShowExpeditionOverlay);
+        Button expeditionButton = CreateActionButton(companyPage, "別動隊管理", ShowExpeditionOverlay);
         expeditionButton.name = "Expedition Button";
         RectTransform expeditionRect = expeditionButton.GetComponent<RectTransform>();
         expeditionRect.anchorMin = expeditionRect.anchorMax = new Vector2(1f, 1f);
@@ -110,7 +110,7 @@ public partial class SimpleMercenaryHireUI
         expeditionRect.sizeDelta = new Vector2(110f, 38f);
         expeditionRect.anchoredPosition = new Vector2(-236f, -4f);
         expeditionButton.transform.SetAsLastSibling();
-        expeditionButton.gameObject.SetActive(false);
+        expeditionButton.gameObject.SetActive(true);
         Button remoteSaleButton = CreateActionButton(companyPage, "全町倉庫", ShowRemoteSaleOverlay);
         remoteSaleButton.name = "Remote Sale Button";
         RectTransform remoteSaleRect = remoteSaleButton.GetComponent<RectTransform>();
@@ -521,10 +521,10 @@ public partial class SimpleMercenaryHireUI
             ShowContractChangeConfirmation,
             CanOpenContractChangeConfirmation,
             ShowReleaseConfirmation,
-            mercenary => roadCargoSession != null &&
-                         roadCargoSession.IsCompanionInTransit(
-                             mercenary.InstanceId),
-            mercenary => false);
+            mercenary => MercenaryDutyService.GetDuty(mercenary.InstanceId) ==
+                         MercenaryDuty.RoadTransit,
+            mercenary => MercenaryDutyService.GetDuty(mercenary.InstanceId) ==
+                         MercenaryDuty.Expedition);
     }
 
     private void BuildReleaseConfirmationOverlay()
@@ -721,6 +721,8 @@ public partial class SimpleMercenaryHireUI
                 return "修練中の傭兵は契約を変更できません。";
             case MercenaryHireManager.ContractChangeUnavailableReason.InTransit:
                 return "街道移動中の傭兵は契約を変更できません。";
+            case MercenaryHireManager.ContractChangeUnavailableReason.OnExpedition:
+                return "別動隊中の傭兵は契約を変更できません。";
             case MercenaryHireManager.ContractChangeUnavailableReason.InsufficientGold:
                 return "資金不足: " + cost + "G必要です。";
             default:
@@ -779,15 +781,20 @@ public partial class SimpleMercenaryHireUI
             return "契約を解除できる傭兵が選択されていません";
         }
 
-        if (trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId))
+        MercenaryDuty duty = MercenaryDutyService.GetDuty(mercenary.InstanceId);
+        if (duty == MercenaryDuty.Training)
         {
             return "修練中の傭兵は契約を解除できません";
         }
 
-        if (roadCargoSession != null &&
-            roadCargoSession.IsCompanionInTransit(mercenary.InstanceId))
+        if (duty == MercenaryDuty.RoadTransit)
         {
             return "街道移動中の傭兵は契約を解除できません";
+        }
+
+        if (duty == MercenaryDuty.Expedition)
+        {
+            return "別動隊中の傭兵は契約を解除できません";
         }
 
         return string.Empty;
@@ -937,6 +944,7 @@ public partial class SimpleMercenaryHireUI
 
     private void ShowExpeditionOverlay()
     {
+        ShowExpeditionManagementOverlay();
     }
 
     private void ShowPartyPage()
