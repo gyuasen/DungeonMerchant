@@ -17,6 +17,7 @@ public sealed class HireAndPartyController
     private readonly MercenaryGenerator mercenaryGenerator;
     private readonly MerchantInventory merchantInventory;
     private readonly HealingManager healingManager;
+    private readonly RoadCargoSession roadCargoSession;
     private readonly TownProgressState townProgressState;
     private readonly SaveManager saveManager;
     private readonly Action<string> setStatus;
@@ -57,6 +58,7 @@ public sealed class HireAndPartyController
         this.mercenaryGenerator = mercenaryGenerator;
         this.merchantInventory = merchantInventory;
         this.healingManager = healingManager;
+        roadCargoSession = UnityEngine.Object.FindObjectOfType<RoadCargoSession>();
         this.townProgressState = townProgressState;
         this.saveManager = saveManager;
         this.setStatus = setStatus;
@@ -183,12 +185,14 @@ public sealed class HireAndPartyController
 
         if (!partyManager.TryAdd(mercenary))
         {
+            bool isInTransit = roadCargoSession != null && mercenary != null &&
+                roadCargoSession.IsCompanionInTransit(mercenary.InstanceId);
             setStatus(townProgressState != null &&
                       mercenary.CurrentTownIndex !=
                       townProgressState.CurrentTownIndex
                 ? $"{mercenary.MercenaryName}は別の町にいます"
-                : false
-                ? "輸送任務中の傭兵は編成できません"
+                : isInTransit
+                ? "街道移動中の傭兵は編成できません"
                 : "パーティーは満員です。");
         }
     }

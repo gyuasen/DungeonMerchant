@@ -174,7 +174,9 @@ public sealed class TownTravelController
             unlockNotice);
     }
 
-    public void ConfirmTownTravel(IReadOnlyList<RoadCargoEntry> cargo = null)
+    public void ConfirmTownTravel(
+        IReadOnlyList<RoadCargoEntry> cargo = null,
+        IReadOnlyList<string> companionInstanceIds = null)
     {
         int destinationTownIndex = confirmationTravelTownIndex;
         bool openDungeonAfterTravel = confirmationOpenDungeonAfterTravel;
@@ -184,13 +186,15 @@ public sealed class TownTravelController
             return;
         }
 
-        if (cargo != null && cargo.Count > 0)
+        if ((cargo != null && cargo.Count > 0) ||
+            (companionInstanceIds != null && companionInstanceIds.Count > 0))
         {
             RoadCargoDepartureResult result = roadCargoSession != null
                 ? roadCargoSession.TryBegin(
                     townProgressState.CurrentTownIndex,
                     destinationTownIndex,
-                    cargo)
+                    cargo,
+                    companionInstanceIds)
                 : RoadCargoDepartureResult.InvalidCargo;
             if (result != RoadCargoDepartureResult.Succeeded)
             {
@@ -228,23 +232,25 @@ public sealed class TownTravelController
 
         if (battleManager.IsBattling)
         {
-            ReturnCargoAfterFailedDeparture(destinationTownIndex);
-            setStatus("戦闘中は町を移動できません。");
+            setStatus(WithCargoRecoveryMessage(
+                "戦闘中は町を移動できません。",
+                ReturnCargoAfterFailedDeparture(destinationTownIndex)));
             return;
         }
 
         if (partyManager.Members.Count == 0)
         {
-            ReturnCargoAfterFailedDeparture(destinationTownIndex);
-            setStatus(
-                $"{WorldMapService.TownNames[destinationTownIndex]}への移動クエストには傭兵の編成が必要です。");
+            setStatus(WithCargoRecoveryMessage(
+                $"{WorldMapService.TownNames[destinationTownIndex]}への移動クエストには傭兵の編成が必要です。",
+                ReturnCargoAfterFailedDeparture(destinationTownIndex)));
             return;
         }
 
         if (!WorldMapService.AreTownsAdjacent(destinationTownIndex, townProgressState.CurrentTownIndex))
         {
-            ReturnCargoAfterFailedDeparture(destinationTownIndex);
-            setStatus("街道で結ばれていない町へは移動できません。");
+            setStatus(WithCargoRecoveryMessage(
+                "街道で結ばれていない町へは移動できません。",
+                ReturnCargoAfterFailedDeparture(destinationTownIndex)));
             return;
         }
 
@@ -270,9 +276,12 @@ public sealed class TownTravelController
             enemies.Count == 0 ||
             !battleManager.StartBattle(partyManager.Members, enemies))
         {
-            ReturnCargoAfterFailedDeparture(destinationTownIndex);
+            RoadCargoResolutionResult cargoResult =
+                ReturnCargoAfterFailedDeparture(destinationTownIndex);
             roadTravelState.Clear();
-            setStatus("街道戦闘を開始できませんでした。");
+            setStatus(WithCargoRecoveryMessage(
+                "街道戦闘を開始できませんでした。",
+                cargoResult));
             return;
         }
 
@@ -287,6 +296,7 @@ public sealed class TownTravelController
         bool openDungeonAfterTravel)
     {
         townProgressState.SetCurrentTown(destinationTownIndex);
+        roadCargoSession?.CompleteCompanionsVictory();
         townProgressState.ViewedWorldMapIndex =
             townProgressState.CurrentWorldMapIndex;
         dungeonRunManager.SetCurrentWorldMapIndex(
@@ -346,9 +356,13 @@ public sealed class TownTravelController
             enemies.Count == 0 ||
             !battleManager.StartBattle(partyManager.Members, enemies))
         {
+            RoadCargoResolutionResult cargoResult =
+                ReturnCargoAfterFailedDeparture(destinationTownIndex);
             roadTravelState.Clear();
             showWorldMap();
-            setStatus("次の街道戦闘を開始できませんでした。");
+            setStatus(WithCargoRecoveryMessage(
+                "次の街道戦闘を開始できませんでした。",
+                cargoResult));
             return;
         }
 
@@ -386,15 +400,15 @@ public sealed class TownTravelController
             return;
         }
 
-        if (roadCargoSession != null && roadCargoSession.IsActive)
-        {
-            roadCargoSession.Retreat();
-        }
+        RoadCargoResolutionResult cargoResult =
+            ReturnCargoAfterFailedDeparture(roadTravelState.DestinationTownIndex);
         roadTravelState.Clear();
         setRoadChoiceButtonsActive(false);
         showTownMap();
         setStatus(
-            "街道から撤退し、出発した町へ戻りました。");
+            WithCargoRecoveryMessage(
+                "街道から撤退し、出発した町へ戻りました。",
+                cargoResult));
     }
 
     /// <summary>
@@ -443,6 +457,7 @@ public sealed class TownTravelController
         {
             townProgressState.UnlockTown(travelResult.DestinationTownIndex);
             townProgressState.SetCurrentTown(travelResult.NewCurrentTownIndex);
+            roadCargoSession?.CompleteCompanionsVictory();
             townProgressState.ViewedWorldMapIndex = travelResult.NewWorldMapIndex;
             dungeonRunManager.SetCurrentWorldMapIndex(
                 townProgressState.ViewedWorldMapIndex);
@@ -503,7 +518,11 @@ public sealed class TownTravelController
             return RoadCargoResolutionResult.NoActiveSession;
         }
 
-        RoadCargoResolutionResult result = roadCargoSession.CompleteVictory();
+        RoadCargoResolutionResult result =
+            roadCargoSession.ActiveSession.originTownIndex ==
+            townProgressState.CurrentTownIndex
+                ? roadCargoSession.Retreat()
+                : roadCargoSession.CompleteVictory();
         showTownMap();
         setStatus(result == RoadCargoResolutionResult.Succeeded
             ? "街道荷物を倉庫へ搬入しました。"
@@ -515,8 +534,10 @@ public sealed class TownTravelController
     {
         return roadCargoSession != null &&
                roadCargoSession.IsActive &&
-               roadCargoSession.ActiveSession.destinationTownIndex ==
-               townProgressState.CurrentTownIndex;
+               (roadCargoSession.ActiveSession.destinationTownIndex ==
+                townProgressState.CurrentTownIndex ||
+                roadCargoSession.ActiveSession.originTownIndex ==
+                townProgressState.CurrentTownIndex);
     }
 
     private int CalculateDefeatCargoLoss()
@@ -550,7 +571,8 @@ public sealed class TownTravelController
         }
     }
 
-    private void ReturnCargoAfterFailedDeparture(int destinationTownIndex)
+    private RoadCargoResolutionResult ReturnCargoAfterFailedDeparture(
+        int destinationTownIndex)
     {
         if (roadCargoSession != null &&
             roadCargoSession.IsActive &&
@@ -559,8 +581,19 @@ public sealed class TownTravelController
             roadCargoSession.ActiveSession.destinationTownIndex ==
             destinationTownIndex)
         {
-            roadCargoSession.Retreat();
+            return roadCargoSession.Retreat();
         }
+        return RoadCargoResolutionResult.NoActiveSession;
+    }
+
+    private static string WithCargoRecoveryMessage(
+        string message,
+        RoadCargoResolutionResult cargoResult)
+    {
+        return cargoResult == RoadCargoResolutionResult.StorageFull
+            ? message +
+                "\n出発町の倉庫が満杯です。整理後に街道荷物受取を実行してください。"
+            : message;
     }
 
     private static string CombineTravelAndCargoMessage(

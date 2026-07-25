@@ -6,6 +6,7 @@ public class MercenaryPartyManager : MonoBehaviour
 {
     [SerializeField] private MercenaryHireManager hireManager;
     [SerializeField] private TrainingGroundManager trainingGroundManager;
+    [SerializeField] private RoadCargoSession roadCargoSession;
     [SerializeField] private TownProgressState townProgressState;
     [SerializeField, Min(1)] private int maxPartySize = 3;
     [SerializeField] private List<MercenaryInstance> members = new List<MercenaryInstance>();
@@ -48,6 +49,8 @@ public class MercenaryPartyManager : MonoBehaviour
             !IsAtCurrentTown(mercenary) ||
             (trainingGroundManager != null &&
              trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId)) ||
+            (roadCargoSession != null &&
+             roadCargoSession.IsCompanionInTransit(mercenary.InstanceId)) ||
             Contains(mercenary) ||
             IsFull)
         {
@@ -164,6 +167,12 @@ public class MercenaryPartyManager : MonoBehaviour
         {
             townProgressState = GetComponent<TownProgressState>() ??
                                 FindObjectOfType<TownProgressState>();
+        }
+
+        if (roadCargoSession == null)
+        {
+            roadCargoSession = GetComponent<RoadCargoSession>() ??
+                               FindObjectOfType<RoadCargoSession>();
         }
     }
 }

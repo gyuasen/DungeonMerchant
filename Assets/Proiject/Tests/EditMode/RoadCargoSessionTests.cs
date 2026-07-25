@@ -122,6 +122,23 @@ public sealed class RoadCargoSessionTests
         Assert.That(cargoSession.ActiveSession.cargo[0].amount, Is.EqualTo(2));
     }
 
+    [Test]
+    public void Restore_DiscardsUnknownCompanionIdsWithoutKeepingSession()
+    {
+        cargoSession.Restore(new SavedRoadCargoSession
+        {
+            originTownIndex = 2,
+            destinationTownIndex = 0,
+            companionInstanceIds = new List<string>
+            {
+                "missing-mercenary",
+                "missing-mercenary"
+            }
+        });
+
+        Assert.That(cargoSession.IsActive, Is.False);
+    }
+
     private RoadCargoDepartureResult Begin(
         int origin,
         int destination,

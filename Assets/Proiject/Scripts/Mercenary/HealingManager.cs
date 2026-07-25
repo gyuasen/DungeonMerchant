@@ -10,6 +10,7 @@ public class HealingManager : MonoBehaviour
     [SerializeField] private DayManager dayManager;
     [SerializeField] private TownProgressState townProgressState;
     [SerializeField] private TrainingGroundManager trainingGroundManager;
+    [SerializeField] private RoadCargoSession roadCargoSession;
 
     [Header("Healing Settings")]
     [SerializeField, Min(0)] private int naturalHealPerDay = 10;
@@ -73,6 +74,7 @@ public class HealingManager : MonoBehaviour
         return merchantData != null &&
                mercenary != null &&
                !IsMercenaryTraining(mercenary) &&
+               !IsCompanionInTransit(mercenary) &&
                IsAtCurrentTown(mercenary) &&
                cost > 0 &&
                merchantData.CanPay(cost);
@@ -83,7 +85,7 @@ public class HealingManager : MonoBehaviour
         ResolveReferences();
 
         if (merchantData == null || mercenary == null ||
-            IsMercenaryTraining(mercenary))
+            IsMercenaryTraining(mercenary) || IsCompanionInTransit(mercenary))
         {
             return false;
         }
@@ -122,6 +124,7 @@ public class HealingManager : MonoBehaviour
         {
             if (mercenary != null &&
                 !IsMercenaryTraining(mercenary) &&
+                !IsCompanionInTransit(mercenary) &&
                 IsAtCurrentTown(mercenary))
             {
                 yield return mercenary;
@@ -140,6 +143,12 @@ public class HealingManager : MonoBehaviour
         return mercenary != null &&
                trainingGroundManager != null &&
                trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId);
+    }
+
+    private bool IsCompanionInTransit(MercenaryInstance mercenary)
+    {
+        return mercenary != null && roadCargoSession != null &&
+               roadCargoSession.IsCompanionInTransit(mercenary.InstanceId);
     }
 
     private void HandleDayChanged(int currentDay)
@@ -215,6 +224,12 @@ public class HealingManager : MonoBehaviour
         {
             trainingGroundManager = GetComponent<TrainingGroundManager>() ??
                                   FindObjectOfType<TrainingGroundManager>();
+        }
+
+        if (roadCargoSession == null)
+        {
+            roadCargoSession = GetComponent<RoadCargoSession>() ??
+                               FindObjectOfType<RoadCargoSession>();
         }
     }
 }

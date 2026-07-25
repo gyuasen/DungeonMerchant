@@ -511,7 +511,9 @@ public partial class SimpleMercenaryHireUI
             ShowCharacterDetails,
             merchantStatusAndQuestController.RenewContract,
             ShowReleaseConfirmation,
-            mercenary => false,
+            mercenary => roadCargoSession != null &&
+                         roadCargoSession.IsCompanionInTransit(
+                             mercenary.InstanceId),
             mercenary => false);
     }
 
@@ -601,14 +603,10 @@ public partial class SimpleMercenaryHireUI
             return "修練中の傭兵は契約を解除できません";
         }
 
-        if (trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId))
+        if (roadCargoSession != null &&
+            roadCargoSession.IsCompanionInTransit(mercenary.InstanceId))
         {
-            return "輸送中の傭兵は契約を解除できません";
-        }
-
-        if (trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId))
-        {
-            return "遠征中の傭兵は契約を解除できません";
+            return "街道移動中の傭兵は契約を解除できません";
         }
 
         return string.Empty;

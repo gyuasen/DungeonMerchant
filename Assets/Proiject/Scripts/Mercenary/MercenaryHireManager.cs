@@ -10,6 +10,7 @@ public class MercenaryHireManager : MonoBehaviour
     [SerializeField] private TownProgressState townProgressState;
     [SerializeField] private TrainingGroundManager trainingGroundManager;
     [SerializeField] private MerchantInventory merchantInventory;
+    [SerializeField] private RoadCargoSession roadCargoSession;
     [SerializeField] private MercenaryContractType selectedContract =
         MercenaryContractType.Local;
 
@@ -162,6 +163,8 @@ public class MercenaryHireManager : MonoBehaviour
         if (mercenary == null ||
             (trainingGroundManager != null &&
              trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId)) ||
+            (roadCargoSession != null &&
+             roadCargoSession.IsCompanionInTransit(mercenary.InstanceId)) ||
             !hiredMercenaries.Contains(mercenary) ||
             !TryReturnEquippedEquipment(mercenary))
         {
@@ -330,6 +333,12 @@ public class MercenaryHireManager : MonoBehaviour
         {
             merchantInventory = GetComponent<MerchantInventory>() ??
                                 FindObjectOfType<MerchantInventory>();
+        }
+
+        if (roadCargoSession == null)
+        {
+            roadCargoSession = GetComponent<RoadCargoSession>() ??
+                               FindObjectOfType<RoadCargoSession>();
         }
     }
 

@@ -218,7 +218,9 @@ public partial class SimpleMercenaryHireUI
                 cargo.Add(new RoadCargoEntry(entry.Key, entry.Value));
             }
         }
-        townTravelController.ConfirmTownTravel(cargo);
+        townTravelController.ConfirmTownTravel(
+            cargo,
+            new List<string>(selectedTravelCompanions));
     }
 
     private void RefreshTravelCargoSelection()
@@ -241,7 +243,8 @@ public partial class SimpleMercenaryHireUI
             used += amount;
         }
         int capacity = roadCargoSession != null ? roadCargoSession.Capacity : 0;
-        travelCargoSummaryText.text = $"積載量 {used} / {capacity}";
+        travelCargoSummaryText.text =
+            $"積載量 {used} / {capacity}　同行傭兵 {selectedTravelCompanions.Count}人";
         float top = -10f;
         bool hasCargo = false;
         foreach (InventoryItemStack stack in merchantInventory.GetItemsIn(origin))
@@ -273,7 +276,67 @@ public partial class SimpleMercenaryHireUI
         {
             CreateScrollLabel(travelCargoContent, "積める素材・消耗品はありません。", ref top);
         }
+        top -= 12f;
+        CreateScrollLabel(travelCargoContent, "同行する傭兵", ref top);
+        bool hasCompanion = false;
+        foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
+        {
+            if (!CanTravelWithCompanion(mercenary, origin))
+            {
+                continue;
+            }
+            hasCompanion = true;
+            CreateTravelCompanionRow(mercenary, ref top);
+        }
+        if (!hasCompanion)
+        {
+            CreateScrollLabel(
+                travelCargoContent,
+                "同行できる非編成傭兵はいません。",
+                ref top);
+        }
         travelCargoContent.sizeDelta = new Vector2(0f, Mathf.Max(260f, -top + 12f));
+    }
+
+    private bool CanTravelWithCompanion(MercenaryInstance mercenary, int origin)
+    {
+        return mercenary != null && mercenary.IsContractActive &&
+               mercenary.CurrentTownIndex == origin &&
+               !partyManager.Contains(mercenary) &&
+               (trainingGroundManager == null ||
+                !trainingGroundManager.IsMercenaryTraining(mercenary.InstanceId)) &&
+               (roadCargoSession == null ||
+                !roadCargoSession.IsCompanionInTransit(mercenary.InstanceId));
+    }
+
+    private void CreateTravelCompanionRow(
+        MercenaryInstance mercenary,
+        ref float top)
+    {
+        bool selected = selectedTravelCompanions.Contains(mercenary.InstanceId);
+        CreateScrollLabel(
+            travelCargoContent,
+            mercenary.MercenaryName + (mercenary.IsIncapacitated ? "（戦闘不能）" : ""),
+            ref top);
+        Button toggle = CreateActionButton(
+            travelCargoContent,
+            selected ? "解除" : "同行",
+            () => ToggleTravelCompanion(mercenary.InstanceId));
+        ConfigureTravelCargoStepButton(toggle, new Vector2(-18f, top + 18f));
+        top -= 8f;
+    }
+
+    private void ToggleTravelCompanion(string instanceId)
+    {
+        if (string.IsNullOrWhiteSpace(instanceId))
+        {
+            return;
+        }
+        if (!selectedTravelCompanions.Add(instanceId))
+        {
+            selectedTravelCompanions.Remove(instanceId);
+        }
+        RefreshTravelCargoSelection();
     }
 
     private void CreateTravelCargoRow(
@@ -766,6 +829,7 @@ public partial class SimpleMercenaryHireUI
     {
         travelConfirmationOverlay?.gameObject.SetActive(false);
         selectedTravelCargo.Clear();
+        selectedTravelCompanions.Clear();
         townTravelController.ClearTravelConfirmation();
     }
 

@@ -39,6 +39,9 @@ public sealed class RoadCargoSession : MonoBehaviour
 
     [SerializeField] private MerchantData merchantData;
     [SerializeField] private MerchantInventory inventory;
+    [SerializeField] private MercenaryHireManager hireManager;
+    [SerializeField] private MercenaryPartyManager partyManager;
+    [SerializeField] private TrainingGroundManager trainingGroundManager;
     [SerializeField] private SavedRoadCargoSession activeSession;
 
     public SavedRoadCargoSession ActiveSession => activeSession;
@@ -91,6 +94,19 @@ public sealed class RoadCargoSession : MonoBehaviour
         return manifest;
     }
 
+    public bool IsCompanionInTransit(string instanceId)
+    {
+        return !string.IsNullOrWhiteSpace(instanceId) &&
+               activeSession?.companionInstanceIds != null &&
+               activeSession.companionInstanceIds.Contains(instanceId);
+    }
+
+    public IReadOnlyList<string> GetCompanionInstanceIds()
+    {
+        return activeSession?.companionInstanceIds ??
+            (IReadOnlyList<string>)Array.Empty<string>();
+    }
+
     private void OnEnable()
     {
         ResolveReferences();
@@ -101,14 +117,22 @@ public sealed class RoadCargoSession : MonoBehaviour
         int destinationTownIndex,
         IReadOnlyList<RoadCargoEntry> cargo)
     {
+        return TryBegin(originTownIndex, destinationTownIndex, cargo, null);
+    }
+
+    public RoadCargoDepartureResult TryBegin(
+        int originTownIndex,
+        int destinationTownIndex,
+        IReadOnlyList<RoadCargoEntry> cargo,
+        IReadOnlyList<string> companionInstanceIds)
+    {
         ResolveReferences();
         if (IsActive)
         {
             return RoadCargoDepartureResult.AlreadyActive;
         }
 
-        if (inventory == null ||
-            originTownIndex < 0 ||
+        if (originTownIndex < 0 ||
             destinationTownIndex < 0 ||
             originTownIndex == destinationTownIndex)
         {
@@ -117,6 +141,24 @@ public sealed class RoadCargoSession : MonoBehaviour
 
         Dictionary<ItemDataSO, int> normalized = NormalizeCargo(cargo);
         if (normalized == null)
+        {
+            return RoadCargoDepartureResult.InvalidCargo;
+        }
+
+        List<string> companions = NormalizeCompanions(
+            companionInstanceIds,
+            originTownIndex);
+        if (companions == null)
+        {
+            return RoadCargoDepartureResult.InvalidCargo;
+        }
+
+        if (normalized.Count == 0 && companions.Count == 0)
+        {
+            return RoadCargoDepartureResult.InvalidCargo;
+        }
+
+        if (normalized.Count > 0 && inventory == null)
         {
             return RoadCargoDepartureResult.InvalidCargo;
         }
@@ -150,6 +192,7 @@ public sealed class RoadCargoSession : MonoBehaviour
             originTownIndex = originTownIndex,
             destinationTownIndex = destinationTownIndex
         };
+        activeSession.companionInstanceIds.AddRange(companions);
         foreach (KeyValuePair<ItemDataSO, int> entry in normalized)
         {
             activeSession.cargo.Add(new SavedTransportCargo
@@ -170,11 +213,44 @@ public sealed class RoadCargoSession : MonoBehaviour
             : -1);
     }
 
+    public void CompleteCompanionsVictory()
+    {
+        if (!IsActive || activeSession.companionInstanceIds == null)
+        {
+            return;
+        }
+
+        foreach (string instanceId in activeSession.companionInstanceIds)
+        {
+            MercenaryInstance mercenary = FindHiredMercenary(instanceId);
+            if (mercenary != null)
+            {
+                mercenary.SetCurrentTownIndex(activeSession.destinationTownIndex);
+            }
+        }
+        activeSession.companionInstanceIds.Clear();
+        ClearSessionIfEmpty();
+        CargoChanged?.Invoke();
+    }
+
+    public void ReleaseCompanionReservations()
+    {
+        if (!IsActive || activeSession.companionInstanceIds == null)
+        {
+            return;
+        }
+        activeSession.companionInstanceIds.Clear();
+        ClearSessionIfEmpty();
+        CargoChanged?.Invoke();
+    }
+
     public RoadCargoResolutionResult Retreat()
     {
-        return TryDepositActiveCargo(activeSession != null
+        RoadCargoResolutionResult result = TryDepositActiveCargo(activeSession != null
             ? activeSession.originTownIndex
             : -1);
+        ReleaseCompanionReservations();
+        return result;
     }
 
     public RoadCargoResolutionResult CompleteDefeat()
@@ -232,11 +308,16 @@ public sealed class RoadCargoSession : MonoBehaviour
                 });
             }
         }
+        foreach (string instanceId in activeSession.companionInstanceIds)
+        {
+            saved.companionInstanceIds.Add(instanceId);
+        }
         return saved;
     }
 
     public void Restore(SavedRoadCargoSession saved)
     {
+        ResolveReferences();
         activeSession = saved == null ? null : CreateValidatedCopy(saved);
         CargoChanged?.Invoke();
     }
@@ -250,6 +331,13 @@ public sealed class RoadCargoSession : MonoBehaviour
         }
 
         int total = UsedCapacity;
+        if (total == 0)
+        {
+            activeSession.cargo.Clear();
+            ClearSessionIfEmpty();
+            CargoChanged?.Invoke();
+            return RoadCargoResolutionResult.Succeeded;
+        }
         if (inventory == null || !inventory.CanDepositItemsTo(townIndex, total))
         {
             return RoadCargoResolutionResult.StorageFull;
@@ -264,7 +352,8 @@ public sealed class RoadCargoSession : MonoBehaviour
                 return RoadCargoResolutionResult.StorageFull;
             }
         }
-        activeSession = null;
+        activeSession.cargo.Clear();
+        ClearSessionIfEmpty();
         CargoChanged?.Invoke();
         return RoadCargoResolutionResult.Succeeded;
     }
@@ -272,13 +361,12 @@ public sealed class RoadCargoSession : MonoBehaviour
     private static Dictionary<ItemDataSO, int> NormalizeCargo(
         IReadOnlyList<RoadCargoEntry> cargo)
     {
-        if (cargo == null || cargo.Count == 0)
-        {
-            return null;
-        }
-
         Dictionary<ItemDataSO, int> normalized =
             new Dictionary<ItemDataSO, int>();
+        if (cargo == null)
+        {
+            return normalized;
+        }
         foreach (RoadCargoEntry entry in cargo)
         {
             if (entry?.item == null ||
@@ -296,6 +384,13 @@ public sealed class RoadCargoSession : MonoBehaviour
 
     private SavedRoadCargoSession CreateValidatedCopy(SavedRoadCargoSession saved)
     {
+        if (!WorldMapService.IsValidTownIndex(saved.originTownIndex) ||
+            !WorldMapService.IsValidTownIndex(saved.destinationTownIndex) ||
+            saved.originTownIndex == saved.destinationTownIndex)
+        {
+            Debug.LogWarning("Discarded invalid saved road cargo session.");
+            return null;
+        }
         SavedRoadCargoSession copy = new SavedRoadCargoSession
         {
             originTownIndex = saved.originTownIndex,
@@ -323,7 +418,80 @@ public sealed class RoadCargoSession : MonoBehaviour
                 });
             }
         }
-        return copy.cargo.Count > 0 ? copy : null;
+        if (saved.companionInstanceIds != null)
+        {
+            foreach (string instanceId in saved.companionInstanceIds)
+            {
+                if (copy.companionInstanceIds.Contains(instanceId) ||
+                    !IsValidCompanion(instanceId, copy.originTownIndex))
+                {
+                    Debug.LogWarning("Discarded invalid saved road companion.");
+                    continue;
+                }
+                copy.companionInstanceIds.Add(instanceId);
+            }
+        }
+        return copy.cargo.Count > 0 || copy.companionInstanceIds.Count > 0
+            ? copy
+            : null;
+    }
+
+    private List<string> NormalizeCompanions(
+        IReadOnlyList<string> companionInstanceIds,
+        int originTownIndex)
+    {
+        List<string> normalized = new List<string>();
+        if (companionInstanceIds == null)
+        {
+            return normalized;
+        }
+        foreach (string instanceId in companionInstanceIds)
+        {
+            if (string.IsNullOrWhiteSpace(instanceId) ||
+                normalized.Contains(instanceId) ||
+                !IsValidCompanion(instanceId, originTownIndex))
+            {
+                return null;
+            }
+            normalized.Add(instanceId);
+        }
+        return normalized;
+    }
+
+    private bool IsValidCompanion(string instanceId, int originTownIndex)
+    {
+        MercenaryInstance mercenary = FindHiredMercenary(instanceId);
+        return mercenary != null &&
+               mercenary.CurrentTownIndex == originTownIndex &&
+               mercenary.IsContractActive &&
+               (partyManager == null || !partyManager.Contains(mercenary)) &&
+               (trainingGroundManager == null ||
+                !trainingGroundManager.IsMercenaryTraining(instanceId));
+    }
+
+    private MercenaryInstance FindHiredMercenary(string instanceId)
+    {
+        if (hireManager == null || string.IsNullOrWhiteSpace(instanceId))
+        {
+            return null;
+        }
+        foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
+        {
+            if (mercenary != null && mercenary.InstanceId == instanceId)
+            {
+                return mercenary;
+            }
+        }
+        return null;
+    }
+
+    private void ClearSessionIfEmpty()
+    {
+        if (activeSession != null && activeSession.cargo.Count == 0 &&
+            activeSession.companionInstanceIds.Count == 0)
+        {
+            activeSession = null;
+        }
     }
 
     private static ItemDataSO ResolveItem(SavedTransportCargo cargo)
@@ -341,5 +509,12 @@ public sealed class RoadCargoSession : MonoBehaviour
             FindObjectOfType<MerchantData>();
         inventory = inventory ?? GetComponent<MerchantInventory>() ??
             FindObjectOfType<MerchantInventory>();
+        hireManager = hireManager ?? GetComponent<MercenaryHireManager>() ??
+            FindObjectOfType<MercenaryHireManager>();
+        partyManager = partyManager ?? GetComponent<MercenaryPartyManager>() ??
+            FindObjectOfType<MercenaryPartyManager>();
+        trainingGroundManager = trainingGroundManager ??
+            GetComponent<TrainingGroundManager>() ??
+            FindObjectOfType<TrainingGroundManager>();
     }
 }

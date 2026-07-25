@@ -637,6 +637,7 @@ public class SaveManager : MonoBehaviour
         }
         partyManager?.RestoreParty(restoredParty);
         roadCargoSession?.Restore(data.roadCargoSession);
+        RollBackInterruptedRoadCargoSession();
         remoteSaleManager?.Restore(data.remoteSaleOrders);
         progressionManager?.Restore(data.progression);
 
@@ -655,6 +656,25 @@ public class SaveManager : MonoBehaviour
             data.onboardingEnabled,
             data.onboardingStep,
             data.onboardingShownCards);
+    }
+
+    private void RollBackInterruptedRoadCargoSession()
+    {
+        if (roadCargoSession == null || !roadCargoSession.IsActive ||
+            townProgressState == null ||
+            roadCargoSession.ActiveSession.originTownIndex !=
+            townProgressState.CurrentTownIndex)
+        {
+            return;
+        }
+
+        RoadCargoResolutionResult result = roadCargoSession.Retreat();
+        if (result == RoadCargoResolutionResult.StorageFull)
+        {
+            Debug.LogWarning(
+                "Interrupted road cargo remains pending at the origin because " +
+                "storage is full. Free storage and receive it before travelling.");
+        }
     }
 
     private MercenaryInstance RestoreMercenary(SavedMercenary saved)

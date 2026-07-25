@@ -324,6 +324,7 @@ public static class SaveDataMigrator
         if (data.partyMemberIds == null) data.partyMemberIds = new List<string>();
         if (data.transportConvoys == null) data.transportConvoys = new List<SavedTransportConvoy>();
         if (data.roadCargoSession != null && data.roadCargoSession.cargo == null) data.roadCargoSession.cargo = new List<SavedTransportCargo>();
+        if (data.roadCargoSession != null && data.roadCargoSession.companionInstanceIds == null) data.roadCargoSession.companionInstanceIds = new List<string>();
         if (data.remoteSaleOrders == null) data.remoteSaleOrders = new List<SavedRemoteSaleOrder>();
         if (data.dungeonExpeditions == null)
         {

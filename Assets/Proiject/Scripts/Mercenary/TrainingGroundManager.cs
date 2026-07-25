@@ -79,6 +79,7 @@ public class TrainingGroundManager : MonoBehaviour
     [SerializeField] private MercenaryPartyManager partyManager;
     [SerializeField] private DayManager dayManager;
     [SerializeField] private TownProgressState townProgressState;
+    [SerializeField] private RoadCargoSession roadCargoSession;
     [SerializeField] private List<TrainingReservation> reservations =
         new List<TrainingReservation>();
 
@@ -174,6 +175,12 @@ public class TrainingGroundManager : MonoBehaviour
         if (!IsAtCurrentTown(mercenary))
         {
             return TrainingUnavailableReason.DifferentTown;
+        }
+
+        if (roadCargoSession != null &&
+            roadCargoSession.IsCompanionInTransit(mercenary.InstanceId))
+        {
+            return TrainingUnavailableReason.OnTransport;
         }
 
         if (!IsTownAvailable(mercenary.CurrentTownIndex))
@@ -528,7 +535,13 @@ public class TrainingGroundManager : MonoBehaviour
         if (townProgressState == null)
         {
             townProgressState = GetComponent<TownProgressState>() ??
-                FindObjectOfType<TownProgressState>();
+                                FindObjectOfType<TownProgressState>();
+        }
+
+        if (roadCargoSession == null)
+        {
+            roadCargoSession = GetComponent<RoadCargoSession>() ??
+                               FindObjectOfType<RoadCargoSession>();
         }
 
         SubscribeToDayChanged();

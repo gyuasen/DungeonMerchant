@@ -271,6 +271,8 @@ public sealed class CompanyPageUI : ListPageUIBase
             () => togglePartyAction?.Invoke(mercenary));
         partyButton.GetComponent<RectTransform>().sizeDelta =
             new Vector2(80f, 44f);
+        bool isInTransit = isOnTransportDuty?.Invoke(mercenary) == true;
+        partyButton.interactable = !isInTransit;
 
         Button detailsButton = CreateActionButton(
             row,
@@ -295,6 +297,7 @@ public sealed class CompanyPageUI : ListPageUIBase
         RectTransform releaseRect = releaseButton.GetComponent<RectTransform>();
         releaseRect.sizeDelta = new Vector2(80f, 44f);
         releaseRect.anchoredPosition = new Vector2(-190f, 0f);
+        releaseButton.interactable = !isInTransit;
 
         if (!mercenary.ContractNeedsRenewal)
         {
