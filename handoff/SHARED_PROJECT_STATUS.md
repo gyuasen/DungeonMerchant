@@ -1513,3 +1513,18 @@
 - WorldMapService.CreateRestoredUnlockedTownIndices を修正: 「savedがnullのときだけ経路補完」→「常に現在地の進行位置までの経路(TownProgressionOrder[0..currentOrder])を補完」。隣接移動しかできない設計上、現在地に到達=経路上の町は全解放済みが保証されるため過剰解放にならず、解放集合が現在地と矛盾するセーブをロード時に自動修復できる。
 - 回帰テスト追加: WorldMapServiceTests.CreateRestoredUnlockedTownIndices_WhenSavedSetIsMissingRouteTowns_RepairsRouteToCurrentTown([2,3]+current3 → 0,1,2,3含む,4含まず)。既存2テストは不変で通る。dotnet build 0/0。
 - 未対応(記録のみ): companyName変更時に旧保存先セーブを移行する仕組み、CreateSaveDataでマネージャーnull時にデフォルト値保存せずエラーにする案(Sol提案)。今回はロード時修復で実害回避。
+
+## 2026-07-27 家側・採取素材の売却専用化 + 採取イベントの日数増加 ※Unity確認待ち
+### (1) 採取専用素材6種を売却専用化・高価格化(ユーザー確定)
+- IronOre/SilverOre/MedicinalHerb/AntidoteHerb/Hardwood/Spiritwood の materialClassification を 2(CraftingMaterial)→1(SellOnly)。
+- 価格: 低級(IronOre/MedicinalHerb/Hardwood)=150、高級(SilverOre/AntidoteHerb/Spiritwood)=300。魔物ドロップ素材の実質上限(約120G: TrollHide/LizardScale)を確実に上回る。
+- 6種は全レシピで未使用(GUID検索確認済み)なのでSellOnly化でレシピは壊れない。TradeMaterialTests.EveryRecipe_UsesOnlyCraftingMaterials も影響なし。
+### (2) 採取イベントに日数増加を追加(ユーザー確定: 丁寧2日/急ぐ1日)
+- これまで採取(MineralVein/HerbGrove/QualityGrove)は Careful のみ日数+1、Quick は0だった。両方に日数コストを付与。
+- DungeonEventChoiceResult: bool AddExplorationDelay を int ExplorationDelayDays に置換(AddExplorationDelayは ExplorationDelayDays>0 の算出プロパティとして互換維持)。全ファクトリを int 化。
+- ResolveEnvironmentalChoice: Careful(option0)=2日/Quick(option1)=1日。ResolveEventChoice で ExplorationDelayDays 分 AddExplorationDelay。
+### (3) UI表示反映(ユーザー追加要望)
+- 採取イベントの選択肢ラベルに日数明記: 「慎重に採掘する / +2日」「急いで採掘する / +1日」等(崩落イベントの既存表記に合わせた)。説明文にも「丁寧なほど多く採れるが時間がかかる」。
+- CreateChoicePreview を採取イベント対応に修正(従来は ResolveChoice が None を返し採取内容が出なかった)。環境イベント結果から「〇〇を△個入手します。探索日数が□日増加します。」を表示。dungeonData を引数追加。
+- 回帰テスト追加: GatheringEvent_CarefulTakesTwoDays_HurriedTakesOne、CreateChoicePreview_ForGathering_ShowsMaterialAndDelayDays。既存 DungeonEventServiceTables/TradeMaterialTests は不変で通る。dotnet build 0/0。
+- Unity確認待ち: 採取イベントで日数が正しく増える(丁寧2/急ぐ1)、選択肢・プレビュー表示、採取素材が売却専用として市場/倉庫で表示・売却できるか。未コミット。

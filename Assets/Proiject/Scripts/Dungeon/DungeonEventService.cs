@@ -40,11 +40,11 @@ public static class DungeonEventService
                     $"強行突破 HP-{hazardDamage} / 日数増加なし",
                     "撤退");
             case DungeonEventType.MineralVein:
-                return new DungeonEventPresentation("鉱脈を見つけた", "採掘できる鉱脈が露出している。", "慎重に採掘する", "急いで採掘する", "撤退");
+                return new DungeonEventPresentation("鉱脈を見つけた", "採掘できる鉱脈が露出している。丁寧なほど多く採れるが時間がかかる。", "慎重に採掘する / +2日", "急いで採掘する / +1日", "撤退");
             case DungeonEventType.HerbGrove:
-                return new DungeonEventPresentation("薬草の群生地を見つけた", "薬効のある草が群生している。", "丁寧に採取する", "急いで採取する", "撤退");
+                return new DungeonEventPresentation("薬草の群生地を見つけた", "薬効のある草が群生している。丁寧なほど多く採れるが時間がかかる。", "丁寧に採取する / +2日", "急いで採取する / +1日", "撤退");
             case DungeonEventType.QualityGrove:
-                return new DungeonEventPresentation("良質な木立を見つけた", "加工に適した木材が手に入りそうだ。", "慎重に伐採する", "急いで伐採する", "撤退");
+                return new DungeonEventPresentation("良質な木立を見つけた", "加工に適した木材が手に入りそうだ。丁寧なほど多く採れるが時間がかかる。", "慎重に伐採する / +2日", "急いで伐採する / +1日", "撤退");
             default:
                 return DungeonEventPresentation.Empty;
         }
@@ -89,19 +89,28 @@ public static class DungeonEventService
         int optionIndex,
         int restHealAmount,
         int treasureGoldReward,
-        int hazardDamage)
+        int hazardDamage,
+        DungeonDataSO dungeonData = null)
     {
         if (optionIndex == 2)
         {
             return "探索を終了し、安全に町へ戻ります。";
         }
 
-        DungeonEventChoiceResult result = ResolveChoice(
-            eventType,
-            optionIndex,
-            restHealAmount,
-            treasureGoldReward,
-            hazardDamage);
+        DungeonEventChoiceResult result =
+            eventType == DungeonEventType.MineralVein ||
+            eventType == DungeonEventType.HerbGrove ||
+            eventType == DungeonEventType.QualityGrove
+                ? DungeonEnvironmentEventService.ResolveEnvironmentalChoice(
+                    eventType,
+                    optionIndex,
+                    dungeonData)
+                : ResolveChoice(
+                    eventType,
+                    optionIndex,
+                    restHealAmount,
+                    treasureGoldReward,
+                    hazardDamage);
         string preview = string.Empty;
         if (result.HealAmount > 0)
         {
@@ -111,6 +120,12 @@ public static class DungeonEventService
         {
             preview += $" {result.GoldAmount} Gを獲得します。";
         }
+        if (result.MaterialItem != null && result.MaterialAmount > 0)
+        {
+            preview +=
+                $" {JapaneseDisplayText.GetItemName(result.MaterialItem)}を" +
+                $"{result.MaterialAmount}個入手します。";
+        }
         if (result.DamageAmount > 0)
         {
             preview += $" パーティー全員が{result.DamageAmount}ダメージを受けます。";
@@ -119,9 +134,9 @@ public static class DungeonEventService
         {
             preview += " 限定装備を発見できる可能性があります。";
         }
-        if (result.AddExplorationDelay)
+        if (result.ExplorationDelayDays > 0)
         {
-            preview += " 探索日数が1日増加します。";
+            preview += $" 探索日数が{result.ExplorationDelayDays}日増加します。";
         }
         else
         {
@@ -224,7 +239,10 @@ public static class DungeonEnvironmentEventService
         ItemDataSO item = Resources.Load<ItemDataSO>(path);
         int amount = (optionIndex == 0 ? 2 : 1) + (int)dungeonGrade;
         amount += GetRegionalAmountBonus(worldMapIndex);
-        return DungeonEventChoiceResult.Material(item, amount, optionIndex == 0);
+        // Gathering always costs exploration days: careful gathering (option 0)
+        // yields more material but takes 2 days, hurried gathering takes 1.
+        int explorationDelayDays = optionIndex == 0 ? 2 : 1;
+        return DungeonEventChoiceResult.Material(item, amount, explorationDelayDays);
     }
 
     private static string GetMaterialResourcePath(
@@ -299,21 +317,23 @@ public readonly struct DungeonEventPresentation
 public readonly struct DungeonEventChoiceResult
 {
     public static readonly DungeonEventChoiceResult None =
-        new DungeonEventChoiceResult(0, 0, 0, false, null);
+        new DungeonEventChoiceResult(0, 0, 0, 0, null);
 
     public readonly int HealAmount;
     public readonly int DamageAmount;
     public readonly int GoldAmount;
-    public readonly bool AddExplorationDelay;
+    public readonly int ExplorationDelayDays;
     public readonly string LimitedDropSourceLabel;
     public readonly ItemDataSO MaterialItem;
     public readonly int MaterialAmount;
+
+    public bool AddExplorationDelay => ExplorationDelayDays > 0;
 
     private DungeonEventChoiceResult(
         int healAmount,
         int damageAmount,
         int goldAmount,
-        bool addExplorationDelay,
+        int explorationDelayDays,
         string limitedDropSourceLabel,
         ItemDataSO materialItem = null,
         int materialAmount = 0)
@@ -321,7 +341,7 @@ public readonly struct DungeonEventChoiceResult
         HealAmount = healAmount;
         DamageAmount = damageAmount;
         GoldAmount = goldAmount;
-        AddExplorationDelay = addExplorationDelay;
+        ExplorationDelayDays = Mathf.Max(0, explorationDelayDays);
         LimitedDropSourceLabel = limitedDropSourceLabel;
         MaterialItem = materialItem;
         MaterialAmount = materialAmount;
@@ -335,7 +355,7 @@ public readonly struct DungeonEventChoiceResult
             Mathf.Max(0, amount),
             0,
             0,
-            addExplorationDelay,
+            addExplorationDelay ? 1 : 0,
             null);
     }
 
@@ -347,7 +367,7 @@ public readonly struct DungeonEventChoiceResult
             0,
             Mathf.Max(0, amount),
             0,
-            addExplorationDelay,
+            addExplorationDelay ? 1 : 0,
             null);
     }
 
@@ -361,25 +381,25 @@ public readonly struct DungeonEventChoiceResult
             0,
             Mathf.Max(0, damageAmount),
             Mathf.Max(0, amount),
-            addExplorationDelay,
+            addExplorationDelay ? 1 : 0,
             limitedDropSourceLabel);
     }
 
     public static DungeonEventChoiceResult Delay()
     {
-        return new DungeonEventChoiceResult(0, 0, 0, true, null);
+        return new DungeonEventChoiceResult(0, 0, 0, 1, null);
     }
 
     public static DungeonEventChoiceResult Material(
         ItemDataSO item,
         int amount,
-        bool addExplorationDelay)
+        int explorationDelayDays)
     {
         return new DungeonEventChoiceResult(
             0,
             0,
             0,
-            addExplorationDelay,
+            explorationDelayDays,
             null,
             item,
             Mathf.Max(1, amount));

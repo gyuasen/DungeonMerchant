@@ -16,9 +16,9 @@ MonoBehaviour:
   itemName: "\u9280\u9271\u77F3"
   itemType: 0
   rarity: 0
-  materialClassification: 2
+  materialClassification: 1
   description: Crafting material gathered in the demon continent.
-  basePrice: 180
+  basePrice: 300
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0
