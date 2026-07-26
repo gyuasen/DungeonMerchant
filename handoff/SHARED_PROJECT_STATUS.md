@@ -1534,3 +1534,17 @@
 - WorldMapService: TownMapImageNames 配列(index=town: Eld/Leaf/Sail/Norn/Glaad/Velm/Abyss/Astera)と GetTownMapImageResourcePath(townIndex) を追加。
 - SimpleMercenaryHireUI: townMapBackgroundImage(RawImage)フィールド追加。AddMapBackground を RawImage を返すよう変更(既存の戻り値無視呼び出しは影響なし)。UpdateTownMapBackground() を新設し、RefreshTownMapPage(現在地変更時に呼ばれる)冒頭で現在地の町画像に差し替え。画像が無い町は Maps/TownMap にフォールバック。
 - dotnet build 0/0。Unity確認待ち: 各町に移動したとき固有のマップ画像が表示されるか、隠し町アステラ含め全8町。未コミット。
+
+## 2026-07-27 家側・就活提出前チェックリストを作成
+- handoff/SUBMISSION_CHECKLIST.md を新設。提出(GitHub公開/ビルド配布/応募)前に確認する項目を体系化。
+- 内容: 前提確認 / 未コミット作業の整理 / 機密・個人情報の除外(handoff公開判断含む) / ライセンス / ビルド動作確認 / README見せ方(スクショ追加推奨) / プレイ体験 / 提出直前手順 / 未解決の技術課題(面接対策)。
+- 進行に応じて `- [ ]`→`- [x]` でチェックしていく運用。
+
+## 2026-07-27 家側・残り画像をすべて配置(戦闘背景2/修練場1/拡張装備/非装備57)
+- 以前の監査で未配置だった画像をすべて配置・検証完了。参照ずれ・取り違え・孤立・meta欠落はゼロ。
+  - 戦闘背景2: NornCanopyLabyrinth / VelmBlackIronMine(ダンジョンアセット名で解決)
+  - 施設職員1: TrainingGround(施設キーで UI/Staff/TrainingGround 解決、Sprite設定)
+  - 拡張装備の図鑑画像: item_expansion_rank4〜7 + beastbane/dragonbane(装備アセット名一致)
+  - 非装備アイテム画像57点: UI/Items/{item.name}(素材/消耗品/変異核/転職証等、全実アイテムに対応、Sprite設定)
+- 全画像 textureType=Sprite(8) 確認。UI/Items の meta欠落4点(SpiritRemnant/TrollHide/VenomMothPowder/WyvernScale)はUnity再インポートで生成済み。
+- docs/IMAGE_ASSET_LIST.md 更新(合計 355/361、残未配置は拡張敵6体のみ)。

@@ -1,6 +1,6 @@
 # DungeonMerchant 画像アセット一覧
 
-更新日: **2026-07-21**
+更新日: **2026-07-27**
 
 ## サマリー
 
@@ -9,14 +9,18 @@
 | セクション | 必要 | 配置済み | 未配置 |
 |---|---:|---:|---:|
 | 敵スプライト（EnemyDataSO 99体） | 99 | 93 | 6 |
-| 戦闘背景 | 12 | 12 | 0 |
+| 戦闘背景（ダンジョン専用） | 15 | 15 | 0 |
+| 戦闘背景（街道・共通） | 8 | 8 | 0 |
 | 戦闘イベント | 13 | 13 | 0 |
 | タイトル | 1 | 1 | 0 |
-| 施設職員 | 7 | 7 | 0 |
-| 図鑑・装備 | 89 | 89 | 0 |
+| 施設職員 | 8 | 8 | 0 |
+| 図鑑・装備 | 159 | 159 | 0 |
+| 非装備アイテム（素材・消耗品・特殊） | 57 | 57 | 0 |
 | 掲示板 | 1 | 1 | 0 |
 | ポートレート | 0 | 0 | 0 |
-| **合計（必要画像）** | **213** | **207** | **6** |
+| **合計（必要画像）** | **361** | **355** | **6** |
+
+2026-07-27 更新: ダンジョン専用背景2枚（NornCanopyLabyrinth / VelmBlackIronMine）、施設職員1枚（TrainingGround）、拡張装備の図鑑画像、非装備アイテム画像57点をすべて配置。残る未配置は敵スプライト6体（拡張敵）のみ。
 
 ポートレートシート2枚（`MercenaryPortraitSheet.png`、`MercenarySpecialPortraitSheet.png`）は既存配置済みだが、シート内切り出しを使用するため必要画像数から除外した。`ParchmentPanel.png`、`Resources/UI/Equipment/` の2枚、マップ画像11枚、`Assets/Proiject/UI/` の1枚も同様に参照・基盤アセットとして別管理し、上表の必要枚数には含めていない。
 
@@ -33,7 +37,8 @@
 
 | 状態 | ファイル名 | 配置先 |
 |---|---|---|
-| ✅配置済み（12） | `Default`, `Dungeon_AstralDepths`, `Dungeon_MistRuins`, `Dungeon_OriginCave`, `Dungeon_SealedMine`, `Road_0_1`, `Road_0_3`, `Road_1_2`, `Road_3_4`, `Road_4_5`, `Road_5_6`, `Road_6_7`（各 `.png`） | `Resources/Battle/Backgrounds/` |
+| ✅配置済み（21） | 共通・街道（8）: `Default`, `Road_0_1`, `Road_0_3`, `Road_1_2`, `Road_3_4`, `Road_4_5`, `Road_5_6`, `Road_6_7` ／ ダンジョン専用（13）: `Dungeon_AstralDepths`, `Dungeon_MistRuins`, `Dungeon_OriginCave`, `Dungeon_SealedMine`, `AbyssGatewayThreshold`, `EldOldQuarry`, `EldUndergroundWaterway`, `FinalBlackSoilAbyss`, `GlaadDragonScaleCanyon`, `GlaadSkyFortress`, `LeafForestTrail`, `NornVerdantSettlement`, `VelmFurnaceDefenseZone`（各 `.png`） | `Resources/Battle/Backgrounds/` |
+| ⬜未配置（2） | `NornCanopyLabyrinth`（ノルン樹冠迷宮）, `VelmBlackIronMine`（ヴェルム黒鉄鉱山）（各 `.png`） | `Resources/Battle/Backgrounds/` |
 
 ## 戦闘イベント
 
@@ -47,6 +52,7 @@
 |---|---|---|---|
 | タイトル | ✅配置済み（1） | `TitleBackground.png` | `Resources/UI/` |
 | 職員 | ✅配置済み（7） | `Blacksmith.png`, `Clinic.png`, `Guild.png`, `Market.png`, `Tavern.png`, `Temple.png`, `Warehouse.png` | `Resources/UI/Staff/` |
+| 職員 | ⬜未配置（1） | `TrainingGround.png`（修練場） | `Resources/UI/Staff/` |
 | 掲示板 | ✅配置済み（1） | `QuestBoard.png` | `Resources/UI/` |
 
 ## 図鑑・装備
@@ -57,7 +63,17 @@
 
 ## 次に用意すべき優先画像
 
-未配置の必須画像は6枚。優先度順は以下のとおり。
+### ★最優先（実機で目に見える欠落・2026-07-26 整合性監査で確定）
+
+以下3枚は、対応データが存在するのに画像だけ未生成で、実機でプレースホルダ／デフォルト背景にフォールバックしている。参照ずれではなく画像そのものの未生成。ファイル名はキー／アセット名と完全一致（大文字小文字含む）させること。
+
+1. ★ `Resources/Battle/Backgrounds/NornCanopyLabyrinth.png` — ダンジョン「ノルン樹冠迷宮」の戦闘背景。未生成のため `Default.png` にフォールバック。世界観: 巨木の樹冠に広がる迷宮、高所の枝葉・吊り構造・木漏れ日。既存ダンジョン背景と同解像度・縦横比。
+2. ★ `Resources/Battle/Backgrounds/VelmBlackIronMine.png` — ダンジョン「ヴェルム黒鉄鉱山」の戦闘背景。未生成のため `Default.png` にフォールバック。世界観: 黒鉄の鉱脈が走る坑道、溶岩・熔炉の熱気、支柱と鉱車。既存ダンジョン背景と同解像度・縦横比。
+3. ★ `Resources/UI/Staff/TrainingGround.png` — 施設「修練場」の職員画像。未生成のため挨拶画像が表示されない。世界観: 傭兵を鍛える訓練場の教官／師範。他7施設（酒場/ギルド/市場/鍛冶屋/倉庫/診療所/神殿）と同じ構図・解像度・縦横比に揃える。
+
+### 装備図鑑（未配置）
+
+未配置の装備図鑑画像。優先度順は以下のとおり。
 
 段階1のダンジョン限定装備図鑑画像（未配置、`Resources/UI/Codex/Equipment/{アセット名}.png`）:
 
@@ -126,8 +142,9 @@
 
 ### 未配置（画像そのものが存在しない。参照ずれではない）
 
-**ダンジョン背景 7 枚**（`Resources/Battle/Backgrounds/{キー}.png`）:
-`EldOldQuarry`, `EldUndergroundWaterway`, `FinalBlackSoilAbyss`, `GlaadSkyFortress`, `LeafForestTrail`, `NornCanopyLabyrinth`, `VelmBlackIronMine`
+**ダンジョン背景 2 枚**（`Resources/Battle/Backgrounds/{キー}.png`）:
+`NornCanopyLabyrinth`, `VelmBlackIronMine`
+（※2026-07-26 時点。以前 7 枚と記録していた `EldOldQuarry`, `EldUndergroundWaterway`, `FinalBlackSoilAbyss`, `GlaadSkyFortress`, `LeafForestTrail` は配置済みに変わった。残り2枚が未生成。）
 
 **施設職員 1 枚**（`Resources/UI/Staff/TrainingGround.png`）:
 新施設「修練場」の職員画像。他7施設（酒場/ギルド/市場/鍛冶屋/倉庫/診療所/神殿）は配置済み。
