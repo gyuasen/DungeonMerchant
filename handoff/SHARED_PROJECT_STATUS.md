@@ -1467,3 +1467,25 @@
 - `EquipmentSetCatalogTests.SpecialPageModel_UsesAllSpecialAssetsAndPreservesOverallCount` が失敗（Expected 6 / But was 3）。
 - 原因: NormalRank09系3件が「高ランク単体装備ページ(equipmentRank>=9 & equipmentSet=None)」に載っていた。削除で 6→3、pages 26→23 に。SetGroups(20)は不変。
 - 削除は意図的なので、期待値をデータに合わせて更新: HighRankSingle 6→3、pages 26→23。他テスト(EquipmentAvailabilityTests等)への巻き添えは grep 確認済みで無し。dotnet build 0/0。
+
+## 2026-07-26 家側・強化鉱石をレシピ材料から外し、変異核を装備素材に転用（Sol調査/Terra実装）※Unity確認待ち
+- 監査で判明した「等級別変異核4種の死にアイテム化」「強化鉱石が装備強化と鍛冶レシピで競合」を同時解消。
+- 方針(ユーザー確定): 装備レシピの材料から強化鉱石を外し(強化鉱石は装備強化専用化)、同数の等級別変異核へ**1:1置換**。
+- 対象レシピ32件のmaterials内GUIDのみ差し替え(amount維持):
+  - Rank4系4件(rank4_0/1/2, beastbane): EnhancementOre → LowerGradeMutantCore
+  - Rank5系3件: EnhancementOre → MiddleGradeMutantCore
+  - Rank6系10件(rank6_0/1/2 ×武器/防具/装飾, dragonbane): EnhancementOre → MiddleGradeMutantCore
+  - Rank7系9件(rank7_0/1/2 ×武器/防具/装飾): EnhancementOre → UpperGradeMutantCore
+  - Rank8系3件(Rank08 Weapon/Armor/Accessory): UpperGradeEnhancementOre → HighestGradeMutantCore
+  - 神話3件(MythicBlade/Armor/Charm): HighestGradeEnhancementOre → HighestGradeMutantCore
+- 進行度と変異核入手時期は整合(Sol確認): レシピ解放町と同時か手前で該当等級の核が入手可能。進行不能なし。
+- **ダンジョンのクリア報酬(強化鉱石=供給側)は不変**。VelmBlackIronMine/GlaadSkyFortress/FinalBlackSoilAbyss等の.assetは触っていない。
+- 変異核は強化鉱石と同じ itemType:Material / materialClassification:CraftingMaterial なので、既存テスト(BalanceExpansion*, EquipmentAvailability, TradeMaterial)は不変で通る。dotnet build 0/0。
+- 副作用(記録・実プレイ後に調整): 基礎EnhancementOreはレシピ需要76個が消え供給過多寄り(装備強化+1〜+2のみ需要)。Middle/Upper核はコンプ時8〜11周回とやや重い。Highest核はコンプ時42個。→ 経済バランス調整の保留項目に追加。
+- **Unity確認待ち**: 鍛冶屋で各レシピの材料表示が変異核になっているか、実際に制作できるか。Test Runner全緑か。未コミット。
+
+### 追記: レシピ材料が鍛冶屋で1つしか表示されないバグ→修正(2026-07-26)
+- 症状: 強化鉱石→変異核の置換後、鍛冶屋で各レシピの材料が「魔物の牙」1つしか表示されない(変異核・魔石が消える)。Unity再インポートでも直らず。
+- 真因: 置換時のsedが行頭スペースを巻き込み、変異核の material 行のYAMLインデントが `  - item:` → `- item:` に崩れた(全32レシピ)。配列要素として正しくパースされず materials が壊れていた。GUID・amount自体は正しかった。
+- 修正: 全32レシピの `^- item:` を `  - item:` に戻した。各レシピが3材料で正しくパースされることを確認。
+- 教訓: **YAML .asset を機械置換するとインデント崩れが起きうる。置換後は必ず先頭インデント(`  - item:`)と要素数を検証すること。**
