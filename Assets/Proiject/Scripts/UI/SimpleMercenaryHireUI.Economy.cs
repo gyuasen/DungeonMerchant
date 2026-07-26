@@ -32,6 +32,13 @@ public partial class SimpleMercenaryHireUI
         nextDayRect.pivot = new Vector2(1f, 1f);
         nextDayRect.anchoredPosition = new Vector2(0f, -34f);
 
+        // 上部ボタンは2段に整列する。
+        // 1段目(y=-78): 操作系(絞込 / 並替)。2段目(y=-120): 機能系
+        // (装備図鑑 / 倉庫拡張 / 売却用素材を一括売却)。いずれも左アンカーで
+        // 等間隔に並べ、右上の「翌日へ」やビューポートと重ならないようにする。
+        const float topRowY = -78f;
+        const float bottomRowY = -120f;
+
         inventoryFilterButton =
             CreateActionButton(inventoryPage, "絞込: 全て",
                 economyController.CycleInventoryFilter);
@@ -40,7 +47,7 @@ public partial class SimpleMercenaryHireUI
         filterRect.anchorMin = filterRect.anchorMax = new Vector2(0f, 1f);
         filterRect.pivot = new Vector2(0f, 1f);
         filterRect.sizeDelta = new Vector2(150f, 38f);
-        filterRect.anchoredPosition = new Vector2(0f, -78f);
+        filterRect.anchoredPosition = new Vector2(142f, topRowY);
 
         equipmentSortButton =
             CreateActionButton(inventoryPage, "並替: 名前",
@@ -50,15 +57,15 @@ public partial class SimpleMercenaryHireUI
         sortRect.anchorMin = sortRect.anchorMax = new Vector2(0f, 1f);
         sortRect.pivot = new Vector2(0f, 1f);
         sortRect.sizeDelta = new Vector2(150f, 38f);
-        sortRect.anchoredPosition = new Vector2(166f, -78f);
+        sortRect.anchoredPosition = new Vector2(308f, topRowY);
 
         Button collectionButton =
             CreateActionButton(inventoryPage, "装備図鑑", ShowEquipmentCollection);
         RectTransform collectionRect = collectionButton.GetComponent<RectTransform>();
         collectionRect.anchorMin = collectionRect.anchorMax = new Vector2(0f, 1f);
         collectionRect.pivot = new Vector2(0f, 1f);
-        collectionRect.sizeDelta = new Vector2(130f, 38f);
-        collectionRect.anchoredPosition = new Vector2(332f, -78f);
+        collectionRect.sizeDelta = new Vector2(150f, 38f);
+        collectionRect.anchoredPosition = new Vector2(142f, bottomRowY);
 
         Button storageButton =
             CreateActionButton(
@@ -68,18 +75,18 @@ public partial class SimpleMercenaryHireUI
         RectTransform storageRect = storageButton.GetComponent<RectTransform>();
         storageRect.anchorMin = storageRect.anchorMax = new Vector2(0f, 1f);
         storageRect.pivot = new Vector2(0f, 1f);
-        storageRect.sizeDelta = new Vector2(130f, 38f);
-        storageRect.anchoredPosition = new Vector2(478f, -78f);
+        storageRect.sizeDelta = new Vector2(150f, 38f);
+        storageRect.anchoredPosition = new Vector2(308f, bottomRowY);
 
         Button sellOnlyButton = CreateActionButton(
             inventoryPage,
             "売却用素材を一括売却",
             ShowSellOnlyConfirmation);
         RectTransform sellOnlyRect = sellOnlyButton.GetComponent<RectTransform>();
-        sellOnlyRect.anchorMin = sellOnlyRect.anchorMax = new Vector2(1f, 1f);
-        sellOnlyRect.pivot = new Vector2(1f, 1f);
-        sellOnlyRect.sizeDelta = new Vector2(190f, 38f);
-        sellOnlyRect.anchoredPosition = new Vector2(0f, -78f);
+        sellOnlyRect.anchorMin = sellOnlyRect.anchorMax = new Vector2(0f, 1f);
+        sellOnlyRect.pivot = new Vector2(0f, 1f);
+        sellOnlyRect.sizeDelta = new Vector2(210f, 38f);
+        sellOnlyRect.anchoredPosition = new Vector2(474f, bottomRowY);
 
         CreateInventorySidebar();
 
@@ -87,7 +94,7 @@ public partial class SimpleMercenaryHireUI
         viewport.anchorMin = new Vector2(0f, 0f);
         viewport.anchorMax = new Vector2(1f, 1f);
         viewport.offsetMin = new Vector2(142f, 0f);
-        viewport.offsetMax = new Vector2(0f, -126f);
+        viewport.offsetMax = new Vector2(0f, -166f);
 
         Image viewportImage = viewport.gameObject.AddComponent<Image>();
         viewportImage.color = new Color(0f, 0f, 0f, 0.01f);
@@ -681,8 +688,16 @@ public partial class SimpleMercenaryHireUI
         window.anchorMin = window.anchorMax = window.pivot = new Vector2(0.5f, 0.5f);
         window.sizeDelta = new Vector2(560f, 360f);
         ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
-        sellQuantityTitleText = CreateText(window, string.Empty, 24, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(28f, -72f), new Vector2(-28f, -22f), ParchmentTextColor);
-        sellQuantityDetailText = CreateText(window, string.Empty, 18, FontStyle.Normal, TextAnchor.MiddleCenter, new Vector2(36f, -214f), new Vector2(-36f, -84f), ParchmentTextColor);
+        sellQuantityTitleText = CreateText(window, string.Empty, 24, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(28f, -58f), new Vector2(-28f, -18f), ParchmentTextColor);
+
+        RectTransform sellImageRect = CreateUIObject("Sell Item Image", window);
+        sellImageRect.anchorMin = sellImageRect.anchorMax = sellImageRect.pivot = new Vector2(0.5f, 1f);
+        sellImageRect.sizeDelta = new Vector2(72f, 72f);
+        sellImageRect.anchoredPosition = new Vector2(0f, -64f);
+        sellQuantityImage = sellImageRect.gameObject.AddComponent<Image>();
+        sellQuantityImagePlaceholder = CreateText(sellImageRect, "?", 32, FontStyle.Bold, TextAnchor.MiddleCenter, Vector2.zero, Vector2.zero, ParchmentTextColor);
+
+        sellQuantityDetailText = CreateText(window, string.Empty, 18, FontStyle.Normal, TextAnchor.MiddleCenter, new Vector2(36f, -220f), new Vector2(-36f, -146f), ParchmentTextColor);
         Button minusButton = CreateActionButton(window, "－", () => AdjustSellQuantity(-1));
         RectTransform minusRect = minusButton.GetComponent<RectTransform>();
         minusRect.anchorMin = minusRect.anchorMax = minusRect.pivot = new Vector2(0.5f, 0f);
@@ -729,6 +744,12 @@ public partial class SimpleMercenaryHireUI
         sellQuantityItem = item;
         sellQuantityAmount = 1;
         sellQuantityTitleText.text = JapaneseDisplayText.GetItemName(item);
+
+        Sprite sprite = ItemPresentationService.ResolveSprite(item);
+        sellQuantityImage.sprite = sprite;
+        sellQuantityImage.color = sprite != null ? Color.white : new Color(1f, 1f, 1f, 0f);
+        sellQuantityImagePlaceholder.gameObject.SetActive(sprite == null);
+
         RefreshSellQuantityDetail();
         sellQuantityOverlay.SetAsLastSibling();
         sellQuantityOverlay.gameObject.SetActive(true);

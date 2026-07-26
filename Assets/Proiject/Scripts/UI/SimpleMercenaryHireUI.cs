@@ -194,6 +194,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Text sellOnlyConfirmationText;
     private RectTransform sellQuantityOverlay;
     private Text sellQuantityTitleText;
+    private Image sellQuantityImage;
+    private Text sellQuantityImagePlaceholder;
     private Text sellQuantityDetailText;
     private ItemDataSO sellQuantityItem;
     private int sellQuantityAmount;
