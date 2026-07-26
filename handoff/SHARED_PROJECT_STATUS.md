@@ -1528,3 +1528,9 @@
 - CreateChoicePreview を採取イベント対応に修正(従来は ResolveChoice が None を返し採取内容が出なかった)。環境イベント結果から「〇〇を△個入手します。探索日数が□日増加します。」を表示。dungeonData を引数追加。
 - 回帰テスト追加: GatheringEvent_CarefulTakesTwoDays_HurriedTakesOne、CreateChoicePreview_ForGathering_ShowsMaterialAndDelayDays。既存 DungeonEventServiceTables/TradeMaterialTests は不変で通る。dotnet build 0/0。
 - Unity確認待ち: 採取イベントで日数が正しく増える(丁寧2/急ぐ1)、選択肢・プレビュー表示、採取素材が売却専用として市場/倉庫で表示・売却できるか。未コミット。
+
+## 2026-07-27 家側・町ごとの固有マップ画像を反映 ※Unity確認待ち
+- 町マップ背景を全町共通の Maps/TownMap から、町ごとの固有画像 Maps/Towns/{英名}.png に切り替え。8町分の画像は配置済み(Sail/Leaf/Eld/Norn/Glaad/Velm/Abyss/Astera、png+meta確認済み)。
+- WorldMapService: TownMapImageNames 配列(index=town: Eld/Leaf/Sail/Norn/Glaad/Velm/Abyss/Astera)と GetTownMapImageResourcePath(townIndex) を追加。
+- SimpleMercenaryHireUI: townMapBackgroundImage(RawImage)フィールド追加。AddMapBackground を RawImage を返すよう変更(既存の戻り値無視呼び出しは影響なし)。UpdateTownMapBackground() を新設し、RefreshTownMapPage(現在地変更時に呼ばれる)冒頭で現在地の町画像に差し替え。画像が無い町は Maps/TownMap にフォールバック。
+- dotnet build 0/0。Unity確認待ち: 各町に移動したとき固有のマップ画像が表示されるか、隠し町アステラ含め全8町。未コミット。

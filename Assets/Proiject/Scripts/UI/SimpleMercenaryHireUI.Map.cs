@@ -578,7 +578,7 @@ public partial class SimpleMercenaryHireUI
 
     private void BuildTownMapPage()
     {
-        AddMapBackground(townMapPage, "Maps/TownMap");
+        townMapBackgroundImage = AddMapBackground(townMapPage, "Maps/TownMap");
 
         standardTownFacilityButtons.Clear();
         hireFacilityButton = CreateMapButton(
@@ -653,7 +653,7 @@ public partial class SimpleMercenaryHireUI
         pageRouter.Register(townMapPage);
     }
 
-    private void AddMapBackground(
+    private RawImage AddMapBackground(
         RectTransform parent,
         string resourcePath,
         string fallbackResourcePath = null)
@@ -672,6 +672,29 @@ public partial class SimpleMercenaryHireUI
         image.texture = texture;
         image.color = texture != null ? Color.white : RowColor;
         image.raycastTarget = false;
+        return image;
+    }
+
+    // Swaps the town map background to the current town's dedicated image,
+    // falling back to the shared TownMap when a town image is missing.
+    private void UpdateTownMapBackground()
+    {
+        if (townMapBackgroundImage == null)
+        {
+            return;
+        }
+
+        string townImagePath = WorldMapService.GetTownMapImageResourcePath(
+            townProgressState.CurrentTownIndex);
+        Texture2D texture = string.IsNullOrEmpty(townImagePath)
+            ? null
+            : Resources.Load<Texture2D>(townImagePath);
+        if (texture == null)
+        {
+            texture = Resources.Load<Texture2D>("Maps/TownMap");
+        }
+        townMapBackgroundImage.texture = texture;
+        townMapBackgroundImage.color = texture != null ? Color.white : RowColor;
     }
 
     private Button CreateMapButton(
@@ -772,6 +795,7 @@ public partial class SimpleMercenaryHireUI
 
     private void RefreshTownMapPage()
     {
+        UpdateTownMapBackground();
         bool hiddenIsland = TownServicePolicy.IsHiddenIslandTown(
             townProgressState.CurrentTownIndex);
         statusText.text =

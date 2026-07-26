@@ -111,6 +111,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform globalMapPage;
     private RectTransform worldMapPage;
     private RectTransform townMapPage;
+    private RawImage townMapBackgroundImage;
     private RectTransform hireList;
     private RectTransform companyPage;
     private RectTransform partyPage;

@@ -23,6 +23,13 @@ public static class WorldMapService
         0, 0, 0, 1, 1, 2, 2, HiddenIslandWorldMapIndex
     };
 
+    // Resources-relative map image name per town (index matches TownNames).
+    // Files live at Resources/Maps/Towns/{name}.png.
+    private static readonly string[] TownMapImageNames =
+    {
+        "Eld", "Leaf", "Sail", "Norn", "Glaad", "Velm", "Abyss", "Astera"
+    };
+
     public static readonly int[] TownProgressionOrder =
     {
         2, 1, 0, 3, 4, 5, 6
@@ -168,6 +175,15 @@ public static class WorldMapService
     public static int GetTownProgressionPosition(int townIndex)
     {
         return Array.IndexOf(TownProgressionOrder, townIndex);
+    }
+
+    // Resources path of the town-specific map image. Returns null for an
+    // invalid town so callers can fall back to the shared TownMap image.
+    public static string GetTownMapImageResourcePath(int townIndex)
+    {
+        return townIndex >= 0 && townIndex < TownMapImageNames.Length
+            ? "Maps/Towns/" + TownMapImageNames[townIndex]
+            : null;
     }
 
     public static bool AreTownsAdjacent(int leftTown, int rightTown)
