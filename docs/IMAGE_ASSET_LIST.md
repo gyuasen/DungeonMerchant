@@ -16,7 +16,7 @@
 | 図鑑・装備 | 89 | 89 | 0 |
 | 掲示板 | 1 | 1 | 0 |
 | ポートレート | 0 | 0 | 0 |
-| **合計（必要画像）** | **222** | **216** | **6** |
+| **合計（必要画像）** | **213** | **207** | **6** |
 
 ポートレートシート2枚（`MercenaryPortraitSheet.png`、`MercenarySpecialPortraitSheet.png`）は既存配置済みだが、シート内切り出しを使用するため必要画像数から除外した。`ParchmentPanel.png`、`Resources/UI/Equipment/` の2枚、マップ画像11枚、`Assets/Proiject/UI/` の1枚も同様に参照・基盤アセットとして別管理し、上表の必要枚数には含めていない。
 
@@ -53,7 +53,7 @@
 
 | 状態 | 枚数 | 配置先 | 照合結果 |
 |---|---:|---|---|
-| ✅配置済み | 89 | `Resources/UI/Codex/Equipment/{item.name}.png` | `AbyssMantle`, `AbyssSeal`, `AncientGuardianArmor`, `AncientGuardianSeal`, `ApprenticeRobe`, `ArcanePendant`, `AstralAegis`, `AstralCore`, `BatEyeCharm`, `BlackIronWarEmblem`, `BonePrayerVestment`, `ChampionEmblem`, `DeepMinerArmor`, `EchoStoneRing`, `FeatherCharm`, `GeneralPlate`, `GlaadSummitSigil`, `GlaadWardenPlate`, `GoblinFangTalisman`, `GolemPlate`, `GuardianEyeCharm`, `HawkeyeCharm`, `IronArmor`, `IronVanguardArmor`, `item_expansion_rank4_0_accessory`, `item_expansion_rank4_0_armor`, `item_expansion_rank4_1_accessory`, `item_expansion_rank4_1_armor`, `item_expansion_rank4_2_accessory`, `item_expansion_rank4_2_armor`, `item_expansion_rank5_0_accessory`, `item_expansion_rank5_0_armor`, `item_expansion_rank5_1_accessory`, `item_expansion_rank5_1_armor`, `item_expansion_rank5_2_accessory`, `item_expansion_rank5_2_armor`, `item_expansion_rank6_0_accessory`, `item_expansion_rank6_0_armor`, `item_expansion_rank6_1_accessory`, `item_expansion_rank6_1_armor`, `item_expansion_rank6_2_accessory`, `item_expansion_rank7_0_accessory`, `item_expansion_rank7_0_armor`, `item_expansion_rank7_1_accessory`, `item_expansion_rank7_1_armor`, `item_expansion_rank7_2_accessory`, `item_expansion_rank7_2_armor`, `item_expansion_undeadbane`, `LancerChainmail`, `LancerInsignia`, `LeatherArmor`, `ManaPendant`, `NormalRank01Accessory`, `NormalRank01Armor`, `NormalRank02`, `NormalRank02Accessory`, `NormalRank03`, `NormalRank03Armor`, `NormalRank04Accessory`, `NormalRank04Armor`, `NormalRank05`, `NormalRank05Accessory`, `NormalRank06`, `NormalRank06Armor`, `NormalRank07Accessory`, `NormalRank07Armor`, `NormalRank08`, `NormalRank08Accessory`, `NormalRank09`, `NormalRank09Armor`, `NormalRank10Accessory`, `NormalRank10Armor`, `NornBarkguard`, `NornVerdantCharm`, `OniHunterGarb`, `PriestRosary`, `PriestVestment`, `RogueLeatherArmor`, `RogueTalisman`, `RuinweaveMantle`, `RunewovenRobe`, `ShadowhideArmor`, `SoldierRing`, `SpiritBead`, `VelmDeepforgeArmor`, `VelmEmberCore`, `WindrunnerLeather`, `WyvernCrest`（各 `.png`） |
+| ✅配置済み | 80 | `Resources/UI/Codex/Equipment/{item.name}.png` | `AbyssMantle`, `AbyssSeal`, `AncientGuardianArmor`, `AncientGuardianSeal`, `ApprenticeRobe`, `ArcanePendant`, `AstralAegis`, `AstralCore`, `BatEyeCharm`, `BonePrayerVestment`, `ChampionEmblem`, `FeatherCharm`, `GlaadSummitSigil`, `GlaadWardenPlate`, `GoblinFangTalisman`, `GolemPlate`, `GuardianEyeCharm`, `HawkeyeCharm`, `IronArmor`, `IronVanguardArmor`, `item_expansion_rank4_0_accessory`, `item_expansion_rank4_0_armor`, `item_expansion_rank4_1_accessory`, `item_expansion_rank4_1_armor`, `item_expansion_rank4_2_accessory`, `item_expansion_rank4_2_armor`, `item_expansion_rank5_0_accessory`, `item_expansion_rank5_0_armor`, `item_expansion_rank5_1_accessory`, `item_expansion_rank5_1_armor`, `item_expansion_rank5_2_accessory`, `item_expansion_rank5_2_armor`, `item_expansion_rank6_0_accessory`, `item_expansion_rank6_0_armor`, `item_expansion_rank6_1_accessory`, `item_expansion_rank6_1_armor`, `item_expansion_rank6_2_accessory`, `item_expansion_rank7_0_accessory`, `item_expansion_rank7_0_armor`, `item_expansion_rank7_1_accessory`, `item_expansion_rank7_1_armor`, `item_expansion_rank7_2_accessory`, `item_expansion_rank7_2_armor`, `item_expansion_undeadbane`, `LancerChainmail`, `LancerInsignia`, `LeatherArmor`, `ManaPendant`, `NormalRank01Accessory`, `NormalRank01Armor`, `NormalRank02`, `NormalRank02Accessory`, `NormalRank03`, `NormalRank03Armor`, `NormalRank04Accessory`, `NormalRank04Armor`, `NormalRank05`, `NormalRank05Accessory`, `NormalRank06`, `NormalRank06Armor`, `NormalRank07Accessory`, `NormalRank07Armor`, `NormalRank08`, `NormalRank08Accessory`, `NormalRank10Accessory`, `NormalRank10Armor`, `NornBarkguard`, `NornVerdantCharm`, `OniHunterGarb`, `PriestRosary`, `PriestVestment`, `RogueLeatherArmor`, `RogueTalisman`, `RuinweaveMantle`, `RunewovenRobe`, `ShadowhideArmor`, `SoldierRing`, `SpiritBead`, `VelmDeepforgeArmor`, `VelmEmberCore`, `WindrunnerLeather`, `WyvernCrest`（各 `.png`） |
 
 ## 次に用意すべき優先画像
 
@@ -88,7 +88,7 @@
 
 【重要・実機で判明（2026-07-22）】通常タブの装備図鑑（`BookPageUI`）は `Resources/UI/Codex/Equipment/{item.name}.png` を発見済み装備の画像として表示するが、上記の段階1〜3ダンジョン限定装備（専用装備の武器/防具/装飾）の図鑑画像が未配置のため、発見済みでも画像枠が「?」プレースホルダになる。これは伏せ字（未発見）ではなく画像欠落。コード上の不具合ではなく、上記未配置画像を `item.name` と完全一致（大文字小文字含む）するファイル名で Sprite としてインポート配置すれば解消する。武器のアセット名（`...Hatchet` / `...Lance` / `...Hammer` / `...Blade` / `...Sword` / `...Fang` 等）も対象に含まれる。
 
-主要ダンジョン背景12枚、タイトル背景、施設職員7枚、掲示板、イベント13枚、図鑑89枚はすべて配置済み。
+主要ダンジョン背景12枚、タイトル背景、施設職員7枚、掲示板、イベント13枚、図鑑80枚はすべて配置済み。
 
 ## 監査対象外として確認した既存画像
 
@@ -100,7 +100,7 @@
 - `Resources/UI/Equipment/`: `AbyssSeal.png`, `AstralAegis.png`
 - `Assets/Proiject/UI/`: UUID名のPNG 1枚
 
-全 `Assets` 配下の実画像は233枚（必要画像の配置済み216枚＋集計外17枚）として確認した。必要画像の未配置6枚は実画像枚数には含めていない。
+全 `Assets` 配下の実画像は224枚（必要画像の配置済み207枚＋集計外17枚）として確認した。必要画像の未配置6枚は実画像枚数には含めていない。
 
 ## 2026-07-23 画像参照ずれの調査と修正
 

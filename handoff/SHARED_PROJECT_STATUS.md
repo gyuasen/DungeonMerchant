@@ -1448,3 +1448,22 @@
 - **ドラッグでアイテムを移送**できるようにする（町間の移送、または倉庫⇄手持ちの移送）。
 - **インベントリ画面（チェストのインベントリ）**として、グリッド状のスロットUIを実装する。
 - ※現在の倉庫はリスト表示＋サイドバー。ドラッグ&ドロップは既存UIに無い仕組みのため、実装は中〜大規模になる見込み。
+
+## 2026-07-26 家側・整合性監査＋入手不能装備15件の整理（Sol調査/Luna削除/Terra実装）※Unity確認待ち
+- **整合性監査**をSol(read-only)で3系統実施: (A)入手経路/需給 (B)画像参照 (C)レシピ/クエスト/セーブ/GUID。致命的な進行不能・データ破損はゼロ。
+  - 画像: 参照切れ・取り違えは0件。敵99/99・装備(配置分)・イベント13/13健全。未表示は「Norn樹冠迷宮/Velm黒鉄鉱山の戦闘背景2枚」「修練場(TrainingGround)施設画像1枚」＝未生成のみ（別途対応）。
+  - レシピ57件・セット20種・ダンジョン15件・転職・敵数値・マイグレーション境界は全て整合。
+  - 保留課題として記録: 強化鉱石(最高級/初級)の供給不足、等級別変異核4種の死にアイテム化、採取素材6種の用途不足、破損セーブ向けID一意性検証の不足。→ 経済バランス調整と併せて別途。
+- **入手不能装備15件**を調査→git履歴で「専用装備システムへの移行時に置換・除外されたが本体だけ残った旧アセット」と判明（壊れ参照ではない）。
+  - **9件削除**(後継専用装備あり): NormalRank09系3(→AbyssThrone)/Mine系3(MinebreakerHammer/DeepMinerArmor/EchoStoneRing→LowerMine)/BlackIron General系3(BlackIronHalberd/GeneralPlate/BlackIronWarEmblem→グラード天嶺砦)。
+    - .asset/.meta/.png/.png.meta 計36ファイル削除。EquipmentAvailabilityTests.cs の未使用定数 NormalRank09Ids 削除。docs/IMAGE_ASSET_LIST.md 集計更新(装備89→80)。Assets内の参照ゼロを grep 確認済み。
+  - **6件は新経路で復活**(セット効果/図鑑画像/テスト現存): AncientGuardian系3(R5)/OniHunter系3(R3)。
+    - `DungeonEnemyVariantService.AddSpecialVariantEquipmentDrop` を新設。変異敵ドロップ経由で入手可能に。既存 limitedEquipmentDrops(各3件固定)は不変。
+    - AncientGuardian → 霧の古代遺跡(Middle)の Grade05IronGolem/Grade05StoneGolem/Boss04RuinGuardian 変異。OniHunter → Upper帯の Grade05OgreMage 変異。1回の変異で1部位のみ抽選。dropChance 通常0.10/ボス0.20。
+    - EditModeテスト `DungeonEnemyVariantEquipmentDropTests.cs` 追加(Grade条件/非対象除外/部位網羅/既存ドロップ保持/最大1件)。dotnet build は0 warning/0 error。
+- **Unity確認待ち**: Test Runner(EditMode)で `DungeonEnemyVariantEquipmentDropTests` 含め全緑か。図鑑・戦闘での実挙動。未コミット。
+
+### 追記: 削除の巻き添えテスト修正（2026-07-26）
+- `EquipmentSetCatalogTests.SpecialPageModel_UsesAllSpecialAssetsAndPreservesOverallCount` が失敗（Expected 6 / But was 3）。
+- 原因: NormalRank09系3件が「高ランク単体装備ページ(equipmentRank>=9 & equipmentSet=None)」に載っていた。削除で 6→3、pages 26→23 に。SetGroups(20)は不変。
+- 削除は意図的なので、期待値をデータに合わせて更新: HighRankSingle 6→3、pages 26→23。他テスト(EquipmentAvailabilityTests等)への巻き添えは grep 確認済みで無し。dotnet build 0/0。

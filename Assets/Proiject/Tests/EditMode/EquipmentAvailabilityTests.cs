@@ -11,13 +11,6 @@ public sealed class EquipmentAvailabilityTests
         "item.normal.rank08.weapon"
     };
 
-    private static readonly string[] NormalRank09Ids =
-    {
-        "item.normal.rank09",
-        "item.normal.rank09.armor",
-        "item.normal.rank09.weapon"
-    };
-
     [Test]
     public void EveryMarketEquipment_ReachesAStandardTownMarket()
     {

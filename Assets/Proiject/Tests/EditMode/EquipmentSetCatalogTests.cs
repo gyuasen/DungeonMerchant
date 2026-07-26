@@ -129,8 +129,8 @@ public sealed class EquipmentSetCatalogTests
         IReadOnlyList<EquipmentSpecialPageModel> pages = EquipmentSpecialPageModelBuilder.Build(entries, _ => false);
         int specialEquipmentCount = pages.Sum(page => page.TotalCount);
         Assert.That(entries.SetGroups.Count(), Is.EqualTo(20));
-        Assert.That(entries.HighRankSingleEquipment.Count(), Is.EqualTo(6));
-        Assert.That(pages.Count, Is.EqualTo(26));
+        Assert.That(entries.HighRankSingleEquipment.Count(), Is.EqualTo(3));
+        Assert.That(pages.Count, Is.EqualTo(23));
         Assert.That(entries.NormalEquipment.Count() + specialEquipmentCount, Is.EqualTo(equipment.Count));
     }
 
