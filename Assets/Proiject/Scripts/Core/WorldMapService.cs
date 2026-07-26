@@ -226,9 +226,16 @@ public static class WorldMapService
             result.Add(currentTownIndex);
         }
 
-        if (savedUnlockedTownIndices == null)
+        // Towns are only reachable by adjacent road travel along the fixed
+        // progression order, so arriving at the current town guarantees every
+        // town up to it on that path has already been unlocked. Always
+        // backfill the route (not just when the saved set is null) so a save
+        // whose unlocked set is inconsistent with the current town — e.g. a
+        // save whose storage location changed and lost intermediate towns —
+        // is repaired on load instead of stranding the player.
+        int currentOrder = GetTownProgressionPosition(currentTownIndex);
+        if (currentOrder >= 0)
         {
-            int currentOrder = GetTownProgressionPosition(currentTownIndex);
             for (int i = 0; i <= currentOrder; i++)
             {
                 result.Add(TownProgressionOrder[i]);

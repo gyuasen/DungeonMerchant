@@ -78,6 +78,25 @@ public sealed class WorldMapServiceTests
         Assert.That(restored, Has.No.Member(-1));
     }
 
+    [Test]
+    public void CreateRestoredUnlockedTownIndices_WhenSavedSetIsMissingRouteTowns_RepairsRouteToCurrentTown()
+    {
+        // Regression: a save whose storage location changed lost intermediate
+        // towns (unlocked set [2,3] while standing in the fourth town, Norn).
+        // Arriving at the current town via adjacent-only road travel proves the
+        // whole route was unlocked, so restoring must backfill it.
+        var restored =
+            WorldMapService.CreateRestoredUnlockedTownIndices(
+                3,
+                new[] { 2, 3 });
+
+        Assert.That(restored, Does.Contain(2));
+        Assert.That(restored, Does.Contain(1));
+        Assert.That(restored, Does.Contain(0));
+        Assert.That(restored, Does.Contain(3));
+        Assert.That(restored, Has.No.Member(4));
+    }
+
     [TestCase(1, 0)]
     [TestCase(2, 4)]
     [TestCase(0, -1)]

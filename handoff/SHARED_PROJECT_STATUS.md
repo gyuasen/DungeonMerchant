@@ -1489,3 +1489,27 @@
 - 真因: 置換時のsedが行頭スペースを巻き込み、変異核の material 行のYAMLインデントが `  - item:` → `- item:` に崩れた(全32レシピ)。配列要素として正しくパースされず materials が壊れていた。GUID・amount自体は正しかった。
 - 修正: 全32レシピの `^- item:` を `  - item:` に戻した。各レシピが3材料で正しくパースされることを確認。
 - 教訓: **YAML .asset を機械置換するとインデント崩れが起きうる。置換後は必ず先頭インデント(`  - item:`)と要素数を検証すること。**
+
+## 2026-07-26 家側・全体マップの地域選択バグ修正 ※Unity確認待ち
+- 症状: 上級の町(北西地域=worldMapIndex1)にいるとき、全体マップで「東方平原地域」を選んでも北西地域のマップが表示される。
+- 真因: SimpleMercenaryHireUI.Map.cs の東方地域ボタンだけ引数なし `ShowWorldMap` を渡していた。引数なし版は `townProgressState.CurrentWorldMapIndex`(現在地の地域)を開く実装なので、現在地が東方以外だとその地域が出てしまう。他3地域ボタンは `ShowWorldMap(1)`/(2)/(隠し島) と明示indexだった。
+- 修正: 東方ボタンを `() => ShowWorldMap(0)` に変更(他ボタンと同形式)。
+- 引数なし `ShowWorldMap()` はメニュー遷移・町マップの「地域マップへ」戻る等で「現在地の地域を開く」正しい用途があるため残す。
+- dotnet build 0/0。Unity確認待ち: 各地域ボタンが正しい地域マップを開くか(特に上級/最高級の町にいる状態で東方・北西・黒土を切替)。
+
+## 2026-07-26 家側・全体マップ地域選択バグ + セーブ進行データ喪失の調査/修復 ※Unity確認待ち
+### (1) 地域選択バグ(コミット候補) — 前述の通り東方ボタンを () => ShowWorldMap(0) に修正済み。
+
+### (2) 「東方地域の最後の町に帰還できない」— 真因はセーブ保存先の変更(Sol調査)
+- 症状: ノルン(北西の最初)にいてエルド(東方)へ帰還しようとすると「先にリーフへの移動クエストを攻略してください」。
+- 真因: companyName を DefaultCompany → YugaSen に変更(commit df9ff62)したため Application.persistentDataPath が変わり、**別の空の保存先で若いセーブが育っていた**。
+  - 旧 AppData/LocalLow/DefaultCompany/... : version19, unlocked[0,1,2], grade3, 攻略履歴あり
+  - 現 AppData/LocalLow/YugaSen/... : version35, day203, town3(ノルン), unlocked[2,3], grade0, 攻略履歴空 ← これでプレイしていた
+- つまり進行データが「飛んだ」のではなく、別物のセーブだった。地域選択修正やレシピ変更とは無関係。
+### 対応A: 実セーブの修復(ユーザー確定・実施済み)
+- YugaSen セーブを直接編集: unlockedTownIndices [2,3]→[0,1,2,3]、highestUnlockedDungeonGrade 0→3(Upper)、dungeonFloorProgress に MiddleRuins(エルドのゲートダンジョン,5階)を補完。JSON妥当性確認済み。バックアップ game-save.json.bak-20260726-townfix。
+- ※ゲーム停止中に編集。ロード前にゲーム再起動が必要。他ダンジョンの詳細攻略履歴は現在地から完全復元不可(最低限のゲート通過分のみ補完)。
+### 対応B: 再発防止(コード・Unity確認待ち)
+- WorldMapService.CreateRestoredUnlockedTownIndices を修正: 「savedがnullのときだけ経路補完」→「常に現在地の進行位置までの経路(TownProgressionOrder[0..currentOrder])を補完」。隣接移動しかできない設計上、現在地に到達=経路上の町は全解放済みが保証されるため過剰解放にならず、解放集合が現在地と矛盾するセーブをロード時に自動修復できる。
+- 回帰テスト追加: WorldMapServiceTests.CreateRestoredUnlockedTownIndices_WhenSavedSetIsMissingRouteTowns_RepairsRouteToCurrentTown([2,3]+current3 → 0,1,2,3含む,4含まず)。既存2テストは不変で通る。dotnet build 0/0。
+- 未対応(記録のみ): companyName変更時に旧保存先セーブを移行する仕組み、CreateSaveDataでマネージャーnull時にデフォルト値保存せずエラーにする案(Sol提案)。今回はロード時修復で実害回避。

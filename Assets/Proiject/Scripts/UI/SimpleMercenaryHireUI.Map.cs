@@ -17,7 +17,7 @@ public partial class SimpleMercenaryHireUI
             "東方平原地域\n低級～中級",
             new Vector2(225f, -5f),
             new Vector2(390f, 390f),
-            ShowWorldMap);
+            () => ShowWorldMap(0));
         ConfigureWorldRegionHover(
             currentContinentButton,
             new Color(0.08f, 0.7f, 0.35f, 0.28f));
