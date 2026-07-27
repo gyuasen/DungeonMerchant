@@ -42,6 +42,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         new List<RectTransform>();
     private readonly List<Button> standardTownFacilityButtons =
         new List<Button>();
+    private readonly HashSet<RectTransform> dirtyPages =
+        new HashSet<RectTransform>();
 
     private RectTransform guildPanel;
     private RectTransform overlayRoot;

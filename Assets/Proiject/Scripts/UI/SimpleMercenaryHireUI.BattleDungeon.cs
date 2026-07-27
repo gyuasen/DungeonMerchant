@@ -696,9 +696,9 @@ public partial class SimpleMercenaryHireUI
     {
         startBattleButton.interactable =
             partyManager.Members.Count > 0 && !IsProgressionLocked;
-        RefreshPage(companyPage);
-        RefreshPage(partyPage);
-        RefreshPage(healPage);
+        RefreshPageOrMarkDirty(companyPage);
+        RefreshPageOrMarkDirty(partyPage);
+        RefreshPageOrMarkDirty(healPage);
         RefreshUI();
 
         if (townTravelController.RoadTravelState.IsActive &&
@@ -901,14 +901,32 @@ public partial class SimpleMercenaryHireUI
 
     private IEnumerator WaitForDungeonPresentationCompletion()
     {
-        const float timeoutSeconds = 8f;
-        float elapsed = 0f;
+        const float stalledPresentationTimeoutSeconds = 30f;
+        float stalledElapsed = 0f;
+        int lastProgressVersion = battleVisualController != null
+            ? battleVisualController.PresentationProgressVersion
+            : 0;
         while (hasPendingDungeonCompletion &&
                battleVisualController != null &&
-               battleVisualController.IsPresentationBusy &&
-               elapsed < timeoutSeconds)
+               battleVisualController.IsPresentationBusy)
         {
-            elapsed += Time.unscaledDeltaTime;
+            if (battleVisualController.PresentationProgressVersion !=
+                lastProgressVersion)
+            {
+                lastProgressVersion =
+                    battleVisualController.PresentationProgressVersion;
+                stalledElapsed = 0f;
+            }
+            else if (battleManager == null || !battleManager.IsPaused)
+            {
+                stalledElapsed += Time.unscaledDeltaTime;
+            }
+
+            if (stalledElapsed >= stalledPresentationTimeoutSeconds)
+            {
+                break;
+            }
+
             yield return null;
         }
 

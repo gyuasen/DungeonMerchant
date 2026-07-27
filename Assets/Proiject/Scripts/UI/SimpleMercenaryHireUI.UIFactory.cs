@@ -183,6 +183,7 @@ public partial class SimpleMercenaryHireUI
         Button activeTab = null)
     {
         pageRouter.Show(targetPage);
+        ResolveDirtyPageOnShow(targetPage);
         SetMapHeaderButtons(true);
         SetAllTabsInactive();
         SetTabActive(activeTab, true);
@@ -193,11 +194,38 @@ public partial class SimpleMercenaryHireUI
         pageRouter?.Refresh(pageRoot);
     }
 
+    private void RefreshPageOrMarkDirty(RectTransform pageRoot)
+    {
+        if (pageRouter != null && pageRouter.IsVisible(pageRoot))
+        {
+            dirtyPages.Remove(pageRoot);
+            RefreshPage(pageRoot);
+            return;
+        }
+
+        if (pageRoot != null)
+        {
+            dirtyPages.Add(pageRoot);
+        }
+    }
+
+    private void ResolveDirtyPageOnShow(RectTransform pageRoot)
+    {
+        if (!dirtyPages.Remove(pageRoot))
+        {
+            return;
+        }
+
+        // UIPageBase.Show refreshes the page as it becomes visible, so that
+        // refresh also resolves a pending deferred update without doing it twice.
+    }
+
     private void SwitchToMapPage(
         RectTransform targetPage,
         bool showTownMapButton)
     {
         pageRouter.Show(targetPage);
+        ResolveDirtyPageOnShow(targetPage);
         SetAllTabsInactive();
         SetMapHeaderButtons(showTownMapButton);
     }
