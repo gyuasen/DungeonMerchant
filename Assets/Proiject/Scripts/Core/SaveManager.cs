@@ -30,6 +30,10 @@ public class SaveManager : MonoBehaviour
     private bool initialized;
     private bool isLoading;
     private bool suppressAutoSaveAfterDelete;
+    // 既存セーブのロードに失敗した(バージョン超過/破損)場合に立てる。
+    // 失敗したセーブを初期状態や部分ロード状態で上書きしないよう、以降の
+    // 保存を全面的に抑止する。
+    private bool saveBlockedByLoadFailure;
     private string savePathOverride = string.Empty;
     private Coroutine pendingAutoSaveCoroutine;
 
@@ -64,11 +68,16 @@ public class SaveManager : MonoBehaviour
 
         ResolveReferences();
         HasExistingSaveAtInitialization = File.Exists(SavePath);
+        bool loadedExistingSave = false;
         if (HasExistingSaveAtInitialization)
         {
-            LoadGame();
+            loadedExistingSave = LoadGame();
         }
-        else
+
+        // 既存セーブが無い場合のみ新規状態を適用する。既存セーブのロードに
+        // 失敗した場合は、新規状態で上書きしないよう ApplySaveData を呼ばず、
+        // 保存も saveBlockedByLoadFailure により抑止される。
+        if (!HasExistingSaveAtInitialization)
         {
             ApplySaveData(new GameSaveData
             {
@@ -77,7 +86,7 @@ public class SaveManager : MonoBehaviour
             });
         }
         Subscribe();
-        if (HasExistingSaveAtInitialization)
+        if (loadedExistingSave)
         {
             onboardingGuideController?.CompleteOpeningAfterExistingSaveLoad();
         }
@@ -97,25 +106,49 @@ public class SaveManager : MonoBehaviour
             return;
         }
 
+        if (saveBlockedByLoadFailure)
+        {
+            Debug.LogWarning(
+                "既存セーブのロードに失敗しているため、保存を行いません。");
+            return;
+        }
+
         ResolveReferences();
         GameSaveData data = CreateSaveData();
+        WriteSaveFileAtomically(JsonUtility.ToJson(data, true));
+        Debug.Log($"ゲームを保存しました: {SavePath}");
+    }
+
+    // 一時ファイルへ書き込んでから本番ファイルへ置換する。書き込み途中に
+    // 中断・失敗しても、既存の完全なセーブが破損しないようにする。
+    private void WriteSaveFileAtomically(string json)
+    {
         string directory = Path.GetDirectoryName(SavePath);
         if (!string.IsNullOrEmpty(directory))
         {
             Directory.CreateDirectory(directory);
         }
 
-        File.WriteAllText(SavePath, JsonUtility.ToJson(data, true));
-        Debug.Log($"ゲームを保存しました: {SavePath}");
+        string tempPath = SavePath + ".tmp";
+        File.WriteAllText(tempPath, json);
+        if (File.Exists(SavePath))
+        {
+            // File.Replace は元ファイルを一時退避しつつ原子的に置換する。
+            File.Replace(tempPath, SavePath, SavePath + ".bak");
+        }
+        else
+        {
+            File.Move(tempPath, SavePath);
+        }
     }
 
     [ContextMenu("ゲームを読込")]
-    public void LoadGame()
+    public bool LoadGame()
     {
         ResolveReferences();
         if (!File.Exists(SavePath))
         {
-            return;
+            return false;
         }
 
         try
@@ -124,7 +157,9 @@ public class SaveManager : MonoBehaviour
                 File.ReadAllText(SavePath));
             if (data == null)
             {
-                return;
+                BlockSaveAfterLoadFailure(
+                    "セーブデータを解釈できませんでした。");
+                return false;
             }
 
             if (data.version > GameSaveData.CurrentVersion)
@@ -133,7 +168,9 @@ public class SaveManager : MonoBehaviour
                     $"Save data version {data.version} is newer than the " +
                     $"supported version {GameSaveData.CurrentVersion}. " +
                     "The save was not loaded or modified.");
-                return;
+                BlockSaveAfterLoadFailure(
+                    "対応していない新しいバージョンのセーブデータです。");
+                return false;
             }
 
             bool requiresMigration =
@@ -144,24 +181,35 @@ public class SaveManager : MonoBehaviour
             ApplySaveData(data);
             if (requiresMigration)
             {
-                File.WriteAllText(
-                    SavePath,
-                    JsonUtility.ToJson(data, true));
+                WriteSaveFileAtomically(JsonUtility.ToJson(data, true));
                 Debug.Log(
                     $"Save data migrated to version " +
                     $"{GameSaveData.CurrentVersion}.");
             }
             Debug.Log($"ゲームを読み込みました: {SavePath}");
+            return true;
         }
         catch (Exception exception)
         {
             Debug.LogError($"セーブデータの読込に失敗しました: {exception.Message}");
+            BlockSaveAfterLoadFailure(
+                "セーブデータの読込中にエラーが発生しました。");
+            return false;
         }
         finally
         {
             isLoading = false;
             storyProgressManager?.EndRestore();
         }
+    }
+
+    // ロード失敗時に呼ぶ。以降の保存を抑止し、失敗したセーブファイルを
+    // 上書きしないようにする。
+    private void BlockSaveAfterLoadFailure(string reason)
+    {
+        saveBlockedByLoadFailure = true;
+        Debug.LogWarning(
+            $"既存セーブの保護のため以降の自動保存を停止します: {reason}");
     }
 
     [ContextMenu("セーブデータを削除")]

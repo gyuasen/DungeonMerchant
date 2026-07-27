@@ -74,8 +74,24 @@ public partial class SimpleMercenaryHireUI
 
     private void SaveAndReturnToTitle()
     {
+        // 戦闘中・ダンジョン探索中は中断状態を安全に保存できないため戻れない。
+        // 探索途中で戻ると経過日数や探索終了処理を飛ばせてしまうのを防ぐ。
         if (battleManager != null && battleManager.IsBattling)
         {
+            if (statusText != null)
+            {
+                statusText.text = "戦闘中はタイトルへ戻れません。";
+            }
+            return;
+        }
+
+        if (dungeonRunManager != null && dungeonRunManager.IsRunning)
+        {
+            if (statusText != null)
+            {
+                statusText.text =
+                    "ダンジョン探索中はタイトルへ戻れません。探索を終えてください。";
+            }
             return;
         }
 
