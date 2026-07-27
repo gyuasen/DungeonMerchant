@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_rank4_1_armor
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank4.1.armor
-  itemName: "ランク4 弓兵の防具"
+  itemName: Rank 4 Archer Armor
   itemType: 1
   rarity: 0
   materialClassification: 0

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_rank6_2_accessory
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank6.2.accessory
-  itemName: "ランク6 魔術師の装飾"
+  itemName: Rank 6 Mage Accessory
   itemType: 1
   rarity: 0
   materialClassification: 0

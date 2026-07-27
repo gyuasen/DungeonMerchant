@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_rank6_1_accessory
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank6.1.accessory
-  itemName: "ランク6 弓兵の装飾"
+  itemName: Rank 6 Archer Accessory
   itemType: 1
   rarity: 0
   materialClassification: 0

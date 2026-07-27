@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_rank6_0_armor
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank6.0.armor
-  itemName: "ランク6 戦士の防具"
+  itemName: Rank 6 Warrior Armor
   itemType: 1
   rarity: 0
   materialClassification: 0

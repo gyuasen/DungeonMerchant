@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_rank6_2
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank6.2
-  itemName: "ランク6 魔術師の武器"
+  itemName: Rank 6 Mage Weapon
   itemType: 1
   rarity: 0
   materialClassification: 0

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: item_expansion_rank5_1_armor
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank5.1.armor
-  itemName: "ランク5 弓兵の防具"
+  itemName: Rank 5 Archer Armor
   itemType: 1
   rarity: 0
   materialClassification: 0
