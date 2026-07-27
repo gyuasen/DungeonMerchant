@@ -22,7 +22,7 @@ public partial class SimpleMercenaryHireUI
             CreateUIObject("Global Menu Window", globalMenuOverlay);
         window.anchorMin = window.anchorMax = window.pivot =
             new Vector2(0.5f, 0.5f);
-        window.sizeDelta = new Vector2(570f, 500f);
+        window.sizeDelta = new Vector2(570f, 620f);
         ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
 
         CreateText(
@@ -36,38 +36,52 @@ public partial class SimpleMercenaryHireUI
             ParchmentTextColor);
 
         CreateGlobalMenuButton(
-            window, "傭兵一覧", new Vector2(-135f, 80f),
+            window, "傭兵一覧", new Vector2(-135f, 155f),
             () => OpenGlobalMenuDestination(ShowCompanyPage));
         CreateGlobalMenuButton(
-            window, "パーティー編成", new Vector2(135f, 80f),
+            window, "パーティー編成", new Vector2(135f, 155f),
             () => OpenGlobalMenuDestination(ShowPartyPage));
         CreateGlobalMenuButton(
-            window, "在庫確認", new Vector2(-135f, 15f),
+            window, "在庫確認", new Vector2(-135f, 90f),
             () => OpenGlobalMenuDestination(ShowInventoryPage));
         CreateGlobalMenuButton(
-            window, "装備図鑑", new Vector2(135f, 15f),
+            window, "装備図鑑", new Vector2(135f, 90f),
             () => OpenGlobalMenuDestination(ShowEquipmentCollection));
         CreateGlobalMenuButton(
-            window, "魔物図鑑", new Vector2(-135f, -50f),
+            window, "魔物図鑑", new Vector2(-135f, 25f),
             () => OpenGlobalMenuDestination(ShowMonsterCollection));
         CreateGlobalMenuButton(
-            window, "商人情報", new Vector2(135f, -50f),
+            window, "商人情報", new Vector2(135f, 25f),
             () => OpenGlobalMenuDestination(ShowMerchantStatusOverlay));
         CreateGlobalMenuButton(
-            window, "依頼確認", new Vector2(135f, -50f),
+            window, "依頼確認", new Vector2(-135f, -40f),
             () => OpenGlobalMenuDestination(ShowQuestOverlay));
         CreateGlobalMenuButton(
-            window, "地域マップ", new Vector2(-135f, -115f),
+            window, "地域マップ", new Vector2(135f, -40f),
             () => OpenGlobalMenuDestination(ShowWorldMap));
         CreateGlobalMenuButton(
-            window, "閉じる", new Vector2(135f, -115f),
+            window, "チュートリアル", new Vector2(-135f, -105f),
+            () => OpenGlobalMenuDestination(ShowTutorialOverlay));
+        CreateGlobalMenuButton(
+            window, "セーブしてタイトルへ", new Vector2(135f, -105f),
+            SaveAndReturnToTitle);
+        CreateGlobalMenuButton(
+            window, "閉じる", new Vector2(0f, -170f),
             HideGlobalMenu);
 
-        CreateGlobalMenuButton(
-            window, "チュートリアル", new Vector2(0f, -180f),
-            () => OpenGlobalMenuDestination(ShowTutorialOverlay));
-
         globalMenuOverlay.gameObject.SetActive(false);
+    }
+
+    private void SaveAndReturnToTitle()
+    {
+        if (battleManager != null && battleManager.IsBattling)
+        {
+            return;
+        }
+
+        saveManager?.SaveGame();
+        HideGlobalMenu();
+        UnityEngine.SceneManagement.SceneManager.LoadScene("Title");
     }
 
     private void CreateGlobalMenuButton(
