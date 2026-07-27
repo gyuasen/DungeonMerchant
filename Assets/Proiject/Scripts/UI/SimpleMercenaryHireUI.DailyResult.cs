@@ -128,7 +128,14 @@ public partial class SimpleMercenaryHireUI
 
     private void HandleDayChangeFinalized(int currentDay)
     {
+        // 各日のリザルトをキューへ積むだけにとどめ、表示は複数日の進行が
+        // すべて終わってから(HandleDaysAdvanceCompleted)まとめて行う。
+        // これにより複数日一気に進んでも1画面に連結して表示できる。
         QueueDailyResult(currentDay);
+    }
+
+    private void HandleDaysAdvanceCompleted(int advancedDays)
+    {
         ShowPendingDailyResultIfReady();
     }
 
@@ -147,9 +154,24 @@ public partial class SimpleMercenaryHireUI
             return;
         }
 
-        string resultText = pendingDailyResultTexts.Dequeue();
-        hasPendingDailyResult = pendingDailyResultTexts.Count > 0;
-        ShowDailyResult(resultText);
+        // キューに溜まった複数日分を1画面へ連結して表示する。
+        System.Text.StringBuilder combined = new System.Text.StringBuilder();
+        bool first = true;
+        while (pendingDailyResultTexts.Count > 0)
+        {
+            if (!first)
+            {
+                combined.AppendLine();
+                combined.AppendLine("────────────");
+                combined.AppendLine();
+            }
+
+            combined.Append(pendingDailyResultTexts.Dequeue());
+            first = false;
+        }
+
+        hasPendingDailyResult = false;
+        ShowDailyResult(combined.ToString());
     }
 
     private void QueueDailyResult(int currentDay)

@@ -1594,3 +1594,25 @@
 - 併せて既存バグ修正: 「商人情報」と「依頼確認」が同座標(135,-50)で重なっていたのを解消。メニュー全体を再配置(依頼確認→(-135,-115)、地域マップ→(135,-115)、チュートリアル→(-135,-180)、タイトルへ→(135,-180)、閉じる→(0,-245))。ウィンドウ高さ 500→620。
 - メニューボタンはoverlay器(GetOrCreateOverlay)内に毎回コード生成されるため、配置変更はPlayで反映(Prefab再生成不要)。タイトルシーン名は "Title"(ビルド登録済み)。
 - dotnet build 0/0。Unity確認待ち: メニューのボタン配置(重なりなし)、タイトルへ戻る動作、戦闘中の無効化。未コミット。
+
+## 2026-07-27 家側・全体精査(Sol)に基づくセーブ堅牢化＋探索中タイトル戻りガード ※Unity確認待ち
+- Solでバグリスク/設計の全体精査を実施。実害度高(セーブ堅牢性に集中)を優先対応。
+### 対応した高リスク項目
+- #1 探索中タイトル戻りガード: SaveAndReturnToTitle に dungeonRunManager.IsRunning チェックを追加(従来はIsBattlingのみ)。戦闘中/探索中はstatusTextで理由表示して戻らない。探索途中で戻ると経過日数/探索終了処理を飛ばせる問題を防止。
+- #2 アトミック保存: SaveManager.SaveGame の File.WriteAllText 直書きを廃止。WriteSaveFileAtomically(.tmpへ書込→File.Replaceで置換、旧は.bak退避)に変更。書込中断でも既存セーブが破損しない。マイグレーション時の再保存も同経路に。
+- #3 ロード失敗時の保存停止: LoadGame を bool 返却に変更。バージョン超過/null/破損catch で saveBlockedByLoadFailure を立て、以降 SaveGame を全面抑止。未対応/破損セーブを初期状態で上書きして復旧不能にする事故を防止。InitializeAndLoad はロード成否(loadedExistingSave)でonboarding完了処理を判定。
+### 保留(未対応・記録のみ)
+- #4 参照解決失敗でアイテム/装備を無警告破棄(アセット改名時のみ。通常運用では発生しにくい)。
+- #5 鍛冶強化の返金経路不足(単一フレームでは起きにくい)。storageTierのInspector [Range(0,3)]旧仕様。
+- 設計改善3件(スキル定義駆動化+パリティテスト / GameAssetRepositoryキャッシュ / MerchantData API整理+会計テスト)はポートフォリオ映えする候補として保留。
+- dotnet build 0/0。LoadGame外部呼び出しは自クラスのみで影響なし。SaveManagerTitleTests等はIsAutomatedTestRunでSaveGameが早期リターンするため影響なし。Unity確認待ち: Test Runner全緑、探索中に戻れないこと、通常セーブ/ロード。
+
+## 2026-07-27 家側・複数日進行時の日次リザルトを1画面に連結 ※Unity確認待ち
+- 症状: ダンジョン攻略等で複数日一気に進むと、日ごとにリザルト画面が連続表示され、2日目以降は維持費のみの薄い画面が続く。
+- 対応: 複数日分のリザルトを1画面に連結表示。
+  - DayManager: AdvanceDays のループ完了後に DaysAdvanceCompleted(進めた日数) を発火する新イベントを追加(既存のDayChanged/DayChangeFinalizedは不変)。
+  - SimpleMercenaryHireUI.DailyResult.cs: HandleDayChangeFinalized は各日をキューへ積むだけにし、表示は HandleDaysAdvanceCompleted(進行完了)でまとめて実施。ShowPendingDailyResultIfReady はキュー内の全日テキストを区切り線で連結して1画面表示するよう変更。
+  - 各日テキストは元々「N日目の終了 → M日目」見出し付きなので、連結しても日の区切りが分かる。
+- 戦闘演出中(IsPresentationBusy)で保留された場合も、既存の演出完了フック(BattleDungeon.cs 3箇所)から ShowPendingDailyResultIfReady が再度呼ばれ、連結表示される。
+- 会計処理(維持費/報酬)は従来どおり DayChanged で日ごとに正しく実行(表示だけまとめる)。DailyResultControllerTests は BuildDailyResultText 直接検証でUI表示制御に非依存のため影響なし。dotnet build 0/0。
+- Unity確認待ち: 複数日進行(ダンジョン3日等)で1画面に全日が連結表示されるか、単日は従来通りか。

@@ -507,6 +507,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         merchantInventory.InventoryChanged += HandleInventoryChanged;
         dayManager.DayChanged += HandleDayChanged;
         dayManager.DayChangeFinalized += HandleDayChangeFinalized;
+        dayManager.DaysAdvanceCompleted += HandleDaysAdvanceCompleted;
         marketPriceManager.PricesChanged += HandlePricesChanged;
         marketStockManager.StockChanged += HandleMarketStockChanged;
         blacksmithManager.CraftingChanged += HandleCraftingChanged;
@@ -960,6 +961,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         {
             dayManager.DayChanged -= HandleDayChanged;
             dayManager.DayChangeFinalized -= HandleDayChangeFinalized;
+            dayManager.DaysAdvanceCompleted -= HandleDaysAdvanceCompleted;
         }
 
         if (marketPriceManager != null)
