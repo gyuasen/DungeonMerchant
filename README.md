@@ -10,6 +10,26 @@ DungeonMerchantは、**商人として傭兵団を運営し、交易・育成・
 
 ---
 
+# スクリーンショット
+
+<!--
+TODO: docs/images/ に実際のスクリーンショットを配置し、下の各行のパスに対応させてください。
+撮影のおすすめ画面: 町マップ / 自動戦闘 / 倉庫または鍛冶屋のUI / ダンジョン探索 / 日次リザルト。
+Windowsは Win+Shift+S で範囲キャプチャ、Unityのゲームビューを最大化してから撮ると綺麗です。
+数秒のGIF(戦闘や町移動)を1枚入れるとさらに伝わります(ScreenToGif等の無料ツール)。
+画像を配置したら、この TODO コメントと各行の「(未配置)」注記を削除してください。
+-->
+
+| 町マップ | 自動戦闘 |
+|---|---|
+| ![町マップ](docs/images/town.png)<br>（未配置: docs/images/town.png） | ![自動戦闘](docs/images/battle.png)<br>（未配置: docs/images/battle.png） |
+
+| 倉庫・経済 | ダンジョン探索 |
+|---|---|
+| ![倉庫](docs/images/inventory.png)<br>（未配置: docs/images/inventory.png） | ![ダンジョン](docs/images/dungeon.png)<br>（未配置: docs/images/dungeon.png） |
+
+---
+
 # ゲームサイクル
 
 1. 市場で商品・装備を仕入れる
