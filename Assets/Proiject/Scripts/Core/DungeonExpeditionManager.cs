@@ -7,6 +7,14 @@ public class DungeonExpedition
 {
     public DungeonDataSO dungeon;
     public List<string> memberInstanceIds = new List<string>();
+    public ExpeditionLootPolicy lootPolicy = ExpeditionLootPolicy.Store;
+}
+
+public enum ExpeditionLootPolicy
+{
+    Store = 0,
+    SellNonEquipment = 1,
+    SellAll = 2
 }
 
 public enum ExpeditionFormationResult
@@ -82,7 +90,10 @@ public sealed class DungeonExpeditionManager : MonoBehaviour
         randomValue = provider ?? (() => UnityEngine.Random.value);
     }
 
-    public ExpeditionFormationResult TryFormExpedition(DungeonDataSO dungeon, IReadOnlyList<MercenaryInstance> members)
+    public ExpeditionFormationResult TryFormExpedition(
+        DungeonDataSO dungeon,
+        IReadOnlyList<MercenaryInstance> members,
+        ExpeditionLootPolicy lootPolicy = ExpeditionLootPolicy.Store)
     {
         ExpeditionFormationResult result = Validate(dungeon, members);
         if (result != ExpeditionFormationResult.Succeeded)
@@ -90,7 +101,11 @@ public sealed class DungeonExpeditionManager : MonoBehaviour
             return result;
         }
 
-        DungeonExpedition expedition = new DungeonExpedition { dungeon = dungeon };
+        DungeonExpedition expedition = new DungeonExpedition
+        {
+            dungeon = dungeon,
+            lootPolicy = NormalizeLootPolicy(lootPolicy)
+        };
         foreach (MercenaryInstance member in members)
         {
             expedition.memberInstanceIds.Add(member.InstanceId);
@@ -98,6 +113,26 @@ public sealed class DungeonExpeditionManager : MonoBehaviour
         activeExpeditions.Add(expedition);
         ExpeditionChanged?.Invoke();
         return ExpeditionFormationResult.Succeeded;
+    }
+
+    public bool SetExpeditionLootPolicy(
+        DungeonExpedition expedition,
+        ExpeditionLootPolicy lootPolicy)
+    {
+        if (expedition == null || !activeExpeditions.Contains(expedition))
+        {
+            return false;
+        }
+
+        ExpeditionLootPolicy normalized = NormalizeLootPolicy(lootPolicy);
+        if (expedition.lootPolicy == normalized)
+        {
+            return true;
+        }
+
+        expedition.lootPolicy = normalized;
+        ExpeditionChanged?.Invoke();
+        return true;
     }
 
     public void RecallExpedition(DungeonExpedition expedition)
@@ -167,7 +202,8 @@ public sealed class DungeonExpeditionManager : MonoBehaviour
             {
                 dungeonPersistentId = expedition.dungeon.PersistentId,
                 dungeonAssetName = expedition.dungeon.name,
-                memberInstanceIds = new List<string>(expedition.memberInstanceIds)
+                memberInstanceIds = new List<string>(expedition.memberInstanceIds),
+                lootPolicy = (int)NormalizeLootPolicy(expedition.lootPolicy)
             });
         }
         return saved;
@@ -193,7 +229,11 @@ public sealed class DungeonExpeditionManager : MonoBehaviour
                 {
                     continue;
                 }
-                DungeonExpedition expedition = new DungeonExpedition { dungeon = dungeon };
+                DungeonExpedition expedition = new DungeonExpedition
+                {
+                    dungeon = dungeon,
+                    lootPolicy = NormalizeLootPolicy((ExpeditionLootPolicy)value.lootPolicy)
+                };
                 bool valid = true;
                 foreach (string id in value.memberInstanceIds)
                 {
@@ -285,14 +325,15 @@ public sealed class DungeonExpeditionManager : MonoBehaviour
             return;
         }
         List<ItemDataSO> materials = new List<ItemDataSO>();
-        int gold = GrantNormalEncounterRewards(expedition.dungeon, members, strength, required, materials, out int experiencePerMercenary);
-        EquipmentInstance limitedEquipment = TryDepositLimitedEquipment(expedition.dungeon);
+        int gold = GrantNormalEncounterRewards(expedition, members, strength, required, materials, accountingDay, out int experiencePerMercenary);
+        EquipmentInstance limitedEquipment = TryDepositLimitedEquipment(expedition, accountingDay);
         SettleExpeditionHealing(expedition.dungeon, members, accountingDay);
         NotifyExpeditionResolved(new ExpeditionEvent(ExpeditionEventType.Succeeded, expedition, gold, materials, limitedEquipment, experiencePerMercenary), accountingDay);
     }
 
-    private int GrantNormalEncounterRewards(DungeonDataSO dungeon, IReadOnlyList<MercenaryInstance> members, int strength, int requiredStrength, List<ItemDataSO> awardedMaterials, out int totalExperiencePerMercenary)
+    private int GrantNormalEncounterRewards(DungeonExpedition expedition, IReadOnlyList<MercenaryInstance> members, int strength, int requiredStrength, List<ItemDataSO> awardedMaterials, int accountingDay, out int totalExperiencePerMercenary)
     {
+        DungeonDataSO dungeon = expedition.dungeon;
         int totalGold = 0;
         totalExperiencePerMercenary = 0;
         for (int encounterNumber = 1; encounterNumber <= RollRange(3, 6); encounterNumber++)
@@ -309,18 +350,24 @@ public sealed class DungeonExpeditionManager : MonoBehaviour
             }
             foreach (ItemDropEntry drop in rewards.ItemDrops)
             {
-                if (drop?.item != null && inventory != null && inventory.DepositItemTo(dungeon.nearbyTownIndex, drop.item, drop.amount))
+                if (drop?.item == null || drop.amount <= 0)
                 {
-                    for (int amount = 0; amount < drop.amount; amount++)
-                    {
-                        awardedMaterials.Add(drop.item);
-                    }
+                    continue;
+                }
+
+                if (ShouldSellItemImmediately(expedition.lootPolicy, drop.item) ||
+                    !TryDepositExpeditionItem(dungeon.nearbyTownIndex, drop.item, drop.amount))
+                {
+                    SellExpeditionItem(dungeon, drop.item, drop.amount, accountingDay);
+                    continue;
+                }
+
+                for (int amount = 0; amount < drop.amount; amount++)
+                {
+                    awardedMaterials.Add(drop.item);
                 }
             }
         }
-        int accountingDay = dayManager != null
-            ? dayManager.CurrentDay - 1
-            : 0;
         merchantData?.AddGold(
             totalGold,
             GoldTransactionReason.ExpeditionReward,
@@ -471,8 +518,11 @@ public sealed class DungeonExpeditionManager : MonoBehaviour
         return Mathf.Clamp(Mathf.FloorToInt(randomValue() * (maxExclusive - minInclusive)) + minInclusive, minInclusive, maxExclusive - 1);
     }
 
-    private EquipmentInstance TryDepositLimitedEquipment(DungeonDataSO dungeon)
+    private EquipmentInstance TryDepositLimitedEquipment(
+        DungeonExpedition expedition,
+        int accountingDay)
     {
+        DungeonDataSO dungeon = expedition.dungeon;
         if (inventory == null || dungeon.bossLimitedDropChance <= 0f || randomValue() > dungeon.bossLimitedDropChance * LimitedDropRateMultiplier)
         {
             return null;
@@ -480,9 +530,83 @@ public sealed class DungeonExpeditionManager : MonoBehaviour
         EquipmentInstance equipment = DungeonRewardService.TryCreateLimitedEquipment(dungeon, randomValue);
         if (equipment != null)
         {
-            inventory.DepositEquipmentTo(dungeon.nearbyTownIndex, equipment);
+            if (expedition.lootPolicy == ExpeditionLootPolicy.SellAll ||
+                !TryDepositExpeditionEquipment(dungeon.nearbyTownIndex, equipment))
+            {
+                SellExpeditionEquipment(dungeon, equipment, accountingDay);
+            }
         }
         return equipment;
+    }
+
+    private static ExpeditionLootPolicy NormalizeLootPolicy(ExpeditionLootPolicy lootPolicy)
+    {
+        return lootPolicy == ExpeditionLootPolicy.SellNonEquipment ||
+               lootPolicy == ExpeditionLootPolicy.SellAll
+            ? lootPolicy
+            : ExpeditionLootPolicy.Store;
+    }
+
+    private static bool ShouldSellItemImmediately(
+        ExpeditionLootPolicy lootPolicy,
+        ItemDataSO item)
+    {
+        return lootPolicy == ExpeditionLootPolicy.SellAll ||
+               (lootPolicy == ExpeditionLootPolicy.SellNonEquipment &&
+                item.itemType != ItemType.Equipment);
+    }
+
+    private bool TryDepositExpeditionItem(int townIndex, ItemDataSO item, int amount)
+    {
+        return inventory != null && inventory.DepositItemTo(townIndex, item, amount);
+    }
+
+    private bool TryDepositExpeditionEquipment(int townIndex, EquipmentInstance equipment)
+    {
+        // Equipment normally bypasses capacity, but expedition loot must be sold
+        // when the destination warehouse is already full.
+        if (inventory == null || !inventory.CanDepositItemsTo(townIndex, 1))
+        {
+            return false;
+        }
+
+        inventory.DepositEquipmentTo(townIndex, equipment);
+        return true;
+    }
+
+    private void SellExpeditionItem(
+        DungeonDataSO dungeon,
+        ItemDataSO item,
+        int amount,
+        int accountingDay)
+    {
+        if (inventory == null || merchantData == null || item == null || amount <= 0)
+        {
+            return;
+        }
+
+        merchantData.AddGold(
+            inventory.GetSellPrice(item) * amount,
+            GoldTransactionReason.ItemSale,
+            dungeon.dungeonName + ": " + item.itemName,
+            accountingDay);
+    }
+
+    private void SellExpeditionEquipment(
+        DungeonDataSO dungeon,
+        EquipmentInstance equipment,
+        int accountingDay)
+    {
+        if (inventory == null || merchantData == null || equipment == null)
+        {
+            return;
+        }
+
+        merchantData.AddGold(
+            inventory.GetSellPrice(equipment),
+            GoldTransactionReason.ItemSale,
+            dungeon.dungeonName + ": " + equipment.BaseItem.itemName,
+            accountingDay);
     }
 
     private List<MercenaryInstance> GetMembers(DungeonExpedition expedition)

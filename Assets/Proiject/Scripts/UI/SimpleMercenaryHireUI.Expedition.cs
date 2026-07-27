@@ -10,6 +10,7 @@ public partial class SimpleMercenaryHireUI
     private readonly List<MercenaryInstance> selectedExpeditionMembers =
         new List<MercenaryInstance>();
     private DungeonExpedition expeditionPendingRecall;
+    private ExpeditionLootPolicy selectedExpeditionLootPolicy = ExpeditionLootPolicy.Store;
 
     private bool CanShowExpeditionAction(DungeonDataSO dungeon)
     {
@@ -48,6 +49,7 @@ public partial class SimpleMercenaryHireUI
         }
         expeditionDungeon = dungeon;
         selectedExpeditionMembers.Clear();
+        selectedExpeditionLootPolicy = ExpeditionLootPolicy.Store;
         RebuildExpeditionFormationOverlay();
     }
 
@@ -93,6 +95,7 @@ public partial class SimpleMercenaryHireUI
         confirmRect.anchoredPosition = new Vector2(-132f, 20f);
         confirm.interactable = selectedExpeditionMembers.Count >= 1 &&
                               selectedExpeditionMembers.Count <= 3;
+        CreateLootPolicyButton(window, selectedExpeditionLootPolicy, CycleFormationLootPolicy);
         Button cancel = CreateActionButton(window, "キャンセル", DestroyExpeditionOverlay);
         RectTransform cancelRect = cancel.GetComponent<RectTransform>();
         cancelRect.anchorMin = cancelRect.anchorMax = new Vector2(.5f, 0f);
@@ -194,7 +197,8 @@ public partial class SimpleMercenaryHireUI
     {
         ExpeditionFormationResult result = dungeonExpeditionManager.TryFormExpedition(
             expeditionDungeon,
-            selectedExpeditionMembers);
+            selectedExpeditionMembers,
+            selectedExpeditionLootPolicy);
         if (result == ExpeditionFormationResult.Succeeded)
         {
             DestroyExpeditionOverlay();
@@ -218,7 +222,7 @@ public partial class SimpleMercenaryHireUI
         foreach (DungeonExpedition expedition in dungeonExpeditionManager.ActiveExpeditions)
         {
             CreateExpeditionManagementCard(list, expedition, top);
-            top -= 118f;
+            top -= 158f;
         }
         if (dungeonExpeditionManager.ActiveExpeditions.Count == 0)
         {
@@ -243,7 +247,7 @@ public partial class SimpleMercenaryHireUI
         card.anchorMin = new Vector2(0f, 1f);
         card.anchorMax = new Vector2(1f, 1f);
         card.pivot = new Vector2(.5f, 1f);
-        card.offsetMin = new Vector2(0f, top - 108f);
+        card.offsetMin = new Vector2(0f, top - 148f);
         card.offsetMax = new Vector2(0f, top);
         card.gameObject.AddComponent<Image>().color = RowColor;
         List<MercenaryInstance> members = new List<MercenaryInstance>();
@@ -273,6 +277,57 @@ public partial class SimpleMercenaryHireUI
         recallRect.pivot = new Vector2(1f, .5f);
         recallRect.anchoredPosition = new Vector2(-8f, 0f);
         recallRect.sizeDelta = new Vector2(135f, 38f);
+        CreateLootPolicyButton(
+            card,
+            expedition.lootPolicy,
+            () => CycleExpeditionLootPolicy(expedition));
+    }
+
+    private void CreateLootPolicyButton(
+        RectTransform parent,
+        ExpeditionLootPolicy policy,
+        UnityEngine.Events.UnityAction onClick)
+    {
+        Button button = CreateActionButton(parent, GetLootPolicyLabel(policy), onClick);
+        RectTransform buttonRect = button.GetComponent<RectTransform>();
+        buttonRect.anchorMin = buttonRect.anchorMax = new Vector2(.5f, 0f);
+        buttonRect.pivot = new Vector2(.5f, 0f);
+        buttonRect.sizeDelta = new Vector2(280f, 32f);
+        buttonRect.anchoredPosition = new Vector2(-65f, 62f);
+    }
+
+    private void CycleFormationLootPolicy()
+    {
+        selectedExpeditionLootPolicy = GetNextLootPolicy(selectedExpeditionLootPolicy);
+        RebuildExpeditionFormationOverlay();
+    }
+
+    private void CycleExpeditionLootPolicy(DungeonExpedition expedition)
+    {
+        dungeonExpeditionManager.SetExpeditionLootPolicy(
+            expedition,
+            GetNextLootPolicy(expedition.lootPolicy));
+        ShowExpeditionManagementOverlay();
+    }
+
+    private static ExpeditionLootPolicy GetNextLootPolicy(ExpeditionLootPolicy policy)
+    {
+        switch (policy)
+        {
+            case ExpeditionLootPolicy.Store: return ExpeditionLootPolicy.SellNonEquipment;
+            case ExpeditionLootPolicy.SellNonEquipment: return ExpeditionLootPolicy.SellAll;
+            default: return ExpeditionLootPolicy.Store;
+        }
+    }
+
+    private static string GetLootPolicyLabel(ExpeditionLootPolicy policy)
+    {
+        switch (policy)
+        {
+            case ExpeditionLootPolicy.SellNonEquipment: return "獲得品: 装備以外売却";
+            case ExpeditionLootPolicy.SellAll: return "獲得品: すべて売却";
+            default: return "獲得品: 倉庫";
+        }
     }
 
     private void ShowRecallConfirmation(DungeonExpedition expedition)

@@ -203,6 +203,132 @@ public sealed class DungeonExpeditionManagerTests
     }
 
     [Test]
+    public void LootPolicy_SellAll_SellsDropsWithoutDepositingThem()
+    {
+        DungeonDataSO dungeon = CreateClearedDungeon();
+        ItemDataSO material = ConfigureSingleMaterialDrop(dungeon, 20);
+        MercenaryInstance member = Hire("sell-all", 2);
+        List<GoldTransaction> sales = RecordItemSales();
+        expeditionManager.SetRandomProvider(() => 0.5f);
+
+        Assert.That(expeditionManager.TryFormExpedition(
+            dungeon, new[] { member }, ExpeditionLootPolicy.SellAll),
+            Is.EqualTo(ExpeditionFormationResult.Succeeded));
+        dayManager.AdvanceDay();
+
+        Assert.That(inventory.GetItemAmountIn(2, material), Is.Zero);
+        Assert.That(sales.Count, Is.EqualTo(4));
+        Assert.That(sales.TrueForAll(sale => sale.SignedAmount == inventory.GetSellPrice(material)), Is.True);
+        Assert.That(sales.TrueForAll(sale => sale.AccountingDay == dayManager.CurrentDay - 1), Is.True);
+    }
+
+    [Test]
+    public void LootPolicy_SellNonEquipment_SellsMaterialsAndStoresLimitedEquipment()
+    {
+        DungeonDataSO dungeon = CreateClearedDungeon();
+        ItemDataSO material = ConfigureSingleMaterialDrop(dungeon, 20);
+        ItemDataSO equipment = ConfigureLimitedEquipment(dungeon, 40);
+        MercenaryInstance member = Hire("sell-non-equipment", 2);
+        List<GoldTransaction> sales = RecordItemSales();
+        expeditionManager.SetRandomProvider(() => 0.5f);
+
+        Assert.That(expeditionManager.TryFormExpedition(
+            dungeon, new[] { member }, ExpeditionLootPolicy.SellNonEquipment),
+            Is.EqualTo(ExpeditionFormationResult.Succeeded));
+        dayManager.AdvanceDay();
+
+        Assert.That(inventory.GetItemAmountIn(2, material), Is.Zero);
+        Assert.That(inventory.GetEquipmentInstancesIn(2), Has.Count.EqualTo(1));
+        Assert.That(inventory.GetEquipmentInstancesIn(2)[0].BaseItem, Is.EqualTo(equipment));
+        Assert.That(sales, Has.Count.EqualTo(4));
+    }
+
+    [Test]
+    public void LootPolicy_Store_WhenFull_SellsItemsAndLimitedEquipment()
+    {
+        root.AddComponent<ProgressionManager>();
+        DungeonDataSO dungeon = CreateClearedDungeon();
+        ItemDataSO material = ConfigureSingleMaterialDrop(dungeon, 20);
+        ItemDataSO equipment = ConfigureLimitedEquipment(dungeon, 40);
+        Assert.That(inventory.DepositItemTo(2, material, 30), Is.True);
+        MercenaryInstance member = Hire("store-full", 2);
+        List<GoldTransaction> sales = RecordItemSales();
+        expeditionManager.SetRandomProvider(() => 0.5f);
+
+        Assert.That(expeditionManager.TryFormExpedition(dungeon, new[] { member }),
+            Is.EqualTo(ExpeditionFormationResult.Succeeded));
+        dayManager.AdvanceDay();
+
+        Assert.That(inventory.GetItemAmountIn(2, material), Is.EqualTo(30));
+        Assert.That(inventory.GetEquipmentInstancesIn(2), Is.Empty);
+        Assert.That(sales, Has.Count.EqualTo(5));
+        Assert.That(sales.Exists(sale => sale.SignedAmount == inventory.GetSellPrice(equipment)), Is.True);
+    }
+
+    [Test]
+    public void LootPolicy_SellNonEquipment_WhenFull_SellsLimitedEquipment()
+    {
+        root.AddComponent<ProgressionManager>();
+        DungeonDataSO dungeon = CreateClearedDungeon();
+        ItemDataSO material = ConfigureSingleMaterialDrop(dungeon, 20);
+        ItemDataSO equipment = ConfigureLimitedEquipment(dungeon, 40);
+        Assert.That(inventory.DepositItemTo(2, material, 30), Is.True);
+        MercenaryInstance member = Hire("sell-non-equipment-full", 2);
+        List<GoldTransaction> sales = RecordItemSales();
+        expeditionManager.SetRandomProvider(() => 0.5f);
+
+        Assert.That(expeditionManager.TryFormExpedition(
+            dungeon, new[] { member }, ExpeditionLootPolicy.SellNonEquipment),
+            Is.EqualTo(ExpeditionFormationResult.Succeeded));
+        dayManager.AdvanceDay();
+
+        Assert.That(inventory.GetEquipmentInstancesIn(2), Is.Empty);
+        Assert.That(sales.Exists(sale => sale.SignedAmount == inventory.GetSellPrice(equipment)), Is.True);
+    }
+
+    [Test]
+    public void LootPolicy_Store_WhenSpaceAvailable_DepositsWithoutSelling()
+    {
+        DungeonDataSO dungeon = CreateClearedDungeon();
+        ItemDataSO material = ConfigureSingleMaterialDrop(dungeon, 20);
+        MercenaryInstance member = Hire("store", 2);
+        List<GoldTransaction> sales = RecordItemSales();
+        expeditionManager.SetRandomProvider(() => 0.5f);
+
+        Assert.That(expeditionManager.TryFormExpedition(dungeon, new[] { member }),
+            Is.EqualTo(ExpeditionFormationResult.Succeeded));
+        dayManager.AdvanceDay();
+
+        Assert.That(inventory.GetItemAmountIn(2, material), Is.EqualTo(4));
+        Assert.That(sales, Is.Empty);
+    }
+
+    [Test]
+    public void LootPolicy_SaveRoundTrip_PreservesPolicyAndDefaultsMissingValueToStore()
+    {
+        DungeonDataSO dungeon = CreateClearedDungeon();
+        MercenaryInstance member = Hire("policy-save", 2);
+        Assert.That(expeditionManager.TryFormExpedition(
+            dungeon, new[] { member }, ExpeditionLootPolicy.SellAll),
+            Is.EqualTo(ExpeditionFormationResult.Succeeded));
+
+        List<SavedDungeonExpedition> saved = expeditionManager.CreateSaveData();
+        Assert.That(saved[0].lootPolicy, Is.EqualTo((int)ExpeditionLootPolicy.SellAll));
+        expeditionManager.RecallExpedition(expeditionManager.ActiveExpeditions[0]);
+        expeditionManager.Restore(saved,
+            new Dictionary<string, MercenaryInstance> { { member.InstanceId, member } });
+        Assert.That(expeditionManager.ActiveExpeditions[0].lootPolicy,
+            Is.EqualTo(ExpeditionLootPolicy.SellAll));
+
+        expeditionManager.RecallExpedition(expeditionManager.ActiveExpeditions[0]);
+        saved[0].lootPolicy = 0;
+        expeditionManager.Restore(saved,
+            new Dictionary<string, MercenaryInstance> { { member.InstanceId, member } });
+        Assert.That(expeditionManager.ActiveExpeditions[0].lootPolicy,
+            Is.EqualTo(ExpeditionLootPolicy.Store));
+    }
+
+    [Test]
     public void ExpeditionDuty_BlocksOtherManagerEntryPointsUntilRecall()
     {
         DungeonDataSO dungeon = CreateClearedDungeon();
@@ -306,5 +432,51 @@ public sealed class DungeonExpeditionManagerTests
         };
         hireManager.RestoreHiredMercenaries(hired);
         return mercenary;
+    }
+
+    private ItemDataSO ConfigureSingleMaterialDrop(DungeonDataSO dungeon, int basePrice)
+    {
+        dungeon.firstEncounterEnemyCount = 1;
+        dungeon.maxEnemyCountPerEncounter = 1;
+        dungeon.enemyCountIncreasePerEncounter = 0;
+        ItemDataSO material = ScriptableObject.CreateInstance<ItemDataSO>();
+        material.name = "Expedition Material " + assets.Count;
+        material.itemType = ItemType.Material;
+        material.basePrice = basePrice;
+        assets.Add(material);
+        EnemyDataSO enemy = ScriptableObject.CreateInstance<EnemyDataSO>();
+        enemy.goldReward = 0;
+        enemy.itemDrops = new[]
+        {
+            new ItemDropEntry { item = material, amount = 1, dropChance = 1f }
+        };
+        dungeon.normalEnemies = new[] { enemy };
+        assets.Add(enemy);
+        return material;
+    }
+
+    private ItemDataSO ConfigureLimitedEquipment(DungeonDataSO dungeon, int basePrice)
+    {
+        ItemDataSO equipment = ScriptableObject.CreateInstance<ItemDataSO>();
+        equipment.name = "Expedition Limited Equipment " + assets.Count;
+        equipment.itemType = ItemType.Equipment;
+        equipment.basePrice = basePrice;
+        assets.Add(equipment);
+        dungeon.bossLimitedDropChance = 1f;
+        dungeon.limitedEquipmentDrops = new[] { equipment };
+        return equipment;
+    }
+
+    private List<GoldTransaction> RecordItemSales()
+    {
+        List<GoldTransaction> sales = new List<GoldTransaction>();
+        merchantData.GoldTransactionRecorded += transaction =>
+        {
+            if (transaction.Reason == GoldTransactionReason.ItemSale)
+            {
+                sales.Add(transaction);
+            }
+        };
+        return sales;
     }
 }

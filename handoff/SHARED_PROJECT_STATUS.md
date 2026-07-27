@@ -1665,3 +1665,14 @@
 - 二重計上なし(報酬AddGold1回/治療TryPayGold1回)。TryPayGoldは残高不足でfalse+Gold非減。
 - テスト追加: 成功時報酬-治療費+全回復+会計日、資金不足時未治療+Gold非負、失敗時も治療精算。dotnet build 0/0。
 - Unity確認待ち: Test Runner全緑、別動隊で日次に治療費が出てHPが自動精算されるか、資金不足時にHPが減ったままか。未コミット。
+
+## 2026-07-27 家側・別動隊の獲得品処理モードを部隊ごとに選択可能に ※Unity確認待ち
+- 質問回答: 別動隊は解散するまで毎日自動で報酬を出し続ける(1日ごとの再設定不要)。獲得品は派遣先ダンジョンの最寄り町倉庫に入庫。セーブ/ロードで継続、別の町に移動しても継続(メンバーは派遣先の町に留まり同行対象外)。
+- 従来は倉庫満杯時に獲得品を黙って捨てていた。処理モード ExpeditionLootPolicy を部隊ごとに導入:
+  - Store(倉庫に入れる, 既定=0): 入庫。満杯なら装備以外を自動売却、限定装備も入らなければ売却。「満杯で捨てる」を廃止。
+  - SellNonEquipment(装備以外は売却): 素材/消耗品/遺物は即売却、限定装備は倉庫へ(満杯なら売却)。
+  - SellAll(すべて売却): 全て即売却。
+- DungeonExpedition に lootPolicy、TryFormExpedition に policy 引数(既定Store)、SetExpeditionLootPolicy で派遣中も切替。SavedDungeonExpedition に int lootPolicy 追加(既存セーブは0=Store)。NormalizeLootPolicy で範囲外正規化。
+- 売却は GetSellPrice→AddGold(ItemSale, accountingDay)のみ(在庫操作SellItemは不使用)。入庫と売却は排他で二重計上なし。報酬(ExpeditionReward)/治療費(ExpeditionHealing)とも別トランザクション。
+- UI: 派遣編成画面と派遣中管理カードに「獲得品: 倉庫→装備以外売却→すべて売却」サイクルボタン(SimpleMercenaryHireUI.Expedition.cs)。
+- テスト: SellAll/SellNonEquipment(空き・満杯)/Store(空き・満杯)/セーブ往復・旧値0。※テスト期待値は当初「遭遇数=ドロップ数」と誤想定+魔石混入で失敗→乱数0.5固定で魔石除外(0.5>0.3)・敵数1体固定・4遭遇=材料4個 に修正。実装ロジックは不変。dotnet build 0/0。Unity全緑確認済み。

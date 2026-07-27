@@ -111,6 +111,8 @@ public class SavedDungeonExpedition
     public string dungeonPersistentId;
     public string dungeonAssetName;
     public List<string> memberInstanceIds = new List<string>();
+    // Missing fields from older JSON saves deserialize to 0 (Store).
+    public int lootPolicy;
 }
 
 [Serializable]
