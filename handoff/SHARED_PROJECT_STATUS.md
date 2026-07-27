@@ -1616,3 +1616,15 @@
 - 戦闘演出中(IsPresentationBusy)で保留された場合も、既存の演出完了フック(BattleDungeon.cs 3箇所)から ShowPendingDailyResultIfReady が再度呼ばれ、連結表示される。
 - 会計処理(維持費/報酬)は従来どおり DayChanged で日ごとに正しく実行(表示だけまとめる)。DailyResultControllerTests は BuildDailyResultText 直接検証でUI表示制御に非依存のため影響なし。dotnet build 0/0。
 - Unity確認待ち: 複数日進行(ダンジョン3日等)で1画面に全日が連結表示されるか、単日は従来通りか。
+
+## 2026-07-27 家側・設計改善(1/3): 傭兵スキル定義を定義駆動に統一 ※Unity確認待ち
+- 全体精査(Sol)で挙げた設計改善3件の1つ目。スキル情報が3箇所に散在していたのを MercenaryClassProgression 定義に一元化。
+  - 散在元: (1)MercenaryClass.cs の定義 (2)MercenaryInstance.cs の基本3職Lv2パッシブ ハードコード(GetSkillBonusXxx) (3)CharacterEquipmentController.cs のUI表示用switch 4箇所。
+- 対応(Terra実装/家側レビュー):
+  - MercenarySkillDefinition に DisplayDescription(UI用の詳しい説明)を追加、未指定時 Description にフォールバック。
+  - 基本3職のLv2パッシブ(基礎体力HP+10/防御+3、速射訓練速度+0.05、魔力集中攻撃+4)を GetSkillProgression 定義へ追加(UnlockLevel=2, IsPassive)。
+  - MercenaryInstance の Lv2ハードコード除去(uniqueスキル分のみ残す)→ GetProgressionBonus 経由で1回だけ加算(二重加算なし)。
+  - UIのswitchを削除し GetPrimarySkill/GetSkillProgression から生成。UI説明は DisplayDescription。
+- 挙動不変の担保: 上級職は同系統昇進のみ(GetBaseClass(original)==GetBaseClass(current))なので OriginalClass基準を維持。PromotionPreviewは昇進前後に同じLv2が入るため差分不変(相対検証テストも無影響)。
+- 追加テスト MercenarySkillDefinitionRefactorTests: Lv1加算なし/Lv2正確加算/上級職パリティ/UI表示文言/unique+Lv2合算。dotnet build 0/0。
+- Unity確認待ち: Test Runner全緑、傭兵詳細のスキル表示、Lv2傭兵のステータス。未コミット。

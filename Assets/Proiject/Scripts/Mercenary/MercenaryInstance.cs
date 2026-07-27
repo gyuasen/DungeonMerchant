@@ -843,46 +843,34 @@ public class MercenaryInstance
 
     private int GetSkillBonusMaxHP()
     {
-        int bonus = OriginalClass == MercenaryClass.Warrior && level >= 2
-            ? 10
-            : 0;
         return IsUnique &&
                level >= Mathf.Max(1, baseData.uniqueSkillUnlockLevel)
-            ? bonus + baseData.uniqueSkillBonusMaxHP
-            : bonus;
+            ? baseData.uniqueSkillBonusMaxHP
+            : 0;
     }
 
     private int GetSkillBonusAttack()
     {
-        int bonus = OriginalClass == MercenaryClass.Mage && level >= 2
-            ? 4
-            : 0;
         return IsUnique &&
                level >= Mathf.Max(1, baseData.uniqueSkillUnlockLevel)
-            ? bonus + baseData.uniqueSkillBonusAttack
-            : bonus;
+            ? baseData.uniqueSkillBonusAttack
+            : 0;
     }
 
     private int GetSkillBonusDefense()
     {
-        int bonus = OriginalClass == MercenaryClass.Warrior && level >= 2
-            ? 3
-            : 0;
         return IsUnique &&
                level >= Mathf.Max(1, baseData.uniqueSkillUnlockLevel)
-            ? bonus + baseData.uniqueSkillBonusDefense
-            : bonus;
+            ? baseData.uniqueSkillBonusDefense
+            : 0;
     }
 
     private float GetSkillBonusAttackSpeed()
     {
-        float bonus = OriginalClass == MercenaryClass.Archer && level >= 2
-            ? 0.05f
-            : 0f;
         return IsUnique &&
                level >= Mathf.Max(1, baseData.uniqueSkillUnlockLevel)
-            ? bonus + baseData.uniqueSkillBonusAttackSpeed
-            : bonus;
+            ? baseData.uniqueSkillBonusAttackSpeed
+            : 0f;
     }
 
     private int GetSkillBonusMaxMagicPower()
