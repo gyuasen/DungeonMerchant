@@ -109,10 +109,14 @@ public sealed class BattleRewardService
             defeatedEnemies,
             randomValueProvider,
             fallbackItem);
+        CalculateGoldAndExperienceRewards(
+            defeatedEnemies,
+            out int gold,
+            out int totalExperience);
         return new VictoryRewardCalculation(
-            CalculateGoldReward(defeatedEnemies),
+            gold,
             CalculateExperiencePerMercenary(
-                CalculateExperienceReward(defeatedEnemies),
+                totalExperience,
                 mercenaryCount),
             drops);
     }
@@ -123,7 +127,10 @@ public sealed class BattleRewardService
         ItemDataSO fallbackItem)
     {
         Func<float> random = randomValueProvider ?? (() => UnityEngine.Random.value);
-        List<ItemDropEntry> result = new List<ItemDropEntry>();
+        // Every non-null enemy can add a magic stone, so this avoids the
+        // common early growth allocations without adding another enemy pass.
+        List<ItemDropEntry> result = new List<ItemDropEntry>(
+            defeatedEnemies != null ? defeatedEnemies.Count : 0);
         if (defeatedEnemies != null)
         {
             foreach (EnemyDataSO enemy in defeatedEnemies)
@@ -204,6 +211,38 @@ public sealed class BattleRewardService
         }
 
         return Mathf.Max(1, totalExperience);
+    }
+
+    private static void CalculateGoldAndExperienceRewards(
+        IReadOnlyList<EnemyDataSO> defeatedEnemies,
+        out int gold,
+        out int experience)
+    {
+        gold = 0;
+        int totalExperience = 0;
+        if (defeatedEnemies != null)
+        {
+            foreach (EnemyDataSO enemy in defeatedEnemies)
+            {
+                if (enemy == null)
+                {
+                    continue;
+                }
+
+                gold += enemy.goldReward;
+                int enemyExperience = CalculateBaseExperienceReward(
+                    enemy.monsterGrade);
+                if (enemy.isBoss)
+                {
+                    enemyExperience *= 3;
+                }
+
+                totalExperience += Mathf.RoundToInt(
+                    enemyExperience * Mathf.Max(1f, enemy.experienceMultiplier));
+            }
+        }
+
+        experience = Mathf.Max(1, totalExperience);
     }
 
     public static int CalculateBaseExperienceReward(int monsterGrade)
