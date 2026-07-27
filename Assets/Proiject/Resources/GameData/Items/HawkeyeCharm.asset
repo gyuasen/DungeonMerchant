@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 2
   materialClassification: 0
   description: A light charm that sharpens an archer's timing and aim.
-  basePrice: 540
+  basePrice: 1080
   acquisitionType: 1
   equipmentSlot: 2
   requiredClass: 1

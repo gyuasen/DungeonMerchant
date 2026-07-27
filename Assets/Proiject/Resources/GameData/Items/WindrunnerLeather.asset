@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 2
   materialClassification: 0
   description: Flexible leather armor that preserves an archer's mobility.
-  basePrice: 660
+  basePrice: 1320
   acquisitionType: 1
   equipmentSlot: 1
   requiredClass: 1

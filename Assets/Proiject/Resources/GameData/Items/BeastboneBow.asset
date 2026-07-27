@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 2
   materialClassification: 0
   description: A blacksmith-only bow reinforced with monster bone and wing membrane.
-  basePrice: 650
+  basePrice: 1300
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 1

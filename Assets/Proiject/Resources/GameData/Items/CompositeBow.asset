@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 1
   materialClassification: 0
   description: A layered bow with greater power and firing speed.
-  basePrice: 220
+  basePrice: 440
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 1

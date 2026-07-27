@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 2
   materialClassification: 0
   description: A protective robe woven with threads that conduct magic.
-  basePrice: 700
+  basePrice: 1400
   acquisitionType: 1
   equipmentSlot: 1
   requiredClass: 2

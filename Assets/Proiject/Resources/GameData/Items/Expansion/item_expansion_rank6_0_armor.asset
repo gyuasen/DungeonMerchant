@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 6 Warrior Armor
-  basePrice: 2500
+  basePrice: 5000
   acquisitionType: 1
   equipmentSlot: 1
   requiredClass: 0

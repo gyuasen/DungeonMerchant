@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 2
   materialClassification: 0
   description: Ritual vestments reinforced with purified monster bone.
-  basePrice: 760
+  basePrice: 1520
   acquisitionType: 1
   equipmentSlot: 1
   requiredClass: 3

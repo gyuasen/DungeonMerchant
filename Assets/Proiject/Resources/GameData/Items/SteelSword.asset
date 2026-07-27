@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 1
   materialClassification: 0
   description: A well-forged steel sword for experienced warriors.
-  basePrice: 220
+  basePrice: 440
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0

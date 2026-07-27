@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 2
   materialClassification: 0
   description: An emblem carried by warriors who refuse to yield.
-  basePrice: 520
+  basePrice: 1040
   acquisitionType: 1
   equipmentSlot: 2
   requiredClass: 0

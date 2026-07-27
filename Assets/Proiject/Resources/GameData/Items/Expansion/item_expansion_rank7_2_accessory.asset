@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 7 Mage Accessory
-  basePrice: 3800
+  basePrice: 7600
   acquisitionType: 1
   equipmentSlot: 2
   requiredClass: 2

@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 5 Warrior Weapon
-  basePrice: 1300
+  basePrice: 2600
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 0

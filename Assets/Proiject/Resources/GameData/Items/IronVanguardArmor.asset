@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 2
   materialClassification: 0
   description: Heavy armor forged for warriors who hold the front line.
-  basePrice: 680
+  basePrice: 1360
   acquisitionType: 1
   equipmentSlot: 1
   requiredClass: 0

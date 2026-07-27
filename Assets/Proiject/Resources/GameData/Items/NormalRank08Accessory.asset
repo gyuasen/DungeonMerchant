@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: "\u9ED2\u9244\u5751\u3092\u8D8A\u3048\u308B\u8005\u3078\u6388\u3051\u3089\u308C\u308B\u3001\u8010\u4E45\u529B\u3092\u9AD8\u3081\u308B\u5FBD\u7AE0\u3002"
-  basePrice: 6800
+  basePrice: 13600
   acquisitionType: 1
   equipmentSlot: 2
   requiredClass: 0

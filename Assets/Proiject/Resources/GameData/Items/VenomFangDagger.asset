@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 2
   materialClassification: 0
   description: A swift dagger edged with sharpened monster fangs.
-  basePrice: 660
+  basePrice: 1320
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 4

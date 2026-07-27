@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 0
   description: Rank 6 Mage Weapon
-  basePrice: 2300
+  basePrice: 4600
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 2

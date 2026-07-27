@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 2
   materialClassification: 0
   description: Lightweight armor layered with wing membrane and wyvern scale.
-  basePrice: 780
+  basePrice: 1560
   acquisitionType: 1
   equipmentSlot: 1
   requiredClass: 4

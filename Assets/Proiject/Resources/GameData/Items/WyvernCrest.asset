@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 2
   materialClassification: 0
   description: A crest that carries the endurance of a wyvern.
-  basePrice: 650
+  basePrice: 1300
   acquisitionType: 1
   equipmentSlot: 2
   requiredClass: 5

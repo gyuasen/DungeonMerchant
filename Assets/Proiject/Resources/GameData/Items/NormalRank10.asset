@@ -19,7 +19,7 @@ MonoBehaviour:
   materialClassification: 0
   description: "\u30A2\u30B9\u30C6\u30E9\u79D8\u533F\u90FD\u5E02\u306E\u7089\u3067\u306E\u307F\u935B\u3048\u3089\u308C\u308B\u3001\u661F\u92FC\u88FD\u306ERank
     10\u6B66\u5668\u3002"
-  basePrice: 28600
+  basePrice: 57200
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 0

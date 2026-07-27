@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 2
   materialClassification: 0
   description: A charm that sharpens the wearer's senses in darkness.
-  basePrice: 560
+  basePrice: 1120
   acquisitionType: 1
   equipmentSlot: 2
   requiredClass: 4
