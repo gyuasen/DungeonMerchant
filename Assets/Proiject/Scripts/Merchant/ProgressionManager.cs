@@ -4,9 +4,15 @@ using UnityEngine;
 
 public class ProgressionManager : MonoBehaviour
 {
-    private static readonly int[] StorageCapacities = { 30, 60, 100, 160 };
-    private static readonly int[] StorageUpgradeCosts = { 1500, 5000, 12000, 0 };
-    private static readonly int[] StorageRequiredLevels = { 1, 4, 8, 12 };
+    private static readonly int[] StorageCapacities =
+        { 30, 60, 100, 160, 230, 310, 400, 500, 610, 720, 830, 900, 950, 980, 1000 };
+    private static readonly int[] StorageUpgradeCosts =
+        { 1500, 5000, 12000, 25000, 45000, 75000, 120000, 180000, 260000,
+          360000, 480000, 620000, 780000, 950000, 0 };
+    private static readonly int[] StorageRequiredLevels =
+        { 1, 4, 8, 12, 18, 24, 32, 40, 50, 60, 70, 80, 90, 95, 100 };
+    private static readonly int[] StorageMaintenanceCosts =
+        { 0, 0, 100, 150, 200, 260, 330, 410, 500, 600, 700, 800, 900, 950, 1000 };
 
     [SerializeField] private MerchantData merchantData;
     [SerializeField] private DayManager dayManager;
@@ -39,9 +45,9 @@ public class ProgressionManager : MonoBehaviour
     public int NextStorageRequiredMerchantLevel => IsStorageAtMaximumTier
         ? 0
         : StorageRequiredLevels[storageTier + 1];
-    public int StorageMaintenanceCost => storageTier >= 2
-        ? 100 * (storageTier - 1)
-        : 0;
+    public int StorageMaintenanceCost =>
+        StorageMaintenanceCosts[
+            Mathf.Clamp(storageTier, 0, StorageMaintenanceCosts.Length - 1)];
     public int TotalDungeonClears => totalDungeonClears;
     public int TotalGoldEarned => merchantData != null
         ? merchantData.LifetimeGoldEarned
@@ -233,7 +239,8 @@ public class ProgressionManager : MonoBehaviour
             return;
         }
         ResolveReferences();
-        storageTier = Mathf.Clamp(data.storageTier, 0, 3);
+        storageTier = Mathf.Clamp(
+            data.storageTier, 0, StorageCapacities.Length - 1);
         totalDungeonClears = Mathf.Max(0, data.totalDungeonClears);
         profitableDungeonClears = Mathf.Max(0, data.profitableDungeonClears);
         quests = data.quests ?? new List<QuestRecord>();

@@ -145,7 +145,9 @@ public sealed class ProgressionManagerTests
     [TestCase(0, 30, 1500, false, 60, 4)]
     [TestCase(1, 60, 5000, false, 100, 8)]
     [TestCase(2, 100, 12000, false, 160, 12)]
-    [TestCase(3, 160, 0, true, 160, 0)]
+    [TestCase(3, 160, 25000, false, 230, 18)]
+    [TestCase(13, 980, 950000, false, 1000, 100)]
+    [TestCase(14, 1000, 0, true, 1000, 0)]
     public void StorageProperties_ForEachTier_ReportCapacityAndNextUpgrade(
         int tier,
         int expectedCapacity,
