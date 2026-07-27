@@ -962,6 +962,7 @@ public sealed class DailyResultController
             case GoldTransactionReason.ContractRenewal: return "契約更新";
             case GoldTransactionReason.ContractChange: return "契約変更";
             case GoldTransactionReason.ExpeditionReward: return "別動隊報酬";
+            case GoldTransactionReason.ExpeditionHealing: return "別動隊治療費";
             case GoldTransactionReason.Healing: return "治療費";
             case GoldTransactionReason.Training: return "修練";
             case GoldTransactionReason.DebtRepayment: return "借金返済";

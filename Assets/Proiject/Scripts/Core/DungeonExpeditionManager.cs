@@ -266,32 +266,41 @@ public sealed class DungeonExpeditionManager : MonoBehaviour
 
     private void ProcessExpedition(DungeonExpedition expedition, int accountingDay)
     {
+        if (expedition?.dungeon == null)
+        {
+            return;
+        }
         List<MercenaryInstance> members = GetMembers(expedition);
         int required = GetRequiredStrength(expedition.dungeon);
-        if (GetExpeditionStrength(expedition) < required)
+        int strength = GetExpeditionStrength(expedition);
+        if (strength < required)
         {
             foreach (MercenaryInstance member in members)
             {
-                int damage = Mathf.Max(1, Mathf.CeilToInt(member.MaxHP * (.1f + Mathf.Clamp01((required - GetExpeditionStrength(expedition)) / (float)required) * .2f)));
+                int damage = Mathf.Max(1, Mathf.CeilToInt(member.MaxHP * (.1f + Mathf.Clamp01((required - strength) / (float)required) * .2f)));
                 member.SetCurrentHP(Mathf.Max(1, member.CurrentHP - damage));
             }
+            SettleExpeditionHealing(expedition.dungeon, members, accountingDay);
             NotifyExpeditionResolved(new ExpeditionEvent(ExpeditionEventType.Failed, expedition, 0, Array.Empty<ItemDataSO>()), accountingDay);
             return;
         }
         List<ItemDataSO> materials = new List<ItemDataSO>();
-        int gold = GrantNormalEncounterRewards(expedition.dungeon, members, materials, out int experiencePerMercenary);
+        int gold = GrantNormalEncounterRewards(expedition.dungeon, members, strength, required, materials, out int experiencePerMercenary);
         EquipmentInstance limitedEquipment = TryDepositLimitedEquipment(expedition.dungeon);
+        SettleExpeditionHealing(expedition.dungeon, members, accountingDay);
         NotifyExpeditionResolved(new ExpeditionEvent(ExpeditionEventType.Succeeded, expedition, gold, materials, limitedEquipment, experiencePerMercenary), accountingDay);
     }
 
-    private int GrantNormalEncounterRewards(DungeonDataSO dungeon, IReadOnlyList<MercenaryInstance> members, List<ItemDataSO> awardedMaterials, out int totalExperiencePerMercenary)
+    private int GrantNormalEncounterRewards(DungeonDataSO dungeon, IReadOnlyList<MercenaryInstance> members, int strength, int requiredStrength, List<ItemDataSO> awardedMaterials, out int totalExperiencePerMercenary)
     {
         int totalGold = 0;
         totalExperiencePerMercenary = 0;
         for (int encounterNumber = 1; encounterNumber <= RollRange(3, 6); encounterNumber++)
         {
             int enemyCount = Mathf.Min(Mathf.Max(1, dungeon.maxEnemyCountPerEncounter), Mathf.Max(1, dungeon.firstEncounterEnemyCount) + ((encounterNumber - 1) * Mathf.Max(0, dungeon.enemyCountIncreasePerEncounter)));
-            BattleRewardService.VictoryRewardCalculation rewards = BattleRewardService.CalculateVictoryRewards(CreateNormalEncounter(dungeon, enemyCount), members.Count, randomValue, null);
+            List<EnemyDataSO> enemies = CreateNormalEncounter(dungeon, enemyCount);
+            BattleRewardService.VictoryRewardCalculation rewards = BattleRewardService.CalculateVictoryRewards(enemies, members.Count, randomValue, null);
+            ApplySuccessfulEncounterDamage(dungeon, enemies, members, strength, requiredStrength);
             totalGold += rewards.Gold;
             totalExperiencePerMercenary += rewards.ExperiencePerMercenary;
             foreach (MercenaryInstance member in members)
@@ -318,6 +327,99 @@ public sealed class DungeonExpeditionManager : MonoBehaviour
             dungeon.dungeonName,
             accountingDay);
         return totalGold;
+    }
+
+    // This intentionally approximates combat rather than running a full BattleManager simulation.
+    private static void ApplySuccessfulEncounterDamage(
+        DungeonDataSO dungeon,
+        IReadOnlyList<EnemyDataSO> enemies,
+        IReadOnlyList<MercenaryInstance> members,
+        int strength,
+        int requiredStrength)
+    {
+        if (members == null || members.Count == 0)
+        {
+            return;
+        }
+
+        int enemyCount = 0;
+        int totalAttack = 0;
+        float enemyGradeFactor = 0f;
+        if (enemies != null)
+        {
+            foreach (EnemyDataSO enemy in enemies)
+            {
+                if (enemy == null)
+                {
+                    continue;
+                }
+                enemyCount++;
+                totalAttack += Mathf.Max(0, enemy.attack);
+                // Monster grade 1 is the strongest grade in the reward/balance model.
+                enemyGradeFactor += 1f + (10 - Mathf.Clamp(enemy.monsterGrade, 1, 10)) * .06f;
+            }
+        }
+
+        enemyCount = Mathf.Max(1, enemyCount);
+        enemyGradeFactor = enemyCount > 0 ? enemyGradeFactor / enemyCount : 1f;
+        if (enemyGradeFactor <= 0f)
+        {
+            enemyGradeFactor = 1f;
+        }
+        float dungeonGradeFactor = 1f + (int)dungeon.grade * .2f;
+        float strengthRatio = requiredStrength <= 0 ? 1f : strength / (float)requiredStrength;
+        float strengthMitigation = 1f - Mathf.Clamp01((strengthRatio - 1f) / 2f) * .5f;
+        float damagePercent = ((.015f * enemyCount * enemyGradeFactor * dungeonGradeFactor) +
+            (totalAttack * .001f)) * strengthMitigation;
+
+        foreach (MercenaryInstance member in members)
+        {
+            if (member == null)
+            {
+                continue;
+            }
+            int damage = Mathf.Max(1, Mathf.CeilToInt(member.MaxHP * damagePercent));
+            member.SetCurrentHP(Mathf.Max(1, member.CurrentHP - damage));
+        }
+    }
+
+    private void SettleExpeditionHealing(
+        DungeonDataSO dungeon,
+        IReadOnlyList<MercenaryInstance> members,
+        int accountingDay)
+    {
+        if (dungeon == null || members == null || members.Count == 0)
+        {
+            return;
+        }
+
+        int totalCost = 0;
+        foreach (MercenaryInstance member in members)
+        {
+            if (member != null)
+            {
+                totalCost += HealingCostService.CalculateFullHealCost(
+                    member.MaxHP,
+                    member.CurrentHP,
+                    false).TotalCost;
+            }
+        }
+        if (totalCost <= 0 || merchantData == null || !merchantData.TryPayGold(
+            totalCost,
+            GoldTransactionReason.ExpeditionHealing,
+            "別動隊の治療費: " + dungeon.dungeonName,
+            accountingDay))
+        {
+            return;
+        }
+
+        foreach (MercenaryInstance member in members)
+        {
+            if (member != null)
+            {
+                member.SetCurrentHP(member.MaxHP);
+            }
+        }
     }
 
     private void NotifyExpeditionResolved(ExpeditionEvent expeditionEvent, int accountingDay)

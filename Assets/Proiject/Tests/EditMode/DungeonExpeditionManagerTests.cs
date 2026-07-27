@@ -67,7 +67,7 @@ public sealed class DungeonExpeditionManagerTests
     }
 
     [Test]
-    public void DayChanged_StrongPartyDepositsRewardsAndWeakPartyOnlyTakesDamage()
+    public void DayChanged_StrongPartyDepositsRewardsAndSettlesHealing()
     {
         DungeonDataSO dungeon = CreateClearedDungeon();
         ItemDataSO material = ScriptableObject.CreateInstance<ItemDataSO>();
@@ -79,8 +79,8 @@ public sealed class DungeonExpeditionManagerTests
         dungeon.normalEnemies = new[] { enemy };
         assets.Add(enemy);
         MercenaryInstance strong = Hire("strong", 2, 100, 100, 100);
-        GoldTransaction recordedTransaction = null;
-        merchantData.GoldTransactionRecorded += transaction => recordedTransaction = transaction;
+        List<GoldTransaction> recordedTransactions = new List<GoldTransaction>();
+        merchantData.GoldTransactionRecorded += transaction => recordedTransactions.Add(transaction);
         DailyResultController dailyResults = new DailyResultController(
             merchantData,
             hireManager,
@@ -96,8 +96,15 @@ public sealed class DungeonExpeditionManagerTests
         dayManager.AdvanceDay();
         Assert.That(merchantData.Gold, Is.GreaterThan(goldBefore));
         Assert.That(inventory.GetItemAmountIn(2, material), Is.GreaterThan(0));
-        Assert.That(recordedTransaction.Reason, Is.EqualTo(GoldTransactionReason.ExpeditionReward));
-        Assert.That(recordedTransaction.AccountingDay, Is.EqualTo(dayManager.CurrentDay - 1));
+        GoldTransaction rewardTransaction = recordedTransactions.Find(transaction => transaction.Reason == GoldTransactionReason.ExpeditionReward);
+        GoldTransaction healingTransaction = recordedTransactions.Find(transaction => transaction.Reason == GoldTransactionReason.ExpeditionHealing);
+        Assert.That(rewardTransaction, Is.Not.Null);
+        Assert.That(healingTransaction, Is.Not.Null);
+        Assert.That(healingTransaction.SignedAmount, Is.LessThan(0));
+        Assert.That(rewardTransaction.AccountingDay, Is.EqualTo(dayManager.CurrentDay - 1));
+        Assert.That(healingTransaction.AccountingDay, Is.EqualTo(dayManager.CurrentDay - 1));
+        Assert.That(merchantData.Gold, Is.EqualTo(goldBefore + rewardTransaction.SignedAmount + healingTransaction.SignedAmount));
+        Assert.That(strong.CurrentHP, Is.EqualTo(strong.MaxHP));
         string dailyText = dailyResults.BuildDailyResultText(dayManager.CurrentDay);
         Assert.That(dailyText, Does.Contain("別動隊の成果"));
         Assert.That(dailyText, Does.Contain("素材"));
@@ -108,7 +115,55 @@ public sealed class DungeonExpeditionManagerTests
         dungeon.grade = DungeonGrade.Highest;
         Assert.That(expeditionManager.TryFormExpedition(dungeon, new[] { strong }), Is.EqualTo(ExpeditionFormationResult.Succeeded));
         dayManager.AdvanceDay();
-        Assert.That(strong.CurrentHP, Is.EqualTo(1));
+        Assert.That(strong.CurrentHP, Is.EqualTo(strong.MaxHP));
+    }
+
+    [Test]
+    public void DayChanged_SuccessWithoutEnoughGold_LeavesExpeditionMemberInjured()
+    {
+        DungeonDataSO dungeon = CreateClearedDungeon();
+        EnemyDataSO enemy = ScriptableObject.CreateInstance<EnemyDataSO>();
+        enemy.goldReward = 1;
+        enemy.attack = 100;
+        dungeon.normalEnemies = new[] { enemy };
+        assets.Add(enemy);
+        MercenaryInstance member = Hire("unpaid", 2, 100, 100, 100);
+        merchantData.SetGold(0);
+        List<GoldTransaction> recordedTransactions = new List<GoldTransaction>();
+        merchantData.GoldTransactionRecorded += transaction => recordedTransactions.Add(transaction);
+        expeditionManager.SetRandomProvider(() => 0f);
+
+        Assert.That(expeditionManager.TryFormExpedition(dungeon, new[] { member }), Is.EqualTo(ExpeditionFormationResult.Succeeded));
+        dayManager.AdvanceDay();
+
+        Assert.That(member.CurrentHP, Is.LessThan(member.MaxHP));
+        Assert.That(merchantData.Gold, Is.GreaterThanOrEqualTo(0));
+        Assert.That(recordedTransactions.Exists(transaction => transaction.Reason == GoldTransactionReason.ExpeditionHealing), Is.False);
+    }
+
+    [Test]
+    public void DayChanged_FailedExpedition_AlsoPaysHealingAtAccountingDay()
+    {
+        DungeonDataSO dungeon = CreateClearedDungeon();
+        dungeon.grade = DungeonGrade.Highest;
+        MercenaryInstance member = Hire("failed", 2, 100, 0, 0);
+        GoldTransaction healingTransaction = null;
+        merchantData.GoldTransactionRecorded += transaction =>
+        {
+            if (transaction.Reason == GoldTransactionReason.ExpeditionHealing)
+            {
+                healingTransaction = transaction;
+            }
+        };
+
+        Assert.That(expeditionManager.TryFormExpedition(dungeon, new[] { member }), Is.EqualTo(ExpeditionFormationResult.Succeeded));
+        dayManager.AdvanceDay();
+
+        Assert.That(member.CurrentHP, Is.EqualTo(member.MaxHP));
+        Assert.That(healingTransaction, Is.Not.Null);
+        Assert.That(healingTransaction.SignedAmount, Is.LessThan(0));
+        Assert.That(healingTransaction.AccountingDay, Is.EqualTo(dayManager.CurrentDay - 1));
+        Assert.That(healingTransaction.Detail, Does.Contain("別動隊の治療費"));
     }
 
     [Test]

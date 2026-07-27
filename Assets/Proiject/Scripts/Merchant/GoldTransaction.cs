@@ -21,7 +21,8 @@ public enum GoldTransactionReason
     Refund,
     Other,
     ContractChange,
-    ExpeditionReward
+    ExpeditionReward,
+    ExpeditionHealing
 }
 
 public sealed class GoldTransaction

@@ -1653,3 +1653,15 @@
 - 最終検証: itemName/descriptionともASCII英語のまま(かつ変換テーブル未登録)の漏れ0件を確認。変更はitemName/descriptionのみで他フィールド不変。dotnet build 0/0。
 - 改善余地(記録): 現方式はswitch/定義への個別登録で新規追加時に漏れやすい。将来はItemDataSOに日本語表示名/説明フィールドを持たせるか、表示文字列の英語混入を検査するEditModeテスト追加が望ましい(Sol提案)。
 - Unity確認待ち: 市場/倉庫/鍛冶/図鑑でアイテム名・説明が日本語表示されるか。未コミット。
+
+## 2026-07-27 家側・借金を5000万に変更＋別動隊に戦闘HP消耗と治療費を導入 ※Unity確認待ち
+### (1) 借金額変更
+- DebtManager.InitialDebt 1億→5000万(50000000)。周回測定で1億は周回のみだと非現実的(最上位通し259周/実挙動1337回)、5000万+別動隊活用で約200〜400日完済の現実的水準と判断。テストは全てInitialDebt定数参照でハードコード無し=影響なし。
+### (2) 別動隊の戦闘シミュレーション+治療費(ユーザー要望)
+- 従来は成功時HP消耗ゼロ・報酬のみで「無償で強すぎ」だった。成功時も戦闘でHP消耗させ、消耗分を自動治療してその治療費をゴールドから差し引くよう変更。連続周回可能なまま無償ではなくする。
+- ApplySuccessfulEncounterDamage: 遭遇ごとに敵数・敵グレード・敵攻撃力合計・ダンジョングレードに応じてHP消耗。戦力が必要値の2倍以上で最大50%軽減。最低1ダメージ、HP最低1。
+- SettleExpeditionHealing: 遠征1日分の全member欠損HPの治療費(HealingCostService.CalculateFullHealCost)を合算し merchantData.TryPayGold(accountingDay付, reason=ExpeditionHealing)。支払えたら全回復、払えなければHP減のまま(次回失敗リスク=自然なペナルティ)。成功時・失敗時とも実施。
+- GoldTransactionReason.ExpeditionHealing を enum末尾追加、日次リザルトで「別動隊治療費」表示。限定装備ドロップ(bossLimitedDropChance×0.5)は従来通り別動隊でも機能(確認済み)。
+- 二重計上なし(報酬AddGold1回/治療TryPayGold1回)。TryPayGoldは残高不足でfalse+Gold非減。
+- テスト追加: 成功時報酬-治療費+全回復+会計日、資金不足時未治療+Gold非負、失敗時も治療精算。dotnet build 0/0。
+- Unity確認待ち: Test Runner全緑、別動隊で日次に治療費が出てHPが自動精算されるか、資金不足時にHPが減ったままか。未コミット。
