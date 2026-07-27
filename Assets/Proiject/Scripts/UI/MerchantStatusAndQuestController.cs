@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 /// <summary>
 /// Owns the merchant-status and quest content building (summary text,
@@ -59,9 +60,12 @@ public sealed class MerchantStatusAndQuestController
                   $"{debtManager.CurrentMonth}月目  |  " +
                   $"次回最低返済 {debtManager.NextMinimumPayment:N0}G " +
                   $"（あと{debtManager.DaysUntilPayment}日）";
+        string goldLine = merchantData.HasNegativeGold
+            ? $"所持金 {merchantData.Gold:N0}G ＜借金超過・支出停止中＞"
+            : $"所持金 {merchantData.Gold:N0}G";
         return $"商人Lv {merchantData.MerchantLevel}  " +
                $"{growthProgress}  " +
-               $"所持金 {merchantData.Gold}G\n" +
+               goldLine + "\n" +
                $"未使用技能ポイント {merchantData.MerchantSkillPoints}  |  " +
                $"累計獲得 {merchantData.LifetimeGoldEarned:N0}G\n" +
                debtSummary;
@@ -75,6 +79,17 @@ public sealed class MerchantStatusAndQuestController
     public bool CanRepay()
     {
         return merchantData.Gold > 0;
+    }
+
+    // スライダー返済の上限。所持金と残債の小さい方までしか返済できない。
+    public int MaxRepayable()
+    {
+        if (debtManager == null)
+        {
+            return 0;
+        }
+
+        return Mathf.Min(merchantData.Gold, debtManager.RemainingDebt);
     }
 
     public string BuildSkillRowTitle(MerchantSkillType skill, string label)
@@ -143,7 +158,7 @@ public sealed class MerchantStatusAndQuestController
         int paid = debtManager.Repay(amount);
         setStatus(paid > 0
             ? debtManager.IsDebtCleared
-                ? "借金1億Gを完済しました。ゲームクリアです！"
+                ? $"借金{DebtManager.InitialDebt:N0}Gを完済しました。ゲームクリアです！"
                 : $"{paid:N0}Gを返済しました。"
             : "返済できる所持金がありません。");
         rebuildMerchantStatus();

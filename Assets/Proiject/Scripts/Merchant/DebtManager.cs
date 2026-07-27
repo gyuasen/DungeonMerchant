@@ -21,8 +21,9 @@ public class DebtManager : MonoBehaviour
     public int DaysUntilPayment => DaysPerMonth -
         ((Mathf.Max(1, dayManager != null ? dayManager.CurrentDay : 1) - 1)
          % DaysPerMonth);
+    // 延滞金は廃止。月次徴収は所持金不足でも強制で、不足分は所持金が負に沈む。
     public int NextMinimumPayment =>
-        Mathf.Min(remainingDebt, MonthlyMinimumPayment + paymentArrears);
+        Mathf.Min(remainingDebt, MonthlyMinimumPayment);
     public bool IsDebtCleared => remainingDebt <= 0;
 
     public event Action DebtChanged;
@@ -95,10 +96,27 @@ public class DebtManager : MonoBehaviour
 
     private void ProcessMonthlyPayment()
     {
+        ResolveReferences();
+        if (merchantData == null || IsDebtCleared)
+        {
+            return;
+        }
+
+        // 月次最低額を強制徴収する。所持金が足りなくても引き、残高は負に沈む。
+        // 残債もその分だけ確実に減る。延滞金の繰越は行わない。
         int due = NextMinimumPayment;
-        int paid = Repay(due);
-        paymentArrears = Mathf.Max(0, due - paid);
-        MonthlyPaymentProcessed?.Invoke(due, paid, paymentArrears);
+        if (due <= 0)
+        {
+            return;
+        }
+
+        merchantData.ForceDeductGold(
+            due,
+            GoldTransactionReason.DebtRepayment,
+            accountingDay: dayManager != null ? dayManager.CurrentDay : (int?)null);
+        remainingDebt = Mathf.Max(0, remainingDebt - due);
+        paymentArrears = 0;
+        MonthlyPaymentProcessed?.Invoke(due, due, 0);
         DebtChanged?.Invoke();
     }
 

@@ -69,6 +69,7 @@ public sealed class StoryProgressManager : MonoBehaviour
     private static readonly int[] repaymentPercentages = { 10, 25, 50, 75, 90, 100 };
 
     [SerializeField] private DebtManager debtManager;
+    [SerializeField] private MerchantData merchantData;
 
     private readonly HashSet<StoryMilestone> completedMilestones = new HashSet<StoryMilestone>();
     private readonly Queue<StoryPresentation> pendingPresentations = new Queue<StoryPresentation>();
@@ -88,12 +89,14 @@ public sealed class StoryProgressManager : MonoBehaviour
 
     private void OnDisable() => Unsubscribe();
 
-    // 明示的な依存注入シーム。テストや Bootstrap から確実に debtManager を
-    // 結びつけ、ライフサイクル順序や fake-null に依存せず購読を成立させる。
-    public void Initialize(DebtManager targetDebtManager)
+    // 明示的な依存注入シーム。テストや Bootstrap から確実に debtManager と
+    // merchantData を結びつけ、ライフサイクル順序や fake-null に依存せず購読を
+    // 成立させる。merchantData は所持金マイナス中の物語進行停止に使う。
+    public void Initialize(DebtManager targetDebtManager, MerchantData targetMerchantData)
     {
         Unsubscribe();
         debtManager = targetDebtManager;
+        merchantData = targetMerchantData;
         Subscribe();
     }
 
@@ -205,6 +208,10 @@ public sealed class StoryProgressManager : MonoBehaviour
     {
         if (debtManager == null) return;
 
+        // 所持金がマイナス（借金で返済を賄っている状態）の間は物語を進めない。
+        // プラスへ復帰したとき GoldChanged 経由で再評価され、到達済みの節目を拾う。
+        if (merchantData != null && merchantData.HasNegativeGold) return;
+
         for (int index = 0; index < repaymentMilestones.Length; index++)
         {
             if (HasRepaidAtLeast(debtManager.RemainingDebt, repaymentPercentages[index]))
@@ -230,16 +237,29 @@ public sealed class StoryProgressManager : MonoBehaviour
         return repaidDebt * 100L >= (long)DebtManager.InitialDebt * percentage;
     }
 
+    // 所持金変化でも物語の到達判定を再評価する。マイナスからプラスへ復帰した
+    // 瞬間に、到達済みだが保留していた節目を拾うため。
+    private void HandleGoldChanged(int currentGold) => HandleDebtChanged();
+
     private void Subscribe()
     {
-        if (debtManager == null) return;
-        debtManager.DebtChanged -= HandleDebtChanged;
-        debtManager.DebtChanged += HandleDebtChanged;
+        if (debtManager != null)
+        {
+            debtManager.DebtChanged -= HandleDebtChanged;
+            debtManager.DebtChanged += HandleDebtChanged;
+        }
+
+        if (merchantData != null)
+        {
+            merchantData.GoldChanged -= HandleGoldChanged;
+            merchantData.GoldChanged += HandleGoldChanged;
+        }
     }
 
     private void Unsubscribe()
     {
         if (debtManager != null) debtManager.DebtChanged -= HandleDebtChanged;
+        if (merchantData != null) merchantData.GoldChanged -= HandleGoldChanged;
     }
 
     private void ResolveReferences()
@@ -254,6 +274,16 @@ public sealed class StoryProgressManager : MonoBehaviour
         if (debtManager == null)
         {
             debtManager = FindObjectOfType<DebtManager>();
+        }
+
+        if (merchantData == null)
+        {
+            merchantData = GetComponent<MerchantData>();
+        }
+
+        if (merchantData == null)
+        {
+            merchantData = FindObjectOfType<MerchantData>();
         }
     }
 

@@ -239,25 +239,7 @@ public partial class SimpleMercenaryHireUI
             Color.white);
         if (merchantStatusAndQuestController.ShouldShowRepayButtons())
         {
-            Button fixedPayment = CreateActionButton(
-                summaryRow,
-                "1万G返済",
-                () => merchantStatusAndQuestController.RepayDebt(
-                    DebtManager.MonthlyMinimumPayment));
-            RectTransform fixedRect = fixedPayment.GetComponent<RectTransform>();
-            fixedRect.anchoredPosition = new Vector2(-80f, 24f);
-            fixedPayment.interactable =
-                merchantStatusAndQuestController.CanRepay();
-
-            Button fullPayment = CreateActionButton(
-                summaryRow,
-                "全額返済",
-                () => merchantStatusAndQuestController.RepayDebt(
-                    debtManager.RemainingDebt));
-            RectTransform fullRect = fullPayment.GetComponent<RectTransform>();
-            fullRect.anchoredPosition = new Vector2(-80f, -24f);
-            fullPayment.interactable =
-                merchantStatusAndQuestController.CanRepay();
+            BuildRepayStepper(summaryRow);
         }
         top -= 136f;
 
@@ -288,6 +270,98 @@ public partial class SimpleMercenaryHireUI
 
         merchantSkillList.sizeDelta =
             new Vector2(0f, Mathf.Max(470f, -top));
+    }
+
+    // 返済額を1万G単位で選び、確定ボタンで返済する。−／＋で1万ずつ増減し、
+    // 上限は min(所持金, 残債)。残債が1万未満の最終返済は端数のまま選べる。
+    // 返済後は RebuildMerchantStatus が走り、このUIごと作り直される。
+    private void BuildRepayStepper(RectTransform parent)
+    {
+        int step = DebtManager.MonthlyMinimumPayment;
+        int maxRepayable = merchantStatusAndQuestController.MaxRepayable();
+        // 初期選択額は1万G（上限が1万未満ならその端数）。
+        int selected = Mathf.Clamp(step, 0, maxRepayable);
+
+        Text amountText = CreateText(
+            parent,
+            string.Empty,
+            18,
+            FontStyle.Bold,
+            TextAnchor.MiddleCenter,
+            new Vector2(-210f, 20f),
+            new Vector2(-60f, 56f),
+            ParchmentTextColor);
+
+        Button decrease = null;
+        Button increase = null;
+        Button confirm = null;
+
+        void Refresh()
+        {
+            amountText.text = $"返済額 {selected:N0}G";
+            if (decrease != null)
+            {
+                decrease.interactable = selected > 0;
+            }
+            if (increase != null)
+            {
+                increase.interactable = selected < maxRepayable;
+            }
+            if (confirm != null)
+            {
+                confirm.interactable =
+                    merchantStatusAndQuestController.CanRepay() && selected > 0;
+            }
+        }
+
+        // 1万G単位で増減する。上限側は端数（残債1万未満）にも張り付けられる。
+        void Step(int direction)
+        {
+            if (direction > 0)
+            {
+                selected = Mathf.Min(maxRepayable, selected + step);
+            }
+            else
+            {
+                // 1万の倍数から下げるとき、端数上限からはまず倍数へ丸める。
+                int lowered = selected - step;
+                selected = Mathf.Max(0, (lowered / step) * step);
+            }
+            Refresh();
+        }
+
+        decrease = CreateActionButton(parent, "−1万", () => Step(-1));
+        RectTransform decreaseRect = decrease.GetComponent<RectTransform>();
+        decreaseRect.sizeDelta = new Vector2(64f, 40f);
+        decreaseRect.anchoredPosition = new Vector2(-232f, -20f);
+
+        increase = CreateActionButton(parent, "＋1万", () => Step(1));
+        RectTransform increaseRect = increase.GetComponent<RectTransform>();
+        increaseRect.sizeDelta = new Vector2(64f, 40f);
+        increaseRect.anchoredPosition = new Vector2(-160f, -20f);
+
+        Button full = CreateActionButton(
+            parent,
+            "全額",
+            () =>
+            {
+                selected = maxRepayable;
+                Refresh();
+            });
+        RectTransform fullRect = full.GetComponent<RectTransform>();
+        fullRect.sizeDelta = new Vector2(56f, 40f);
+        fullRect.anchoredPosition = new Vector2(-96f, -20f);
+        full.interactable = maxRepayable > 0;
+
+        confirm = CreateActionButton(
+            parent,
+            "この額で返済",
+            () => merchantStatusAndQuestController.RepayDebt(selected));
+        RectTransform confirmRect = confirm.GetComponent<RectTransform>();
+        confirmRect.sizeDelta = new Vector2(120f, 40f);
+        confirmRect.anchoredPosition = new Vector2(-96f, -64f);
+
+        Refresh();
     }
 
     private void RebuildQuestList()

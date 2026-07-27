@@ -6,6 +6,7 @@ using UnityEngine;
 public sealed class StoryProgressManagerTests
 {
     private GameObject root;
+    private MerchantData merchantData;
     private DebtManager debtManager;
     private StoryProgressManager storyProgressManager;
 
@@ -14,7 +15,7 @@ public sealed class StoryProgressManagerTests
     {
         root = new GameObject("Story Progress Test Root");
         root.SetActive(false);
-        root.AddComponent<MerchantData>();
+        merchantData = root.AddComponent<MerchantData>();
         root.AddComponent<DayManager>();
         root.AddComponent<MercenaryHireManager>();
         root.AddComponent<TownProgressState>();
@@ -22,12 +23,42 @@ public sealed class StoryProgressManagerTests
         storyProgressManager = root.AddComponent<StoryProgressManager>();
         root.SetActive(true);
 
+        // 所持金をプラスにしておく。既定は 500G だが、マイナス判定ガードが
+        // 既存テストに干渉しないよう明示する。
+        merchantData.SetGold(1000);
+
         // 明示的に依存を注入し、ライフサイクル順序に依存せず購読を成立させる。
-        storyProgressManager.Initialize(debtManager);
+        storyProgressManager.Initialize(debtManager, merchantData);
     }
 
     [TearDown]
     public void TearDown() => Object.DestroyImmediate(root);
+
+    [Test]
+    public void NegativeGold_SuppressesMilestoneUntilGoldRecovers()
+    {
+        // 所持金がマイナスの間は、返済率に到達しても物語節目を完了させない。
+        merchantData.SetGold(-1);
+        debtManager.Restore(RemainingDebtForPercentage(10), 0, 0);
+
+        Assert.That(
+            storyProgressManager.IsCompleted(StoryMilestone.DebtRepaid10),
+            Is.False);
+        Assert.That(
+            storyProgressManager.TryDequeuePresentation(out _),
+            Is.False);
+
+        // プラスへ復帰した瞬間に、到達済みの節目を拾って完了・提示する。
+        merchantData.SetGold(500);
+
+        Assert.That(
+            storyProgressManager.IsCompleted(StoryMilestone.DebtRepaid10),
+            Is.True);
+        Assert.That(
+            storyProgressManager.TryDequeuePresentation(out StoryPresentation presentation),
+            Is.True);
+        Assert.That(presentation.Milestone, Is.EqualTo(StoryMilestone.DebtRepaid10));
+    }
 
     [Test]
     public void DebtThresholds_CompleteAndQueueTheirMatchingMilestones()

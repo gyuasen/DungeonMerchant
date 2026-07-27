@@ -326,7 +326,9 @@ public sealed class EconomyController
             setStatus(!entry.Item.IsEquipment &&
                       !marketStockManager.CanStorePurchase(entry)
                 ? "倉庫が満杯です。"
-                : $"{JapaneseDisplayText.GetItemName(entry.Item)}を購入できませんでした。");
+                : !marketStockManager.CanBuy(entry)
+                    ? "所持金が足りないため購入できません。"
+                    : $"{JapaneseDisplayText.GetItemName(entry.Item)}を購入できませんでした。");
             refreshUI();
             return;
         }

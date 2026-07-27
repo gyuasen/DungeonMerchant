@@ -44,7 +44,7 @@ public static class DungeonMerchantBootstrap
             ? Object.FindObjectOfType<MercenaryHireManager>().gameObject
             : new GameObject("DungeonMerchant Runtime");
 
-        EnsureComponent<MerchantData>(root);
+        MerchantData merchantData = EnsureComponent<MerchantData>(root);
         EnsureComponent<DayManager>(root);
         EnsureComponent<TownProgressState>(root);
         EnsureComponent<MarketPriceManager>(root);
@@ -65,9 +65,10 @@ public static class DungeonMerchantBootstrap
         EnsureComponent<RoadEncounterService>(root);
         DebtManager debtManager = EnsureComponent<DebtManager>(root);
         EnsureComponent<ProgressionManager>(root);
-        // 明示注入で debtManager 参照を確実に結び、fake-null で購読が漏れる
-        // ことを防ぐ。
-        EnsureComponent<StoryProgressManager>(root).Initialize(debtManager);
+        // 明示注入で debtManager・merchantData 参照を確実に結び、fake-null で
+        // 購読が漏れることを防ぐ。merchantData はマイナス中の物語進行停止に使う。
+        EnsureComponent<StoryProgressManager>(root)
+            .Initialize(debtManager, merchantData);
         EnsureComponent<OnboardingGuideController>(root);
         EnsureComponent<AudioFeedbackService>(root);
         EnsureComponent<SimpleMercenaryHireUI>(root);
