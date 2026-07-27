@@ -7,7 +7,8 @@ public class MerchantData : MonoBehaviour
     public const int MaxSkillRank = 50;
 
     [Header("Merchant Status")]
-    [SerializeField, Min(0)] private int gold = 500;
+    // 月次返済の強制徴収で残高が負になり得るため Min 制約は付けない。
+    [SerializeField] private int gold = 500;
     [SerializeField, Min(1)] private int merchantLevel = 1;
     [SerializeField, Min(0)] private int merchantExperience;
     [SerializeField, Min(0)] private int lifetimeGoldEarned;
@@ -18,6 +19,8 @@ public class MerchantData : MonoBehaviour
     [SerializeField, Range(0, MaxSkillRank)] private int logistics;
 
     public int Gold => gold;
+    // 月次返済の強制徴収で残高が負に沈んでいる状態。支出行動とストーリー進行を止める。
+    public bool HasNegativeGold => gold < 0;
     public int MerchantLevel => merchantLevel;
     public int MerchantExperience => merchantExperience;
     public int ExperienceToNextLevel => GetGoldRequiredForLevel(merchantLevel);
@@ -31,11 +34,6 @@ public class MerchantData : MonoBehaviour
     public event Action<int> GoldChanged;
     public event Action<GoldTransaction> GoldTransactionRecorded;
     public event Action ProgressionChanged;
-
-    private void OnValidate()
-    {
-        gold = Mathf.Max(0, gold);
-    }
 
     public bool CanPay(int amount)
     {
@@ -158,9 +156,29 @@ public class MerchantData : MonoBehaviour
         Debug.Log($"Gained {amount} G. Current gold: {gold} G");
     }
 
+    // 月次返済の強制徴収。所持金が足りなくても引き、残高を負に沈める。
+    // 通常の TryPayGold と違い CanPay で弾かず、支払い可否をガードしない。
+    public void ForceDeductGold(
+        int amount,
+        GoldTransactionReason reason,
+        string detail = null,
+        int? accountingDay = null)
+    {
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        gold -= amount;
+        GoldChanged?.Invoke(gold);
+        RecordGoldTransaction(-amount, reason, detail, accountingDay: accountingDay);
+        Debug.Log($"Force deducted {amount} G. Current gold: {gold} G");
+    }
+
     public void SetGold(int value)
     {
-        gold = Mathf.Max(0, value);
+        // 負の残高もそのまま復元する（マイナス状態のセーブ復元に必要）。
+        gold = value;
         GoldChanged?.Invoke(gold);
     }
 
