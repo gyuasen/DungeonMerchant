@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 0
   rarity: 0
   materialClassification: 1
-  description: Crafting material gathered in the demon continent.
+  description: "魔大陸で採れる、薬の調合に用いられる薬草。"
   basePrice: 300
   acquisitionType: 0
   equipmentSlot: 0

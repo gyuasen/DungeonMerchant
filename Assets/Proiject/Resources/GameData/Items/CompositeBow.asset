@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 1
   materialClassification: 0
-  description: A layered bow with greater power and firing speed.
+  description: "ランク2弓使い向けに仕立てられた武器。"
   basePrice: 440
   acquisitionType: 0
   equipmentSlot: 0

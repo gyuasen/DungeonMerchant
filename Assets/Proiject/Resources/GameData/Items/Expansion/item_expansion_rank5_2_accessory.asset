@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: item_expansion_rank5_2_accessory
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank5.2.accessory
-  itemName: Rank 5 Mage Accessory
+  itemName: "ランク5 魔術師の装飾"
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Rank 5 Mage Accessory
+  description: "ランク5魔術師用の装飾。"
   basePrice: 1170
   acquisitionType: 0
   equipmentSlot: 2

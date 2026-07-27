@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 2
   materialClassification: 0
-  description: Heavy armor forged for warriors who hold the front line.
+  description: "ランク3戦士向けに仕立てられた防具。"
   basePrice: 1360
   acquisitionType: 1
   equipmentSlot: 1

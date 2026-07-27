@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 0
   rarity: 0
   materialClassification: 1
-  description: Crafting material gathered in the demon continent.
+  description: "魔大陸で採れる、解毒薬の材料となる薬草。"
   basePrice: 600
   acquisitionType: 0
   equipmentSlot: 0

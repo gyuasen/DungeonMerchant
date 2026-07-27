@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: A small pendant that helps focus magical power.
+  description: "ランク1魔術師向けに仕立てられた装飾。"
   basePrice: 110
   acquisitionType: 0
   equipmentSlot: 2

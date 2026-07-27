@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 2
   materialClassification: 0
-  description: A light charm that sharpens an archer's timing and aim.
+  description: "ランク3弓使い向けに仕立てられた装飾。"
   basePrice: 1080
   acquisitionType: 1
   equipmentSlot: 2

@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 2
   rarity: 1
   materialClassification: 0
-  description: A crude crown proving the defeat of a cave ogre.
+  description: "魔大陸で採れる、洞窟オーガを倒した証となる粗末な王冠。"
   basePrice: 220
   acquisitionType: 0
   equipmentSlot: 0

@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: item_expansion_rank7_1_accessory
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank7.1.accessory
-  itemName: Rank 7 Archer Accessory
+  itemName: "ランク7 弓兵の装飾"
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Rank 7 Archer Accessory
+  description: "ランク7弓使い用の装飾。"
   basePrice: 7600
   acquisitionType: 1
   equipmentSlot: 2

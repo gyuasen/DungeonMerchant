@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: item_expansion_rank4_1
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank4.1
-  itemName: Rank 4 Archer Weapon
+  itemName: "ランク4 弓兵の武器"
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Rank 4 Archer Weapon
+  description: "ランク4弓使い用の武器。"
   basePrice: 1440
   acquisitionType: 1
   equipmentSlot: 0

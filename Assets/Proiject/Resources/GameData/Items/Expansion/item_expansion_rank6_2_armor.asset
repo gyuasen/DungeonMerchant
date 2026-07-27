@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: item_expansion_rank6_2_armor
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank6.2.armor
-  itemName: Rank 6 Mage Armor
+  itemName: "ランク6 魔術師の防具"
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Rank 6 Mage Armor
+  description: "ランク6魔術師用の防具。"
   basePrice: 5000
   acquisitionType: 1
   equipmentSlot: 1

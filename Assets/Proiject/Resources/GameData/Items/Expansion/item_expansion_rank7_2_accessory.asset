@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: item_expansion_rank7_2_accessory
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank7.2.accessory
-  itemName: Rank 7 Mage Accessory
+  itemName: "ランク7 魔術師の装飾"
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Rank 7 Mage Accessory
+  description: "ランク7魔術師用の装飾。"
   basePrice: 7600
   acquisitionType: 1
   equipmentSlot: 2

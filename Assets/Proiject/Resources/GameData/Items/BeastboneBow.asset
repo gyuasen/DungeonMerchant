@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 2
   materialClassification: 0
-  description: A blacksmith-only bow reinforced with monster bone and wing membrane.
+  description: "ランク3弓使い向けに仕立てられた武器。"
   basePrice: 1300
   acquisitionType: 1
   equipmentSlot: 0

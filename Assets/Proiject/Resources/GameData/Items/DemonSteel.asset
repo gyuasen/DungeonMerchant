@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 0
   rarity: 3
   materialClassification: 2
-  description: An ominous metal forged in the demon realm.
+  description: "魔大陸で採れる、魔界で鍛えられた不穏な金属。"
   basePrice: 700
   acquisitionType: 0
   equipmentSlot: 0

@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: item_expansion_rank4_2_armor
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank4.2.armor
-  itemName: Rank 4 Mage Armor
+  itemName: "ランク4 魔術師の防具"
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Rank 4 Mage Armor
+  description: "ランク4魔術師用の防具。"
   basePrice: 780
   acquisitionType: 0
   equipmentSlot: 1

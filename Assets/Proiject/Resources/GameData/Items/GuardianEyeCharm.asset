@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 2
   materialClassification: 0
-  description: A charm modeled after the watchful eye of a ruin guardian.
+  description: "ランク5戦士向けに仕立てられた装飾。"
   basePrice: 1170
   acquisitionType: 2
   equipmentSlot: 2

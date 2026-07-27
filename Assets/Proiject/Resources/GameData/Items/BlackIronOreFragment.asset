@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 0
   rarity: 2
   materialClassification: 2
-  description: A black iron ore fragment mined by Velm's deepforge servants.
+  description: "魔大陸で採れる、ヴェルムの深鍛坑から採れる黒鉄鉱の欠片。"
   basePrice: 600
   acquisitionType: 0
   equipmentSlot: 0

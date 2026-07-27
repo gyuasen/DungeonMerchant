@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: item_expansion_rank5_2
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank5.2
-  itemName: Rank 5 Mage Weapon
+  itemName: "ランク5 魔術師の武器"
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Rank 5 Mage Weapon
+  description: "ランク5魔術師用の武器。"
   basePrice: 2600
   acquisitionType: 1
   equipmentSlot: 0

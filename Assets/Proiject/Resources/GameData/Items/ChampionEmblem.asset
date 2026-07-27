@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 2
   materialClassification: 0
-  description: An emblem carried by warriors who refuse to yield.
+  description: "ランク3戦士向けに仕立てられた装飾。"
   basePrice: 1040
   acquisitionType: 1
   equipmentSlot: 2

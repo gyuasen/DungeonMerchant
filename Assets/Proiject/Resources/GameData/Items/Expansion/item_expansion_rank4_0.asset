@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: item_expansion_rank4_0
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank4.0
-  itemName: Rank 4 Warrior Weapon
+  itemName: "ランク4 戦士の武器"
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Rank 4 Warrior Weapon
+  description: "ランク4戦士用の武器。"
   basePrice: 1440
   acquisitionType: 1
   equipmentSlot: 0

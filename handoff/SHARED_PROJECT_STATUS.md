@@ -1642,3 +1642,14 @@
 - どちらもMerchantData以外/merchantData経由の呼び出しもゼロを grep 確認。ビルド通過で未解決参照なしを保証。
 - 会計テスト追加 MerchantDataAccountingTests: 残高十分で支払い成功+台帳-金額、残高不足でfalse無変更、負値拒否、残高ちょうど成功、AddGoldで+金額と台帳記録、AddGold負値拒否、明示accountingDay、TransactionId返却。金銭処理の契約を直接固定。
 - dotnet build 0/0。設計改善3件(スキル定義駆動化/AssetRepositoryキャッシュ/MerchantData整理)すべて完了。Unity確認待ち: Test Runner全緑。未コミット。
+
+## 2026-07-27 家側・アイテムの日本語化漏れを解消 ※Unity確認待ち
+- Sol調査で英語のまま表示されるアイテムを洗い出し。敵名/スキル/職業/各種enum/装備効果は漏れ0(完備)、アイテムのitemName/descriptionに漏れが集中。
+- 対応:
+  - itemName英語7件(NormalRank01〜07 = Traveler Blade I等)→「旅人の刃I」等に日本語化(Terra)。
+  - description英語123件(素材共通英文/装備英語説明/拡張装備のRank表記等)→世界観に合う日本語に翻訳(Terra、家側監修)。
+  - 追加発見: 拡張ランク装備36件(item_expansion_rank4_0〜7_2)のitemNameが「Rank 4 Warrior Weapon」等の英語で、変換テーブル(BalanceExpansionDefinition)にも未登録の真の漏れ→「ランク4 戦士の武器」等に機械的日本語化(家側)。
+- 変換方式: itemName/descriptionを直接日本語化。JapaneseDisplayText.GetItemNameは変換テーブル未ヒット時にitemNameをそのまま返すため、日本語itemNameがそのまま表示される(コード変更不要)。拡張装備/消耗品はBalanceExpansionDefinitionのEnglishName→JapaneseNameマッピングで従来通り日本語表示。
+- 最終検証: itemName/descriptionともASCII英語のまま(かつ変換テーブル未登録)の漏れ0件を確認。変更はitemName/descriptionのみで他フィールド不変。dotnet build 0/0。
+- 改善余地(記録): 現方式はswitch/定義への個別登録で新規追加時に漏れやすい。将来はItemDataSOに日本語表示名/説明フィールドを持たせるか、表示文字列の英語混入を検査するEditModeテスト追加が望ましい(Sol提案)。
+- Unity確認待ち: 市場/倉庫/鍛冶/図鑑でアイテム名・説明が日本語表示されるか。未コミット。

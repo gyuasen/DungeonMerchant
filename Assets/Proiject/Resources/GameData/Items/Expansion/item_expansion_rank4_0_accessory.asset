@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: item_expansion_rank4_0_accessory
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank4.0.accessory
-  itemName: Rank 4 Warrior Accessory
+  itemName: "ランク4 戦士の装飾"
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Rank 4 Warrior Accessory
+  description: "ランク4戦士用の装飾。"
   basePrice: 650
   acquisitionType: 0
   equipmentSlot: 2

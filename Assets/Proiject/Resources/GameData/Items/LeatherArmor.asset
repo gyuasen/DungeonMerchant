@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Light armor that allows archers to move freely.
+  description: "ランク1弓使い向けに仕立てられた防具。"
   basePrice: 130
   acquisitionType: 0
   equipmentSlot: 1

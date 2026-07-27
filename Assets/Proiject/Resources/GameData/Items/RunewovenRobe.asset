@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 2
   materialClassification: 0
-  description: A protective robe woven with threads that conduct magic.
+  description: "ランク3魔術師向けに仕立てられた防具。"
   basePrice: 1400
   acquisitionType: 1
   equipmentSlot: 1

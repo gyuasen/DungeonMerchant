@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: item_expansion_rank5_0_accessory
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank5.0.accessory
-  itemName: Rank 5 Warrior Accessory
+  itemName: "ランク5 戦士の装飾"
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Rank 5 Warrior Accessory
+  description: "ランク5戦士用の装飾。"
   basePrice: 1170
   acquisitionType: 0
   equipmentSlot: 2

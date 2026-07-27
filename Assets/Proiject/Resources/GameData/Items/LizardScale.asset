@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 0
   rarity: 1
   materialClassification: 2
-  description: A durable scale from a lizardman or marsh lizard.
+  description: "魔大陸で採れる、リザードマンや沼トカゲから採れる丈夫な鱗。"
   basePrice: 120
   acquisitionType: 0
   equipmentSlot: 0

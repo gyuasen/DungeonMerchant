@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 2
   rarity: 3
   materialClassification: 0
-  description: A legendary crown taken from the lord of the abyss.
+  description: "深淵の主から奪われた、伝説の王冠。"
   basePrice: 1200
   acquisitionType: 0
   equipmentSlot: 0

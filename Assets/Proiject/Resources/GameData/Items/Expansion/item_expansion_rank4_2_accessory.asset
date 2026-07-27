@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: item_expansion_rank4_2_accessory
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank4.2.accessory
-  itemName: Rank 4 Mage Accessory
+  itemName: "ランク4 魔術師の装飾"
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Rank 4 Mage Accessory
+  description: "ランク4魔術師用の装飾。"
   basePrice: 650
   acquisitionType: 0
   equipmentSlot: 2

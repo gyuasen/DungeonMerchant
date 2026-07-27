@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 3
   materialClassification: 0
-  description: A blade left by the guardians of a forgotten civilization.
+  description: "ランク5戦士向けに仕立てられた武器。"
   basePrice: 1400
   acquisitionType: 2
   equipmentSlot: 0

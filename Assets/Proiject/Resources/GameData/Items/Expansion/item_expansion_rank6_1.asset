@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: item_expansion_rank6_1
   m_EditorClassIdentifier: 
   persistentId: item.expansion.rank6.1
-  itemName: Rank 6 Archer Weapon
+  itemName: "ランク6 弓兵の武器"
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Rank 6 Archer Weapon
+  description: "ランク6弓使い用の武器。"
   basePrice: 4600
   acquisitionType: 1
   equipmentSlot: 0

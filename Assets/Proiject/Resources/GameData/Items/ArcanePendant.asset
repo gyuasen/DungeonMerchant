@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 2
   materialClassification: 0
-  description: A pendant that amplifies the flow of arcane power.
+  description: "ランク3魔術師向けに仕立てられた装飾。"
   basePrice: 1120
   acquisitionType: 1
   equipmentSlot: 2

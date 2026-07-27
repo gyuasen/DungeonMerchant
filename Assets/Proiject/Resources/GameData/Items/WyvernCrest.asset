@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 2
   materialClassification: 0
-  description: A crest that carries the endurance of a wyvern.
+  description: "ランク3槍兵向けに仕立てられた装飾。"
   basePrice: 1300
   acquisitionType: 1
   equipmentSlot: 2

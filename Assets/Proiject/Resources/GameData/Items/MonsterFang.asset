@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 0
   rarity: 0
   materialClassification: 2
-  description: A common monster material that merchants can sell for a small profit.
+  description: "魔大陸で採れる、商人が売買する一般的な魔物素材。"
   basePrice: 100
   acquisitionType: 0
   equipmentSlot: 0
