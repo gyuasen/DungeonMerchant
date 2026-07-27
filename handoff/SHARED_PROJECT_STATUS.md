@@ -1676,3 +1676,11 @@
 - 売却は GetSellPrice→AddGold(ItemSale, accountingDay)のみ(在庫操作SellItemは不使用)。入庫と売却は排他で二重計上なし。報酬(ExpeditionReward)/治療費(ExpeditionHealing)とも別トランザクション。
 - UI: 派遣編成画面と派遣中管理カードに「獲得品: 倉庫→装備以外売却→すべて売却」サイクルボタン(SimpleMercenaryHireUI.Expedition.cs)。
 - テスト: SellAll/SellNonEquipment(空き・満杯)/Store(空き・満杯)/セーブ往復・旧値0。※テスト期待値は当初「遭遇数=ドロップ数」と誤想定+魔石混入で失敗→乱数0.5固定で魔石除外(0.5>0.3)・敵数1体固定・4遭遇=材料4個 に修正。実装ロジックは不変。dotnet build 0/0。Unity全緑確認済み。
+
+## 2026-07-27 家側・ストーリー進行の返済率トリガー化 + エンディングシーン
+
+- **物語進行を借金返済率でトリガー化**: DebtManager.DebtChanged 購読で残債から返済率(10/25/50/75/90/100%)を判定し、対応 StoryMilestone を完了・提示。判定は `(long)InitialDebt * percentage`（境界 `>=`）。StoryProgressManager に Initialize(DebtManager) 明示注入シーム追加（OnEnable の fake-null 回避は `== null` 判定）。
+- **エンディング別シーン**: Ending.unity + EndingSceneController.cs 新規。DebtCleared 到達で父母からの手紙エピローグ。
+- ストーリー文言確定（第一章〜エピローグ）、オンボーディングカード文言を StoryProgressManager に分離。TutorialController を「別動隊」用語・5000万G・転職神殿に更新。SaveDataMigrator を CurrentVersion 参照化。SaveManager は StoryMilestone 完了時に即セーブ。
+- **バグ修正（真犯人）**: StoryProgressManagerTests 3件の長時間 false 失敗は、テストヘルパー `RemainingDebtForPercentage` の **int オーバーフロー**が原因。初期借金5000万化で `50000000 * 75` が int上限を超え負値→Restoreがclampで丸め返済0扱い。ヘルパーを long 計算に修正。**本体(HasRepaidAtLeast/SaveDataMigrator)は (long) キャスト済みで無事**、実ゲーム影響なし。今後 InitialDebt×割合は必ず long。
+- 検証: build 0/0、EditMode全緑（ユーザー確認済み）。

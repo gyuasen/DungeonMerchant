@@ -442,3 +442,26 @@
 ### 検証
 - build 警告0・エラー0。EditMode全緑（ユーザー確認済み）。新規テスト `EquipmentSetCatalogTests`（セット効果のピン留め、分類の排他性・網羅性、26ページ、6候補スロット、説明文の空/非空、2/3部位の発動境界）。
 - NUnit注意: `Has.Count` は IReadOnlyList 等で「Property Count was not found」になるため、LINQ `.Count()` + `Is.EqualTo(...)` を使う（今回も再発し修正）。
+
+---
+
+## 2026-07-27 ストーリー進行の返済率トリガー化 + エンディングシーン + 初期借金5000万対応
+
+### 実装
+- **物語進行を返済率トリガー化**: DebtManager.DebtChanged 購読で残債から返済率(10/25/50/75/90/100%)を判定し、対応する StoryMilestone(DebtRepaid10…DebtCleared)を完了・提示キュー投入。`HasRepaidAtLeast` は `(long)InitialDebt * percentage` で判定（境界 `>=`）。
+- **StoryProgressManager に Initialize(DebtManager) シーム追加**: Unsubscribe→代入→Subscribe。OnEnable の ResolveReferences は Unity fake-null 回避のため `?? ` でなく `== null` 判定で GetComponent/FindObjectOfType フォールバック。Bootstrap・テスト双方から明示注入。
+- **エンディング別シーン**: Ending.unity + EndingSceneController.cs 新規。DebtCleared 到達時のエピローグ（父母からの手紙）。
+- **ストーリー文言確定**: 各節目のタイトル/本文を確定（第一章〜エピローグ）。オンボーディングカードのテキストを StoryProgressManager 内に分離。
+- **チュートリアル文言更新**: TutorialController を「別動隊」用語統一・5000万G・転職神殿追加に合わせて更新。
+- **セーブ移行**: SaveDataMigrator を CurrentVersion 参照（リテラル35を排除）。SaveManager は StoryMilestone 完了時に即セーブ（isLoading/削除直後は抑止）。
+
+### 真犯人だったバグ: int オーバーフロー（テストヘルパー）
+- StoryProgressManagerTests 3件(DebtThresholds系・Restore系)が長時間 false 失敗。原因は本体ではなく **テストヘルパー `RemainingDebtForPercentage` の int 演算** `InitialDebt * percentage / 100`。
+- **初期借金を5000万に変更したコミット**が引き金。`50000000 * 75 = 37.5億` が int上限(21.4億)を超えオーバーフロー→負値→ `Restore` が Clamp で 5000万に丸め、返済0扱いで全節目 false。
+- プロダクション(`HasRepaidAtLeast`/`SaveDataMigrator`)は `(long)` キャスト済みで無事。テストヘルパーのみ int のままだった。
+- 修正: ヘルパーを `(int)(InitialDebt - ((long)InitialDebt * percentage / 100))` に。
+- **調査の教訓**: 「古い結果キャッシュ」と誤診しエディタ再起動/ScriptAssemblies・Bee削除を繰り返したが全て無駄。バイナリは常に最新で正しく、テストの入力値だけが壊れていた。診断で実値を出す(`expected75Remaining=55449672`=int溢れの証拠)ことで即特定。**憶測より診断値**。Sol監査2回も本体しか見ずヘルパーのint式を見落とした。
+
+### 検証
+- build 警告0・エラー0。EditMode全緑（ユーザー確認済み）。
+- 今後 `InitialDebt`(や大金額)×割合・×100 は必ず `(long)` キャスト（テストヘルパー含む）。
