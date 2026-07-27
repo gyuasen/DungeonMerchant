@@ -171,13 +171,28 @@ public sealed class DungeonPageUI : RefreshOnlyPageUIBase
             buttonTextColor,
             () => selectDungeonAction?.Invoke(dungeon));
         RectTransform buttonRect = button.GetComponent<RectTransform>();
-        buttonRect.sizeDelta = new Vector2(108f, 34f);
         button.interactable = unlocked && !selected &&
                               dungeon.nearbyTownIndex == currentTownIndex;
 
         bool canExpedition = canExpeditionProvider?.Invoke(dungeon) == true;
         bool hasExpedition = hasExpeditionProvider?.Invoke(dungeon) == true;
-        if (canExpedition || hasExpedition)
+        bool showExpedition = canExpedition || hasExpedition;
+
+        // 別動隊ボタンがある行では、選択ボタンを上・別動隊ボタンを下に分けて
+        // 縦に並べ、重ならないようにする。別動隊が無い行は選択ボタンを縦中央に。
+        if (showExpedition)
+        {
+            buttonRect.anchorMin = buttonRect.anchorMax = new Vector2(1f, 1f);
+            buttonRect.pivot = new Vector2(1f, 1f);
+            buttonRect.anchoredPosition = new Vector2(-8f, -6f);
+            buttonRect.sizeDelta = new Vector2(142f, 30f);
+        }
+        else
+        {
+            buttonRect.sizeDelta = new Vector2(108f, 34f);
+        }
+
+        if (showExpedition)
         {
             Button expeditionButton = CreateActionButton(
                 row,
