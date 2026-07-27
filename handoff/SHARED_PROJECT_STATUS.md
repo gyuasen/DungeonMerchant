@@ -1635,3 +1635,10 @@
 - 挙動不変: FindByName は従来もResources内のみ・最初の一致を返す→辞書も最初の登録を保持で同一。FindByPersistentId は Resources内=キャッシュ→transient(FindObjectsOfTypeAll, 非キャッシュのまま)→legacyName の順で従来と同じ。transient SO(テスト/実行時生成)はキャッシュ対象外で従来通り拾う。
 - 効果: 毎回の全走査が型ごと1回のロード+O(1)辞書引きに。特に FindByPersistentId/FindByName が高速化。
 - dotnet build 0/0。既存 GameAssetRepositoryTests 等はResources内容の検証でキャッシュ後も同結果。Unity確認待ち: Test Runner全緑、アイテム/敵/ダンジョン解決の実挙動。未コミット。
+
+## 2026-07-27 家側・設計改善(3/3): MerchantData の曖昧APIを整理し会計テスト追加 ※Unity確認待ち
+- MerchantData.AddExperience(int): 空実装(商人成長はゴールドベース)で呼び出し元ゼロ→削除。呼ばれると成功したように見える紛らわしいAPIを除去。
+- MerchantData.PayGold(int): TryPayGold の戻り値(支払い可否)を捨てる版で呼び出し元ゼロ→削除。支払いは結果を扱う TryPayGold に一本化。
+- どちらもMerchantData以外/merchantData経由の呼び出しもゼロを grep 確認。ビルド通過で未解決参照なしを保証。
+- 会計テスト追加 MerchantDataAccountingTests: 残高十分で支払い成功+台帳-金額、残高不足でfalse無変更、負値拒否、残高ちょうど成功、AddGoldで+金額と台帳記録、AddGold負値拒否、明示accountingDay、TransactionId返却。金銭処理の契約を直接固定。
+- dotnet build 0/0。設計改善3件(スキル定義駆動化/AssetRepositoryキャッシュ/MerchantData整理)すべて完了。Unity確認待ち: Test Runner全緑。未コミット。

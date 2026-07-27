@@ -104,11 +104,6 @@ public class MerchantData : MonoBehaviour
         return true;
     }
 
-    public void PayGold(int amount)
-    {
-        TryPayGold(amount);
-    }
-
     public void AddGold(int amount)
     {
         AddGold(amount, GoldTransactionReason.Unclassified);
@@ -188,11 +183,6 @@ public class MerchantData : MonoBehaviour
             resolvedAccountingDay,
             relatedTransactionId));
         return transactionId;
-    }
-
-    public void AddExperience(int amount)
-    {
-        // Merchant growth is based only on earned gold.
     }
 
     public void RestoreProgression(
