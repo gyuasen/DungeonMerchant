@@ -67,12 +67,35 @@ public sealed class TutorialControllerTests
         foreach (string facility in new[]
                  {
                      "酒場", "市場", "鍛冶屋", "倉庫", "治療院", "商会組合",
-                     "輸送部隊", "遠征部隊", "パーティー編成", "近隣ダンジョン",
+                     "輸送部隊", "別動隊", "パーティー編成", "近隣ダンジョン",
                      "転職神殿"
                  })
         {
             StringAssert.Contains(facility, allBodies);
         }
+    }
+
+    [Test]
+    public void Tutorial_UsesCurrentDebtAndMerchantRebuildingPremise()
+    {
+        List<string> bodies = new List<string>();
+        TutorialController controller = CreateController(
+            _ => { },
+            body => bodies.Add(body),
+            _ => { });
+
+        controller.ShowTutorial();
+        for (int index = 1; index < 6; index++)
+        {
+            controller.ShowNextStep();
+        }
+
+        string allBodies = string.Join("\n", bodies);
+        StringAssert.Contains("五千万G", allBodies);
+        StringAssert.DoesNotContain("一億ゴールド", allBodies);
+        StringAssert.Contains("商人", allBodies);
+        StringAssert.Contains("物流網", allBodies);
+        StringAssert.Contains("返済", TutorialController.FirstJourneyRoute);
     }
 
     [Test]
