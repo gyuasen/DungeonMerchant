@@ -20,6 +20,25 @@ public sealed class TownAvailabilityParityTests
             Is.EqualTo(expected));
     }
 
+    // 転職神殿は進行順でエルド以降の町で使える。訪問順は
+    // セイル(2)→リーフ(1)→エルド(0)→ノルン(3)→…なので、
+    // エルドより手前のセイル・リーフでは使えない。隠し島も対象外。
+    [TestCase(2, false)] // セイル（エルドより前）
+    [TestCase(1, false)] // リーフ（エルドより前）
+    [TestCase(0, true)]  // エルド（解放）
+    [TestCase(3, true)]  // ノルン
+    [TestCase(4, true)]  // グラード
+    [TestCase(5, true)]  // ヴェルム
+    [TestCase(6, true)]  // アビス
+    [TestCase(WorldMapService.HiddenIslandTownIndex, false)]
+    public void JobChangeAvailability_UnlocksFromEldOnwardInProgressionOrder(
+        int townIndex,
+        bool expected)
+    {
+        Assert.That(TownServicePolicy.IsJobChangeAvailable(townIndex),
+            Is.EqualTo(expected));
+    }
+
     [TestCase(2, 1)]
     [TestCase(1, 2)]
     [TestCase(0, 3)]

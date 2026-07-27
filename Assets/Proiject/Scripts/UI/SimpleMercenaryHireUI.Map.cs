@@ -829,8 +829,8 @@ public partial class SimpleMercenaryHireUI
         if (jobFacilityButton != null)
         {
             jobFacilityButton.gameObject.SetActive(
-                townProgressState.CurrentTownIndex == 0 ||
-                townProgressState.CurrentTownIndex >= 3);
+                TownServicePolicy.IsJobChangeAvailable(
+                    townProgressState.CurrentTownIndex));
         }
         if (hireFacilityButton != null)
         {

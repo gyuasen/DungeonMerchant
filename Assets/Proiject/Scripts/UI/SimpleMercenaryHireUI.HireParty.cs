@@ -962,10 +962,11 @@ public partial class SimpleMercenaryHireUI
 
     private void ShowJobChangePage()
     {
-        if (townProgressState.CurrentTownIndex != 0)
+        if (!TownServicePolicy.IsJobChangeAvailable(
+                townProgressState.CurrentTownIndex))
         {
             statusText.text =
-                "転職神殿はエルド交易都市でのみ利用できます。";
+                "転職神殿はエルド交易都市以降の町で利用できます。";
             return;
         }
 
