@@ -1,12 +1,17 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public partial class SimpleMercenaryHireUI
 {
+    private const string EndingSceneName = "Ending";
+
     private RectTransform storyOverlay;
     private Text storyTitleText;
     private Text storyBodyText;
+    private Text storyCategoryText;
+    private Button storyCloseButton;
     private Coroutine storyEntryCoroutine;
     private StoryPresentation activeStoryPresentation;
 
@@ -53,16 +58,19 @@ public partial class SimpleMercenaryHireUI
 
         storyTitleText = CreateText(
             window, string.Empty, 30, FontStyle.Bold,
-            TextAnchor.MiddleCenter, new Vector2(55f, -105f),
-            new Vector2(-55f, -42f), ParchmentTextColor);
+            TextAnchor.MiddleCenter, new Vector2(55f, -118f),
+            new Vector2(-55f, -55f), ParchmentTextColor);
+        storyCategoryText = CreateText(
+            window, string.Empty, 17, FontStyle.Bold,
+            TextAnchor.MiddleCenter, new Vector2(55f, -48f),
+            new Vector2(-55f, -18f), new Color(0.38f, 0.25f, 0.12f, 1f));
         storyBodyText = CreateText(
             window, string.Empty, 22, FontStyle.Normal,
             TextAnchor.UpperLeft, new Vector2(75f, -300f),
             new Vector2(-75f, -125f), ParchmentTextColor);
 
-        Button closeButton = CreateActionButton(
-            window, "物語を進める", CloseStoryOverlay);
-        RectTransform buttonRect = closeButton.GetComponent<RectTransform>();
+        storyCloseButton = CreateActionButton(window, "物語を閉じる", CloseStoryOverlay);
+        RectTransform buttonRect = storyCloseButton.GetComponent<RectTransform>();
         buttonRect.anchorMin = buttonRect.anchorMax = buttonRect.pivot =
             new Vector2(0.5f, 0.5f);
         buttonRect.sizeDelta = new Vector2(230f, 58f);
@@ -70,17 +78,9 @@ public partial class SimpleMercenaryHireUI
         storyOverlay.gameObject.SetActive(false);
     }
 
-    private void HandleStoryMilestoneCompleted(StoryMilestone milestone)
-    {
-        if (storyOverlay != null && !storyOverlay.gameObject.activeSelf)
-        {
-            ShowNextPendingStory();
-        }
-    }
-
     private void HandleStoryPresentationQueued()
     {
-        if (storyOverlay != null && !storyOverlay.gameObject.activeSelf)
+        if (storyOverlay == null || !storyOverlay.gameObject.activeSelf)
         {
             ShowNextPendingStory();
         }
@@ -96,9 +96,22 @@ public partial class SimpleMercenaryHireUI
             return;
         }
 
+        if (presentation.IsEnding)
+        {
+            // DebtCleared is queued only by TryComplete, never during restore.
+            // Save again here so return from the ending always restores this state.
+            saveManager?.SaveGame();
+            SceneManager.LoadScene(EndingSceneName);
+            return;
+        }
+
         activeStoryPresentation = presentation;
         storyTitleText.text = presentation.Title;
         storyBodyText.text = presentation.Body;
+        storyCategoryText.text = presentation.IsOnboarding ? "操作案内" : string.Empty;
+        SetStoryButtonLabel(
+            storyCloseButton,
+            presentation.IsOnboarding ? "閉じる" : "物語を閉じる");
         storyOverlay.SetAsLastSibling();
         storyOverlay.gameObject.SetActive(true);
     }
@@ -106,15 +119,18 @@ public partial class SimpleMercenaryHireUI
     private void CloseStoryOverlay()
     {
         storyOverlay.gameObject.SetActive(false);
-        if (activeStoryPresentation.Milestone ==
-            StoryMilestone.OpeningDebtNotice)
+        if (activeStoryPresentation.Milestone == StoryMilestone.OpeningDebtNotice)
         {
-            onboardingGuideController?.TryComplete(
-                OnboardingGuideStep.Opening);
+            onboardingGuideController?.TryComplete(OnboardingGuideStep.Opening);
         }
         activeStoryPresentation.OnClosed?.Invoke();
         activeStoryPresentation = default;
         ShowNextPendingStory();
     }
 
+    private static void SetStoryButtonLabel(Button button, string label)
+    {
+        Text labelText = button != null ? button.GetComponentInChildren<Text>() : null;
+        if (labelText != null) labelText.text = label;
+    }
 }

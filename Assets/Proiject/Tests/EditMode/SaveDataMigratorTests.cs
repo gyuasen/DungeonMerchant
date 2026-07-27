@@ -17,7 +17,7 @@ public sealed class SaveDataMigratorTests
 
         SaveDataMigrator.Migrate(data);
 
-        Assert.That(data.version, Is.EqualTo(35));
+        Assert.That(data.version, Is.EqualTo(GameSaveData.CurrentVersion));
         Assert.That(data.dungeonExpeditions, Is.Empty);
     }
 
@@ -140,17 +140,15 @@ public sealed class SaveDataMigratorTests
         Assert.That(data.completedStoryMilestones,
             Does.Contain(StoryMilestone.OpeningDebtNotice));
         Assert.That(data.completedStoryMilestones,
-            Does.Contain(StoryMilestone.FirstMercenary));
+            Does.Contain(StoryMilestone.DebtRepaid10));
         Assert.That(data.completedStoryMilestones,
-            Does.Contain(StoryMilestone.FirstDungeonClear));
+            Does.Contain(StoryMilestone.DebtRepaid25));
         Assert.That(data.completedStoryMilestones,
-            Does.Contain(StoryMilestone.LeafUnlocked));
+            Does.Contain(StoryMilestone.DebtRepaid50));
         Assert.That(data.completedStoryMilestones,
-            Does.Contain(StoryMilestone.RegionGateCleared));
+            Does.Contain(StoryMilestone.DebtRepaid75));
         Assert.That(data.completedStoryMilestones,
-            Does.Contain(StoryMilestone.AbyssReached));
-        Assert.That(data.completedStoryMilestones,
-            Does.Contain(StoryMilestone.HiddenIslandReached));
+            Does.Contain(StoryMilestone.DebtRepaid90));
         Assert.That(data.completedStoryMilestones,
             Does.Contain(StoryMilestone.DebtCleared));
     }
@@ -191,8 +189,25 @@ public sealed class SaveDataMigratorTests
 
         Assert.That(
             data.completedStoryMilestones.Contains(
-                StoryMilestone.FirstDungeonClear),
+                StoryMilestone.DebtRepaid10),
             Is.False);
+    }
+
+    [Test]
+    public void Migrate_PreDebtStorySave_RebuildsMilestonesFromDebtOnly()
+    {
+        GameSaveData data = new GameSaveData
+        {
+            version = 35,
+            remainingDebt = DebtManager.InitialDebt
+        };
+        data.completedStoryMilestones.Add(StoryMilestone.DebtRepaid90);
+
+        SaveDataMigrator.Migrate(data);
+
+        CollectionAssert.AreEquivalent(
+            new[] { StoryMilestone.OpeningDebtNotice },
+            data.completedStoryMilestones);
     }
 
     [Test]

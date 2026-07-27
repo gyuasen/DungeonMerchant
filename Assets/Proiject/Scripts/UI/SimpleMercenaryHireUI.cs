@@ -481,7 +481,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
                                FindObjectOfType<StoryProgressManager>();
         if (storyProgressManager != null)
         {
-            storyProgressManager.MilestoneCompleted += HandleStoryMilestoneCompleted;
             storyProgressManager.PresentationQueued += HandleStoryPresentationQueued;
         }
         onboardingGuideController = GetComponent<OnboardingGuideController>() ??
@@ -993,7 +992,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         }
         if (storyProgressManager != null)
         {
-            storyProgressManager.MilestoneCompleted -= HandleStoryMilestoneCompleted;
             storyProgressManager.PresentationQueued -= HandleStoryPresentationQueued;
         }
         if (onboardingGuideController != null)

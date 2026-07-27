@@ -1081,7 +1081,16 @@ public class SaveManager : MonoBehaviour
     private void HandleMercenaryChanged(MercenaryInstance mercenary) => RequestAutoSave();
     private void HandleBattleCompleted(bool victory) => RequestAutoSave();
     private void HandleDungeonCompleted(bool cleared) => RequestAutoSave();
-    private void HandleStoryMilestoneCompleted(StoryMilestone milestone) => RequestAutoSave();
+    private void HandleStoryMilestoneCompleted(StoryMilestone milestone)
+    {
+        if (isLoading || suppressAutoSaveAfterDelete)
+        {
+            return;
+        }
+
+        CancelPendingAutoSave();
+        SaveGame();
+    }
     private void HandleOnboardingGuideChanged(OnboardingGuideStep step) => RequestAutoSave();
 
     private void RequestAutoSave()

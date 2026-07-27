@@ -29,7 +29,8 @@ public static class DungeonMerchantBootstrap
     {
         // The title scene runs standalone: it must not spawn the game
         // managers or the game UI on top of the title screen.
-        if (Object.FindObjectOfType<TitleSceneController>() != null)
+        if (Object.FindObjectOfType<TitleSceneController>() != null ||
+            Object.FindObjectOfType<EndingSceneController>() != null)
         {
             return;
         }
@@ -62,9 +63,11 @@ public static class DungeonMerchantBootstrap
         EnsureComponent<DungeonRunManager>(root);
         EnsureComponent<DungeonExpeditionManager>(root);
         EnsureComponent<RoadEncounterService>(root);
-        EnsureComponent<DebtManager>(root);
+        DebtManager debtManager = EnsureComponent<DebtManager>(root);
         EnsureComponent<ProgressionManager>(root);
-        EnsureComponent<StoryProgressManager>(root);
+        // 明示注入で debtManager 参照を確実に結び、fake-null で購読が漏れる
+        // ことを防ぐ。
+        EnsureComponent<StoryProgressManager>(root).Initialize(debtManager);
         EnsureComponent<OnboardingGuideController>(root);
         EnsureComponent<AudioFeedbackService>(root);
         EnsureComponent<SimpleMercenaryHireUI>(root);

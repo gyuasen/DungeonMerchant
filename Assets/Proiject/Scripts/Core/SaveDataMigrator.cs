@@ -84,7 +84,7 @@ public static class SaveDataMigrator
 
     private static void MigrateStoryProgress(GameSaveData data, int sourceVersion)
     {
-        if (sourceVersion >= 21)
+        if (sourceVersion >= 36)
         {
             return;
         }
@@ -93,22 +93,28 @@ public static class SaveDataMigrator
         {
             StoryMilestone.OpeningDebtNotice
         };
-        if (data.hiredMercenaries != null && data.hiredMercenaries.Count > 0)
+        AddDebtMilestones(data, data.remainingDebt);
+    }
+
+    private static void AddDebtMilestones(GameSaveData data, int remainingDebt)
+    {
+        int clampedRemainingDebt = Mathf.Clamp(remainingDebt, 0, DebtManager.InitialDebt);
+        long repaidDebt = DebtManager.InitialDebt - (long)clampedRemainingDebt;
+        AddDebtMilestoneIfReached(data, repaidDebt, 10, StoryMilestone.DebtRepaid10);
+        AddDebtMilestoneIfReached(data, repaidDebt, 25, StoryMilestone.DebtRepaid25);
+        AddDebtMilestoneIfReached(data, repaidDebt, 50, StoryMilestone.DebtRepaid50);
+        AddDebtMilestoneIfReached(data, repaidDebt, 75, StoryMilestone.DebtRepaid75);
+        AddDebtMilestoneIfReached(data, repaidDebt, 90, StoryMilestone.DebtRepaid90);
+        AddDebtMilestoneIfReached(data, repaidDebt, 100, StoryMilestone.DebtCleared);
+    }
+
+    private static void AddDebtMilestoneIfReached(
+        GameSaveData data, long repaidDebt, int percentage, StoryMilestone milestone)
+    {
+        if (repaidDebt * 100L >= (long)DebtManager.InitialDebt * percentage)
         {
-            AddStoryMilestone(data, StoryMilestone.FirstMercenary);
+            AddStoryMilestone(data, milestone);
         }
-        if (HasFullyClearedDungeon(data.dungeonFloorProgress))
-        {
-            AddStoryMilestone(data, StoryMilestone.FirstDungeonClear);
-        }
-        if (data.unlockedTownIndices != null)
-        {
-            if (data.unlockedTownIndices.Contains(1)) AddStoryMilestone(data, StoryMilestone.LeafUnlocked);
-            if (WorldMapService.HasUnlockedTownInWorld(data.unlockedTownIndices, 1)) AddStoryMilestone(data, StoryMilestone.RegionGateCleared);
-            if (data.unlockedTownIndices.Contains(6)) AddStoryMilestone(data, StoryMilestone.AbyssReached);
-            if (data.unlockedTownIndices.Contains(WorldMapService.HiddenIslandTownIndex)) AddStoryMilestone(data, StoryMilestone.HiddenIslandReached);
-        }
-        if (data.remainingDebt <= 0) AddStoryMilestone(data, StoryMilestone.DebtCleared);
     }
 
     private static void MigrateQuestLocations(GameSaveData data, int sourceVersion)

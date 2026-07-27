@@ -64,7 +64,7 @@ public sealed class SaveManagerNewGameResetTests
             profitableDungeonClears = 4
         });
         story.RestoreCompletedMilestones(
-            new[] { StoryMilestone.FirstDungeonClear });
+            new[] { StoryMilestone.DebtRepaid25 });
 
         saveManager.InitializeAndLoad();
 
