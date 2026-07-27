@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class DebtManager : MonoBehaviour
 {
-    public const int InitialDebt = 100000000;
+    public const int InitialDebt = 50000000;
     public const int MonthlyMinimumPayment = 10000;
     public const int DaysPerMonth = 30;
 
