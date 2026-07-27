@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 2
   description: Crafting material gathered in the demon continent.
-  basePrice: 1440
+  basePrice: 2400
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0

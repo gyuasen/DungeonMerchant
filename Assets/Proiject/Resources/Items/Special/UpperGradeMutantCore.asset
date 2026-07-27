@@ -12,7 +12,7 @@ MonoBehaviour:
   rarity: 3
   materialClassification: 2
   description: 荒々しい魔力が凝縮した変異核。武具に卓越した力を刻む。
-  basePrice: 1560
+  basePrice: 3200
   acquisitionType: 2
   equipmentSlot: 0
   requiredClass: 0

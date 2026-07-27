@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 3
   materialClassification: 2
   description: An ominous metal forged in the demon realm.
-  basePrice: 450
+  basePrice: 700
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0

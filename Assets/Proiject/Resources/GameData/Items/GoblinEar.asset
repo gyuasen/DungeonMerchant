@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 1
   description: A common proof of a defeated goblin.
-  basePrice: 35
+  basePrice: 70
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0

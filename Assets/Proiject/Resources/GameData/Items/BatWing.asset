@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 1
   description: A thin wing used in medicines and dyes.
-  basePrice: 50
+  basePrice: 100
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0

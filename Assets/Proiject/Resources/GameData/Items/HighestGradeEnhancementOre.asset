@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 3
   materialClassification: 2
   description: Ore used to reinforce equipment to +9 and +10.
-  basePrice: 900
+  basePrice: 1800
   acquisitionType: 2
   equipmentSlot: 0
   requiredClass: 0

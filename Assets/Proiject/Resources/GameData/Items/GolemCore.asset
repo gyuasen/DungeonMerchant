@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 2
   materialClassification: 2
   description: A magical core that once animated a stone body.
-  basePrice: 180
+  basePrice: 220
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0

@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 2
   materialClassification: 2
   description: A black iron ore fragment mined by Velm's deepforge servants.
-  basePrice: 400
+  basePrice: 600
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0

@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 2
   materialClassification: 2
   description: A crystal condensed from forbidden magic.
-  basePrice: 240
+  basePrice: 320
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0

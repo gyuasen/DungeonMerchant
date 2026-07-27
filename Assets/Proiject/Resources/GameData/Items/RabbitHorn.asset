@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 0
   materialClassification: 1
   description: A small horn taken from a horn rabbit.
-  basePrice: 30
+  basePrice: 60
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0
