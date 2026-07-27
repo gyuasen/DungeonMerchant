@@ -1628,3 +1628,10 @@
 - 挙動不変の担保: 上級職は同系統昇進のみ(GetBaseClass(original)==GetBaseClass(current))なので OriginalClass基準を維持。PromotionPreviewは昇進前後に同じLv2が入るため差分不変(相対検証テストも無影響)。
 - 追加テスト MercenarySkillDefinitionRefactorTests: Lv1加算なし/Lv2正確加算/上級職パリティ/UI表示文言/unique+Lv2合算。dotnet build 0/0。
 - Unity確認待ち: Test Runner全緑、傭兵詳細のスキル表示、Lv2傭兵のステータス。未コミット。
+
+## 2026-07-27 家側・設計改善(2/3): GameAssetRepository にキャッシュ導入 ※Unity確認待ち
+- 従来 LoadAll/FindByName/FindByPersistentId が呼ばれるたびに Resources.LoadAll(全走査)を実行(UI更新・候補列挙から高頻度)。
+- 対応: 型ごとに (1)LoadAll結果の配列 (2)PersistentId辞書 (3)name辞書 を初回のみ構築しキャッシュ。Resources配下は実行中不変なので安全。ClearCache() をテスト用に追加。
+- 挙動不変: FindByName は従来もResources内のみ・最初の一致を返す→辞書も最初の登録を保持で同一。FindByPersistentId は Resources内=キャッシュ→transient(FindObjectsOfTypeAll, 非キャッシュのまま)→legacyName の順で従来と同じ。transient SO(テスト/実行時生成)はキャッシュ対象外で従来通り拾う。
+- 効果: 毎回の全走査が型ごと1回のロード+O(1)辞書引きに。特に FindByPersistentId/FindByName が高速化。
+- dotnet build 0/0。既存 GameAssetRepositoryTests 等はResources内容の検証でキャッシュ後も同結果。Unity確認待ち: Test Runner全緑、アイテム/敵/ダンジョン解決の実挙動。未コミット。
