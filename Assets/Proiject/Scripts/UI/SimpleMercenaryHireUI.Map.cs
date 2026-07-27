@@ -34,7 +34,7 @@ public partial class SimpleMercenaryHireUI
 
         Button thirdContinentButton = CreateWorldRegionButton(
             globalMapPage,
-            "南西黒土地域\n最高級",
+            "南西黒土地域\n最上級",
             new Vector2(-225f, -125f),
             new Vector2(360f, 245f),
             () => ShowWorldMap(2));
