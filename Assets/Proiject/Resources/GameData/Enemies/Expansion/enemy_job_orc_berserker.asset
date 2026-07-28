@@ -23,7 +23,7 @@ MonoBehaviour:
   specialVariantTitle: 
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
-  battleVisualKey: Grade05_orc_berserker
+  battleVisualKey: enemy_job_orc_berserker
   maxHP: 225
   attack: 41
   defense: 16

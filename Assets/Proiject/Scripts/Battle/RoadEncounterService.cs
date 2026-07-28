@@ -27,9 +27,9 @@ public sealed class RoadEncounterService : MonoBehaviour
         int routeIndex = Mathf.Min(originTownIndex, destinationTownIndex);
         int enemyCount = GetEnemyCountForRoute(routeIndex);
 
-        List<EnemyDataSO> candidates =
-            GetEnemiesNearTown(originTownIndex);
-        AddUnique(candidates, GetEnemiesNearTown(destinationTownIndex));
+        List<EnemyDataSO> candidates = GetRouteNormalCandidates(
+            originTownIndex,
+            destinationTownIndex);
 
         List<EnemyDataSO> encounter = new List<EnemyDataSO>(enemyCount);
         while (encounter.Count < enemyCount && candidates.Count > 0)
@@ -44,6 +44,34 @@ public sealed class RoadEncounterService : MonoBehaviour
         TryReplaceWithRareEnemy(encounter, routeIndex, out containsRareEnemy);
         TrimToLimit(encounter, enemyCount);
         return encounter;
+    }
+
+    public List<EnemyDataSO> GetPotentialEnemiesForRoute(
+        int originTownIndex,
+        int destinationTownIndex)
+    {
+        ResolveReferences();
+        int routeIndex = Mathf.Min(originTownIndex, destinationTownIndex);
+        int enemyCount = GetEnemyCountForRoute(routeIndex);
+        List<EnemyDataSO> candidates = GetRouteNormalCandidates(
+            originTownIndex,
+            destinationTownIndex);
+        if (candidates.Count == 0)
+        {
+            AddUnique(candidates, GetFallbackEnemies(enemyCount));
+        }
+        AddUnique(candidates, GetRareEnemiesForRoute(routeIndex));
+        return candidates;
+    }
+
+    private List<EnemyDataSO> GetRouteNormalCandidates(
+        int originTownIndex,
+        int destinationTownIndex)
+    {
+        ResolveReferences();
+        List<EnemyDataSO> candidates = GetEnemiesNearTown(originTownIndex);
+        AddUnique(candidates, GetEnemiesNearTown(destinationTownIndex));
+        return candidates;
     }
 
     private static int GetEnemyCountForRoute(int routeIndex)
@@ -67,10 +95,7 @@ public sealed class RoadEncounterService : MonoBehaviour
             return;
         }
 
-        List<EnemyDataSO> fallbackEnemies =
-            battleManager != null
-                ? battleManager.CreateDefaultEnemyEncounter(enemyCount)
-                : new List<EnemyDataSO>();
+        List<EnemyDataSO> fallbackEnemies = GetFallbackEnemies(enemyCount);
         for (int i = 0;
              i < fallbackEnemies.Count && encounter.Count < enemyCount;
              i++)
@@ -80,6 +105,13 @@ public sealed class RoadEncounterService : MonoBehaviour
                 encounter.Add(fallbackEnemies[i]);
             }
         }
+    }
+
+    private List<EnemyDataSO> GetFallbackEnemies(int enemyCount)
+    {
+        return battleManager != null
+            ? battleManager.CreateDefaultEnemyEncounter(enemyCount)
+            : new List<EnemyDataSO>();
     }
 
     private List<EnemyDataSO> GetEnemiesNearTown(int townIndex)
@@ -129,6 +161,25 @@ public sealed class RoadEncounterService : MonoBehaviour
             return;
         }
 
+        foreach (EnemyDataSO enemy in GetRareEnemiesForRoute(routeIndex))
+        {
+            if (enemy != null)
+            {
+                encounter[encounter.Count - 1] = enemy;
+                replaced = true;
+                return;
+            }
+        }
+    }
+
+    private static List<EnemyDataSO> GetRareEnemiesForRoute(int routeIndex)
+    {
+        int targetGrade = routeIndex == 1 ? 7 : routeIndex == 0 ? 5 : -1;
+        List<EnemyDataSO> result = new List<EnemyDataSO>();
+        if (targetGrade < 0)
+        {
+            return result;
+        }
         foreach (EnemyDataSO enemy in
                  Resources.LoadAll<EnemyDataSO>("Enemies/RoadRare"))
         {
@@ -136,11 +187,17 @@ public sealed class RoadEncounterService : MonoBehaviour
                 enemy.category == EnemyCategory.MythicalBeast &&
                 enemy.monsterGrade == targetGrade)
             {
-                encounter[encounter.Count - 1] = enemy;
-                replaced = true;
-                return;
+                result.Add(enemy);
             }
         }
+        return result;
+    }
+
+    private void ResolveReferences()
+    {
+        dungeonRunManager = dungeonRunManager ??
+            FindObjectOfType<DungeonRunManager>();
+        battleManager = battleManager ?? FindObjectOfType<BattleManager>();
     }
 
     private static void TrimToLimit(

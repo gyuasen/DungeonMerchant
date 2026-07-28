@@ -38,6 +38,8 @@ public static class DungeonEnemyVariantService
         ApplyBaseVariantBonus(variant, source, isBossVariant);
         ApplySpecialSkillStatBonus(variant);
         AddSpecialVariantMaterialDrop(variant, dungeonGrade, isBossVariant);
+        AddSpecialVariantEquipmentDrop(
+            variant, source, dungeonGrade, isBossVariant, random);
         if (isBossVariant)
         {
             AddSpecialJobCertificateDrop(variant, dungeonGrade);
@@ -104,6 +106,73 @@ public static class DungeonEnemyVariantService
             item = material,
             amount = isBossVariant ? 2 : 1,
             dropChance = isBossVariant ? 1f : 0.5f
+        });
+        variant.itemDrops = drops.ToArray();
+    }
+
+    private static void AddSpecialVariantEquipmentDrop(
+        EnemyDataSO variant,
+        EnemyDataSO source,
+        DungeonGrade dungeonGrade,
+        bool isBossVariant,
+        System.Func<float> random)
+    {
+        if (variant == null || source == null || random == null)
+        {
+            return;
+        }
+
+        string[] equipmentPaths = null;
+        if (dungeonGrade == DungeonGrade.Middle &&
+            (source.name == "Grade05IronGolem" ||
+             source.name == "Grade05StoneGolem" ||
+             source.name == "Boss04RuinGuardian"))
+        {
+            equipmentPaths = new[]
+            {
+                "GameData/Items/AncientGuardianBlade",
+                "GameData/Items/AncientGuardianArmor",
+                "GameData/Items/AncientGuardianSeal"
+            };
+        }
+        else if (dungeonGrade == DungeonGrade.Upper &&
+                 source.name == "Grade05OgreMage")
+        {
+            equipmentPaths = new[]
+            {
+                "GameData/Items/OniHunterCleaver",
+                "GameData/Items/OniHunterGarb",
+                "GameData/Items/GoblinFangTalisman"
+            };
+        }
+
+        if (equipmentPaths == null)
+        {
+            return;
+        }
+
+        int equipmentIndex = Mathf.Clamp(
+            Mathf.FloorToInt(random() * equipmentPaths.Length),
+            0,
+            equipmentPaths.Length - 1);
+        ItemDataSO equipment = Resources.Load<ItemDataSO>(
+            equipmentPaths[equipmentIndex]);
+        if (equipment == null)
+        {
+            return;
+        }
+
+        List<ItemDropEntry> drops = new List<ItemDropEntry>();
+        if (variant.itemDrops != null)
+        {
+            drops.AddRange(variant.itemDrops);
+        }
+
+        drops.Add(new ItemDropEntry
+        {
+            item = equipment,
+            amount = 1,
+            dropChance = isBossVariant ? 0.20f : 0.10f
         });
         variant.itemDrops = drops.ToArray();
     }

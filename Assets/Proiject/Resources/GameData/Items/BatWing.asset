@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 0
   rarity: 0
   materialClassification: 1
-  description: A thin wing used in medicines and dyes.
-  basePrice: 50
+  description: "魔大陸で採れる、薬や染料の材料となる薄い翼。"
+  basePrice: 100
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0

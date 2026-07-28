@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 1
   rarity: 2
   materialClassification: 0
-  description: A heavy spear made from orc tusk and a golem core.
-  basePrice: 720
+  description: "ランク3槍兵向けに仕立てられた武器。"
+  basePrice: 1440
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 5

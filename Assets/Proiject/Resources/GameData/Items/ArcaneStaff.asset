@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 1
   rarity: 1
   materialClassification: 0
-  description: A staff engraved with runes that amplify arcane power.
-  basePrice: 220
+  description: "ランク2魔術師向けに仕立てられた武器。"
+  basePrice: 440
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 2

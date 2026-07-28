@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 0
   rarity: 3
   materialClassification: 2
-  description: Ore used to reinforce equipment to +7 and +8.
-  basePrice: 520
+  description: "装備を+7から+8まで強化する鉱石。"
+  basePrice: 900
   acquisitionType: 2
   equipmentSlot: 0
   requiredClass: 0

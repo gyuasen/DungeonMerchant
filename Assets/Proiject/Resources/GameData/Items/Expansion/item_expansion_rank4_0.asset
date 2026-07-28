@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Rank 4 Warrior Weapon
-  basePrice: 720
+  description: "ランク4戦士用の武器。"
+  basePrice: 1440
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 0

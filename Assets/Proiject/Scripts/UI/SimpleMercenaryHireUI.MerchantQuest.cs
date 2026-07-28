@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -238,25 +239,7 @@ public partial class SimpleMercenaryHireUI
             Color.white);
         if (merchantStatusAndQuestController.ShouldShowRepayButtons())
         {
-            Button fixedPayment = CreateActionButton(
-                summaryRow,
-                "1万G返済",
-                () => merchantStatusAndQuestController.RepayDebt(
-                    DebtManager.MonthlyMinimumPayment));
-            RectTransform fixedRect = fixedPayment.GetComponent<RectTransform>();
-            fixedRect.anchoredPosition = new Vector2(-80f, 24f);
-            fixedPayment.interactable =
-                merchantStatusAndQuestController.CanRepay();
-
-            Button fullPayment = CreateActionButton(
-                summaryRow,
-                "全額返済",
-                () => merchantStatusAndQuestController.RepayDebt(
-                    debtManager.RemainingDebt));
-            RectTransform fullRect = fullPayment.GetComponent<RectTransform>();
-            fullRect.anchoredPosition = new Vector2(-80f, -24f);
-            fullPayment.interactable =
-                merchantStatusAndQuestController.CanRepay();
+            BuildRepayStepper(summaryRow);
         }
         top -= 136f;
 
@@ -289,6 +272,98 @@ public partial class SimpleMercenaryHireUI
             new Vector2(0f, Mathf.Max(470f, -top));
     }
 
+    // 返済額を1万G単位で選び、確定ボタンで返済する。−／＋で1万ずつ増減し、
+    // 上限は min(所持金, 残債)。残債が1万未満の最終返済は端数のまま選べる。
+    // 返済後は RebuildMerchantStatus が走り、このUIごと作り直される。
+    private void BuildRepayStepper(RectTransform parent)
+    {
+        int step = DebtManager.MonthlyMinimumPayment;
+        int maxRepayable = merchantStatusAndQuestController.MaxRepayable();
+        // 初期選択額は1万G（上限が1万未満ならその端数）。
+        int selected = Mathf.Clamp(step, 0, maxRepayable);
+
+        Text amountText = CreateText(
+            parent,
+            string.Empty,
+            18,
+            FontStyle.Bold,
+            TextAnchor.MiddleCenter,
+            new Vector2(-210f, 20f),
+            new Vector2(-60f, 56f),
+            ParchmentTextColor);
+
+        Button decrease = null;
+        Button increase = null;
+        Button confirm = null;
+
+        void Refresh()
+        {
+            amountText.text = $"返済額 {selected:N0}G";
+            if (decrease != null)
+            {
+                decrease.interactable = selected > 0;
+            }
+            if (increase != null)
+            {
+                increase.interactable = selected < maxRepayable;
+            }
+            if (confirm != null)
+            {
+                confirm.interactable =
+                    merchantStatusAndQuestController.CanRepay() && selected > 0;
+            }
+        }
+
+        // 1万G単位で増減する。上限側は端数（残債1万未満）にも張り付けられる。
+        void Step(int direction)
+        {
+            if (direction > 0)
+            {
+                selected = Mathf.Min(maxRepayable, selected + step);
+            }
+            else
+            {
+                // 1万の倍数から下げるとき、端数上限からはまず倍数へ丸める。
+                int lowered = selected - step;
+                selected = Mathf.Max(0, (lowered / step) * step);
+            }
+            Refresh();
+        }
+
+        decrease = CreateActionButton(parent, "−1万", () => Step(-1));
+        RectTransform decreaseRect = decrease.GetComponent<RectTransform>();
+        decreaseRect.sizeDelta = new Vector2(64f, 40f);
+        decreaseRect.anchoredPosition = new Vector2(-232f, -20f);
+
+        increase = CreateActionButton(parent, "＋1万", () => Step(1));
+        RectTransform increaseRect = increase.GetComponent<RectTransform>();
+        increaseRect.sizeDelta = new Vector2(64f, 40f);
+        increaseRect.anchoredPosition = new Vector2(-160f, -20f);
+
+        Button full = CreateActionButton(
+            parent,
+            "全額",
+            () =>
+            {
+                selected = maxRepayable;
+                Refresh();
+            });
+        RectTransform fullRect = full.GetComponent<RectTransform>();
+        fullRect.sizeDelta = new Vector2(56f, 40f);
+        fullRect.anchoredPosition = new Vector2(-96f, -20f);
+        full.interactable = maxRepayable > 0;
+
+        confirm = CreateActionButton(
+            parent,
+            "この額で返済",
+            () => merchantStatusAndQuestController.RepayDebt(selected));
+        RectTransform confirmRect = confirm.GetComponent<RectTransform>();
+        confirmRect.sizeDelta = new Vector2(120f, 40f);
+        confirmRect.anchoredPosition = new Vector2(-96f, -64f);
+
+        Refresh();
+    }
+
     private void RebuildQuestList()
     {
         if (questList == null || progressionManager == null)
@@ -317,17 +392,18 @@ public partial class SimpleMercenaryHireUI
         const float paperHeight = 132f;
         const float horizontalSpacing = 18f;
         const float verticalSpacing = 20f;
+        IReadOnlyList<QuestRecord> visibleQuests =
+            progressionManager.GetAvailableQuestsForCurrentTown();
         int rowCount = Mathf.Max(
             1,
-            Mathf.CeilToInt(progressionManager.Quests.Count / (float)columns));
+            Mathf.CeilToInt(visibleQuests.Count / (float)columns));
         float boardHeight = 24f + rowCount * paperHeight +
             Mathf.Max(0, rowCount - 1) * verticalSpacing;
         board.sizeDelta = new Vector2(0f, boardHeight);
         board.anchoredPosition = new Vector2(0f, -88f);
-        for (int i = 0; i < progressionManager.Quests.Count; i++)
+        for (int i = 0; i < visibleQuests.Count; i++)
         {
-            int index = i;
-            QuestRecord quest = progressionManager.Quests[i];
+            QuestRecord quest = visibleQuests[i];
             RectTransform paper = CreateUIObject($"Quest Paper {i}", board);
             int column = i % columns;
             int row = i / columns;
@@ -349,7 +425,7 @@ public partial class SimpleMercenaryHireUI
                 : new Color(1f, 0.96f, 0.82f, 1f);
             Button paperButton = paper.gameObject.AddComponent<Button>();
             paperButton.targetGraphic = paperImage;
-            paperButton.onClick.AddListener(() => ShowQuestDetailWindow(index));
+            paperButton.onClick.AddListener(() => ShowQuestDetailWindow(quest));
             ApplyButtonTransitions(paperButton);
             CreateText(
                 paper,
@@ -383,17 +459,14 @@ public partial class SimpleMercenaryHireUI
         questDetailWindow.gameObject.SetActive(false);
     }
 
-    private void ShowQuestDetailWindow(int index)
+    private void ShowQuestDetailWindow(QuestRecord quest)
     {
-        if (progressionManager == null ||
-            index < 0 ||
-            index >= progressionManager.Quests.Count)
+        if (progressionManager == null || quest == null)
         {
             return;
         }
 
         ClearChildren(questDetailWindow);
-        QuestRecord quest = progressionManager.Quests[index];
         CreateText(
             questDetailWindow,
             merchantStatusAndQuestController.BuildQuestTitle(quest),
@@ -405,9 +478,9 @@ public partial class SimpleMercenaryHireUI
             ParchmentTextColor);
         CreateText(
             questDetailWindow,
-            $"{quest.title}\n\n{merchantStatusAndQuestController.BuildQuestDetail(quest)}\n\n" +
-            $"報酬: {progressionManager.GetQuestGoldReward(quest):N0}G / " +
-            $"経験値 {progressionManager.GetQuestExperienceReward(quest):N0}\n" +
+            quest.title + "\n\n" +
+            merchantStatusAndQuestController.BuildQuestDetail(quest) + "\n\n" +
+            $"報酬: {progressionManager.GetQuestGoldReward(quest):N0}G\n" +
             $"進行状況: {quest.currentAmount}/{quest.requiredAmount}\n" +
             $"期限: {quest.deadlineDay}日目",
             16,
@@ -421,10 +494,10 @@ public partial class SimpleMercenaryHireUI
             merchantStatusAndQuestController.GetQuestButtonLabel(quest),
             () =>
             {
-                merchantStatusAndQuestController.AcceptQuest(index);
+                merchantStatusAndQuestController.AcceptQuest(quest.questId);
                 HideQuestDetailWindow();
             });
-        actionButton.interactable = MerchantStatusAndQuestController.CanAcceptQuest(quest);
+        actionButton.interactable = progressionManager.CanAcceptQuestHere(quest);
         RectTransform actionRect = actionButton.GetComponent<RectTransform>();
         actionRect.anchorMin = actionRect.anchorMax = actionRect.pivot =
             new Vector2(0.5f, 0f);

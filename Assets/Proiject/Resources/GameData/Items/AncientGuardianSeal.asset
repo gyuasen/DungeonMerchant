@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 3
   materialClassification: 0
-  description: A seal proving kinship with the ancient guardians.
+  description: "ランク5戦士向けに仕立てられた装飾。"
   basePrice: 1300
   acquisitionType: 2
   equipmentSlot: 2

@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 1
   rarity: 2
   materialClassification: 0
-  description: A blessed mace forged from cursed bone and dark crystal.
-  basePrice: 680
+  description: "ランク3司祭向けに仕立てられた武器。"
+  basePrice: 1360
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 3

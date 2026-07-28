@@ -101,7 +101,8 @@ public partial class SimpleMercenaryHireUI
         transportRect.pivot = new Vector2(1f, 1f);
         transportRect.sizeDelta = new Vector2(110f, 38f);
         transportRect.anchoredPosition = new Vector2(-118f, -4f);
-        Button expeditionButton = CreateActionButton(companyPage, "遠征部隊", ShowExpeditionOverlay);
+        transportButton.gameObject.SetActive(false);
+        Button expeditionButton = CreateActionButton(companyPage, "別動隊管理", ShowExpeditionOverlay);
         expeditionButton.name = "Expedition Button";
         RectTransform expeditionRect = expeditionButton.GetComponent<RectTransform>();
         expeditionRect.anchorMin = expeditionRect.anchorMax = new Vector2(1f, 1f);
@@ -109,6 +110,7 @@ public partial class SimpleMercenaryHireUI
         expeditionRect.sizeDelta = new Vector2(110f, 38f);
         expeditionRect.anchoredPosition = new Vector2(-236f, -4f);
         expeditionButton.transform.SetAsLastSibling();
+        expeditionButton.gameObject.SetActive(true);
         Button remoteSaleButton = CreateActionButton(companyPage, "全町倉庫", ShowRemoteSaleOverlay);
         remoteSaleButton.name = "Remote Sale Button";
         RectTransform remoteSaleRect = remoteSaleButton.GetComponent<RectTransform>();
@@ -200,7 +202,7 @@ public partial class SimpleMercenaryHireUI
             ShowQuestOverlay,
             null);
         ConfigureCompanyListPage(pageUI);
-        if (companyPage.Find("Transport Button") == null)
+        if (false && companyPage.Find("Transport Button") == null)
         {
             Button transportButton =
                 CreateActionButton(companyPage, "輸送部隊", ShowTransportOverlay);
@@ -211,7 +213,7 @@ public partial class SimpleMercenaryHireUI
             transportRect.sizeDelta = new Vector2(110f, 38f);
             transportRect.anchoredPosition = new Vector2(-118f, -4f);
         }
-        if (companyPage.Find("Expedition Button") == null)
+        if (false && companyPage.Find("Expedition Button") == null)
         {
             Button expeditionButton = CreateActionButton(companyPage, "遠征部隊", ShowExpeditionOverlay);
             expeditionButton.name = "Expedition Button";
@@ -377,10 +379,108 @@ public partial class SimpleMercenaryHireUI
             null,
             17);
         pageUI.ConfigureJobChangeList(
-            () => hireManager.HiredMercenaries,
+            hireAndPartyController.GetPromotionCandidates,
             hireAndPartyController.ShouldShowSpecialPromotion,
-            hireAndPartyController.PromoteMercenary);
+            hireAndPartyController.PromoteMercenary,
+            ShowPromotionPreview);
         pageRouter.Register(jobChangePage);
+    }
+
+    private void BuildPromotionPreviewOverlay()
+    {
+        promotionPreviewOverlay = CreateUIObject("Promotion Preview Overlay", overlayRoot);
+        promotionPreviewOverlay.anchorMin = Vector2.zero;
+        promotionPreviewOverlay.anchorMax = Vector2.one;
+        promotionPreviewOverlay.offsetMin = Vector2.zero;
+        promotionPreviewOverlay.offsetMax = Vector2.zero;
+        promotionPreviewOverlay.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.82f);
+        RectTransform window = CreateUIObject("Promotion Preview Window", promotionPreviewOverlay);
+        window.anchorMin = window.anchorMax = window.pivot = new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(700f, 520f);
+        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
+        CreateText(window, "転職確認", 26, FontStyle.Bold, TextAnchor.MiddleCenter,
+            new Vector2(28f, -68f), new Vector2(-28f, -18f), ParchmentTextColor);
+        promotionPreviewText = CreateText(window, string.Empty, 15, FontStyle.Normal,
+            TextAnchor.UpperLeft, new Vector2(34f, -360f), new Vector2(-34f, -82f), ParchmentTextColor);
+        promotionPreviewReasonText = CreateText(window, string.Empty, 14, FontStyle.Bold,
+            TextAnchor.MiddleCenter, new Vector2(34f, -414f), new Vector2(-34f, -362f), MutedTextColor);
+        promotionPreviewConfirmButton = CreateActionButton(window, "転職する", ConfirmPromotionPreview);
+        RectTransform confirmRect = promotionPreviewConfirmButton.GetComponent<RectTransform>();
+        confirmRect.anchorMin = confirmRect.anchorMax = confirmRect.pivot = new Vector2(0.5f, 0f);
+        confirmRect.sizeDelta = new Vector2(180f, 48f);
+        confirmRect.anchoredPosition = new Vector2(-105f, 25f);
+        Button cancel = CreateActionButton(window, "キャンセル", HidePromotionPreview);
+        RectTransform cancelRect = cancel.GetComponent<RectTransform>();
+        cancelRect.anchorMin = cancelRect.anchorMax = cancelRect.pivot = new Vector2(0.5f, 0f);
+        cancelRect.sizeDelta = new Vector2(180f, 48f);
+        cancelRect.anchoredPosition = new Vector2(105f, 25f);
+        promotionPreviewOverlay.gameObject.SetActive(false);
+    }
+
+    private void ShowPromotionPreview(MercenaryInstance mercenary, MercenaryClass target)
+    {
+        promotionPreviewMercenary = mercenary;
+        promotionPreviewTarget = target;
+        PromotionPreview preview = new PromotionPreview(mercenary, target);
+        bool special = target == MercenaryClassProgression.GetSpecialClass(mercenary.MercenaryClass);
+        ItemDataSO certificate = special && !mercenary.IsUnique ? hireAndPartyController.GetSpecialJobCertificate() : null;
+        int certificateCount = certificate != null ? merchantInventory.GetItemAmount(certificate) : 0;
+        bool canPromote = mercenary.CanPromote && (!special || mercenary.IsUnique || certificateCount > 0);
+        promotionPreviewText.text = BuildPromotionPreviewText(mercenary, preview, certificate, certificateCount);
+        promotionPreviewReasonText.text = canPromote ? string.Empty : certificate != null ? "転職証が不足しています。" : "転職条件を満たしていません。";
+        promotionPreviewConfirmButton.interactable = canPromote;
+        promotionPreviewOverlay.SetAsLastSibling();
+        promotionPreviewOverlay.gameObject.SetActive(true);
+    }
+
+    private string BuildPromotionPreviewText(MercenaryInstance mercenary, PromotionPreview preview, ItemDataSO certificate, int certificateCount)
+    {
+        string equipmentWarning = BuildPromotionEquipmentWarning(mercenary, preview.TargetClass);
+        string certificateText = certificate == null ? "消費する証: なし" : $"消費する証: {JapaneseDisplayText.GetItemName(certificate)} {certificateCount}/1";
+        System.Collections.Generic.List<MercenarySkillDefinition> skills =
+            MercenaryClassProgression.GetCombatSkills(preview.TargetClass);
+        string skillText = "解禁予定スキル: " + string.Join("、", skills.ConvertAll(skill => skill.Name));
+        return $"{JapaneseDisplayText.GetMercenaryClass(mercenary.MercenaryClass)} → {JapaneseDisplayText.GetMercenaryClass(preview.TargetClass)}\n" +
+            $"HP {mercenary.MaxHP} → {preview.MaxHP} ({preview.MaxHP - mercenary.MaxHP:+#;-#;0})\n" +
+            $"攻撃 {mercenary.Attack} → {preview.Attack} ({preview.Attack - mercenary.Attack:+#;-#;0})\n" +
+            $"防御 {mercenary.Defense} → {preview.Defense} ({preview.Defense - mercenary.Defense:+#;-#;0})\n" +
+            $"魔力 {mercenary.MaxMagicPower} → {preview.MaxMagicPower} ({preview.MaxMagicPower - mercenary.MaxMagicPower:+#;-#;0})\n" +
+            $"速度 {mercenary.AttackSpeed:0.00} → {preview.AttackSpeed:0.00} ({preview.AttackSpeed - mercenary.AttackSpeed:+0.00;-0.00;0})\n" +
+            $"レベル上限: {preview.LevelCap}  |  クリティカル {preview.CriticalRate * 100f:0}%  |  回避 {preview.EvasionRate * 100f:0}%\n" +
+            certificateText + "\n" + skillText + "\n" + equipmentWarning;
+    }
+
+    private static string BuildPromotionEquipmentWarning(MercenaryInstance mercenary, MercenaryClass target)
+    {
+        System.Collections.Generic.List<string> names = new System.Collections.Generic.List<string>();
+        foreach (EquipmentSlot slot in new[] { EquipmentSlot.Weapon, EquipmentSlot.Armor, EquipmentSlot.Accessory })
+        {
+            ItemDataSO item = mercenary.GetEquippedItem(slot);
+            if (item != null && !item.CanEquip(target)) names.Add(JapaneseDisplayText.GetItemName(item));
+        }
+        return names.Count == 0 ? "装備適合: 問題なし" : "装備不可になる装備: " + string.Join("、", names);
+    }
+
+    private void ConfirmPromotionPreview()
+    {
+        if (promotionPreviewMercenary == null ||
+            !promotionPreviewMercenary.CanPromote ||
+            MercenaryClassProgression.GetBaseClass(promotionPreviewTarget) !=
+            promotionPreviewMercenary.OriginalClass ||
+            MercenaryClassProgression.IsBaseClass(promotionPreviewTarget))
+        {
+            HidePromotionPreview();
+            return;
+        }
+
+        hireAndPartyController.PromoteMercenary(promotionPreviewMercenary, promotionPreviewTarget);
+        HidePromotionPreview();
+    }
+
+    private void HidePromotionPreview()
+    {
+        promotionPreviewOverlay?.gameObject.SetActive(false);
+        promotionPreviewMercenary = null;
     }
 
     private void ConfigureHireListPage(HirePageUI pageUI)
@@ -393,26 +493,348 @@ public partial class SimpleMercenaryHireUI
             candidate => candidate != null,
             hireAndPartyController.GetUnlockedContractType,
             () => hireManager.GetSelectedContractSuccessRate(),
+            candidate => hireManager.GetInitialContractCost(
+                candidate,
+                hireManager.SelectedContract),
+            candidate => hireManager.GetInitialContractCost(
+                candidate,
+                hireManager.SelectedContract),
             hireAndPartyController.CanHireFixedCandidate,
             candidate => hireManager.CanAfford(candidate),
             hireAndPartyController.Hire,
             hireAndPartyController.HireGeneratedCandidate,
             hireAndPartyController.RegisterFixedHireButton,
-            hireAndPartyController.RegisterGeneratedHireButton);
+            hireAndPartyController.RegisterGeneratedHireButton,
+            ShowContractDetails,
+            ShowContractDetails);
     }
 
     private void ConfigureCompanyListPage(CompanyPageUI pageUI)
     {
         pageUI.ConfigureCompanyList(
-            () => hireManager.HiredMercenaries,
+            hireAndPartyController.GetCompanyMercenaries,
             mercenary => partyManager.Contains(mercenary),
             mercenary => hireManager.GetRenewalCost(mercenary),
             hireAndPartyController.TogglePartyMember,
             ShowCharacterDetails,
             merchantStatusAndQuestController.RenewContract,
-            hireAndPartyController.ReleaseMercenary,
-            mercenary => transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId),
-            mercenary => dungeonExpeditionManager.IsMercenaryOnExpeditionDuty(mercenary.InstanceId));
+            ShowContractChangeConfirmation,
+            CanOpenContractChangeConfirmation,
+            ShowReleaseConfirmation,
+            mercenary => MercenaryDutyService.GetDuty(mercenary.InstanceId) ==
+                         MercenaryDuty.RoadTransit,
+            mercenary => MercenaryDutyService.GetDuty(mercenary.InstanceId) ==
+                         MercenaryDuty.Expedition);
+    }
+
+    private void BuildReleaseConfirmationOverlay()
+    {
+        releaseConfirmationOverlay = CreateUIObject(
+            "Release Confirmation Overlay",
+            overlayRoot);
+        releaseConfirmationOverlay.anchorMin = Vector2.zero;
+        releaseConfirmationOverlay.anchorMax = Vector2.one;
+        releaseConfirmationOverlay.offsetMin = Vector2.zero;
+        releaseConfirmationOverlay.offsetMax = Vector2.zero;
+        releaseConfirmationOverlay.gameObject.AddComponent<Image>().color =
+            new Color(0f, 0f, 0f, 0.82f);
+
+        RectTransform window = CreateUIObject(
+            "Release Confirmation Window",
+            releaseConfirmationOverlay);
+        window.anchorMin = window.anchorMax = window.pivot =
+            new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(600f, 390f);
+        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
+        CreateText(
+            window,
+            "契約を解除しますか？",
+            26,
+            FontStyle.Bold,
+            TextAnchor.MiddleCenter,
+            new Vector2(28f, -72f),
+            new Vector2(-28f, -22f),
+            ParchmentTextColor);
+        releaseConfirmationText = CreateText(
+            window,
+            string.Empty,
+            17,
+            FontStyle.Normal,
+            TextAnchor.MiddleCenter,
+            new Vector2(36f, -285f),
+            new Vector2(-36f, -80f),
+            ParchmentTextColor);
+        Button confirmButton = CreateActionButton(
+            window,
+            "契約を解除する",
+            ConfirmRelease);
+        RectTransform confirmRect = confirmButton.GetComponent<RectTransform>();
+        confirmRect.anchorMin = confirmRect.anchorMax = confirmRect.pivot =
+            new Vector2(0.5f, 0f);
+        confirmRect.sizeDelta = new Vector2(200f, 48f);
+        confirmRect.anchoredPosition = new Vector2(-110f, 26f);
+        confirmButton.targetGraphic.color = ImportantButtonColor;
+        Button cancelButton = CreateActionButton(
+            window,
+            "やめる",
+            HideReleaseConfirmation);
+        RectTransform cancelRect = cancelButton.GetComponent<RectTransform>();
+        cancelRect.anchorMin = cancelRect.anchorMax = cancelRect.pivot =
+            new Vector2(0.5f, 0f);
+        cancelRect.sizeDelta = new Vector2(180f, 48f);
+        cancelRect.anchoredPosition = new Vector2(110f, 26f);
+        releaseConfirmationOverlay.gameObject.SetActive(false);
+    }
+
+    private void BuildContractChangeConfirmationOverlay()
+    {
+        contractChangeConfirmationOverlay = CreateUIObject(
+            "Contract Change Confirmation Overlay",
+            overlayRoot);
+        contractChangeConfirmationOverlay.anchorMin = Vector2.zero;
+        contractChangeConfirmationOverlay.anchorMax = Vector2.one;
+        contractChangeConfirmationOverlay.offsetMin = Vector2.zero;
+        contractChangeConfirmationOverlay.offsetMax = Vector2.zero;
+        contractChangeConfirmationOverlay.gameObject.AddComponent<Image>().color =
+            new Color(0f, 0f, 0f, 0.82f);
+        RectTransform window = CreateUIObject(
+            "Contract Change Confirmation Window",
+            contractChangeConfirmationOverlay);
+        window.anchorMin = window.anchorMax = window.pivot =
+            new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(600f, 390f);
+        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
+        CreateText(
+            window,
+            "契約を変更しますか？",
+            26,
+            FontStyle.Bold,
+            TextAnchor.MiddleCenter,
+            new Vector2(28f, -72f),
+            new Vector2(-28f, -22f),
+            ParchmentTextColor);
+        contractChangeConfirmationText = CreateText(
+            window,
+            string.Empty,
+            17,
+            FontStyle.Normal,
+            TextAnchor.MiddleCenter,
+            new Vector2(36f, -285f),
+            new Vector2(-36f, -80f),
+            ParchmentTextColor);
+        contractChangeConfirmButton = CreateActionButton(
+            window,
+            "契約を変更する",
+            ConfirmContractChange);
+        RectTransform confirmRect =
+            contractChangeConfirmButton.GetComponent<RectTransform>();
+        confirmRect.anchorMin = confirmRect.anchorMax = confirmRect.pivot =
+            new Vector2(0.5f, 0f);
+        confirmRect.sizeDelta = new Vector2(200f, 48f);
+        confirmRect.anchoredPosition = new Vector2(-110f, 26f);
+        contractChangeConfirmButton.targetGraphic.color = ImportantButtonColor;
+        Button cancelButton = CreateActionButton(
+            window,
+            "やめる",
+            HideContractChangeConfirmation);
+        RectTransform cancelRect = cancelButton.GetComponent<RectTransform>();
+        cancelRect.anchorMin = cancelRect.anchorMax = cancelRect.pivot =
+            new Vector2(0.5f, 0f);
+        cancelRect.sizeDelta = new Vector2(180f, 48f);
+        cancelRect.anchoredPosition = new Vector2(110f, 26f);
+        contractChangeConfirmationOverlay.gameObject.SetActive(false);
+    }
+
+    private void ShowContractChangeConfirmation(MercenaryInstance mercenary)
+    {
+        if (!TryGetNextContractChangeTarget(mercenary, out MercenaryContractType target))
+        {
+            statusText.text = "専属契約は最上位です。";
+            return;
+        }
+        int cost = hireManager.GetInitialContractCost(mercenary, target);
+        MercenaryHireManager.ContractChangeUnavailableReason reason =
+            hireManager.GetContractChangeUnavailableReason(mercenary, target);
+        contractChangeMercenary = mercenary;
+        contractChangeTarget = target;
+        contractChangeConfirmationText.text =
+            mercenary.MercenaryName + "\n" +
+            JapaneseDisplayText.GetContractType(mercenary.ContractType) + " → " +
+            JapaneseDisplayText.GetContractType(target) + "\n" +
+            "新しい期限: " + GetContractEndText(target) + "\n" +
+            "必要費用: " + cost + "G\n" +
+            "新契約金を全額支払います。" +
+            (reason == MercenaryHireManager.ContractChangeUnavailableReason.None
+                ? string.Empty
+                : "\n" + GetContractChangeUnavailableMessage(reason, cost));
+        contractChangeConfirmButton.interactable =
+            reason == MercenaryHireManager.ContractChangeUnavailableReason.None;
+        contractChangeConfirmationOverlay.SetAsLastSibling();
+        contractChangeConfirmationOverlay.gameObject.SetActive(true);
+    }
+
+    private static string GetContractEndText(MercenaryContractType contractType)
+    {
+        switch (contractType)
+        {
+            case MercenaryContractType.Local: return "当日";
+            case MercenaryContractType.Temporary: return "7日間";
+            default: return "無期限";
+        }
+    }
+
+    private bool CanOpenContractChangeConfirmation(MercenaryInstance mercenary)
+    {
+        if (!TryGetNextContractChangeTarget(mercenary, out MercenaryContractType target))
+        {
+            return false;
+        }
+        return hireManager.GetContractChangeUnavailableReason(mercenary, target) ==
+            MercenaryHireManager.ContractChangeUnavailableReason.None;
+    }
+
+    private static bool TryGetNextContractChangeTarget(
+        MercenaryInstance mercenary,
+        out MercenaryContractType target)
+    {
+        target = MercenaryContractType.Local;
+        if (mercenary == null ||
+            mercenary.ContractType == MercenaryContractType.Exclusive)
+        {
+            return false;
+        }
+        target = mercenary.ContractType == MercenaryContractType.Local
+            ? MercenaryContractType.Temporary
+            : MercenaryContractType.Exclusive;
+        return true;
+    }
+
+    private static string GetContractChangeUnavailableMessage(
+        MercenaryHireManager.ContractChangeUnavailableReason reason,
+        int cost)
+    {
+        switch (reason)
+        {
+            case MercenaryHireManager.ContractChangeUnavailableReason.ContractLocked:
+                return "変更先の契約が未解放です。";
+            case MercenaryHireManager.ContractChangeUnavailableReason.InTraining:
+                return "修練中の傭兵は契約を変更できません。";
+            case MercenaryHireManager.ContractChangeUnavailableReason.InTransit:
+                return "街道移動中の傭兵は契約を変更できません。";
+            case MercenaryHireManager.ContractChangeUnavailableReason.OnExpedition:
+                return "別動隊中の傭兵は契約を変更できません。";
+            case MercenaryHireManager.ContractChangeUnavailableReason.InsufficientGold:
+                return "資金不足: " + cost + "G必要です。";
+            default:
+                return "現在、この契約へ変更できません。";
+        }
+    }
+
+    private void ConfirmContractChange()
+    {
+        MercenaryInstance mercenary = contractChangeMercenary;
+        MercenaryContractType target = contractChangeTarget;
+        MercenaryHireManager.ContractChangeUnavailableReason reason =
+            hireManager.GetContractChangeUnavailableReason(mercenary, target);
+        if (reason != MercenaryHireManager.ContractChangeUnavailableReason.None)
+        {
+            statusText.text = GetContractChangeUnavailableMessage(
+                reason,
+                hireManager.GetInitialContractCost(mercenary, target));
+            return;
+        }
+        HideContractChangeConfirmation();
+        if (hireManager.TryChangeContract(mercenary, target))
+        {
+            statusText.text = mercenary.MercenaryName + "の契約を変更しました。";
+            RefreshPage(companyPage);
+            return;
+        }
+        statusText.text = "契約を変更できませんでした。";
+    }
+
+    private void HideContractChangeConfirmation()
+    {
+        contractChangeConfirmationOverlay?.gameObject.SetActive(false);
+        contractChangeMercenary = null;
+    }
+
+    private void ShowReleaseConfirmation(MercenaryInstance mercenary)
+    {
+        string unavailableReason = GetReleaseUnavailableReason(mercenary);
+        if (!string.IsNullOrEmpty(unavailableReason))
+        {
+            statusText.text = unavailableReason;
+            return;
+        }
+
+        releaseConfirmationMercenary = mercenary;
+        releaseConfirmationText.text = BuildReleaseConfirmationText(mercenary);
+        releaseConfirmationOverlay.SetAsLastSibling();
+        releaseConfirmationOverlay.gameObject.SetActive(true);
+    }
+
+    private string GetReleaseUnavailableReason(MercenaryInstance mercenary)
+    {
+        if (mercenary == null)
+        {
+            return "契約を解除できる傭兵が選択されていません";
+        }
+
+        MercenaryDuty duty = MercenaryDutyService.GetDuty(mercenary.InstanceId);
+        if (duty == MercenaryDuty.Training)
+        {
+            return "修練中の傭兵は契約を解除できません";
+        }
+
+        if (duty == MercenaryDuty.RoadTransit)
+        {
+            return "街道移動中の傭兵は契約を解除できません";
+        }
+
+        if (duty == MercenaryDuty.Expedition)
+        {
+            return "別動隊中の傭兵は契約を解除できません";
+        }
+
+        return string.Empty;
+    }
+
+    private static string BuildReleaseConfirmationText(MercenaryInstance mercenary)
+    {
+        bool hasEquipment =
+            mercenary.GetEquippedItem(EquipmentSlot.Weapon) != null ||
+            mercenary.GetEquippedItem(EquipmentSlot.Armor) != null ||
+            mercenary.GetEquippedItem(EquipmentSlot.Accessory) != null;
+        string equipmentWarning = hasEquipment
+            ? "\n装備していた武具は傭兵の所在町の倉庫へ戻ります。"
+            : string.Empty;
+        return
+            mercenary.MercenaryName + "\n" +
+            "レベル " + mercenary.Level + "  |  " +
+            JapaneseDisplayText.GetMercenaryClass(mercenary.MercenaryClass) +
+            equipmentWarning +
+            "\n契約を解除すると元に戻せません。";
+    }
+
+    private void ConfirmRelease()
+    {
+        MercenaryInstance mercenary = releaseConfirmationMercenary;
+        HideReleaseConfirmation();
+        if (string.IsNullOrEmpty(GetReleaseUnavailableReason(mercenary)))
+        {
+            hireAndPartyController.ReleaseMercenary(mercenary);
+        }
+        else
+        {
+            statusText.text = GetReleaseUnavailableReason(mercenary);
+        }
+    }
+
+    private void HideReleaseConfirmation()
+    {
+        releaseConfirmationOverlay?.gameObject.SetActive(false);
+        releaseConfirmationMercenary = null;
     }
 
     private void ConfigurePartyListPage(PartyPageUI pageUI)
@@ -430,11 +852,24 @@ public partial class SimpleMercenaryHireUI
             mercenary => healingManager.GetMissingHP(mercenary),
             mercenary => healingManager.GetFullHealCost(mercenary),
             mercenary => healingManager.CanHeal(mercenary),
-            hireAndPartyController.HealMercenary);
+            hireAndPartyController.HealMercenary,
+            ShowCharacterDetails,
+            mercenary => healingManager.GetMissingHP(mercenary) > 0 ||
+                         mercenary.IsIncapacitated,
+            GetHealingUnavailableReason);
+    }
+
+    private string GetHealingUnavailableReason(MercenaryInstance mercenary)
+    {
+        int cost = healingManager.GetFullHealCost(mercenary);
+        return merchantData.Gold >= cost
+            ? string.Empty
+            : $"資金不足: あと {cost - merchantData.Gold}G";
     }
 
     private void HandleMercenaryHired(MercenaryInstance mercenary)
     {
+        dailyResultController.RecordMercenaryHired(mercenary);
         dailyResultController.CaptureMercenarySnapshot(mercenary);
         TryUnlockHiddenIsland();
         RefreshPage(companyPage);
@@ -503,6 +938,15 @@ public partial class SimpleMercenaryHireUI
             $"雇用成功率 {merchantData.GetHireSuccessRate() * 100f:0}%";
     }
 
+    private void ShowTransportOverlay()
+    {
+    }
+
+    private void ShowExpeditionOverlay()
+    {
+        ShowExpeditionManagementOverlay();
+    }
+
     private void ShowPartyPage()
     {
         SwitchToPage(partyPage, partyTabButton);
@@ -518,10 +962,11 @@ public partial class SimpleMercenaryHireUI
 
     private void ShowJobChangePage()
     {
-        if (townProgressState.CurrentTownIndex != 0)
+        if (!TownServicePolicy.IsJobChangeAvailable(
+                townProgressState.CurrentTownIndex))
         {
             statusText.text =
-                "転職神殿はエルド交易都市でのみ利用できます。";
+                "転職神殿はエルド交易都市以降の町で利用できます。";
             return;
         }
 

@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: A dependable sword issued to novice warriors.
+  description: "ランク1戦士向けに仕立てられた武器。"
   basePrice: 120
   acquisitionType: 0
   equipmentSlot: 0

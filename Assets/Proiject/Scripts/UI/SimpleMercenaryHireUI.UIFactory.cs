@@ -22,7 +22,7 @@ public partial class SimpleMercenaryHireUI
             CreateUIObject("Global Menu Window", globalMenuOverlay);
         window.anchorMin = window.anchorMax = window.pivot =
             new Vector2(0.5f, 0.5f);
-        window.sizeDelta = new Vector2(570f, 500f);
+        window.sizeDelta = new Vector2(570f, 620f);
         ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
 
         CreateText(
@@ -36,38 +36,68 @@ public partial class SimpleMercenaryHireUI
             ParchmentTextColor);
 
         CreateGlobalMenuButton(
-            window, "傭兵一覧", new Vector2(-135f, 80f),
+            window, "傭兵一覧", new Vector2(-135f, 155f),
             () => OpenGlobalMenuDestination(ShowCompanyPage));
         CreateGlobalMenuButton(
-            window, "パーティー編成", new Vector2(135f, 80f),
+            window, "パーティー編成", new Vector2(135f, 155f),
             () => OpenGlobalMenuDestination(ShowPartyPage));
         CreateGlobalMenuButton(
-            window, "在庫確認", new Vector2(-135f, 15f),
+            window, "在庫確認", new Vector2(-135f, 90f),
             () => OpenGlobalMenuDestination(ShowInventoryPage));
         CreateGlobalMenuButton(
-            window, "装備図鑑", new Vector2(135f, 15f),
+            window, "装備図鑑", new Vector2(135f, 90f),
             () => OpenGlobalMenuDestination(ShowEquipmentCollection));
         CreateGlobalMenuButton(
-            window, "魔物図鑑", new Vector2(-135f, -50f),
+            window, "魔物図鑑", new Vector2(-135f, 25f),
             () => OpenGlobalMenuDestination(ShowMonsterCollection));
         CreateGlobalMenuButton(
-            window, "商人情報", new Vector2(135f, -50f),
+            window, "商人情報", new Vector2(135f, 25f),
             () => OpenGlobalMenuDestination(ShowMerchantStatusOverlay));
         CreateGlobalMenuButton(
-            window, "依頼確認", new Vector2(135f, -50f),
+            window, "依頼確認", new Vector2(-135f, -40f),
             () => OpenGlobalMenuDestination(ShowQuestOverlay));
         CreateGlobalMenuButton(
-            window, "地域マップ", new Vector2(-135f, -115f),
+            window, "地域マップ", new Vector2(135f, -40f),
             () => OpenGlobalMenuDestination(ShowWorldMap));
         CreateGlobalMenuButton(
-            window, "閉じる", new Vector2(135f, -115f),
+            window, "チュートリアル", new Vector2(-135f, -105f),
+            () => OpenGlobalMenuDestination(ShowTutorialOverlay));
+        CreateGlobalMenuButton(
+            window, "セーブしてタイトルへ", new Vector2(135f, -105f),
+            SaveAndReturnToTitle);
+        CreateGlobalMenuButton(
+            window, "閉じる", new Vector2(0f, -170f),
             HideGlobalMenu);
 
-        CreateGlobalMenuButton(
-            window, "チュートリアル", new Vector2(0f, -180f),
-            () => OpenGlobalMenuDestination(ShowTutorialOverlay));
-
         globalMenuOverlay.gameObject.SetActive(false);
+    }
+
+    private void SaveAndReturnToTitle()
+    {
+        // 戦闘中・ダンジョン探索中は中断状態を安全に保存できないため戻れない。
+        // 探索途中で戻ると経過日数や探索終了処理を飛ばせてしまうのを防ぐ。
+        if (battleManager != null && battleManager.IsBattling)
+        {
+            if (statusText != null)
+            {
+                statusText.text = "戦闘中はタイトルへ戻れません。";
+            }
+            return;
+        }
+
+        if (dungeonRunManager != null && dungeonRunManager.IsRunning)
+        {
+            if (statusText != null)
+            {
+                statusText.text =
+                    "ダンジョン探索中はタイトルへ戻れません。探索を終えてください。";
+            }
+            return;
+        }
+
+        saveManager?.SaveGame();
+        HideGlobalMenu();
+        UnityEngine.SceneManagement.SceneManager.LoadScene("Title");
     }
 
     private void CreateGlobalMenuButton(
@@ -153,6 +183,7 @@ public partial class SimpleMercenaryHireUI
         Button activeTab = null)
     {
         pageRouter.Show(targetPage);
+        ResolveDirtyPageOnShow(targetPage);
         SetMapHeaderButtons(true);
         SetAllTabsInactive();
         SetTabActive(activeTab, true);
@@ -163,11 +194,38 @@ public partial class SimpleMercenaryHireUI
         pageRouter?.Refresh(pageRoot);
     }
 
+    private void RefreshPageOrMarkDirty(RectTransform pageRoot)
+    {
+        if (pageRouter != null && pageRouter.IsVisible(pageRoot))
+        {
+            dirtyPages.Remove(pageRoot);
+            RefreshPage(pageRoot);
+            return;
+        }
+
+        if (pageRoot != null)
+        {
+            dirtyPages.Add(pageRoot);
+        }
+    }
+
+    private void ResolveDirtyPageOnShow(RectTransform pageRoot)
+    {
+        if (!dirtyPages.Remove(pageRoot))
+        {
+            return;
+        }
+
+        // UIPageBase.Show refreshes the page as it becomes visible, so that
+        // refresh also resolves a pending deferred update without doing it twice.
+    }
+
     private void SwitchToMapPage(
         RectTransform targetPage,
         bool showTownMapButton)
     {
         pageRouter.Show(targetPage);
+        ResolveDirtyPageOnShow(targetPage);
         SetAllTabsInactive();
         SetMapHeaderButtons(showTownMapButton);
     }
@@ -190,7 +248,7 @@ public partial class SimpleMercenaryHireUI
         UpdateStorageCapacityText();
         if (globalMenuButton != null)
         {
-            globalMenuButton.interactable = !battleManager.IsBattling;
+            globalMenuButton.interactable = !IsProgressionLocked;
         }
         goldText.text =
             $"商人Lv{merchantData.MerchantLevel}  所持金 {merchantData.Gold} G";
@@ -220,7 +278,7 @@ public partial class SimpleMercenaryHireUI
             startDungeonButton.gameObject.SetActive(!dungeonRunManager.IsRunning);
             startDungeonButton.interactable =
                 partyManager.Members.Count > 0 &&
-                !battleManager.IsBattling &&
+                !IsProgressionLocked &&
                 !dungeonRunManager.IsRunning &&
                 selectedDungeon != null &&
                 selectedDungeon.nearbyTownIndex == townProgressState.CurrentTownIndex;
@@ -312,6 +370,9 @@ public partial class SimpleMercenaryHireUI
             view, panel, SimpleMercenaryHirePageSlot.Inventory, "Inventory Page");
         jobChangePage = GetOrCreatePage(
             view, panel, SimpleMercenaryHirePageSlot.JobChange, "Job Change Page");
+        trainingGroundPage = GetOrCreatePage(
+            view, panel, SimpleMercenaryHirePageSlot.TrainingGround,
+            "Training Ground Page");
 
         // The prefab stores every page as a sibling. Hide them before any
         // runtime content is built so an initialization error cannot leave all

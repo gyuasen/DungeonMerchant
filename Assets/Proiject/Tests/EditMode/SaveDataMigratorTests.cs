@@ -3,6 +3,25 @@ using NUnit.Framework;
 public sealed class SaveDataMigratorTests
 {
     [Test]
+    public void Migrate_Version34_DiscardsRetiredExpeditions()
+    {
+        GameSaveData data = new GameSaveData { version = 34 };
+        data.dungeonExpeditions.Add(new SavedDungeonExpedition
+        {
+            dungeonPersistentId = "retired-dungeon",
+            memberInstanceIds = new System.Collections.Generic.List<string>
+            {
+                "retired-mercenary"
+            }
+        });
+
+        SaveDataMigrator.Migrate(data);
+
+        Assert.That(data.version, Is.EqualTo(GameSaveData.CurrentVersion));
+        Assert.That(data.dungeonExpeditions, Is.Empty);
+    }
+
+    [Test]
     public void Migrate_PreVersion16_PopulatesProgressionAndDebt()
     {
         GameSaveData data = new GameSaveData
@@ -79,6 +98,22 @@ public sealed class SaveDataMigratorTests
     }
 
     [Test]
+    public void Migrate_Version28_InitializesEmptyTrainingAssignments()
+    {
+        GameSaveData data = new GameSaveData
+        {
+            version = 28,
+            trainingAssignments = null
+        };
+
+        SaveDataMigrator.Migrate(data);
+
+        Assert.That(data.version, Is.EqualTo(GameSaveData.CurrentVersion));
+        Assert.That(data.trainingAssignments, Is.Not.Null);
+        Assert.That(data.trainingAssignments, Is.Empty);
+    }
+
+    [Test]
     public void Migrate_PreStorySave_InfersCompletedMilestones()
     {
         DungeonDataSO dungeon = FirstAsset<DungeonDataSO>();
@@ -105,17 +140,15 @@ public sealed class SaveDataMigratorTests
         Assert.That(data.completedStoryMilestones,
             Does.Contain(StoryMilestone.OpeningDebtNotice));
         Assert.That(data.completedStoryMilestones,
-            Does.Contain(StoryMilestone.FirstMercenary));
+            Does.Contain(StoryMilestone.DebtRepaid10));
         Assert.That(data.completedStoryMilestones,
-            Does.Contain(StoryMilestone.FirstDungeonClear));
+            Does.Contain(StoryMilestone.DebtRepaid25));
         Assert.That(data.completedStoryMilestones,
-            Does.Contain(StoryMilestone.LeafUnlocked));
+            Does.Contain(StoryMilestone.DebtRepaid50));
         Assert.That(data.completedStoryMilestones,
-            Does.Contain(StoryMilestone.RegionGateCleared));
+            Does.Contain(StoryMilestone.DebtRepaid75));
         Assert.That(data.completedStoryMilestones,
-            Does.Contain(StoryMilestone.AbyssReached));
-        Assert.That(data.completedStoryMilestones,
-            Does.Contain(StoryMilestone.HiddenIslandReached));
+            Does.Contain(StoryMilestone.DebtRepaid90));
         Assert.That(data.completedStoryMilestones,
             Does.Contain(StoryMilestone.DebtCleared));
     }
@@ -156,8 +189,25 @@ public sealed class SaveDataMigratorTests
 
         Assert.That(
             data.completedStoryMilestones.Contains(
-                StoryMilestone.FirstDungeonClear),
+                StoryMilestone.DebtRepaid10),
             Is.False);
+    }
+
+    [Test]
+    public void Migrate_PreDebtStorySave_RebuildsMilestonesFromDebtOnly()
+    {
+        GameSaveData data = new GameSaveData
+        {
+            version = 35,
+            remainingDebt = DebtManager.InitialDebt
+        };
+        data.completedStoryMilestones.Add(StoryMilestone.DebtRepaid90);
+
+        SaveDataMigrator.Migrate(data);
+
+        CollectionAssert.AreEquivalent(
+            new[] { StoryMilestone.OpeningDebtNotice },
+            data.completedStoryMilestones);
     }
 
     [Test]
@@ -174,6 +224,56 @@ public sealed class SaveDataMigratorTests
 
         Assert.That(data.version, Is.EqualTo(futureVersion));
         Assert.That(data.gold, Is.EqualTo(1234));
+    }
+
+    [Test]
+    public void Migrate_Version31_ReturnsConvoyCargoAndClearsLegacyDuties()
+    {
+        ItemDataSO item = FirstAsset<ItemDataSO>();
+        Assert.That(item, Is.Not.Null);
+        GameSaveData data = new GameSaveData { version = 31 };
+        data.hiredMercenaries.Add(new SavedMercenary
+        {
+            instanceId = "escort",
+            townIndex = 4
+        });
+        data.transportConvoys.Add(new SavedTransportConvoy
+        {
+            originTownIndex = 1,
+            escortInstanceIds = new System.Collections.Generic.List<string>
+            {
+                "escort"
+            },
+            cargo = new System.Collections.Generic.List<SavedTransportCargo>
+            {
+                new SavedTransportCargo
+                {
+                    itemPersistentId = item.PersistentId,
+                    itemAssetName = item.name,
+                    amount = 3
+                }
+            }
+        });
+        data.dungeonExpeditions.Add(new SavedDungeonExpedition());
+
+        SaveDataMigrator.Migrate(data);
+
+        Assert.That(data.transportConvoys, Is.Empty);
+        Assert.That(data.dungeonExpeditions, Is.Empty);
+        Assert.That(data.hiredMercenaries[0].townIndex, Is.EqualTo(1));
+        Assert.That(data.inventory.Exists(value =>
+            value.townIndex == 1 &&
+            value.itemPersistentId == item.PersistentId &&
+            value.amount == 3), Is.True);
+
+        SaveDataMigrator.Migrate(data);
+
+        Assert.That(data.inventory.FindAll(value =>
+            value.townIndex == 1 &&
+            value.itemPersistentId == item.PersistentId).Count, Is.EqualTo(1));
+        Assert.That(data.inventory.Find(value =>
+            value.townIndex == 1 &&
+            value.itemPersistentId == item.PersistentId).amount, Is.EqualTo(3));
     }
 
     private static T FirstAsset<T>()

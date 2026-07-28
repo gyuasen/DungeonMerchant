@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 1
   rarity: 2
   materialClassification: 0
-  description: Lightweight armor layered with wing membrane and wyvern scale.
-  basePrice: 780
+  description: "ランク3盗賊向けに仕立てられた防具。"
+  basePrice: 1560
   acquisitionType: 1
   equipmentSlot: 1
   requiredClass: 4

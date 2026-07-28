@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 0
   rarity: 2
   materialClassification: 2
-  description: A crystal condensed from forbidden magic.
-  basePrice: 240
+  description: "魔大陸で採れる、禁じられた魔法が凝縮した結晶。"
+  basePrice: 320
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0

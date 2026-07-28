@@ -15,11 +15,11 @@ MonoBehaviour:
   recipeName: Arcane Pendant
   resultItem: {fileID: 11400000, guid: 5a675b9d556a4ab3af9781fd8e161771, type: 2}
   resultAmount: 1
-  goldCost: 340
+  goldCost: 560
   materials:
-  - item: {fileID: 11400000, guid: 52a98352167a4bce926ac5c343b9c6e8, type: 2}
+  - item: {fileID: 11400000, guid: df1a2b3c4d5e6f708192a3b4c5d6e7f8, type: 2}
     amount: 3
   - item: {fileID: 11400000, guid: a836cde4a7674fc4b9f22af85e2d1c4f, type: 2}
     amount: 3
   - item: {fileID: 11400000, guid: 28ea52f6212db55409b8ea0e99271947, type: 2}
-    amount: 1
+    amount: 3

@@ -7,6 +7,14 @@ public class DungeonExpedition
 {
     public DungeonDataSO dungeon;
     public List<string> memberInstanceIds = new List<string>();
+    public ExpeditionLootPolicy lootPolicy = ExpeditionLootPolicy.Store;
+}
+
+public enum ExpeditionLootPolicy
+{
+    Store = 0,
+    SellNonEquipment = 1,
+    SellAll = 2
 }
 
 public enum ExpeditionFormationResult
@@ -15,6 +23,7 @@ public enum ExpeditionFormationResult
     InvalidDungeon,
     DungeonNotCleared,
     HiddenDungeon,
+    DungeonAlreadyAssigned,
     InvalidMembers
 }
 
@@ -30,34 +39,29 @@ public sealed class ExpeditionEvent
     public DungeonExpedition Expedition { get; }
     public int Gold { get; }
     public IReadOnlyList<ItemDataSO> Materials { get; }
+    public int ExperiencePerMercenary { get; }
     public EquipmentInstance LimitedEquipment { get; }
 
-    public ExpeditionEvent(
-        ExpeditionEventType type,
-        DungeonExpedition expedition,
-        int gold,
-        IReadOnlyList<ItemDataSO> materials,
-        EquipmentInstance limitedEquipment = null)
+    public ExpeditionEvent(ExpeditionEventType type, DungeonExpedition expedition, int gold, IReadOnlyList<ItemDataSO> materials, EquipmentInstance limitedEquipment = null, int experiencePerMercenary = 0)
     {
         Type = type;
         Expedition = expedition;
         Gold = gold;
         Materials = materials;
         LimitedEquipment = limitedEquipment;
+        ExperiencePerMercenary = experiencePerMercenary;
     }
 }
 
-public class DungeonExpeditionManager : MonoBehaviour
+public sealed class DungeonExpeditionManager : MonoBehaviour
 {
-    public const float LimitedDropRateMultiplier = 0.5f;
+    public const float LimitedDropRateMultiplier = .5f;
+
     [SerializeField] private List<DungeonExpedition> activeExpeditions = new List<DungeonExpedition>();
     [SerializeField] private DungeonRunManager dungeonRunManager;
     [SerializeField] private MerchantInventory inventory;
     [SerializeField] private MerchantData merchantData;
     [SerializeField] private MercenaryHireManager hireManager;
-    [SerializeField] private MercenaryPartyManager partyManager;
-    [SerializeField] private TransportManager transportManager;
-    [SerializeField] private TownProgressState townProgressState;
     [SerializeField] private DayManager dayManager;
     private Func<float> randomValue = () => UnityEngine.Random.value;
     private bool isDayChangedSubscribed;
@@ -65,6 +69,7 @@ public class DungeonExpeditionManager : MonoBehaviour
     public IReadOnlyList<DungeonExpedition> ActiveExpeditions => activeExpeditions;
     public event Action ExpeditionChanged;
     public event Action<ExpeditionEvent> ExpeditionEventOccurred;
+    public event Action<ExpeditionEvent, int> ExpeditionDayResolved;
 
     private void OnEnable()
     {
@@ -85,14 +90,22 @@ public class DungeonExpeditionManager : MonoBehaviour
         randomValue = provider ?? (() => UnityEngine.Random.value);
     }
 
-    public ExpeditionFormationResult TryFormExpedition(DungeonDataSO dungeon, IReadOnlyList<MercenaryInstance> members)
+    public ExpeditionFormationResult TryFormExpedition(
+        DungeonDataSO dungeon,
+        IReadOnlyList<MercenaryInstance> members,
+        ExpeditionLootPolicy lootPolicy = ExpeditionLootPolicy.Store)
     {
         ExpeditionFormationResult result = Validate(dungeon, members);
         if (result != ExpeditionFormationResult.Succeeded)
         {
             return result;
         }
-        DungeonExpedition expedition = new DungeonExpedition { dungeon = dungeon };
+
+        DungeonExpedition expedition = new DungeonExpedition
+        {
+            dungeon = dungeon,
+            lootPolicy = NormalizeLootPolicy(lootPolicy)
+        };
         foreach (MercenaryInstance member in members)
         {
             expedition.memberInstanceIds.Add(member.InstanceId);
@@ -102,19 +115,44 @@ public class DungeonExpeditionManager : MonoBehaviour
         return ExpeditionFormationResult.Succeeded;
     }
 
+    public bool SetExpeditionLootPolicy(
+        DungeonExpedition expedition,
+        ExpeditionLootPolicy lootPolicy)
+    {
+        if (expedition == null || !activeExpeditions.Contains(expedition))
+        {
+            return false;
+        }
+
+        ExpeditionLootPolicy normalized = NormalizeLootPolicy(lootPolicy);
+        if (expedition.lootPolicy == normalized)
+        {
+            return true;
+        }
+
+        expedition.lootPolicy = normalized;
+        ExpeditionChanged?.Invoke();
+        return true;
+    }
+
     public void RecallExpedition(DungeonExpedition expedition)
     {
         if (expedition != null && activeExpeditions.Remove(expedition))
         {
-            foreach (MercenaryInstance member in GetMembers(expedition))
-            {
-                member.SetCurrentTownIndex(expedition.dungeon.nearbyTownIndex);
-            }
             ExpeditionChanged?.Invoke();
         }
     }
 
-    public bool IsMercenaryOnExpeditionDuty(string instanceId)
+    public void ClearActiveExpeditions()
+    {
+        if (activeExpeditions.Count > 0)
+        {
+            activeExpeditions.Clear();
+            ExpeditionChanged?.Invoke();
+        }
+    }
+
+    public bool IsMercenaryOnExpedition(string instanceId)
     {
         if (string.IsNullOrWhiteSpace(instanceId))
         {
@@ -132,7 +170,6 @@ public class DungeonExpeditionManager : MonoBehaviour
 
     public int GetRequiredStrength(DungeonDataSO dungeon)
     {
-        // Expeditions exclude bosses, special bosses, job certificates, and boss relic rewards.
         if (dungeon == null)
         {
             return 0;
@@ -143,7 +180,6 @@ public class DungeonExpeditionManager : MonoBehaviour
             case DungeonGrade.Lower: return 220;
             case DungeonGrade.Middle: return 420;
             case DungeonGrade.Upper: return 750;
-            case DungeonGrade.Highest: return 1200;
             default: return 1200;
         }
     }
@@ -166,7 +202,8 @@ public class DungeonExpeditionManager : MonoBehaviour
             {
                 dungeonPersistentId = expedition.dungeon.PersistentId,
                 dungeonAssetName = expedition.dungeon.name,
-                memberInstanceIds = new List<string>(expedition.memberInstanceIds)
+                memberInstanceIds = new List<string>(expedition.memberInstanceIds),
+                lootPolicy = (int)NormalizeLootPolicy(expedition.lootPolicy)
             });
         }
         return saved;
@@ -174,21 +211,40 @@ public class DungeonExpeditionManager : MonoBehaviour
 
     public void Restore(List<SavedDungeonExpedition> saved, IReadOnlyDictionary<string, MercenaryInstance> mercenaries)
     {
+        ResolveReferences();
         activeExpeditions.Clear();
         if (saved != null && mercenaries != null)
         {
             foreach (SavedDungeonExpedition value in saved)
             {
                 DungeonDataSO dungeon = value == null ? null : GameAssetRepository.FindByPersistentId<DungeonDataSO>(value.dungeonPersistentId, value.dungeonAssetName);
-                if (dungeon == null || value.memberInstanceIds == null || value.memberInstanceIds.Count < 1 || value.memberInstanceIds.Count > 3)
+                if (dungeon == null ||
+                    dungeon.nearbyTownIndex == WorldMapService.HiddenIslandTownIndex ||
+                    dungeonRunManager == null ||
+                    dungeonRunManager.GetClearedFloors(dungeon) < Mathf.Max(1, dungeon.totalFloors) ||
+                    value.memberInstanceIds == null ||
+                    value.memberInstanceIds.Count < 1 ||
+                    value.memberInstanceIds.Count > 3 ||
+                    HasExpeditionForDungeon(dungeon))
                 {
                     continue;
                 }
-                DungeonExpedition expedition = new DungeonExpedition { dungeon = dungeon };
+                DungeonExpedition expedition = new DungeonExpedition
+                {
+                    dungeon = dungeon,
+                    lootPolicy = NormalizeLootPolicy((ExpeditionLootPolicy)value.lootPolicy)
+                };
                 bool valid = true;
                 foreach (string id in value.memberInstanceIds)
                 {
-                    if (string.IsNullOrWhiteSpace(id) || !mercenaries.ContainsKey(id) || expedition.memberInstanceIds.Contains(id))
+                    if (string.IsNullOrWhiteSpace(id) ||
+                        !mercenaries.TryGetValue(id, out MercenaryInstance mercenary) ||
+                        mercenary == null ||
+                        !mercenary.IsContractActive ||
+                        mercenary.CurrentTownIndex != dungeon.nearbyTownIndex ||
+                        expedition.memberInstanceIds.Contains(id) ||
+                        IsMercenaryOnExpedition(id) ||
+                        MercenaryDutyService.IsOnNonExpeditionDuty(id))
                     {
                         valid = false;
                         break;
@@ -215,9 +271,13 @@ public class DungeonExpeditionManager : MonoBehaviour
         {
             return ExpeditionFormationResult.HiddenDungeon;
         }
-        if (dungeonRunManager == null || dungeonRunManager.GetClearedFloors(dungeon) < dungeon.totalFloors)
+        if (dungeonRunManager == null || dungeonRunManager.GetClearedFloors(dungeon) < Mathf.Max(1, dungeon.totalFloors))
         {
             return ExpeditionFormationResult.DungeonNotCleared;
+        }
+        if (HasExpeditionForDungeon(dungeon))
+        {
+            return ExpeditionFormationResult.DungeonAlreadyAssigned;
         }
         if (members == null || members.Count < 1 || members.Count > 3)
         {
@@ -226,12 +286,7 @@ public class DungeonExpeditionManager : MonoBehaviour
         HashSet<string> ids = new HashSet<string>();
         foreach (MercenaryInstance member in members)
         {
-            if (member == null || !member.IsContractActive || !ids.Add(member.InstanceId) || !IsHired(member) || (partyManager != null && partyManager.Contains(member)) || (transportManager != null && transportManager.IsMercenaryOnTransportDuty(member.InstanceId)) || IsMercenaryOnExpeditionDuty(member.InstanceId))
-            {
-                return ExpeditionFormationResult.InvalidMembers;
-            }
-            if (townProgressState != null &&
-                member.CurrentTownIndex != townProgressState.CurrentTownIndex)
+            if (member == null || !member.IsContractActive || !ids.Add(member.InstanceId) || !IsHired(member) || member.CurrentTownIndex != dungeon.nearbyTownIndex || MercenaryDutyService.IsOnNonExpeditionDuty(member.InstanceId) || IsMercenaryOnExpedition(member.InstanceId))
             {
                 return ExpeditionFormationResult.InvalidMembers;
             }
@@ -244,89 +299,185 @@ public class DungeonExpeditionManager : MonoBehaviour
         ResolveReferences();
         foreach (DungeonExpedition expedition in activeExpeditions)
         {
-            ProcessExpedition(expedition);
+            ProcessExpedition(expedition, day - 1);
         }
         ExpeditionChanged?.Invoke();
     }
 
-    private void ProcessExpedition(DungeonExpedition expedition)
+    private void ProcessExpedition(DungeonExpedition expedition, int accountingDay)
     {
-        int strength = GetExpeditionStrength(expedition);
-        int required = GetRequiredStrength(expedition.dungeon);
+        if (expedition?.dungeon == null)
+        {
+            return;
+        }
         List<MercenaryInstance> members = GetMembers(expedition);
+        int required = GetRequiredStrength(expedition.dungeon);
+        int strength = GetExpeditionStrength(expedition);
         if (strength < required)
         {
-            float lack = required <= 0 ? 1f : Mathf.Clamp01((required - strength) / (float)required);
             foreach (MercenaryInstance member in members)
             {
-                int damage = Mathf.Max(1, Mathf.CeilToInt(member.MaxHP * (.1f + lack * .2f)));
+                int damage = Mathf.Max(1, Mathf.CeilToInt(member.MaxHP * (.1f + Mathf.Clamp01((required - strength) / (float)required) * .2f)));
                 member.SetCurrentHP(Mathf.Max(1, member.CurrentHP - damage));
             }
-            ExpeditionEventOccurred?.Invoke(new ExpeditionEvent(ExpeditionEventType.Failed, expedition, 0, Array.Empty<ItemDataSO>()));
+            SettleExpeditionHealing(expedition.dungeon, members, accountingDay);
+            NotifyExpeditionResolved(new ExpeditionEvent(ExpeditionEventType.Failed, expedition, 0, Array.Empty<ItemDataSO>()), accountingDay);
             return;
         }
         List<ItemDataSO> materials = new List<ItemDataSO>();
-        int gold = GrantNormalEncounterRewards(expedition.dungeon, members, materials);
-        EquipmentInstance limitedEquipment = TryDepositLimitedEquipment(expedition.dungeon);
-        ExpeditionEventOccurred?.Invoke(
-            new ExpeditionEvent(
-                ExpeditionEventType.Succeeded,
-                expedition,
-                gold,
-                materials,
-                limitedEquipment));
+        int gold = GrantNormalEncounterRewards(expedition, members, strength, required, materials, accountingDay, out int experiencePerMercenary);
+        EquipmentInstance limitedEquipment = TryDepositLimitedEquipment(expedition, accountingDay);
+        SettleExpeditionHealing(expedition.dungeon, members, accountingDay);
+        NotifyExpeditionResolved(new ExpeditionEvent(ExpeditionEventType.Succeeded, expedition, gold, materials, limitedEquipment, experiencePerMercenary), accountingDay);
     }
 
-    private int GrantNormalEncounterRewards(
-        DungeonDataSO dungeon,
-        IReadOnlyList<MercenaryInstance> members,
-        List<ItemDataSO> awardedMaterials)
+    private int GrantNormalEncounterRewards(DungeonExpedition expedition, IReadOnlyList<MercenaryInstance> members, int strength, int requiredStrength, List<ItemDataSO> awardedMaterials, int accountingDay, out int totalExperiencePerMercenary)
     {
-        if (dungeon == null)
-        {
-            return 0;
-        }
+        DungeonDataSO dungeon = expedition.dungeon;
         int totalGold = 0;
-        int encounterCount = RollRange(3, 6);
-        for (int encounterNumber = 1; encounterNumber <= encounterCount; encounterNumber++)
+        totalExperiencePerMercenary = 0;
+        for (int encounterNumber = 1; encounterNumber <= RollRange(3, 6); encounterNumber++)
         {
-            int enemyCount = Mathf.Min(
-                Mathf.Max(1, dungeon.maxEnemyCountPerEncounter),
-                Mathf.Max(1, dungeon.firstEncounterEnemyCount) +
-                ((encounterNumber - 1) * Mathf.Max(0, dungeon.enemyCountIncreasePerEncounter)));
+            int enemyCount = Mathf.Min(Mathf.Max(1, dungeon.maxEnemyCountPerEncounter), Mathf.Max(1, dungeon.firstEncounterEnemyCount) + ((encounterNumber - 1) * Mathf.Max(0, dungeon.enemyCountIncreasePerEncounter)));
             List<EnemyDataSO> enemies = CreateNormalEncounter(dungeon, enemyCount);
-            BattleRewardService.VictoryRewardCalculation rewards =
-                BattleRewardService.CalculateVictoryRewards(
-                    enemies,
-                    members == null ? 0 : members.Count,
-                    randomValue,
-                    null);
+            BattleRewardService.VictoryRewardCalculation rewards = BattleRewardService.CalculateVictoryRewards(enemies, members.Count, randomValue, null);
+            ApplySuccessfulEncounterDamage(dungeon, enemies, members, strength, requiredStrength);
             totalGold += rewards.Gold;
+            totalExperiencePerMercenary += rewards.ExperiencePerMercenary;
             foreach (MercenaryInstance member in members)
             {
-                if (member != null)
-                {
-                    member.AddExperience(rewards.ExperiencePerMercenary);
-                }
+                member?.AddExperience(rewards.ExperiencePerMercenary);
             }
             foreach (ItemDropEntry drop in rewards.ItemDrops)
             {
-                if (drop != null && drop.item != null && inventory != null && inventory.DepositItemTo(dungeon.nearbyTownIndex, drop.item, drop.amount))
+                if (drop?.item == null || drop.amount <= 0)
                 {
-                    for (int amount = 0; amount < drop.amount; amount++)
-                    {
-                        awardedMaterials.Add(drop.item);
-                    }
+                    continue;
+                }
+
+                if (ShouldSellItemImmediately(expedition.lootPolicy, drop.item) ||
+                    !TryDepositExpeditionItem(dungeon.nearbyTownIndex, drop.item, drop.amount))
+                {
+                    SellExpeditionItem(dungeon, drop.item, drop.amount, accountingDay);
+                    continue;
+                }
+
+                for (int amount = 0; amount < drop.amount; amount++)
+                {
+                    awardedMaterials.Add(drop.item);
                 }
             }
         }
-        merchantData?.AddGold(totalGold);
+        merchantData?.AddGold(
+            totalGold,
+            GoldTransactionReason.ExpeditionReward,
+            dungeon.dungeonName,
+            accountingDay);
         return totalGold;
+    }
+
+    // This intentionally approximates combat rather than running a full BattleManager simulation.
+    private static void ApplySuccessfulEncounterDamage(
+        DungeonDataSO dungeon,
+        IReadOnlyList<EnemyDataSO> enemies,
+        IReadOnlyList<MercenaryInstance> members,
+        int strength,
+        int requiredStrength)
+    {
+        if (members == null || members.Count == 0)
+        {
+            return;
+        }
+
+        int enemyCount = 0;
+        int totalAttack = 0;
+        float enemyGradeFactor = 0f;
+        if (enemies != null)
+        {
+            foreach (EnemyDataSO enemy in enemies)
+            {
+                if (enemy == null)
+                {
+                    continue;
+                }
+                enemyCount++;
+                totalAttack += Mathf.Max(0, enemy.attack);
+                // Monster grade 1 is the strongest grade in the reward/balance model.
+                enemyGradeFactor += 1f + (10 - Mathf.Clamp(enemy.monsterGrade, 1, 10)) * .06f;
+            }
+        }
+
+        enemyCount = Mathf.Max(1, enemyCount);
+        enemyGradeFactor = enemyCount > 0 ? enemyGradeFactor / enemyCount : 1f;
+        if (enemyGradeFactor <= 0f)
+        {
+            enemyGradeFactor = 1f;
+        }
+        float dungeonGradeFactor = 1f + (int)dungeon.grade * .2f;
+        float strengthRatio = requiredStrength <= 0 ? 1f : strength / (float)requiredStrength;
+        float strengthMitigation = 1f - Mathf.Clamp01((strengthRatio - 1f) / 2f) * .5f;
+        float damagePercent = ((.015f * enemyCount * enemyGradeFactor * dungeonGradeFactor) +
+            (totalAttack * .001f)) * strengthMitigation;
+
+        foreach (MercenaryInstance member in members)
+        {
+            if (member == null)
+            {
+                continue;
+            }
+            int damage = Mathf.Max(1, Mathf.CeilToInt(member.MaxHP * damagePercent));
+            member.SetCurrentHP(Mathf.Max(1, member.CurrentHP - damage));
+        }
+    }
+
+    private void SettleExpeditionHealing(
+        DungeonDataSO dungeon,
+        IReadOnlyList<MercenaryInstance> members,
+        int accountingDay)
+    {
+        if (dungeon == null || members == null || members.Count == 0)
+        {
+            return;
+        }
+
+        int totalCost = 0;
+        foreach (MercenaryInstance member in members)
+        {
+            if (member != null)
+            {
+                totalCost += HealingCostService.CalculateFullHealCost(
+                    member.MaxHP,
+                    member.CurrentHP,
+                    false).TotalCost;
+            }
+        }
+        if (totalCost <= 0 || merchantData == null || !merchantData.TryPayGold(
+            totalCost,
+            GoldTransactionReason.ExpeditionHealing,
+            "別動隊の治療費: " + dungeon.dungeonName,
+            accountingDay))
+        {
+            return;
+        }
+
+        foreach (MercenaryInstance member in members)
+        {
+            if (member != null)
+            {
+                member.SetCurrentHP(member.MaxHP);
+            }
+        }
+    }
+
+    private void NotifyExpeditionResolved(ExpeditionEvent expeditionEvent, int accountingDay)
+    {
+        ExpeditionEventOccurred?.Invoke(expeditionEvent);
+        ExpeditionDayResolved?.Invoke(expeditionEvent, accountingDay);
     }
 
     private List<EnemyDataSO> CreateNormalEncounter(DungeonDataSO dungeon, int enemyCount)
     {
-        List<EnemyDataSO> result = new List<EnemyDataSO>();
+        List<EnemyDataSO> enemies = new List<EnemyDataSO>();
         bool specialVariantAdded = false;
         for (int index = 0; index < enemyCount; index++)
         {
@@ -337,30 +488,26 @@ public class DungeonExpeditionManager : MonoBehaviour
             }
             if (!specialVariantAdded && enemy.category == EnemyCategory.Normal && randomValue() < dungeon.specialVariantChance)
             {
-                enemy = DungeonEnemyVariantService.CreateSpecialVariant(
-                    enemy,
-                    dungeon.specialVariantSkillPool,
-                    dungeon.grade,
-                    false,
-                    randomValue);
+                enemy = DungeonEnemyVariantService.CreateSpecialVariant(enemy, dungeon.specialVariantSkillPool, dungeon.grade, false, randomValue);
                 specialVariantAdded = enemy != null && enemy.isSpecialVariant;
             }
-            result.Add(enemy);
+            enemies.Add(enemy);
         }
-        return result;
+        return enemies;
     }
 
     private EnemyDataSO GetRandomNormalEnemy(DungeonDataSO dungeon)
     {
         List<EnemyDataSO> candidates = new List<EnemyDataSO>();
-        if (dungeon != null && dungeon.normalEnemies != null)
+        if (dungeon.normalEnemies == null)
         {
-            foreach (EnemyDataSO enemy in dungeon.normalEnemies)
+            return null;
+        }
+        foreach (EnemyDataSO enemy in dungeon.normalEnemies)
+        {
+            if (enemy != null && !enemy.isBoss)
             {
-                if (enemy != null && !enemy.isBoss)
-                {
-                    candidates.Add(enemy);
-                }
+                candidates.Add(enemy);
             }
         }
         return candidates.Count == 0 ? null : candidates[RollRange(0, candidates.Count)];
@@ -371,45 +518,127 @@ public class DungeonExpeditionManager : MonoBehaviour
         return Mathf.Clamp(Mathf.FloorToInt(randomValue() * (maxExclusive - minInclusive)) + minInclusive, minInclusive, maxExclusive - 1);
     }
 
-    private EquipmentInstance TryDepositLimitedEquipment(DungeonDataSO dungeon)
+    private EquipmentInstance TryDepositLimitedEquipment(
+        DungeonExpedition expedition,
+        int accountingDay)
     {
-        if (dungeon == null ||
-            inventory == null ||
-            dungeon.bossLimitedDropChance <= 0f ||
-            randomValue() > dungeon.bossLimitedDropChance * LimitedDropRateMultiplier)
+        DungeonDataSO dungeon = expedition.dungeon;
+        if (inventory == null || dungeon.bossLimitedDropChance <= 0f || randomValue() > dungeon.bossLimitedDropChance * LimitedDropRateMultiplier)
         {
             return null;
         }
-
-        EquipmentInstance equipment =
-            DungeonRewardService.TryCreateLimitedEquipment(dungeon, randomValue);
-        if (equipment == null)
+        EquipmentInstance equipment = DungeonRewardService.TryCreateLimitedEquipment(dungeon, randomValue);
+        if (equipment != null)
         {
-            return null;
+            if (expedition.lootPolicy == ExpeditionLootPolicy.SellAll ||
+                !TryDepositExpeditionEquipment(dungeon.nearbyTownIndex, equipment))
+            {
+                SellExpeditionEquipment(dungeon, equipment, accountingDay);
+            }
         }
-
-        inventory.DepositEquipmentTo(dungeon.nearbyTownIndex, equipment);
         return equipment;
+    }
+
+    private static ExpeditionLootPolicy NormalizeLootPolicy(ExpeditionLootPolicy lootPolicy)
+    {
+        return lootPolicy == ExpeditionLootPolicy.SellNonEquipment ||
+               lootPolicy == ExpeditionLootPolicy.SellAll
+            ? lootPolicy
+            : ExpeditionLootPolicy.Store;
+    }
+
+    private static bool ShouldSellItemImmediately(
+        ExpeditionLootPolicy lootPolicy,
+        ItemDataSO item)
+    {
+        return lootPolicy == ExpeditionLootPolicy.SellAll ||
+               (lootPolicy == ExpeditionLootPolicy.SellNonEquipment &&
+                item.itemType != ItemType.Equipment);
+    }
+
+    private bool TryDepositExpeditionItem(int townIndex, ItemDataSO item, int amount)
+    {
+        return inventory != null && inventory.DepositItemTo(townIndex, item, amount);
+    }
+
+    private bool TryDepositExpeditionEquipment(int townIndex, EquipmentInstance equipment)
+    {
+        // Equipment normally bypasses capacity, but expedition loot must be sold
+        // when the destination warehouse is already full.
+        if (inventory == null || !inventory.CanDepositItemsTo(townIndex, 1))
+        {
+            return false;
+        }
+
+        inventory.DepositEquipmentTo(townIndex, equipment);
+        return true;
+    }
+
+    private void SellExpeditionItem(
+        DungeonDataSO dungeon,
+        ItemDataSO item,
+        int amount,
+        int accountingDay)
+    {
+        if (inventory == null || merchantData == null || item == null || amount <= 0)
+        {
+            return;
+        }
+
+        merchantData.AddGold(
+            inventory.GetSellPrice(item) * amount,
+            GoldTransactionReason.ItemSale,
+            dungeon.dungeonName + ": " + item.itemName,
+            accountingDay);
+    }
+
+    private void SellExpeditionEquipment(
+        DungeonDataSO dungeon,
+        EquipmentInstance equipment,
+        int accountingDay)
+    {
+        if (inventory == null || merchantData == null || equipment == null)
+        {
+            return;
+        }
+
+        merchantData.AddGold(
+            inventory.GetSellPrice(equipment),
+            GoldTransactionReason.ItemSale,
+            dungeon.dungeonName + ": " + equipment.BaseItem.itemName,
+            accountingDay);
     }
 
     private List<MercenaryInstance> GetMembers(DungeonExpedition expedition)
     {
-        List<MercenaryInstance> result = new List<MercenaryInstance>();
+        List<MercenaryInstance> members = new List<MercenaryInstance>();
         if (expedition == null || hireManager == null)
         {
-            return result;
+            return members;
         }
         foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
         {
             if (mercenary != null && expedition.memberInstanceIds.Contains(mercenary.InstanceId))
             {
-                result.Add(mercenary);
+                members.Add(mercenary);
             }
         }
-        return result;
+        return members;
     }
 
-    private bool IsHired(MercenaryInstance member)
+    private bool HasExpeditionForDungeon(DungeonDataSO dungeon)
+    {
+        foreach (DungeonExpedition expedition in activeExpeditions)
+        {
+            if (expedition != null && expedition.dungeon == dungeon)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private bool IsHired(MercenaryInstance mercenary)
     {
         if (hireManager == null)
         {
@@ -417,7 +646,7 @@ public class DungeonExpeditionManager : MonoBehaviour
         }
         foreach (MercenaryInstance hired in hireManager.HiredMercenaries)
         {
-            if (ReferenceEquals(hired, member))
+            if (ReferenceEquals(hired, mercenary))
             {
                 return true;
             }
@@ -427,26 +656,15 @@ public class DungeonExpeditionManager : MonoBehaviour
 
     private void ResolveReferences()
     {
-        if (dungeonRunManager == null) dungeonRunManager = GetComponent<DungeonRunManager>() ?? FindObjectOfType<DungeonRunManager>();
-        if (inventory == null) inventory = GetComponent<MerchantInventory>() ?? FindObjectOfType<MerchantInventory>();
-        if (merchantData == null) merchantData = GetComponent<MerchantData>() ?? FindObjectOfType<MerchantData>();
-        if (hireManager == null) hireManager = GetComponent<MercenaryHireManager>() ?? FindObjectOfType<MercenaryHireManager>();
-        if (partyManager == null) partyManager = GetComponent<MercenaryPartyManager>() ?? FindObjectOfType<MercenaryPartyManager>();
-        if (transportManager == null) transportManager = GetComponent<TransportManager>() ?? FindObjectOfType<TransportManager>();
-        if (townProgressState == null) townProgressState = GetComponent<TownProgressState>() ?? FindObjectOfType<TownProgressState>();
-        if (dayManager == null) dayManager = GetComponent<DayManager>() ?? FindObjectOfType<DayManager>();
-        EnsureDayChangedSubscription();
-    }
-
-    private void EnsureDayChangedSubscription()
-    {
-        if (dayManager == null)
+        dungeonRunManager = dungeonRunManager ?? GetComponent<DungeonRunManager>() ?? FindObjectOfType<DungeonRunManager>();
+        inventory = inventory ?? GetComponent<MerchantInventory>() ?? FindObjectOfType<MerchantInventory>();
+        merchantData = merchantData ?? GetComponent<MerchantData>() ?? FindObjectOfType<MerchantData>();
+        hireManager = hireManager ?? GetComponent<MercenaryHireManager>() ?? FindObjectOfType<MercenaryHireManager>();
+        dayManager = dayManager ?? GetComponent<DayManager>() ?? FindObjectOfType<DayManager>();
+        if (dayManager != null && !isDayChangedSubscribed)
         {
-            return;
+            dayManager.DayChanged += HandleDayChanged;
+            isDayChangedSubscribed = true;
         }
-
-        dayManager.DayChanged -= HandleDayChanged;
-        dayManager.DayChanged += HandleDayChanged;
-        isDayChangedSubscribed = true;
     }
 }

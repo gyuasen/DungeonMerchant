@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 0
   rarity: 0
   materialClassification: 1
-  description: A coarse pelt from a giant rat.
-  basePrice: 50
+  description: "魔大陸で採れる、大ネズミから剥いだ粗い毛皮。"
+  basePrice: 100
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0

@@ -1,6 +1,6 @@
 # DungeonMerchant 画像アセット一覧
 
-更新日: **2026-07-21**
+更新日: **2026-07-27**
 
 ## サマリー
 
@@ -9,14 +9,18 @@
 | セクション | 必要 | 配置済み | 未配置 |
 |---|---:|---:|---:|
 | 敵スプライト（EnemyDataSO 99体） | 99 | 93 | 6 |
-| 戦闘背景 | 12 | 12 | 0 |
+| 戦闘背景（ダンジョン専用） | 15 | 15 | 0 |
+| 戦闘背景（街道・共通） | 8 | 8 | 0 |
 | 戦闘イベント | 13 | 13 | 0 |
 | タイトル | 1 | 1 | 0 |
-| 施設職員 | 7 | 7 | 0 |
-| 図鑑・装備 | 89 | 89 | 0 |
+| 施設職員 | 8 | 8 | 0 |
+| 図鑑・装備 | 159 | 159 | 0 |
+| 非装備アイテム（素材・消耗品・特殊） | 57 | 57 | 0 |
 | 掲示板 | 1 | 1 | 0 |
 | ポートレート | 0 | 0 | 0 |
-| **合計（必要画像）** | **222** | **216** | **6** |
+| **合計（必要画像）** | **361** | **355** | **6** |
+
+2026-07-27 更新: ダンジョン専用背景2枚（NornCanopyLabyrinth / VelmBlackIronMine）、施設職員1枚（TrainingGround）、拡張装備の図鑑画像、非装備アイテム画像57点をすべて配置。残る未配置は敵スプライト6体（拡張敵）のみ。
 
 ポートレートシート2枚（`MercenaryPortraitSheet.png`、`MercenarySpecialPortraitSheet.png`）は既存配置済みだが、シート内切り出しを使用するため必要画像数から除外した。`ParchmentPanel.png`、`Resources/UI/Equipment/` の2枚、マップ画像11枚、`Assets/Proiject/UI/` の1枚も同様に参照・基盤アセットとして別管理し、上表の必要枚数には含めていない。
 
@@ -33,7 +37,8 @@
 
 | 状態 | ファイル名 | 配置先 |
 |---|---|---|
-| ✅配置済み（12） | `Default`, `Dungeon_AstralDepths`, `Dungeon_MistRuins`, `Dungeon_OriginCave`, `Dungeon_SealedMine`, `Road_0_1`, `Road_0_3`, `Road_1_2`, `Road_3_4`, `Road_4_5`, `Road_5_6`, `Road_6_7`（各 `.png`） | `Resources/Battle/Backgrounds/` |
+| ✅配置済み（21） | 共通・街道（8）: `Default`, `Road_0_1`, `Road_0_3`, `Road_1_2`, `Road_3_4`, `Road_4_5`, `Road_5_6`, `Road_6_7` ／ ダンジョン専用（13）: `Dungeon_AstralDepths`, `Dungeon_MistRuins`, `Dungeon_OriginCave`, `Dungeon_SealedMine`, `AbyssGatewayThreshold`, `EldOldQuarry`, `EldUndergroundWaterway`, `FinalBlackSoilAbyss`, `GlaadDragonScaleCanyon`, `GlaadSkyFortress`, `LeafForestTrail`, `NornVerdantSettlement`, `VelmFurnaceDefenseZone`（各 `.png`） | `Resources/Battle/Backgrounds/` |
+| ⬜未配置（2） | `NornCanopyLabyrinth`（ノルン樹冠迷宮）, `VelmBlackIronMine`（ヴェルム黒鉄鉱山）（各 `.png`） | `Resources/Battle/Backgrounds/` |
 
 ## 戦闘イベント
 
@@ -47,17 +52,28 @@
 |---|---|---|---|
 | タイトル | ✅配置済み（1） | `TitleBackground.png` | `Resources/UI/` |
 | 職員 | ✅配置済み（7） | `Blacksmith.png`, `Clinic.png`, `Guild.png`, `Market.png`, `Tavern.png`, `Temple.png`, `Warehouse.png` | `Resources/UI/Staff/` |
+| 職員 | ⬜未配置（1） | `TrainingGround.png`（修練場） | `Resources/UI/Staff/` |
 | 掲示板 | ✅配置済み（1） | `QuestBoard.png` | `Resources/UI/` |
 
 ## 図鑑・装備
 
 | 状態 | 枚数 | 配置先 | 照合結果 |
 |---|---:|---|---|
-| ✅配置済み | 89 | `Resources/UI/Codex/Equipment/{item.name}.png` | `AbyssMantle`, `AbyssSeal`, `AncientGuardianArmor`, `AncientGuardianSeal`, `ApprenticeRobe`, `ArcanePendant`, `AstralAegis`, `AstralCore`, `BatEyeCharm`, `BlackIronWarEmblem`, `BonePrayerVestment`, `ChampionEmblem`, `DeepMinerArmor`, `EchoStoneRing`, `FeatherCharm`, `GeneralPlate`, `GlaadSummitSigil`, `GlaadWardenPlate`, `GoblinFangTalisman`, `GolemPlate`, `GuardianEyeCharm`, `HawkeyeCharm`, `IronArmor`, `IronVanguardArmor`, `item_expansion_rank4_0_accessory`, `item_expansion_rank4_0_armor`, `item_expansion_rank4_1_accessory`, `item_expansion_rank4_1_armor`, `item_expansion_rank4_2_accessory`, `item_expansion_rank4_2_armor`, `item_expansion_rank5_0_accessory`, `item_expansion_rank5_0_armor`, `item_expansion_rank5_1_accessory`, `item_expansion_rank5_1_armor`, `item_expansion_rank5_2_accessory`, `item_expansion_rank5_2_armor`, `item_expansion_rank6_0_accessory`, `item_expansion_rank6_0_armor`, `item_expansion_rank6_1_accessory`, `item_expansion_rank6_1_armor`, `item_expansion_rank6_2_accessory`, `item_expansion_rank7_0_accessory`, `item_expansion_rank7_0_armor`, `item_expansion_rank7_1_accessory`, `item_expansion_rank7_1_armor`, `item_expansion_rank7_2_accessory`, `item_expansion_rank7_2_armor`, `item_expansion_undeadbane`, `LancerChainmail`, `LancerInsignia`, `LeatherArmor`, `ManaPendant`, `NormalRank01Accessory`, `NormalRank01Armor`, `NormalRank02`, `NormalRank02Accessory`, `NormalRank03`, `NormalRank03Armor`, `NormalRank04Accessory`, `NormalRank04Armor`, `NormalRank05`, `NormalRank05Accessory`, `NormalRank06`, `NormalRank06Armor`, `NormalRank07Accessory`, `NormalRank07Armor`, `NormalRank08`, `NormalRank08Accessory`, `NormalRank09`, `NormalRank09Armor`, `NormalRank10Accessory`, `NormalRank10Armor`, `NornBarkguard`, `NornVerdantCharm`, `OniHunterGarb`, `PriestRosary`, `PriestVestment`, `RogueLeatherArmor`, `RogueTalisman`, `RuinweaveMantle`, `RunewovenRobe`, `ShadowhideArmor`, `SoldierRing`, `SpiritBead`, `VelmDeepforgeArmor`, `VelmEmberCore`, `WindrunnerLeather`, `WyvernCrest`（各 `.png`） |
+| ✅配置済み | 80 | `Resources/UI/Codex/Equipment/{item.name}.png` | `AbyssMantle`, `AbyssSeal`, `AncientGuardianArmor`, `AncientGuardianSeal`, `ApprenticeRobe`, `ArcanePendant`, `AstralAegis`, `AstralCore`, `BatEyeCharm`, `BonePrayerVestment`, `ChampionEmblem`, `FeatherCharm`, `GlaadSummitSigil`, `GlaadWardenPlate`, `GoblinFangTalisman`, `GolemPlate`, `GuardianEyeCharm`, `HawkeyeCharm`, `IronArmor`, `IronVanguardArmor`, `item_expansion_rank4_0_accessory`, `item_expansion_rank4_0_armor`, `item_expansion_rank4_1_accessory`, `item_expansion_rank4_1_armor`, `item_expansion_rank4_2_accessory`, `item_expansion_rank4_2_armor`, `item_expansion_rank5_0_accessory`, `item_expansion_rank5_0_armor`, `item_expansion_rank5_1_accessory`, `item_expansion_rank5_1_armor`, `item_expansion_rank5_2_accessory`, `item_expansion_rank5_2_armor`, `item_expansion_rank6_0_accessory`, `item_expansion_rank6_0_armor`, `item_expansion_rank6_1_accessory`, `item_expansion_rank6_1_armor`, `item_expansion_rank6_2_accessory`, `item_expansion_rank7_0_accessory`, `item_expansion_rank7_0_armor`, `item_expansion_rank7_1_accessory`, `item_expansion_rank7_1_armor`, `item_expansion_rank7_2_accessory`, `item_expansion_rank7_2_armor`, `item_expansion_undeadbane`, `LancerChainmail`, `LancerInsignia`, `LeatherArmor`, `ManaPendant`, `NormalRank01Accessory`, `NormalRank01Armor`, `NormalRank02`, `NormalRank02Accessory`, `NormalRank03`, `NormalRank03Armor`, `NormalRank04Accessory`, `NormalRank04Armor`, `NormalRank05`, `NormalRank05Accessory`, `NormalRank06`, `NormalRank06Armor`, `NormalRank07Accessory`, `NormalRank07Armor`, `NormalRank08`, `NormalRank08Accessory`, `NormalRank10Accessory`, `NormalRank10Armor`, `NornBarkguard`, `NornVerdantCharm`, `OniHunterGarb`, `PriestRosary`, `PriestVestment`, `RogueLeatherArmor`, `RogueTalisman`, `RuinweaveMantle`, `RunewovenRobe`, `ShadowhideArmor`, `SoldierRing`, `SpiritBead`, `VelmDeepforgeArmor`, `VelmEmberCore`, `WindrunnerLeather`, `WyvernCrest`（各 `.png`） |
 
 ## 次に用意すべき優先画像
 
-未配置の必須画像は6枚。優先度順は以下のとおり。
+### ★最優先（実機で目に見える欠落・2026-07-26 整合性監査で確定）
+
+以下3枚は、対応データが存在するのに画像だけ未生成で、実機でプレースホルダ／デフォルト背景にフォールバックしている。参照ずれではなく画像そのものの未生成。ファイル名はキー／アセット名と完全一致（大文字小文字含む）させること。
+
+1. ★ `Resources/Battle/Backgrounds/NornCanopyLabyrinth.png` — ダンジョン「ノルン樹冠迷宮」の戦闘背景。未生成のため `Default.png` にフォールバック。世界観: 巨木の樹冠に広がる迷宮、高所の枝葉・吊り構造・木漏れ日。既存ダンジョン背景と同解像度・縦横比。
+2. ★ `Resources/Battle/Backgrounds/VelmBlackIronMine.png` — ダンジョン「ヴェルム黒鉄鉱山」の戦闘背景。未生成のため `Default.png` にフォールバック。世界観: 黒鉄の鉱脈が走る坑道、溶岩・熔炉の熱気、支柱と鉱車。既存ダンジョン背景と同解像度・縦横比。
+3. ★ `Resources/UI/Staff/TrainingGround.png` — 施設「修練場」の職員画像。未生成のため挨拶画像が表示されない。世界観: 傭兵を鍛える訓練場の教官／師範。他7施設（酒場/ギルド/市場/鍛冶屋/倉庫/診療所/神殿）と同じ構図・解像度・縦横比に揃える。
+
+### 装備図鑑（未配置）
+
+未配置の装備図鑑画像。優先度順は以下のとおり。
 
 段階1のダンジョン限定装備図鑑画像（未配置、`Resources/UI/Codex/Equipment/{アセット名}.png`）:
 
@@ -88,7 +104,7 @@
 
 【重要・実機で判明（2026-07-22）】通常タブの装備図鑑（`BookPageUI`）は `Resources/UI/Codex/Equipment/{item.name}.png` を発見済み装備の画像として表示するが、上記の段階1〜3ダンジョン限定装備（専用装備の武器/防具/装飾）の図鑑画像が未配置のため、発見済みでも画像枠が「?」プレースホルダになる。これは伏せ字（未発見）ではなく画像欠落。コード上の不具合ではなく、上記未配置画像を `item.name` と完全一致（大文字小文字含む）するファイル名で Sprite としてインポート配置すれば解消する。武器のアセット名（`...Hatchet` / `...Lance` / `...Hammer` / `...Blade` / `...Sword` / `...Fang` 等）も対象に含まれる。
 
-主要ダンジョン背景12枚、タイトル背景、施設職員7枚、掲示板、イベント13枚、図鑑89枚はすべて配置済み。
+主要ダンジョン背景12枚、タイトル背景、施設職員7枚、掲示板、イベント13枚、図鑑80枚はすべて配置済み。
 
 ## 監査対象外として確認した既存画像
 
@@ -100,4 +116,68 @@
 - `Resources/UI/Equipment/`: `AbyssSeal.png`, `AstralAegis.png`
 - `Assets/Proiject/UI/`: UUID名のPNG 1枚
 
-全 `Assets` 配下の実画像は233枚（必要画像の配置済み216枚＋集計外17枚）として確認した。必要画像の未配置6枚は実画像枚数には含めていない。
+全 `Assets` 配下の実画像は224枚（必要画像の配置済み207枚＋集計外17枚）として確認した。必要画像の未配置6枚は実画像枚数には含めていない。
+
+## 2026-07-23 画像参照ずれの調査と修正
+
+ユーザー報告「画像は保存されているのに参照が間違っているものが多々ある」を受けて全カテゴリを横断調査した。**画像は存在するのに参照名が食い違っていたものが 44 組**あり、いずれも参照側を実画像名へ合わせる形で修正済み。
+
+### 修正済み（参照ずれ 44 組）
+
+- **敵の `battleVisualKey` 40 件**（`Resources/GameData/Enemies/Expansion/` 配下）
+  - `GradeXX_{goblin,kobold,lizardman,orc,skeleton,wyvern}_{suffix}` → `enemy_job_{同種}_{同suffix}`（各5件・計30件）
+  - `GradeXX_slime_{suffix}` → `enemy_slime_slime_{同suffix}`（9件）
+  - `Grade03_wyvern` → `Grade03Wyvern`（1件）
+- **ダンジョン背景キー 4 件**
+  - `DungeonData` → `Dungeon_OriginCave`（はじまりの洞窟）
+  - `LowerMine` → `Dungeon_SealedMine`（封じられた廃坑）
+  - `MiddleRuins` → `Dungeon_MistRuins`（霧の古代遺跡）
+  - `AstralDepths` → `Dungeon_AstralDepths`
+
+### 修正済み（コード側のフォールバック不足）
+
+敵SOのうち **53 体は `battleVisualKey` が空欄**で、通常戦闘はアセット名で解決していたが**魔物図鑑には同じフォールバックが無く画像が出ていなかった**（99体中6体しか表示されていない状態）。共通の `EnemySpriteResolver` を新設し、図鑑と戦闘が同じ解決順（直接Sprite → キー → `Battle/Enemies/`+キー → アセット名 → 特殊個体は元敵へフォールバック）を使うよう統一した。データは変更していない。
+
+回帰テスト（`GameAssetRepositoryTests`）で、**全敵99体の画像解決**と**背景キーの解決**（未配置7件を除く）を検証している。
+
+### 未配置（画像そのものが存在しない。参照ずれではない）
+
+**ダンジョン背景 2 枚**（`Resources/Battle/Backgrounds/{キー}.png`）:
+`NornCanopyLabyrinth`, `VelmBlackIronMine`
+（※2026-07-26 時点。以前 7 枚と記録していた `EldOldQuarry`, `EldUndergroundWaterway`, `FinalBlackSoilAbyss`, `GlaadSkyFortress`, `LeafForestTrail` は配置済みに変わった。残り2枚が未生成。）
+
+**施設職員 1 枚**（`Resources/UI/Staff/TrainingGround.png`）:
+新施設「修練場」の職員画像。他7施設（酒場/ギルド/市場/鍛冶屋/倉庫/診療所/神殿）は配置済み。
+
+**非装備アイテム 57 点**（`Resources/UI/Items/{item.name}.png`。ディレクトリ自体が未作成）:
+素材42点・遺物6点・消耗品9点。`ItemPresentationService` は `UI/Codex/Equipment/` → `UI/Items/` の順で解決するため、未配置の間はプレースホルダ表示になる。
+
+**装備武器・装飾 15 点**（`Resources/UI/Codex/Equipment/`）:
+`item_expansion_beastbane`, `item_expansion_dragonbane`, `item_expansion_rank4_0`〜`rank7_2`（12点）, `MutantCoreCharm`
+
+### 補足
+
+`Resources/UI/Equipment/` の `AbyssSeal.png` / `AstralAegis.png` は、同名画像が `UI/Codex/Equipment/` から先に解決されるため現行コードでは到達しない重複ファイル。動作上の害はない。
+
+## 町ごとの個別画像（新規要望・未着手）
+
+現在、町マップ画面は全町で共通の `Resources/Maps/TownMap.png` を使い回している。これを**町ごとに別画像**へ差し替える方針。8町ぶんの新規画像が必要。
+
+配置先（想定）: `Resources/Maps/Towns/{英名}.png`、または既存の命名に合わせて `Resources/Maps/TownMap_{英名}.png`。
+※ コード側は現在 `TownMap` 固定で解決しているため、町インデックスに応じた解決処理の追加が必要（画像配置とセットで実装する）。フォールバックとして既存 `TownMap.png` を残すのが安全。
+
+| # | 町名 | 進行順 | 想定ファイル名 | 世界観・画のイメージ |
+|---:|---|---:|---|---|
+| 2 | セイル港湾都市 | 1番目（開始町） | `Sail` | 人類大陸からの船が着く魔大陸の玄関口。港、桟橋、積み荷、船。商人・傭兵・職人が行き交う雑多な活気 |
+| 1 | リーフ森林都市 | 2番目 | `Leaf` | 森林に囲まれた結界都市。薬草・薬品を扱う工房、緑と木々、薬師や錬金術師の集まる静かな街並み |
+| 0 | エルド交易都市 | 3番目 | `Eld` | 複数の街道が交わる交易拠点。市場・倉庫・商人組合が発達。主人公の両親の商会があった街 |
+| 3 | ノルン樹冠都市 | 4番目 | `Norn` | 巨木の樹冠に築かれた都市。高所の吊り橋や木造建築 |
+| 4 | グラード山塞都市 | 5番目 | `Glaad` | 山岳の要塞都市。岩壁、砦、竜が飛ぶ峡谷を望む |
+| 5 | ヴェルム黒鉄都市 | 6番目 | `Velm` | 黒鉄と熔炉の工業都市。煙突、溶鉱炉、鉱山の坑口 |
+| 6 | アビス辺境都市 | 7番目（最終） | `Abyss` | 黒土地域の最果て。魔力で黒く変色した大地、深淵への境門を望む重苦しい空気 |
+| 7 | アステラ秘匿都市 | 隠し町 | `Astera` | 魔大陸中央の隠された島。地図に載らない神秘的な都市。魔力が集中する伝説の地 |
+
+共通の要件:
+- 結界都市であることが分かる描写（町を守る結界の描写があると世界観が伝わる）。
+- 画面内に施設（市場・酒場・鍛冶屋・治療院・倉庫・転職神殿・修練場など）のボタンを重ねて配置するため、**中央〜下部は比較的シンプル**にし、UIと干渉しない構図が望ましい。
+- 既存 `TownMap.png` と同じ解像度・縦横比に揃える。

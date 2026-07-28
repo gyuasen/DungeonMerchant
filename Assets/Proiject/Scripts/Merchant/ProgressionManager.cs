@@ -4,15 +4,23 @@ using UnityEngine;
 
 public class ProgressionManager : MonoBehaviour
 {
-    private static readonly int[] StorageCapacities = { 30, 60, 100, 160 };
-    private static readonly int[] StorageUpgradeCosts = { 1500, 5000, 12000, 0 };
-    private static readonly int[] StorageRequiredLevels = { 1, 4, 8, 12 };
+    private static readonly int[] StorageCapacities =
+        { 30, 60, 100, 160, 230, 310, 400, 500, 610, 720, 830, 900, 950, 980, 1000 };
+    private static readonly int[] StorageUpgradeCosts =
+        { 1500, 5000, 12000, 25000, 45000, 75000, 120000, 180000, 260000,
+          360000, 480000, 620000, 780000, 950000, 0 };
+    private static readonly int[] StorageRequiredLevels =
+        { 1, 4, 8, 12, 18, 24, 32, 40, 50, 60, 70, 80, 90, 95, 100 };
+    private static readonly int[] StorageMaintenanceCosts =
+        { 0, 0, 100, 150, 200, 260, 330, 410, 500, 600, 700, 800, 900, 950, 1000 };
 
     [SerializeField] private MerchantData merchantData;
     [SerializeField] private DayManager dayManager;
     [SerializeField] private MerchantInventory inventory;
     [SerializeField] private BattleManager battleManager;
     [SerializeField] private DungeonRunManager dungeonRunManager;
+    [SerializeField] private TownProgressState townProgressState;
+    [SerializeField] private RoadEncounterService roadEncounterService;
     [SerializeField] private DebtManager debtManager;
     [SerializeField] private List<SpecialQuestSO> specialQuestDefinitions =
         new List<SpecialQuestSO>();
@@ -37,9 +45,9 @@ public class ProgressionManager : MonoBehaviour
     public int NextStorageRequiredMerchantLevel => IsStorageAtMaximumTier
         ? 0
         : StorageRequiredLevels[storageTier + 1];
-    public int StorageMaintenanceCost => storageTier >= 2
-        ? 100 * (storageTier - 1)
-        : 0;
+    public int StorageMaintenanceCost =>
+        StorageMaintenanceCosts[
+            Mathf.Clamp(storageTier, 0, StorageMaintenanceCosts.Length - 1)];
     public int TotalDungeonClears => totalDungeonClears;
     public int TotalGoldEarned => merchantData != null
         ? merchantData.LifetimeGoldEarned
@@ -48,10 +56,12 @@ public class ProgressionManager : MonoBehaviour
     public string LastExplorationResult { get; private set; } = string.Empty;
 
     public event Action ProgressionChanged;
+    public event Action<QuestCompletionInfo> QuestCompleted;
 
     private void OnEnable()
     {
         ResolveReferences();
+        MigrateQuestRecords();
         PopulateSpecialQuests();
         GenerateNormalQuestsIfNeeded();
         if (dayManager != null) dayManager.DayChanged += HandleDayChanged;
@@ -94,42 +104,69 @@ public class ProgressionManager : MonoBehaviour
                StorageCapacity;
     }
 
+    public bool CanStoreIn(int townIndex, int amount = 1)
+    {
+        ResolveReferences();
+        return inventory == null ||
+               inventory.GetUsedStorageSlotsIn(townIndex) +
+               Mathf.Max(0, amount) <= StorageCapacity;
+    }
+
     public bool TryUpgradeStorage()
     {
         ResolveReferences();
-        if (storageTier >= 3)
+        if (!CanUpgradeStorage())
         {
             return false;
         }
 
-        int requiredLevel = NextStorageRequiredMerchantLevel;
-        int cost = StorageUpgradeCost;
-        if (merchantData == null ||
-            merchantData.MerchantLevel < requiredLevel ||
-            !merchantData.TryPayGold(cost))
-        {
-            return false;
-        }
-
+        merchantData.TryPayGold(
+            StorageUpgradeCost,
+            GoldTransactionReason.StorageUpgrade);
         storageTier++;
         ProgressionChanged?.Invoke();
         return true;
     }
 
+    public bool CanUpgradeStorage()
+    {
+        ResolveReferences();
+        return !IsStorageAtMaximumTier &&
+               merchantData != null &&
+               merchantData.MerchantLevel >= NextStorageRequiredMerchantLevel &&
+               merchantData.CanPay(StorageUpgradeCost);
+    }
+
     public bool AcceptQuest(int index)
     {
-        if (index < 0 ||
-            index >= quests.Count ||
-            quests[index].accepted ||
-            quests[index].expired ||
-            quests[index].completed)
+        return index >= 0 && index < quests.Count &&
+               AcceptQuest(quests[index].questId);
+    }
+
+    public bool AcceptQuest(string questId)
+    {
+        ResolveReferences();
+        QuestRecord quest = quests.Find(value => value != null &&
+            value.questId == questId);
+        if (quest == null || !CanAcceptQuestHere(quest))
         {
             return false;
         }
-        quests[index].accepted = true;
-        TryCompleteQuest(quests[index]);
+        quest.accepted = true;
+        TryCompleteQuest(quest);
         ProgressionChanged?.Invoke();
         return true;
+    }
+
+    public IReadOnlyList<QuestRecord> GetAvailableQuestsForCurrentTown()
+    {
+        ResolveReferences();
+        return quests.FindAll(IsQuestAvailableHere);
+    }
+
+    public bool CanAcceptQuestHere(QuestRecord quest)
+    {
+        return !quest.accepted && IsQuestAvailableHere(quest);
     }
 
     public int GetQuestGoldReward(QuestRecord quest)
@@ -201,10 +238,13 @@ public class ProgressionManager : MonoBehaviour
         {
             return;
         }
-        storageTier = Mathf.Clamp(data.storageTier, 0, 3);
+        ResolveReferences();
+        storageTier = Mathf.Clamp(
+            data.storageTier, 0, StorageCapacities.Length - 1);
         totalDungeonClears = Mathf.Max(0, data.totalDungeonClears);
         profitableDungeonClears = Mathf.Max(0, data.profitableDungeonClears);
         quests = data.quests ?? new List<QuestRecord>();
+        MigrateQuestRecords();
         GenerateNormalQuestsIfNeeded();
         ProgressionChanged?.Invoke();
     }
@@ -224,7 +264,9 @@ public class ProgressionManager : MonoBehaviour
             Mathf.RoundToInt(
                 days * (100 + grade * 75) * expenseMultiplier));
         int goldBefore = merchantData != null ? merchantData.Gold : 0;
-        merchantData?.TryPayGold(Mathf.Min(goldBefore, expense));
+        merchantData?.TryPayGold(
+            Mathf.Min(goldBefore, expense),
+            GoldTransactionReason.ExplorationExpense);
         dayManager?.AdvanceDays(days);
         if (cleared)
         {
@@ -250,7 +292,7 @@ public class ProgressionManager : MonoBehaviour
                 if (quest.accepted &&
                     !quest.completed &&
                     quest.questType == QuestType.MonsterHunt &&
-                    quest.targetName == enemy.enemyName)
+                    MatchesEnemy(quest, enemy))
                 {
                     quest.currentAmount++;
                     TryCompleteQuest(quest);
@@ -269,7 +311,7 @@ public class ProgressionManager : MonoBehaviour
 
         if (quest.questType == QuestType.ItemDelivery)
         {
-            ItemDataSO item = FindItem(quest.targetName);
+            ItemDataSO item = FindItem(quest.targetPersistentId, quest.targetName);
             if (item == null ||
                 !inventory.HasItem(item, quest.requiredAmount))
             {
@@ -282,6 +324,8 @@ public class ProgressionManager : MonoBehaviour
                 return;
             }
             quest.currentAmount = quest.requiredAmount;
+            AwardQuestCompletion(quest);
+            return;
         }
 
         if (quest.currentAmount < quest.requiredAmount)
@@ -289,8 +333,29 @@ public class ProgressionManager : MonoBehaviour
             return;
         }
 
-        quest.completed = true;
-        merchantData?.AddGold(GetQuestGoldReward(quest));
+        AwardQuestCompletion(quest);
+    }
+
+    private void AwardQuestCompletion(QuestRecord quest)
+    {
+        if (!quest.completed)
+        {
+            quest.completed = true;
+        }
+        int goldReward = GetQuestGoldReward(quest);
+        merchantData?.AddGold(
+            goldReward,
+            GoldTransactionReason.QuestReward,
+            quest.title);
+        QuestCompleted?.Invoke(new QuestCompletionInfo
+        {
+            Quest = quest,
+            DeliveredAmount = quest.questType == QuestType.ItemDelivery
+                ? quest.requiredAmount
+                : 0,
+            GoldReward = goldReward,
+            TownIndex = GetCurrentTownIndex()
+        });
     }
 
     private void HandleInventoryChanged()
@@ -312,7 +377,10 @@ public class ProgressionManager : MonoBehaviour
         if (StorageMaintenanceCost > 0 && merchantData != null)
         {
             merchantData.TryPayGold(
-                Mathf.Min(merchantData.Gold, StorageMaintenanceCost));
+                Mathf.Min(merchantData.Gold, StorageMaintenanceCost),
+                GoldTransactionReason.StorageMaintenance,
+                "倉庫維持費",
+                currentDay - 1);
         }
 
         foreach (QuestRecord quest in quests)
@@ -330,48 +398,66 @@ public class ProgressionManager : MonoBehaviour
 
     private void GenerateNormalQuestsIfNeeded()
     {
+        ResolveReferences();
+        int currentTownIndex = GetCurrentTownIndex();
         int activeNormal = quests.FindAll(q =>
-            !q.isSpecial && !q.completed && !q.expired).Count;
+            q != null && !q.isSpecial && !q.completed && !q.expired &&
+            q.issuedTownIndex == currentTownIndex).Count;
         while (activeNormal < 3)
         {
-            quests.Add(CreateRandomQuest());
+            QuestRecord quest = CreateRandomQuest(currentTownIndex);
+            if (quest == null)
+            {
+                break;
+            }
+            quests.Add(quest);
             activeNormal++;
         }
     }
 
-    private QuestRecord CreateRandomQuest()
+    private QuestRecord CreateRandomQuest(int townIndex)
     {
-        bool delivery = UnityEngine.Random.value < 0.5f;
+        List<ItemDataSO> materials = FindMaterials(townIndex);
+        List<EnemyDataSO> enemies = FindHuntEnemies(townIndex);
+        if (materials.Count == 0 && enemies.Count == 0)
+        {
+            return null;
+        }
+        bool delivery = materials.Count > 0 &&
+            (enemies.Count == 0 || UnityEngine.Random.value < 0.5f);
         int day = dayManager != null ? dayManager.CurrentDay : 1;
         if (delivery)
         {
-            List<ItemDataSO> materials = FindMaterials();
-            ItemDataSO item = materials.Count > 0
-                ? materials[UnityEngine.Random.Range(0, materials.Count)]
-                : null;
+            ItemDataSO item = materials[UnityEngine.Random.Range(0, materials.Count)];
             return new QuestRecord
             {
                 title = "商会への納品依頼",
                 questType = QuestType.ItemDelivery,
-                targetName = item != null ? item.itemName : "Monster Fang",
+                targetName = item.itemName,
+                targetPersistentId = item.PersistentId,
                 requiredAmount = UnityEngine.Random.Range(2, 6),
                 deadlineDay = day + UnityEngine.Random.Range(3, 7),
                 goldReward = 180,
-                experienceReward = 35
+                experienceReward = 35,
+                issuedTownIndex = townIndex,
+                questId = Guid.NewGuid().ToString("N")
             };
         }
 
-        string[] enemies = { "Slime", "Goblin", "Orc", "Skeleton" };
-        string enemyName = enemies[UnityEngine.Random.Range(0, enemies.Length)];
+        EnemyDataSO enemy = enemies[UnityEngine.Random.Range(0, enemies.Count)];
+        string enemyName = enemy.enemyName;
         return new QuestRecord
         {
             title = $"{JapaneseDisplayText.GetEnemyName(enemyName)}討伐依頼",
             questType = QuestType.MonsterHunt,
             targetName = enemyName,
+            targetPersistentId = enemy.PersistentId,
             requiredAmount = UnityEngine.Random.Range(2, 5),
             deadlineDay = day + UnityEngine.Random.Range(4, 8),
             goldReward = 250,
-            experienceReward = 50
+            experienceReward = 50,
+            issuedTownIndex = townIndex,
+            questId = Guid.NewGuid().ToString("N")
         };
     }
 
@@ -392,18 +478,22 @@ public class ProgressionManager : MonoBehaviour
             {
                 continue;
             }
-            quests.Add(definition.CreateRecord());
+            QuestRecord quest = definition.CreateRecord();
+            quest.issuedTownIndex = GetCurrentTownIndex();
+            quest.questId = Guid.NewGuid().ToString("N");
+            quests.Add(quest);
         }
     }
 
-    private List<ItemDataSO> FindMaterials()
+    private List<ItemDataSO> FindMaterials(int townIndex)
     {
         List<ItemDataSO> result = new List<ItemDataSO>();
         foreach (ItemDataSO item in FindAllItems())
         {
             if (item != null &&
                 item.itemType == ItemType.Material &&
-                item.itemName.IndexOf("Enhancement", StringComparison.Ordinal) < 0)
+                item.itemName.IndexOf("Enhancement", StringComparison.Ordinal) < 0 &&
+                IsItemAvailableNearTown(item, townIndex))
             {
                 result.Add(item);
             }
@@ -411,16 +501,205 @@ public class ProgressionManager : MonoBehaviour
         return result;
     }
 
-    private ItemDataSO FindItem(string itemName)
+    private ItemDataSO FindItem(string persistentId, string itemName)
     {
-        return FindAllItems().Find(item =>
-            item != null && item.itemName == itemName);
+        ItemDataSO item = GameAssetRepository.FindByPersistentId<ItemDataSO>(
+            persistentId,
+            string.Empty);
+        return item ?? FindAllItems().Find(value =>
+            value != null && value.itemName == itemName);
     }
 
     private List<ItemDataSO> FindAllItems()
     {
         return new List<ItemDataSO>(
             GameAssetRepository.LoadAll<ItemDataSO>());
+    }
+
+    private bool IsQuestAvailableHere(QuestRecord quest)
+    {
+        if (quest == null || quest.completed || quest.expired ||
+            quest.issuedTownIndex != GetCurrentTownIndex())
+        {
+            return false;
+        }
+        if (quest.deadlineDay > 0 && dayManager != null &&
+            dayManager.CurrentDay > quest.deadlineDay)
+        {
+            quest.expired = true;
+            return false;
+        }
+        return IsQuestAchievableInTown(quest, GetCurrentTownIndex());
+    }
+
+    private bool IsQuestAchievableInTown(QuestRecord quest, int townIndex)
+    {
+        if (quest.questType == QuestType.ItemDelivery)
+        {
+            return IsItemAvailableNearTown(
+                FindItem(quest.targetPersistentId, quest.targetName), townIndex);
+        }
+        return FindHuntEnemies(townIndex).Exists(enemy => MatchesEnemy(quest, enemy));
+    }
+
+    private bool IsItemAvailableNearTown(ItemDataSO item, int townIndex)
+    {
+        if (item == null)
+        {
+            return false;
+        }
+        foreach (DungeonDataSO dungeon in ItemUsageTextBuilder.GetClearRewardDungeons(item))
+        {
+            if (IsUnlockedDungeonNearTown(dungeon, townIndex)) return true;
+        }
+        foreach (EnemyDataSO enemy in ItemUsageTextBuilder.GetDropEnemies(item))
+        {
+            foreach (DungeonDataSO dungeon in GetUnlockedDungeonsNearTown(townIndex))
+            {
+                if (DungeonContainsEnemy(dungeon, enemy)) return true;
+            }
+        }
+        return false;
+    }
+
+    private List<EnemyDataSO> FindHuntEnemies(int townIndex)
+    {
+        List<EnemyDataSO> result = new List<EnemyDataSO>();
+        foreach (DungeonDataSO dungeon in GetUnlockedDungeonsNearTown(townIndex))
+        {
+            AddHuntEnemies(result, dungeon.normalEnemies);
+        }
+        foreach (int adjacentTown in GetAdjacentTownIndices(townIndex))
+        {
+            if (roadEncounterService != null)
+            {
+                AddHuntEnemies(result, roadEncounterService.GetPotentialEnemiesForRoute(townIndex, adjacentTown));
+            }
+            else if (dungeonRunManager != null)
+            {
+                AddHuntEnemies(
+                    result,
+                    dungeonRunManager.GetHighestGradeDungeonNearTown(townIndex)?.normalEnemies);
+                AddHuntEnemies(
+                    result,
+                    dungeonRunManager.GetHighestGradeDungeonNearTown(adjacentTown)?.normalEnemies);
+            }
+        }
+        return result;
+    }
+
+    private List<DungeonDataSO> GetUnlockedDungeonsNearTown(int townIndex)
+    {
+        List<DungeonDataSO> result = new List<DungeonDataSO>();
+        IEnumerable<DungeonDataSO> candidates = dungeonRunManager != null
+            ? dungeonRunManager.AvailableDungeons
+            : GameAssetRepository.LoadAll<DungeonDataSO>();
+        foreach (DungeonDataSO dungeon in candidates)
+        {
+            if (IsUnlockedDungeonNearTown(dungeon, townIndex)) result.Add(dungeon);
+        }
+        return result;
+    }
+
+    private bool IsUnlockedDungeonNearTown(DungeonDataSO dungeon, int townIndex)
+    {
+        return dungeon != null && dungeon.nearbyTownIndex == townIndex &&
+               (dungeonRunManager == null || dungeonRunManager.IsDungeonUnlocked(dungeon));
+    }
+
+    private static bool DungeonContainsEnemy(
+        DungeonDataSO dungeon,
+        EnemyDataSO targetEnemy)
+    {
+        if (dungeon?.normalEnemies == null || targetEnemy == null)
+        {
+            return false;
+        }
+        foreach (EnemyDataSO enemy in dungeon.normalEnemies)
+        {
+            if (enemy == targetEnemy)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void AddHuntEnemies(List<EnemyDataSO> destination, IEnumerable<EnemyDataSO> source)
+    {
+        if (source == null) return;
+        foreach (EnemyDataSO enemy in source)
+        {
+            if (enemy != null && !enemy.isBoss && !destination.Contains(enemy)) destination.Add(enemy);
+        }
+    }
+
+    private static List<int> GetAdjacentTownIndices(int townIndex)
+    {
+        List<int> result = new List<int>();
+        for (int index = 0; index < WorldMapService.TownCount; index++)
+        {
+            if (townIndex != WorldMapService.HiddenIslandTownIndex &&
+                index != WorldMapService.HiddenIslandTownIndex &&
+                WorldMapService.AreTownsAdjacent(townIndex, index))
+            {
+                result.Add(index);
+            }
+        }
+        return result;
+    }
+
+    private static bool MatchesEnemy(QuestRecord quest, EnemyDataSO enemy)
+    {
+        return enemy != null && (!string.IsNullOrWhiteSpace(quest.targetPersistentId)
+            ? quest.targetPersistentId == enemy.PersistentId
+            : quest.targetName == enemy.enemyName);
+    }
+
+    private int GetCurrentTownIndex()
+    {
+        return townProgressState != null ? townProgressState.CurrentTownIndex : 2;
+    }
+
+    private void MigrateQuestRecords()
+    {
+        foreach (QuestRecord quest in quests)
+        {
+            if (quest == null) continue;
+            if (!WorldMapService.IsValidTownIndex(quest.issuedTownIndex)) quest.issuedTownIndex = GetCurrentTownIndex();
+            if (string.IsNullOrWhiteSpace(quest.questId)) quest.questId = Guid.NewGuid().ToString("N");
+            if (string.IsNullOrWhiteSpace(quest.targetPersistentId))
+            {
+                MigrateQuestTargetPersistentId(quest);
+            }
+        }
+    }
+
+    private void MigrateQuestTargetPersistentId(QuestRecord quest)
+    {
+        if (quest.questType == QuestType.ItemDelivery)
+        {
+            quest.targetPersistentId =
+                FindItem(string.Empty, quest.targetName)?.PersistentId;
+            return;
+        }
+
+        List<EnemyDataSO> matchingEnemies = FindHuntEnemies(
+            quest.issuedTownIndex).FindAll(enemy =>
+            enemy != null && enemy.enemyName == quest.targetName);
+        if (matchingEnemies.Count == 1)
+        {
+            quest.targetPersistentId = matchingEnemies[0].PersistentId;
+            return;
+        }
+
+        bool hasKnownEnemyName = new List<EnemyDataSO>(
+            GameAssetRepository.LoadAll<EnemyDataSO>()).Exists(enemy =>
+            enemy != null && enemy.enemyName == quest.targetName);
+        if (matchingEnemies.Count == 0 && !hasKnownEnemyName)
+        {
+            quest.expired = true;
+        }
     }
 
     private void ResolveReferences()
@@ -435,6 +714,10 @@ public class ProgressionManager : MonoBehaviour
             FindObjectOfType<BattleManager>();
         dungeonRunManager = dungeonRunManager ?? GetComponent<DungeonRunManager>() ??
             FindObjectOfType<DungeonRunManager>();
+        townProgressState = townProgressState ?? GetComponent<TownProgressState>() ??
+            FindObjectOfType<TownProgressState>();
+        roadEncounterService = roadEncounterService ?? GetComponent<RoadEncounterService>() ??
+            FindObjectOfType<RoadEncounterService>();
         debtManager = debtManager ?? GetComponent<DebtManager>() ??
             FindObjectOfType<DebtManager>();
     }
@@ -443,9 +726,12 @@ public class ProgressionManager : MonoBehaviour
 [Serializable]
 public class QuestRecord
 {
+    public string questId;
     public string title;
     public QuestType questType;
     public string targetName;
+    public string targetPersistentId;
+    public int issuedTownIndex = -1;
     public int requiredAmount;
     public int currentAmount;
     public int deadlineDay;
@@ -456,6 +742,14 @@ public class QuestRecord
     public bool expired;
     public bool isSpecial;
     public string specialQuestId;
+}
+
+public sealed class QuestCompletionInfo
+{
+    public QuestRecord Quest;
+    public int DeliveredAmount;
+    public int GoldReward;
+    public int TownIndex;
 }
 
 public enum QuestType

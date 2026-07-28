@@ -8,6 +8,14 @@ public sealed class UIPageRouter : MonoBehaviour
 
     public UIPageBase CurrentPage { get; private set; }
 
+    public bool IsVisible(RectTransform pageRoot)
+    {
+        return pageRoot != null &&
+               pages.TryGetValue(pageRoot, out UIPageBase page) &&
+               page == CurrentPage &&
+               page.IsVisible;
+    }
+
     public void Register(RectTransform pageRoot)
     {
         if (pageRoot == null)

@@ -36,14 +36,13 @@ public sealed class SaveManagerNewGameResetTests
         MerchantInventory inventory = root.AddComponent<MerchantInventory>();
         MercenaryHireManager hireManager = root.AddComponent<MercenaryHireManager>();
         root.AddComponent<MercenaryPartyManager>();
-        TransportManager transportManager = root.AddComponent<TransportManager>();
-        DungeonExpeditionManager expeditionManager =
-            root.AddComponent<DungeonExpeditionManager>();
         MonsterCodexManager codex = root.AddComponent<MonsterCodexManager>();
         ProgressionManager progression = root.AddComponent<ProgressionManager>();
         DebtManager debt = root.AddComponent<DebtManager>();
         TownProgressState towns = root.AddComponent<TownProgressState>();
         StoryProgressManager story = root.AddComponent<StoryProgressManager>();
+        OnboardingGuideController onboarding =
+            root.AddComponent<OnboardingGuideController>();
         SaveManager saveManager = root.AddComponent<SaveManager>();
         SetSavePath(saveManager);
 
@@ -65,7 +64,7 @@ public sealed class SaveManagerNewGameResetTests
             profitableDungeonClears = 4
         });
         story.RestoreCompletedMilestones(
-            new[] { StoryMilestone.FirstDungeonClear });
+            new[] { StoryMilestone.DebtRepaid25 });
 
         saveManager.InitializeAndLoad();
 
@@ -79,12 +78,15 @@ public sealed class SaveManagerNewGameResetTests
         Assert.That(towns.GetUnlockedTownIndices(), Is.EqualTo(new[] { 2 }));
         Assert.That(inventory.GetItemAmount(item), Is.Zero);
         Assert.That(hireManager.HiredMercenaries, Is.Empty);
-        Assert.That(transportManager.ActiveConvoys, Is.Empty);
-        Assert.That(expeditionManager.ActiveExpeditions, Is.Empty);
         Assert.That(codex.EncounteredEnemyIds, Is.Empty);
         Assert.That(progression.StorageTier, Is.Zero);
         Assert.That(progression.TotalDungeonClears, Is.Zero);
         Assert.That(progression.ProfitableDungeonClears, Is.Zero);
+        Assert.That(saveManager.HasExistingSaveAtInitialization, Is.False);
+        Assert.That(onboarding.IsEnabled, Is.True);
+        Assert.That(
+            onboarding.CurrentStep,
+            Is.EqualTo(OnboardingGuideStep.Opening));
         Assert.That(
             story.CompletedMilestones,
             Is.EquivalentTo(new[] { StoryMilestone.OpeningDebtNotice }));

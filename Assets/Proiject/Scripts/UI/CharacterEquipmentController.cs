@@ -197,7 +197,19 @@ public sealed class CharacterEquipmentController
             return;
         }
 
-        merchantInventory.AddItem(item, amount);
+        if (!merchantInventory.CanAddItem(item, amount))
+        {
+            setStatus("倉庫が満杯のため、消耗品を戻せませんでした。");
+            SelectedDetailMercenary.TryLoadConsumable(slotIndex, item, amount);
+            return;
+        }
+
+        if (!merchantInventory.TryAddItem(item, amount))
+        {
+            SelectedDetailMercenary.TryLoadConsumable(slotIndex, item, amount);
+            setStatus("倉庫が満杯のため、消耗品を戻せませんでした。");
+            return;
+        }
         setStatus($"{item.itemName} x{amount}を倉庫へ戻しました。");
         showCharacterDetails(SelectedDetailMercenary);
         refreshInventoryPage();
@@ -273,7 +285,19 @@ public sealed class CharacterEquipmentController
         {
             ItemDataSO previousItem =
                 SelectedDetailMercenary.UnequipEquipment(slot);
-            merchantInventory.AddItem(previousItem);
+            if (previousItem != null &&
+                merchantInventory.TryAddItem(previousItem))
+            {
+                setStatus(
+                    $"{SelectedDetailMercenary.MercenaryName}の" +
+                    $"{JapaneseDisplayText.GetEquipmentSlot(slot)}を外しました。");
+            }
+            else
+            {
+                SelectedDetailMercenary.RestoreEquippedEquipment(slot, previousItem);
+                setStatus("倉庫が満杯のため、装備を外せませんでした。");
+                return;
+            }
         }
         setStatus(
             $"{SelectedDetailMercenary.MercenaryName}の" +
@@ -629,145 +653,25 @@ public sealed class CharacterEquipmentController
         MercenaryInstance mercenary)
     {
         List<MercenarySkillInfo> skills = new List<MercenarySkillInfo>();
-        switch (MercenaryClassProgression.GetBaseClass(
-                    mercenary.MercenaryClass))
-        {
-            case MercenaryClass.Warrior:
-                skills.Add(new MercenarySkillInfo
-                {
-                    Name = "挑発",
-                    ShortDescription = "戦闘スキル / 魔力35",
-                    DetailDescription =
-                        "敵の攻撃を自分に引きつけます。ダメージを与えるスキルではありませんが、味方を守りたい場面で有効です。"
-                });
-                break;
-            case MercenaryClass.Archer:
-                skills.Add(new MercenarySkillInfo
-                {
-                    Name = "連射",
-                    ShortDescription = "戦闘スキル / 魔力45",
-                    DetailDescription =
-                        "攻撃力を少し下げた射撃を2回行います。通常攻撃より有効な対象がいる場合に自動発動します。"
-                });
-                break;
-            case MercenaryClass.Mage:
-                skills.Add(new MercenarySkillInfo
-                {
-                    Name = "火球",
-                    ShortDescription = "戦闘スキル / 魔力50",
-                    DetailDescription =
-                        "敵1体に高威力の魔法攻撃を行います。通常攻撃では倒しきれない相手への決定打になります。"
-                });
-                break;
-        }
-
-        if (skills.Count == 0)
-        {
-            MercenarySkillDefinition skill =
-                MercenaryClassProgression.GetPrimarySkill(
-                    mercenary.MercenaryClass);
-            skills.Add(new MercenarySkillInfo
-            {
-                Name = skill.Name,
-                ShortDescription =
-                    $"戦闘スキル / 魔力{skill.MagicCost}",
-                DetailDescription = skill.Description
-            });
-        }
-
         List<MercenarySkillDefinition> progressionSkills =
             MercenaryClassProgression.GetSkillProgression(
                 mercenary.MercenaryClass);
         foreach (MercenarySkillDefinition definition in progressionSkills)
         {
-            if (definition.Id == MercenaryClassProgression.GetPrimarySkill(
-                    mercenary.MercenaryClass).Id)
-            {
-                continue;
-            }
             bool unlocked = mercenary.Level >= definition.UnlockLevel;
             skills.Add(new MercenarySkillInfo
             {
                 Name = definition.Name,
-                ShortDescription = unlocked
-                    ? (definition.IsPassive
-                        ? $"パッシブ / Lv{definition.UnlockLevel}"
-                        : $"戦闘スキル / MP{definition.MagicCost}")
-                    : $"未習得 / Lv{definition.UnlockLevel}",
-                DetailDescription = definition.Description,
-                Unlocked = unlocked
+                ShortDescription = definition == progressionSkills[0]
+                    ? $"戦闘スキル / 魔力{definition.MagicCost}"
+                    : unlocked
+                        ? (definition.IsPassive
+                            ? $"パッシブ / Lv{definition.UnlockLevel}"
+                            : $"戦闘スキル / MP{definition.MagicCost}")
+                        : $"未習得 / Lv{definition.UnlockLevel}",
+                DetailDescription = definition.DisplayDescription,
+                Unlocked = definition == progressionSkills[0] ? false : unlocked
             });
-        }
-
-        if (mercenary.Level >= 2)
-        {
-            switch (MercenaryClassProgression.GetBaseClass(
-                        mercenary.MercenaryClass))
-            {
-                case MercenaryClass.Warrior:
-                    skills.Add(new MercenarySkillInfo
-                    {
-                        Name = "基礎体力",
-                        ShortDescription = "パッシブ / Lv2",
-                        DetailDescription =
-                            "最大HPが10、防御が3上昇します。前衛として長く戦えるようになります。"
-                    });
-                    break;
-                case MercenaryClass.Archer:
-                    skills.Add(new MercenarySkillInfo
-                    {
-                        Name = "速射訓練",
-                        ShortDescription = "パッシブ / Lv2",
-                        DetailDescription =
-                            "攻撃速度が0.05上昇します。行動順が早くなり、魔力の回復機会も増えやすくなります。"
-                    });
-                    break;
-                case MercenaryClass.Mage:
-                    skills.Add(new MercenarySkillInfo
-                    {
-                        Name = "魔力集中",
-                        ShortDescription = "パッシブ / Lv2",
-                        DetailDescription =
-                            "攻撃が4上昇します。通常攻撃と火球の両方の威力が上がります。"
-                    });
-                    break;
-            }
-        }
-        else
-        {
-            string passiveName;
-            string passiveDescription;
-            switch (MercenaryClassProgression.GetBaseClass(
-                        mercenary.MercenaryClass))
-            {
-                case MercenaryClass.Warrior:
-                    passiveName = "基礎体力";
-                    passiveDescription = "Lv2で習得。最大HP+10、防御+3。";
-                    break;
-                case MercenaryClass.Archer:
-                    passiveName = "速射訓練";
-                    passiveDescription = "Lv2で習得。攻撃速度+0.05。";
-                    break;
-                case MercenaryClass.Mage:
-                    passiveName = "魔力集中";
-                    passiveDescription = "Lv2で習得。攻撃+4。";
-                    break;
-                default:
-                    passiveName = null;
-                    passiveDescription = null;
-                    break;
-            }
-
-            if (!string.IsNullOrEmpty(passiveName))
-            {
-                skills.Add(new MercenarySkillInfo
-                {
-                    Name = passiveName,
-                    ShortDescription = "未習得 / Lv2",
-                    DetailDescription = passiveDescription,
-                    Unlocked = false
-                });
-            }
         }
 
         if (mercenary.IsUnique &&

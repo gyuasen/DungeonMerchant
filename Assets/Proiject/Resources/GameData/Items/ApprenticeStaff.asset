@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: A simple staff that stabilizes basic magic.
+  description: "ランク1魔術師向けに仕立てられた武器。"
   basePrice: 120
   acquisitionType: 0
   equipmentSlot: 0

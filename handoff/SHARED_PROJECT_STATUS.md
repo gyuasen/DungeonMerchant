@@ -1300,3 +1300,409 @@
 - 低級の供給元は はじまりの洞窟1個 / ヴェルム黒鉄坑4個 の2箇所のみ。他4等級も同様に踏破報酬のみの構造(下級=封じられた廃坑2、中級=古代遺跡/翠樹族/竜鱗峡谷 各3、上級=天嶺砦4/熔炉5/奈落境門6、最上級=黒土深淵6)。
 - **⚠ 要判断のバランス懸念**: 低級は総供給5個に対し、消費先が装備強化(+1〜+2)＋**鍛冶レシピ25種**(各1〜4個)と極端に多い。踏破報酬が完全踏破のたびに再取得できるのか初回のみかを確認したうえで、供給量または消費量の調整要否をユーザーが判断すること。他等級も同じ懸念が当てはまる可能性がある。
 - **調査時の注意点(教訓)**: Luna初回調査が「遠征で入手可能」と誤報告し、Sol裏取りで否定した。遠征は`GrantNormalEncounterRewards`と`TryDepositLimitedEquipment`のみを呼び、`DungeonRewardService.GrantClearRewards`を呼ばないため**踏破報酬は付与されない**(`DungeonExpeditionManager.cs:268`)。サブエージェント回答に内部矛盾がある場合は必ず裏取りすること。詳細は`CLAUDE_WORK_LOG.md`。
+- コミット済み: `5fa22fb` 装備図鑑・特殊ページ機能の実装と図鑑UIの表示調整。
+
+## 2026-07-22 家側・【要対応】装備図鑑画像の未配置52点が判明
+- 実機で「ショートボウ等が?表示」との指摘から全装備169点を照合した結果、**武器の図鑑画像がほぼ全面的に未配置**であることが判明。
+- 配置状況(Resources/UI/Codex/Equipment/{アセット名}.png、配置済み117枚):
+  - 武器 61点中 **51点が未配置**
+  - 防具 53点中 0点未配置(完備)
+  - 装飾 55点中 **1点未配置**(MutantCoreCharm)
+  - → **未配置は合計52点**。発見済みでも図鑑で「?」プレースホルダになる。
+- 未配置の武器51点の内訳:
+  - 通常/Traveler Blade系: NormalRank01/04/07/10、NormalRank02/03/05/06/08/09Weapon
+  - クラス別通常: IronSword, SteelSword, ShortBow, CompositeBow, ApprenticeStaff, ArcaneStaff, PriestPrayerStaff, RogueDagger, RogueSwiftDagger, LancerSpear, LancerSteelLance
+  - セット/専用: AncientGuardianBlade, AstralEdge, GlaadFrostbrand, MistRuneBlade, NornCanopyBlade, OniHunterCleaver, VelmBlackIronBreaker, AbyssFang, GoblinHunterSword, HexwoodStaff, PriestBlessedStaff, SanctifiedMace, BeastboneBow, OrcboneSpear, BlackIronHalberd, MinebreakerHammer, VenomFangDagger
+  - 拡張: item_expansion_dragonbane, item_expansion_beastbane, item_expansion_rank4_0〜7_2(Rank4〜7の戦士/弓/魔術師 各3=12点)
+- 補足: 先の作業で配置したのは専用限定装備30枚+敵スプライト6枚であり、通常装備・セット装備・拡張装備の「武器」画像は元々一度も用意されていなかった。防具・装飾は既存で完備。
+- 対応方針は未定(生成・配置するか保留か)。生成する場合は tmp/imagegen/*.ps1 の既存手順(生成→緑背景キーイング→256px透過→Resources配置、既存は上書き禁止)を踏襲すること。
+
+## 2026-07-22 家側・UI拡張7項目 実装完了(Sol設計/Terra実装/Sol監査)
+- ユーザー依頼のUI拡張7件を実装。build 0エラー/0警告。Unity確認待ち。
+
+### 【重要】「Rank4装備が作れない」報告の真因(ユーザー報告の因果は誤り)
+- 報告:「低級強化鉱石が入手不能でRank4装備が作れない」→ 調査の結果、因果が違った。
+- 事実1: 下級強化鉱石(LowerGradeEnhancementOre)は**入手可能**(封じられた廃坑クリア報酬×2)。用途は装備+3/+4強化。
+- 事実2: Rank4レシピが要求するのは **Low Grade Enhancement Ore = EnhancementOre.asset(初級, +1/+2用)** という**別アイテム**。名前が酷似しているため混同しやすい。両方とも入手経路あり。
+- **真因**: 鍛冶屋が「町ランク+1」に**完全一致**するレシピしか表示しない仕様のため、エルド交易都市(Rank4鍛冶)を離れて次の町へ進むとRank4レシピが消えていた。
+- 対処: 鍛冶ランク範囲を [1, min(町ランク+1, 10)] に変更し**累積解禁**に(下位ランクは以降も常時制作可能)。上限の進行制限とMutant Core Charm特例は維持。回帰テスト追加(ノルン樹冠都市でRank4が作れること)。
+- 補足: Rank4/5は武器のみ鍛冶、防具・装飾は市場入手、Rank6以降は全部鍛冶という進行設計と判明。Rank4防具・装飾のレシピ追加は**行わない**方針でユーザー確定。
+
+### 実装内容
+1. 鍛冶屋: 下位ランクのレシピも継続表示(累積解禁)。上記の真因対処。
+2. 倉庫: **装備は倉庫枠を消費しない**(使用量計算と装備追加時の容量チェックから除外)。アイテム経路の容量制限は維持。セーブ形式不変で、既存の容量超過セーブも自然解消。
+3. 倉庫拡張: 押下で即決済せず**確認オーバーレイ**を表示(現在→拡張後容量/必要金額/所持金/必要商人Lv)。条件未達は非活性+理由表示、上限時は「最大まで拡張済み」。容量段階30→60→100→160・費用1500→5000→12000Gは不変。
+4. 共通基盤 `ItemPresentationService`: 画像解決(UI/Codex/Equipment→UI/Items→null)と装備/消耗品/素材別の詳細テキスト。装備図鑑の画像解決もこれ経由に統一。
+5. 鍛冶屋UI: 行に画像+「詳細」。詳細で素材の所持/必要を色分け、必要Gold・所持Gold表示。「制作する」は既存CanCraftと同判定(ロジック非改変)。
+6. 市場UI: 行に画像+「詳細」。詳細で価格・所持Gold・在庫。「購入する」は既存CanBuyと同判定(ロジック非改変)。
+7. 倉庫ツールチップ: 新規 `GenericHoverTooltipTrigger` + `ItemUsageTextBuilder`。消耗品の効果/鉱石の強化段階(EnhancementOre=+1/+2, Lower=+3/+4, Middle=+5/+6, Upper=+7/+8, Highest=+9/+10)/素材のレシピ名(逆引き辞書を初回キャッシュ)/売却用/装備の職・部位を表示。
+8. 治療院: **治療が必要な傭兵のみ表示**(同じ町 かつ HP不足or戦闘不能)。資金不足者は表示したままボタン非活性+不足Gold表示(理由が分かるように)。行に「詳細」ボタンで既存の傭兵詳細へ。
+9. 転職神殿: 新規 `PromotionPreview` で**状態を変えずに転職後ステータスを算出**する確認オーバーレイ。現在値→転職後値(増減)、レベル上限、クリティカル・回避、装備適合警告、解禁スキル、消費する証を表示。「転職する」/「キャンセル」を内設。既存の行内簡易確認は置き換え。
+
+### Sol監査で指摘され修正した4点
+- 治療院の不足Gold表示が`unavailableReasonProvider`未参照で**実際には出ていなかった**→表示に反映。
+- 転職計算の二重管理(基礎加算値が2か所、パッシブ集計が別実装)→ `PromotionPreview.StatDelta` の単一定義と `MercenaryClassProgression.GetPassiveBonus` への集約で一元化。全基本職×全転職先で「プレビュー値==実転職後の値」を検証するテストを追加。
+- `DepositItemTo` に容量チェックが無く輸送・遠征・遠隔売却返却で無制限に入っていた→ `CanStoreIn` を追加し検査。満杯時は遠征報酬は獲得リストに含めず、輸送は成功分のみ計上、遠隔売却キャンセルは注文を復元してアイテム消失を防止。装備は従来どおり容量無視。
+- 装備図鑑の詳細文の共通サービス統一は、図鑑の見た目が変わるリスクがあるため**今回は見送り**(既存の短縮書式を維持)。
+- 軽微: 転職確定時のnull・妥当性チェック追加、ツールチップのレシピ名Distinct、JobChangePageUIの死んだコード削除。
+
+### 監査でCONFIRMEDされた挙動不変
+- 転職の結果値(HP+15/攻+5/防+3/魔力+15/速度+0.04とクラス別補正)、鍛冶の制作・市場の購入ロジック、倉庫の費用段階、鍛冶の上限(町ランク+1)、市場ランク範囲・ダンジョンドロップ範囲。
+- コミット済み: `b481b07` UI拡張7項目の実装と鍛冶屋の累積解禁。
+- 注意: 装備武器画像のうち `ApprenticeStaff.png` / `SteelSword.png` / `IronSword.png` は **.meta 未生成のためコミット未実施**。Unity起動後に .meta ごとコミットすること(meta無しコミットは環境間のGUID不一致を招く)。
+
+## 2026-07-23 家側・鍛冶レシピの素材受給問題(セイル分のみ対応)
+- ユーザー報告「セイルの鍛冶屋では呪いの骨が必要だがアンデッドがセイルで出現せず制作できない」→ **事実(セイル滞在中は入手不能)**。
+- 調査結果: 呪いの骨(CursedBone)は**アンデッド専用ドロップ**で、ダンジョンのクリア報酬には一切含まれない。セイル近隣「はじまりの洞窟」はスライム系/角ウサギ/野犬のみでアンデッド0体。市場・イベント・採取でも入手不可。セイル→リーフの街道でゾンビ/ボーンハウンドが70%ドロップするため街道に出れば入手可能だが、開始町に留まる限り作れない。
+- **累積解禁の副作用ではない**(Rank1レシピが存在しないため、鍛冶累積解禁の前後で表示内容は同一)。元からあった問題。
+- 対応(セイルRank2の6レシピのみ、goldCostは不変):
+  - Arcane Staff / Priest Blessed Staff: 呪いの骨x1 → スライムの粘液x3 (-5G)
+  - Composite Bow / Rogue Swift Dagger: 呪いの骨x1 → ウサギの角x3 (+10G)
+  - Lancer Steel Lance / Steel Sword: 呪いの骨x1 → 魔物の牙を+3(計x7) (-5G)
+  - 意図: セイルでは「はじまりの洞窟」で実際に落ちる素材(スライム/角ウサギ/野犬由来)だけで作れるようにする。敵ドロップ・ダンジョン報酬は変更していない(レシピの要求素材のみ変更)。
+- 回帰テスト追加(SpeciesDropMappingTests): セイルRank2の6レシピが、開始洞窟の敵ドロップ・敵等級由来の魔石・クリア報酬だけで全素材を満たすこと。
+
+### 【解決済み 2026-07-23】リーフ以降の同種問題 14レシピ → 魔石増量+goldCostで対応
+- ユーザー方針:「魔石の必要数を上げ、制作コストを上げる形で対応」。前案(素材価値を保つため低級素材を大量要求=1レシピ20個)の作業感問題を回避。
+- 対応: 入手不能素材(闇の結晶/オークの牙/ゴーレムの核/飛竜の鱗)を、リーフ到着時点で入手可能な素材(呪いの骨/クモの糸/毒蛾の粉/甲虫の殻/大ネズミの毛皮/コウモリの翼/魔物の牙)へ置換。**個数は各2〜4個・1レシピ総数8〜10個以内に抑制**し、素材価値の目減りは**下級魔石を1個→2〜4個に増量**+**goldCost引き上げ**で補填。
+- 結果: 総制作コスト(素材価値+Gold)は変更前比 **+10〜+35G の微増**。装備性能・敵ドロップ・ダンジョン報酬は不変。
+- テーマ対応: 布系=クモの糸、呪術・霊的=毒蛾の粉と呪いの骨、防具・紋章=甲虫の殻、隠密=大ネズミの毛皮、機動・索敵=コウモリの翼。
+- 対象14件(全てRank3・リーフ初表示): ArcanePendant, BonePrayerVestment, HexwoodStaff, RunewovenRobe, SanctifiedMace, SpiritBead, BeastboneBow, GolemPlate, HawkeyeCharm, IronVanguardArmor, OrcboneSpear, ShadowhideArmor, WindrunnerLeather, WyvernCrest。
+- テスト拡張: SpeciesDropMappingTests で**セイル6件+リーフ14件=計20レシピ**を検証(除外なし)。セイルは開始洞窟のみ、リーフは開始洞窟+封じられた廃坑のみの供給で全素材が揃うこと。TradeMaterialTests の魔石検証を「規定個数以上」に更新(増量を許容しつつ等級の取り違えは防ぐ)。
+- **全鍛冶レシピの静的監査を実施し、通常レシピに追加の未入手素材は無いことを確認**(素材受給の不整合は解消)。Mutant Core Charm のみ町6限定+変異核の特殊供給で別扱い。全レシピを自動検証するテストは特殊供給の共通モデル化が必要なため未追加。
+
+### 【対応前の記録】リーフ以降の同種問題 14レシピ
+- 同じ「到着時点では入手できない素材を要求する」問題が他の町にも存在する。**今回は未対応**(ユーザー判断で後回し)。
+  - リーフ(index1, Rank3初表示): 闇の結晶(6件)/オークの牙(5件)/ゴーレムの核(4件)/飛竜の鱗(3件) を要求する計14レシピ。
+  - 各素材の初入手先: 呪いの骨=リーフ廃坑、ゴーレムの核=エルド古代遺跡、オークの牙=ノルン翠樹族集落跡、飛竜の鱗=グラード以降、闇の結晶=グラード/ヴェルム側。
+- 後回しの理由: 素材価値を保つ置換案だと個数が大きく膨らみ(例: ゴーレム板金=骨x6+甲虫の殻x7+クモの糸x7=計20個)、収集の作業感が増して体感難易度が上がるため。個数を抑えて価値低下をgoldCostで補う案などを別途検討する。
+- 現状は「レシピは見えるが、その町ではまだ作れない」状態が残る(進行不能ではない。素材が取れる町まで進めば作れる)。
+
+## 2026-07-23 家側・新施設「修練場」実装(Sol設計/Terra実装/Sol監査) ※Unity確認待ち
+- ユーザー要望「新しく傭兵を雇ったときレベル上げが大変」への救済施設。傭兵を1日預けるとレベルが1上がる。
+
+### 確定仕様(ユーザー判断)
+- **費用: 25 × 到達レベル²**(Lv2=100G, Lv5=625G, Lv10=2,500G, Lv15=5,625G, Lv20=10,000G)。**申込時に前払い**。
+- **上限: 所有傭兵全体の最高レベル - 2**。契約状態を問わず所有する全傭兵の最高Lvが基準。
+- **同時3人まで**(全世界合計)。
+- **設置町: リーフ以降の6町**(townIndex 0,1,3,4,5,6)。開始町セイル(2)と中央島アステラには非設置。
+- **翌日に自動完了**(引き取り不要)。completionDay = 申込日 + 1 の絶対日で保持。
+
+### 設計上の要点
+- レベルアップは `AddExperience(ExperienceToNextLevel - CurrentExperience)` で既存 `LevelUp()` を必ず通す(直接 level++ だとステータス成長が適用されないため不可)。途中経験値も無駄にならない。
+- 申込時に上限を確定し、**完了時は再判定しない**(前払い済みの予約を後から失敗させない)。基準の最高Lv傭兵が解雇されても完了する。
+- 抜け道は塞がれている: 最高Lv傭兵自身は修練できず、修練だけで基準レベルを更新できない。基本職Lv15上限があるため転職しない限りLv15超は不可。
+- 修練中はパーティ編成・遠征・輸送護衛・治療・転職・解雇に使用不可(候補から除外+実行時も拒否の二重)。完了後も `CurrentTownIndex` は預けた町のまま。
+
+### 実装(6段階)
+1. `TrainingCostService` / `TrainingGroundManager` 新規。DayChangedで自動完了、購読順非依存。
+2. 排他: パーティ(TryAdd/復元)、遠征、輸送護衛、治療(候補/実行/自然回復)、解雇、転職(候補/実行)、各UIコントローラの候補取得に `IsMercenaryTraining` を追加。
+3. **セーブv28→v29**: `trainingAssignments`(傭兵ID/町/申込日/完了日/到達Lv/前払額)。SaveManagerは**傭兵復元後**に予約復元。異常データは警告ログで破棄。料金はロード時・完了時に再請求しない。
+4. `TrainingGroundPageUI` / `SimpleMercenaryHireUI.TrainingGround.cs`。修練中枠 n/3、現在Lv→到達Lv、料金、受付不可理由、修練中は「あとn日」表示。
+5. `TownServicePolicy.IsTrainingGroundAvailable` に判定を**一本化**(表示条件と実行条件が同一Policy。転職神殿にある既存の不一致を持ち込まない)。町マップにボタン追加、施設挨拶追加。`SimpleMercenaryHirePageSlot.TrainingGround` 追加、**CurrentLayoutVersion 15→16**。
+6. 日次リザルトに「★ 修練完了: ○○がLvNになった」。完了日+傭兵IDで重複除外。購読はOnDestroyで解除。
+
+### Sol監査で修正した3点
+- **テストが成立していなかった**: TrainingGroundManagerTests の現在地が town2(セイル=非設置町)だったため、成功系テストは受付時点で失敗する状態だった。**これまでビルドが通っていただけでUnity実行はされていない**。テスト町をリーフ(1)に修正し、実Policyでの受付可否テストを追加。
+- セーブ復元の異常データ検証が不足→ 非設置町/completionDay≠startDay+1/LevelCap到達/料金不一致 の予約を破棄するよう強化。特にLevelCap予約は0レベル上昇なのに完了通知が出る実害があった。
+- 任務の重複割当セーブを正規化: 輸送復元は修練中IDの護衛のみ除外(貨物は維持)、遠征復元は修練中IDを含む遠征全体を破棄。
+
+### 【要対応】Unity側での作業
+- **Prefab再生成が必要**: `SimpleMercenaryHireUIView.prefab` が `layoutVersion:15` のまま。コード側は16に整合済み。Unityで `Dungeon Merchant > UI > Rebuild Main UI Prefab` を実行すること。未実施だと `HasPageLayout` がfalseになり**全ページ**がPrefabレイアウトを使えなくなる(動的生成にフォールバックするため即クラッシュはしないが、Hire/Companyレイアウトとの整合が保証されない)。
+- 新規UIスクリプト2件(`SimpleMercenaryHireUI.TrainingGround.cs` / `TrainingGroundPageUI.cs`)の `.meta` はUnity起動時に生成される。生成後にコミットへ含めること。
+- EditModeテストの実行結果は未確認(上記のとおり、これまで一度も実行されていない)。
+
+## 2026-07-24 家側・UI改善一式とバグ修正（コミット 1d15a2c / e154fb3 / fe03be9）
+
+### 戦闘演出のタイミング（1d15a2c）
+- SEとログが内部処理のタイミングで発火し演出より先行していた問題を修正。演出イベントにログ・音の情報を持たせ、再生時に表示・再生する形へ。攻撃/被弾/回避/撃破/スキル/状態異常/消耗品/報酬が対象。
+- 街道戦闘は演出完了まで町到着を保留。当初8秒固定のフェイルセーフは、敵が多い戦闘では正常でも超えるため**進捗が30秒停止した場合のみ**強制完了する方式へ変更。一時停止中はタイマーを進めない。
+- **実害のあった不具合**: 市場購入で倉庫満杯時にGoldと在庫だけ減って商品が入らず「成功」扱いだった → 先にアイテム追加を試し成功後に決済する順へ。ダンジョン報酬も受け取れないのに「獲得した」と表示していた → 成否で通知を分岐。鍛冶・消耗品返却など同種の経路も対処。
+- BlacksmithManager.Recipes が参照のたびに内部リストを再構築し、列挙中に Collection was modified 例外。未収集時のみ収集する形へ。
+- 街道ページが移動終了後に DestinationTownIndex=-1 で町名配列を引いて IndexOutOfRange。範囲チェック付きAPIへ。
+
+### 新規ゲームの操作導線（e154fb3）
+- 常駐バナーで次の目標を示し、実際に操作すると進む導線を新設。オープニング→雇用→編成→出撃→帰還→倉庫→売却→市場→鍛冶屋。倉庫/市場/鍛冶屋では説明カードを一度だけ表示（倉庫では売値が日・町で変動することを説明）。
+- 進行はセーブ保存で中断しても続きから。新規開始時のみ有効、既存セーブでは無効。「案内を終了」でスキップ可。在庫0で倉庫に来たら探索へ案内を戻すため詰まらない。
+- 既存6ページの読み物は自動表示をやめメニューからの詳細説明に降格。
+- 施設の挨拶は日付・町ごとに再表示されていたのを**施設ごとに1回だけ**へ。
+
+### 各施設のUI改善（fe03be9）
+- **修練場のスクロール**: 他ページと違いスクロール構造が無く3人までしか表示されなかった → ListPageUIBase の仕組みに統一。
+- **解雇時の装備消失**: 契約解除で装備が消えていた → 所在町の倉庫へ返却。解雇に確認UIを追加（修練中などは理由表示）。
+- 商会の傭兵一覧に並べ替え（加入順/レベル順・昇降）と職種絞り込み。
+- 倉庫の**売却用素材まとめ売り**（確認UIで種類数・個数・合計Gold、制作素材は対象外）。
+- 倉庫/市場/鍛冶屋に**サイドバー**。鍛冶屋は職種絞り込み・製作可能のみ・ランク順、装備詳細に**素材の入手経路**を日本語表示。
+- **装備/消耗品スロットのクリックで選択UI**を開き、装備可能なものだけ表示。現在装備との差分も表示。
+- ダンジョン背景5枚を追加。レイアウト版18（Prefab再生成が必要）。
+
+### セーブ
+- v29→v31→v32 と更新（導線の進行、表示済みカード、街道荷物）。既存セーブは移行で安全に読める。
+- 壊れた装備データ（外側の参照名だけあり Instance が空）をロード時に正規装備として受け入れていた問題を修正。**既存セーブでは効果を維持**しつつ正規Instanceへ変換し、今後は壊れた形式を生まない。
+
+## 2026-07-24 家側・遠征/輸送の廃止と街道輸送への一本化（作業中）
+
+### 方針（ユーザー確定）
+- 遠征部隊・輸送部隊は「分かりづらい」ため**両方廃止**し、**プレイヤーが街道を移動するときにアイテムを運ぶ**形に一本化する。
+- 街道輸送の仕様: **積載20枠**（物流能力で+1ずつ、上限50）、**敗北で積荷の25%喪失**（種類ごと切り上げ）、**途中撤退は損失なし**、目的地では自動売却せず**倉庫へ搬入**。
+- **経済バランスの注意**: 遠征は毎日自動で稼ぐ純増収入だった。廃止すると収入が大きく減り、月10,000Gの返済（平均約334G/日の純利益が必要）が回らなくなる可能性がある。ユーザー判断は「**まず廃止し、後で実プレイを見て調整**」。需要倍率（現0.8〜1.3）や街道報酬の調整が後日必要になる見込み。
+
+### 進捗
+- **段階1完了**: `RoadCargoSession` を新設（容量計算、勝利=目的地搬入/撤退=全量返却/敗北=25%喪失、出発時に出発町倉庫から実減算）。セーブv32に `roadCargoSession` を追加。v31以前からの移行で輸送中の積荷を出発町へ返却し護衛・遠征傭兵を解放（`sourceVersion < 32` のときのみ実行し二重返却を防止）。目的地倉庫が満杯なら搬入せずセッションを保持し `StorageFull` を返すためアイテムは消えない。
+- 残: 段階2（移動確認UIでの荷物選択・到着/撤退/敗北の統合）→ 旧システムの参照除去 → **旧Manager/Controller/テストの削除は最後**（復旧経路を残すため）。
+
+## 2026-07-24 【未着手・要望メモ】ユーザーからの追加依頼
+
+作業は保留。街道輸送の完了後に着手する。
+
+### 依頼（クエスト）UIの更新
+- **期限切れの依頼は一覧から消去**する。
+- **納品系・討伐系の依頼は、その町で達成可能なもののみ**表示する（他の町でしか達成できない依頼を受けられないようにする）。
+- 納品系の依頼を受けている状態で対象アイテムを入手したとき、**即座に納品したことを日次リザルトに表示**する。
+
+### 一日のリザルトの改善
+- **色付け**して見やすくする。
+- **変更のない傭兵は表示しない**（全員を並べない）。
+- **金銭の変動ログ**をリザルト下部に追加する（何でいくら増減したかの内訳）。
+
+### 倉庫UIの刷新（Minecraftのチェスト型）
+- 倉庫を**チェストのようなグリッド表示**にする。
+- **ドラッグでアイテムを移送**できるようにする（町間の移送、または倉庫⇄手持ちの移送）。
+- **インベントリ画面（チェストのインベントリ）**として、グリッド状のスロットUIを実装する。
+- ※現在の倉庫はリスト表示＋サイドバー。ドラッグ&ドロップは既存UIに無い仕組みのため、実装は中〜大規模になる見込み。
+
+## 2026-07-26 家側・整合性監査＋入手不能装備15件の整理（Sol調査/Luna削除/Terra実装）※Unity確認待ち
+- **整合性監査**をSol(read-only)で3系統実施: (A)入手経路/需給 (B)画像参照 (C)レシピ/クエスト/セーブ/GUID。致命的な進行不能・データ破損はゼロ。
+  - 画像: 参照切れ・取り違えは0件。敵99/99・装備(配置分)・イベント13/13健全。未表示は「Norn樹冠迷宮/Velm黒鉄鉱山の戦闘背景2枚」「修練場(TrainingGround)施設画像1枚」＝未生成のみ（別途対応）。
+  - レシピ57件・セット20種・ダンジョン15件・転職・敵数値・マイグレーション境界は全て整合。
+  - 保留課題として記録: 強化鉱石(最高級/初級)の供給不足、等級別変異核4種の死にアイテム化、採取素材6種の用途不足、破損セーブ向けID一意性検証の不足。→ 経済バランス調整と併せて別途。
+- **入手不能装備15件**を調査→git履歴で「専用装備システムへの移行時に置換・除外されたが本体だけ残った旧アセット」と判明（壊れ参照ではない）。
+  - **9件削除**(後継専用装備あり): NormalRank09系3(→AbyssThrone)/Mine系3(MinebreakerHammer/DeepMinerArmor/EchoStoneRing→LowerMine)/BlackIron General系3(BlackIronHalberd/GeneralPlate/BlackIronWarEmblem→グラード天嶺砦)。
+    - .asset/.meta/.png/.png.meta 計36ファイル削除。EquipmentAvailabilityTests.cs の未使用定数 NormalRank09Ids 削除。docs/IMAGE_ASSET_LIST.md 集計更新(装備89→80)。Assets内の参照ゼロを grep 確認済み。
+  - **6件は新経路で復活**(セット効果/図鑑画像/テスト現存): AncientGuardian系3(R5)/OniHunter系3(R3)。
+    - `DungeonEnemyVariantService.AddSpecialVariantEquipmentDrop` を新設。変異敵ドロップ経由で入手可能に。既存 limitedEquipmentDrops(各3件固定)は不変。
+    - AncientGuardian → 霧の古代遺跡(Middle)の Grade05IronGolem/Grade05StoneGolem/Boss04RuinGuardian 変異。OniHunter → Upper帯の Grade05OgreMage 変異。1回の変異で1部位のみ抽選。dropChance 通常0.10/ボス0.20。
+    - EditModeテスト `DungeonEnemyVariantEquipmentDropTests.cs` 追加(Grade条件/非対象除外/部位網羅/既存ドロップ保持/最大1件)。dotnet build は0 warning/0 error。
+- **Unity確認待ち**: Test Runner(EditMode)で `DungeonEnemyVariantEquipmentDropTests` 含め全緑か。図鑑・戦闘での実挙動。未コミット。
+
+### 追記: 削除の巻き添えテスト修正（2026-07-26）
+- `EquipmentSetCatalogTests.SpecialPageModel_UsesAllSpecialAssetsAndPreservesOverallCount` が失敗（Expected 6 / But was 3）。
+- 原因: NormalRank09系3件が「高ランク単体装備ページ(equipmentRank>=9 & equipmentSet=None)」に載っていた。削除で 6→3、pages 26→23 に。SetGroups(20)は不変。
+- 削除は意図的なので、期待値をデータに合わせて更新: HighRankSingle 6→3、pages 26→23。他テスト(EquipmentAvailabilityTests等)への巻き添えは grep 確認済みで無し。dotnet build 0/0。
+
+## 2026-07-26 家側・強化鉱石をレシピ材料から外し、変異核を装備素材に転用（Sol調査/Terra実装）※Unity確認待ち
+- 監査で判明した「等級別変異核4種の死にアイテム化」「強化鉱石が装備強化と鍛冶レシピで競合」を同時解消。
+- 方針(ユーザー確定): 装備レシピの材料から強化鉱石を外し(強化鉱石は装備強化専用化)、同数の等級別変異核へ**1:1置換**。
+- 対象レシピ32件のmaterials内GUIDのみ差し替え(amount維持):
+  - Rank4系4件(rank4_0/1/2, beastbane): EnhancementOre → LowerGradeMutantCore
+  - Rank5系3件: EnhancementOre → MiddleGradeMutantCore
+  - Rank6系10件(rank6_0/1/2 ×武器/防具/装飾, dragonbane): EnhancementOre → MiddleGradeMutantCore
+  - Rank7系9件(rank7_0/1/2 ×武器/防具/装飾): EnhancementOre → UpperGradeMutantCore
+  - Rank8系3件(Rank08 Weapon/Armor/Accessory): UpperGradeEnhancementOre → HighestGradeMutantCore
+  - 神話3件(MythicBlade/Armor/Charm): HighestGradeEnhancementOre → HighestGradeMutantCore
+- 進行度と変異核入手時期は整合(Sol確認): レシピ解放町と同時か手前で該当等級の核が入手可能。進行不能なし。
+- **ダンジョンのクリア報酬(強化鉱石=供給側)は不変**。VelmBlackIronMine/GlaadSkyFortress/FinalBlackSoilAbyss等の.assetは触っていない。
+- 変異核は強化鉱石と同じ itemType:Material / materialClassification:CraftingMaterial なので、既存テスト(BalanceExpansion*, EquipmentAvailability, TradeMaterial)は不変で通る。dotnet build 0/0。
+- 副作用(記録・実プレイ後に調整): 基礎EnhancementOreはレシピ需要76個が消え供給過多寄り(装備強化+1〜+2のみ需要)。Middle/Upper核はコンプ時8〜11周回とやや重い。Highest核はコンプ時42個。→ 経済バランス調整の保留項目に追加。
+- **Unity確認待ち**: 鍛冶屋で各レシピの材料表示が変異核になっているか、実際に制作できるか。Test Runner全緑か。未コミット。
+
+### 追記: レシピ材料が鍛冶屋で1つしか表示されないバグ→修正(2026-07-26)
+- 症状: 強化鉱石→変異核の置換後、鍛冶屋で各レシピの材料が「魔物の牙」1つしか表示されない(変異核・魔石が消える)。Unity再インポートでも直らず。
+- 真因: 置換時のsedが行頭スペースを巻き込み、変異核の material 行のYAMLインデントが `  - item:` → `- item:` に崩れた(全32レシピ)。配列要素として正しくパースされず materials が壊れていた。GUID・amount自体は正しかった。
+- 修正: 全32レシピの `^- item:` を `  - item:` に戻した。各レシピが3材料で正しくパースされることを確認。
+- 教訓: **YAML .asset を機械置換するとインデント崩れが起きうる。置換後は必ず先頭インデント(`  - item:`)と要素数を検証すること。**
+
+## 2026-07-26 家側・全体マップの地域選択バグ修正 ※Unity確認待ち
+- 症状: 上級の町(北西地域=worldMapIndex1)にいるとき、全体マップで「東方平原地域」を選んでも北西地域のマップが表示される。
+- 真因: SimpleMercenaryHireUI.Map.cs の東方地域ボタンだけ引数なし `ShowWorldMap` を渡していた。引数なし版は `townProgressState.CurrentWorldMapIndex`(現在地の地域)を開く実装なので、現在地が東方以外だとその地域が出てしまう。他3地域ボタンは `ShowWorldMap(1)`/(2)/(隠し島) と明示indexだった。
+- 修正: 東方ボタンを `() => ShowWorldMap(0)` に変更(他ボタンと同形式)。
+- 引数なし `ShowWorldMap()` はメニュー遷移・町マップの「地域マップへ」戻る等で「現在地の地域を開く」正しい用途があるため残す。
+- dotnet build 0/0。Unity確認待ち: 各地域ボタンが正しい地域マップを開くか(特に上級/最高級の町にいる状態で東方・北西・黒土を切替)。
+
+## 2026-07-26 家側・全体マップ地域選択バグ + セーブ進行データ喪失の調査/修復 ※Unity確認待ち
+### (1) 地域選択バグ(コミット候補) — 前述の通り東方ボタンを () => ShowWorldMap(0) に修正済み。
+
+### (2) 「東方地域の最後の町に帰還できない」— 真因はセーブ保存先の変更(Sol調査)
+- 症状: ノルン(北西の最初)にいてエルド(東方)へ帰還しようとすると「先にリーフへの移動クエストを攻略してください」。
+- 真因: companyName を DefaultCompany → YugaSen に変更(commit df9ff62)したため Application.persistentDataPath が変わり、**別の空の保存先で若いセーブが育っていた**。
+  - 旧 AppData/LocalLow/DefaultCompany/... : version19, unlocked[0,1,2], grade3, 攻略履歴あり
+  - 現 AppData/LocalLow/YugaSen/... : version35, day203, town3(ノルン), unlocked[2,3], grade0, 攻略履歴空 ← これでプレイしていた
+- つまり進行データが「飛んだ」のではなく、別物のセーブだった。地域選択修正やレシピ変更とは無関係。
+### 対応A: 実セーブの修復(ユーザー確定・実施済み)
+- YugaSen セーブを直接編集: unlockedTownIndices [2,3]→[0,1,2,3]、highestUnlockedDungeonGrade 0→3(Upper)、dungeonFloorProgress に MiddleRuins(エルドのゲートダンジョン,5階)を補完。JSON妥当性確認済み。バックアップ game-save.json.bak-20260726-townfix。
+- ※ゲーム停止中に編集。ロード前にゲーム再起動が必要。他ダンジョンの詳細攻略履歴は現在地から完全復元不可(最低限のゲート通過分のみ補完)。
+### 対応B: 再発防止(コード・Unity確認待ち)
+- WorldMapService.CreateRestoredUnlockedTownIndices を修正: 「savedがnullのときだけ経路補完」→「常に現在地の進行位置までの経路(TownProgressionOrder[0..currentOrder])を補完」。隣接移動しかできない設計上、現在地に到達=経路上の町は全解放済みが保証されるため過剰解放にならず、解放集合が現在地と矛盾するセーブをロード時に自動修復できる。
+- 回帰テスト追加: WorldMapServiceTests.CreateRestoredUnlockedTownIndices_WhenSavedSetIsMissingRouteTowns_RepairsRouteToCurrentTown([2,3]+current3 → 0,1,2,3含む,4含まず)。既存2テストは不変で通る。dotnet build 0/0。
+- 未対応(記録のみ): companyName変更時に旧保存先セーブを移行する仕組み、CreateSaveDataでマネージャーnull時にデフォルト値保存せずエラーにする案(Sol提案)。今回はロード時修復で実害回避。
+
+## 2026-07-27 家側・採取素材の売却専用化 + 採取イベントの日数増加 ※Unity確認待ち
+### (1) 採取専用素材6種を売却専用化・高価格化(ユーザー確定)
+- IronOre/SilverOre/MedicinalHerb/AntidoteHerb/Hardwood/Spiritwood の materialClassification を 2(CraftingMaterial)→1(SellOnly)。
+- 価格: 低級(IronOre/MedicinalHerb/Hardwood)=150、高級(SilverOre/AntidoteHerb/Spiritwood)=300。魔物ドロップ素材の実質上限(約120G: TrollHide/LizardScale)を確実に上回る。
+- 6種は全レシピで未使用(GUID検索確認済み)なのでSellOnly化でレシピは壊れない。TradeMaterialTests.EveryRecipe_UsesOnlyCraftingMaterials も影響なし。
+### (2) 採取イベントに日数増加を追加(ユーザー確定: 丁寧2日/急ぐ1日)
+- これまで採取(MineralVein/HerbGrove/QualityGrove)は Careful のみ日数+1、Quick は0だった。両方に日数コストを付与。
+- DungeonEventChoiceResult: bool AddExplorationDelay を int ExplorationDelayDays に置換(AddExplorationDelayは ExplorationDelayDays>0 の算出プロパティとして互換維持)。全ファクトリを int 化。
+- ResolveEnvironmentalChoice: Careful(option0)=2日/Quick(option1)=1日。ResolveEventChoice で ExplorationDelayDays 分 AddExplorationDelay。
+### (3) UI表示反映(ユーザー追加要望)
+- 採取イベントの選択肢ラベルに日数明記: 「慎重に採掘する / +2日」「急いで採掘する / +1日」等(崩落イベントの既存表記に合わせた)。説明文にも「丁寧なほど多く採れるが時間がかかる」。
+- CreateChoicePreview を採取イベント対応に修正(従来は ResolveChoice が None を返し採取内容が出なかった)。環境イベント結果から「〇〇を△個入手します。探索日数が□日増加します。」を表示。dungeonData を引数追加。
+- 回帰テスト追加: GatheringEvent_CarefulTakesTwoDays_HurriedTakesOne、CreateChoicePreview_ForGathering_ShowsMaterialAndDelayDays。既存 DungeonEventServiceTables/TradeMaterialTests は不変で通る。dotnet build 0/0。
+- Unity確認待ち: 採取イベントで日数が正しく増える(丁寧2/急ぐ1)、選択肢・プレビュー表示、採取素材が売却専用として市場/倉庫で表示・売却できるか。未コミット。
+
+## 2026-07-27 家側・町ごとの固有マップ画像を反映 ※Unity確認待ち
+- 町マップ背景を全町共通の Maps/TownMap から、町ごとの固有画像 Maps/Towns/{英名}.png に切り替え。8町分の画像は配置済み(Sail/Leaf/Eld/Norn/Glaad/Velm/Abyss/Astera、png+meta確認済み)。
+- WorldMapService: TownMapImageNames 配列(index=town: Eld/Leaf/Sail/Norn/Glaad/Velm/Abyss/Astera)と GetTownMapImageResourcePath(townIndex) を追加。
+- SimpleMercenaryHireUI: townMapBackgroundImage(RawImage)フィールド追加。AddMapBackground を RawImage を返すよう変更(既存の戻り値無視呼び出しは影響なし)。UpdateTownMapBackground() を新設し、RefreshTownMapPage(現在地変更時に呼ばれる)冒頭で現在地の町画像に差し替え。画像が無い町は Maps/TownMap にフォールバック。
+- dotnet build 0/0。Unity確認待ち: 各町に移動したとき固有のマップ画像が表示されるか、隠し町アステラ含め全8町。未コミット。
+
+## 2026-07-27 家側・就活提出前チェックリストを作成
+- handoff/SUBMISSION_CHECKLIST.md を新設。提出(GitHub公開/ビルド配布/応募)前に確認する項目を体系化。
+- 内容: 前提確認 / 未コミット作業の整理 / 機密・個人情報の除外(handoff公開判断含む) / ライセンス / ビルド動作確認 / README見せ方(スクショ追加推奨) / プレイ体験 / 提出直前手順 / 未解決の技術課題(面接対策)。
+- 進行に応じて `- [ ]`→`- [x]` でチェックしていく運用。
+
+## 2026-07-27 家側・残り画像をすべて配置(戦闘背景2/修練場1/拡張装備/非装備57)
+- 以前の監査で未配置だった画像をすべて配置・検証完了。参照ずれ・取り違え・孤立・meta欠落はゼロ。
+  - 戦闘背景2: NornCanopyLabyrinth / VelmBlackIronMine(ダンジョンアセット名で解決)
+  - 施設職員1: TrainingGround(施設キーで UI/Staff/TrainingGround 解決、Sprite設定)
+  - 拡張装備の図鑑画像: item_expansion_rank4〜7 + beastbane/dragonbane(装備アセット名一致)
+  - 非装備アイテム画像57点: UI/Items/{item.name}(素材/消耗品/変異核/転職証等、全実アイテムに対応、Sprite設定)
+- 全画像 textureType=Sprite(8) 確認。UI/Items の meta欠落4点(SpiritRemnant/TrollHide/VenomMothPowder/WyvernScale)はUnity再インポートで生成済み。
+- docs/IMAGE_ASSET_LIST.md 更新(合計 355/361、残未配置は拡張敵6体のみ)。
+
+## 2026-07-27 家側・倉庫/鍛冶屋/市場のUI整理（アイコン追加・レイアウト整列）※Unity確認待ち
+- 倉庫在庫リストにアイテムアイコンを追加(市場/鍛冶屋と統一、InventoryPageUIにCreateItemIcon新設)。
+- 倉庫の売却数量ダイアログにアイテム画像を追加(sellQuantityImage)。
+- 倉庫上部ボタンの過密/重なりを解消: 2段化し、左サイドバー(x=0〜126)と重ならないようx≥142から配置。1段目=絞込/並替、2段目=装備図鑑/倉庫拡張/一括売却。ビューポート上端も下げた。
+- 鍛冶屋/市場の「詳細ボタンが説明文に被る」問題を修正。真因は共通CreateTextが horizontalOverflow=Overflow(折り返さずはみ出す)だったこと。幅調整では効かず、該当テキストを Wrap 化 + 行を縦積みレイアウトに再構成。
+  - 名前(大)/Rank・クラス・スロット(小) を分離、見出しは <b>ステータス</b>/<b>素材</b>/<b>費用</b>/<b>仕入れ</b> のインライン太字で内容と同一行に。行高・行ピッチを内容に合わせて調整(鍛冶屋 行高150/ピッチ162、市場 行高128/ピッチ140)。
+- dotnet build 0/0。Unity確認済み(ユーザー)。コミット対象はUIコード5ファイル(画像は配置済みコミット別)。
+
+## 2026-07-27 家側・素材の売却基本値(basePrice)を調整 ※Unity確認待ち
+- 売却価格の構造: 最終売値 = basePrice × 市場倍率(0.75〜1.35) × 商人交渉 × 町需要。今回は basePrice を調整。
+- 鍛冶の制作コストは basePrice 非参照(recipe.goldCost固定+材料個数)のため不変。今回の変更は売却収入のみに影響。
+- 変更(素材31件):
+  - 売却専用10件を2倍: 角兎30→60/ゴブリン耳35→70/コウモリ羽50→100/大鼠皮50→100/鉄鉱石150→300/薬草150→300/硬木150→300/解毒草300→600/銀鉱石300→600/霊木300→600
+  - 魔物の牙(需要高): 25→100
+  - 変異核: 基礎240→300/下級480→800/中級900→1800/上級1560→3200/最高級2700→5000(全素材の頂点)
+  - 魔石: 初級180→220/中級360→550/上級720→1200/最高級1440→2400(下級90据置)
+  - 強化鉱石: 下級160→200/中級300→450/上級520→900/最高級900→1800(初級80据置)
+  - 上位ボス素材: 魔鋼450→700/深淵竜鱗650→1400/黒鉄石片400→600/ワイバーン鱗320→450/闇水晶240→320/ゴーレム核180→220/オーガ血石180→220
+  - 下位ドロップ(スライム/甲虫/蜘蛛/毒蛾/呪骨/初級強化鉱石/下級魔石/精霊残滓/オーク牙/トカゲ/トロル)は据置
+- Unity確認待ち: 倉庫/市場での売却額表示。未コミット。
+
+## 2026-07-27 家側・制作装備の売却基本値(basePrice)を2倍に ※Unity確認待ち
+- 全鍛冶レシピの成果物装備57件の basePrice を2倍化(ランク間傾斜は比率保持)。売値 = basePrice × 品質倍率 × 強化倍率 × 町需要。
+  - 例: SteelSword 220→440 / R5武器 1300→2600 / R8武器 7300→14600 / R10鎧 31500→63000 / MutantCoreCharm 650→1300
+- 副作用(ユーザー確定で許容): acquisitionType:0 の市場流通6件(ArcaneStaff/CompositeBow/LancerSteelLance/PriestBlessedStaff/RogueSwiftDagger/SteelSword=R2初期武器)は市場購入価格も2倍になる。制作品と市販品で売値を揃える方針で2倍のまま。
+- 鍛冶の制作コスト(recipe.goldCost+材料個数)は basePrice 非参照のため不変。
+- 価格テスト(MerchantInventoryTests等)は全てテスト内自作アイテム依存で実アセット非依存のため影響なし。dotnet build 0/0。
+- ※前項(素材basePrice調整)と合わせ、未コミットの.asset変更は素材31+装備57=88件。Unity確認後にコミット予定。
+
+## 2026-07-27 家側・倉庫拡張を商人Lv100まで15段階に拡張 ※Unity確認待ち
+- 旧: 4段階(tier0〜3, 容量30/60/100/160, 最大160, 必要Lv1/4/8/12)。
+- 新: 15段階(tier0〜14)。ProgressionManager.cs の3配列を拡張し、維持費は専用配列化。
+  - 容量: 30/60/100/160/230/310/400/500/610/720/830/900/950/980/1000
+  - 拡張費用: 1500/5000/12000/25000/45000/75000/120000/180000/260000/360000/480000/620000/780000/950000/0
+  - 必要商人Lv: 1/4/8/12/18/24/32/40/50/60/70/80/90/95/100
+  - 維持費/日: 0/0/100/150/200/260/330/410/500/600/700/800/900/950/1000(旧 100*(tier-1)式を廃止)
+- セーブ互換: Restore の storageTier クランプ上限を 3→配列長-1(14) に修正(旧上限3ハードコードのままだと新段階が切り詰められるバグを回避)。既存tier0〜3セーブはそのまま有効。
+- テスト更新: ProgressionManagerTests の tier別TestCaseを新値に(tier3は最大でなくなり費用25000/次230、tier13/14を追加)。維持費テスト(storageTier=2→100)は不変で通る。dotnet build 0/0。
+- Unity確認待ち: 倉庫拡張UIで次段階の容量/費用/必要Lv表示、実際に拡張できるか、維持費の日次反映。未コミット。
+
+## 2026-07-27 家側・メニューに「セーブしてタイトルへ」追加＋ボタン重複修正 ※Unity確認待ち
+- グローバルメニュー(BuildGlobalMenuOverlay)に「セーブしてタイトルへ」ボタンを追加。押下で saveManager.SaveGame() → SceneManager.LoadScene("Title")。戦闘中(battleManager.IsBattling)は無効化。ユーザー確定: セーブしてから戻る方式。
+- 併せて既存バグ修正: 「商人情報」と「依頼確認」が同座標(135,-50)で重なっていたのを解消。メニュー全体を再配置(依頼確認→(-135,-115)、地域マップ→(135,-115)、チュートリアル→(-135,-180)、タイトルへ→(135,-180)、閉じる→(0,-245))。ウィンドウ高さ 500→620。
+- メニューボタンはoverlay器(GetOrCreateOverlay)内に毎回コード生成されるため、配置変更はPlayで反映(Prefab再生成不要)。タイトルシーン名は "Title"(ビルド登録済み)。
+- dotnet build 0/0。Unity確認待ち: メニューのボタン配置(重なりなし)、タイトルへ戻る動作、戦闘中の無効化。未コミット。
+
+## 2026-07-27 家側・全体精査(Sol)に基づくセーブ堅牢化＋探索中タイトル戻りガード ※Unity確認待ち
+- Solでバグリスク/設計の全体精査を実施。実害度高(セーブ堅牢性に集中)を優先対応。
+### 対応した高リスク項目
+- #1 探索中タイトル戻りガード: SaveAndReturnToTitle に dungeonRunManager.IsRunning チェックを追加(従来はIsBattlingのみ)。戦闘中/探索中はstatusTextで理由表示して戻らない。探索途中で戻ると経過日数/探索終了処理を飛ばせる問題を防止。
+- #2 アトミック保存: SaveManager.SaveGame の File.WriteAllText 直書きを廃止。WriteSaveFileAtomically(.tmpへ書込→File.Replaceで置換、旧は.bak退避)に変更。書込中断でも既存セーブが破損しない。マイグレーション時の再保存も同経路に。
+- #3 ロード失敗時の保存停止: LoadGame を bool 返却に変更。バージョン超過/null/破損catch で saveBlockedByLoadFailure を立て、以降 SaveGame を全面抑止。未対応/破損セーブを初期状態で上書きして復旧不能にする事故を防止。InitializeAndLoad はロード成否(loadedExistingSave)でonboarding完了処理を判定。
+### 保留(未対応・記録のみ)
+- #4 参照解決失敗でアイテム/装備を無警告破棄(アセット改名時のみ。通常運用では発生しにくい)。
+- #5 鍛冶強化の返金経路不足(単一フレームでは起きにくい)。storageTierのInspector [Range(0,3)]旧仕様。
+- 設計改善3件(スキル定義駆動化+パリティテスト / GameAssetRepositoryキャッシュ / MerchantData API整理+会計テスト)はポートフォリオ映えする候補として保留。
+- dotnet build 0/0。LoadGame外部呼び出しは自クラスのみで影響なし。SaveManagerTitleTests等はIsAutomatedTestRunでSaveGameが早期リターンするため影響なし。Unity確認待ち: Test Runner全緑、探索中に戻れないこと、通常セーブ/ロード。
+
+## 2026-07-27 家側・複数日進行時の日次リザルトを1画面に連結 ※Unity確認待ち
+- 症状: ダンジョン攻略等で複数日一気に進むと、日ごとにリザルト画面が連続表示され、2日目以降は維持費のみの薄い画面が続く。
+- 対応: 複数日分のリザルトを1画面に連結表示。
+  - DayManager: AdvanceDays のループ完了後に DaysAdvanceCompleted(進めた日数) を発火する新イベントを追加(既存のDayChanged/DayChangeFinalizedは不変)。
+  - SimpleMercenaryHireUI.DailyResult.cs: HandleDayChangeFinalized は各日をキューへ積むだけにし、表示は HandleDaysAdvanceCompleted(進行完了)でまとめて実施。ShowPendingDailyResultIfReady はキュー内の全日テキストを区切り線で連結して1画面表示するよう変更。
+  - 各日テキストは元々「N日目の終了 → M日目」見出し付きなので、連結しても日の区切りが分かる。
+- 戦闘演出中(IsPresentationBusy)で保留された場合も、既存の演出完了フック(BattleDungeon.cs 3箇所)から ShowPendingDailyResultIfReady が再度呼ばれ、連結表示される。
+- 会計処理(維持費/報酬)は従来どおり DayChanged で日ごとに正しく実行(表示だけまとめる)。DailyResultControllerTests は BuildDailyResultText 直接検証でUI表示制御に非依存のため影響なし。dotnet build 0/0。
+- Unity確認待ち: 複数日進行(ダンジョン3日等)で1画面に全日が連結表示されるか、単日は従来通りか。
+
+## 2026-07-27 家側・設計改善(1/3): 傭兵スキル定義を定義駆動に統一 ※Unity確認待ち
+- 全体精査(Sol)で挙げた設計改善3件の1つ目。スキル情報が3箇所に散在していたのを MercenaryClassProgression 定義に一元化。
+  - 散在元: (1)MercenaryClass.cs の定義 (2)MercenaryInstance.cs の基本3職Lv2パッシブ ハードコード(GetSkillBonusXxx) (3)CharacterEquipmentController.cs のUI表示用switch 4箇所。
+- 対応(Terra実装/家側レビュー):
+  - MercenarySkillDefinition に DisplayDescription(UI用の詳しい説明)を追加、未指定時 Description にフォールバック。
+  - 基本3職のLv2パッシブ(基礎体力HP+10/防御+3、速射訓練速度+0.05、魔力集中攻撃+4)を GetSkillProgression 定義へ追加(UnlockLevel=2, IsPassive)。
+  - MercenaryInstance の Lv2ハードコード除去(uniqueスキル分のみ残す)→ GetProgressionBonus 経由で1回だけ加算(二重加算なし)。
+  - UIのswitchを削除し GetPrimarySkill/GetSkillProgression から生成。UI説明は DisplayDescription。
+- 挙動不変の担保: 上級職は同系統昇進のみ(GetBaseClass(original)==GetBaseClass(current))なので OriginalClass基準を維持。PromotionPreviewは昇進前後に同じLv2が入るため差分不変(相対検証テストも無影響)。
+- 追加テスト MercenarySkillDefinitionRefactorTests: Lv1加算なし/Lv2正確加算/上級職パリティ/UI表示文言/unique+Lv2合算。dotnet build 0/0。
+- Unity確認待ち: Test Runner全緑、傭兵詳細のスキル表示、Lv2傭兵のステータス。未コミット。
+
+## 2026-07-27 家側・設計改善(2/3): GameAssetRepository にキャッシュ導入 ※Unity確認待ち
+- 従来 LoadAll/FindByName/FindByPersistentId が呼ばれるたびに Resources.LoadAll(全走査)を実行(UI更新・候補列挙から高頻度)。
+- 対応: 型ごとに (1)LoadAll結果の配列 (2)PersistentId辞書 (3)name辞書 を初回のみ構築しキャッシュ。Resources配下は実行中不変なので安全。ClearCache() をテスト用に追加。
+- 挙動不変: FindByName は従来もResources内のみ・最初の一致を返す→辞書も最初の登録を保持で同一。FindByPersistentId は Resources内=キャッシュ→transient(FindObjectsOfTypeAll, 非キャッシュのまま)→legacyName の順で従来と同じ。transient SO(テスト/実行時生成)はキャッシュ対象外で従来通り拾う。
+- 効果: 毎回の全走査が型ごと1回のロード+O(1)辞書引きに。特に FindByPersistentId/FindByName が高速化。
+- dotnet build 0/0。既存 GameAssetRepositoryTests 等はResources内容の検証でキャッシュ後も同結果。Unity確認待ち: Test Runner全緑、アイテム/敵/ダンジョン解決の実挙動。未コミット。
+
+## 2026-07-27 家側・設計改善(3/3): MerchantData の曖昧APIを整理し会計テスト追加 ※Unity確認待ち
+- MerchantData.AddExperience(int): 空実装(商人成長はゴールドベース)で呼び出し元ゼロ→削除。呼ばれると成功したように見える紛らわしいAPIを除去。
+- MerchantData.PayGold(int): TryPayGold の戻り値(支払い可否)を捨てる版で呼び出し元ゼロ→削除。支払いは結果を扱う TryPayGold に一本化。
+- どちらもMerchantData以外/merchantData経由の呼び出しもゼロを grep 確認。ビルド通過で未解決参照なしを保証。
+- 会計テスト追加 MerchantDataAccountingTests: 残高十分で支払い成功+台帳-金額、残高不足でfalse無変更、負値拒否、残高ちょうど成功、AddGoldで+金額と台帳記録、AddGold負値拒否、明示accountingDay、TransactionId返却。金銭処理の契約を直接固定。
+- dotnet build 0/0。設計改善3件(スキル定義駆動化/AssetRepositoryキャッシュ/MerchantData整理)すべて完了。Unity確認待ち: Test Runner全緑。未コミット。
+
+## 2026-07-27 家側・アイテムの日本語化漏れを解消 ※Unity確認待ち
+- Sol調査で英語のまま表示されるアイテムを洗い出し。敵名/スキル/職業/各種enum/装備効果は漏れ0(完備)、アイテムのitemName/descriptionに漏れが集中。
+- 対応:
+  - itemName英語7件(NormalRank01〜07 = Traveler Blade I等)→「旅人の刃I」等に日本語化(Terra)。
+  - description英語123件(素材共通英文/装備英語説明/拡張装備のRank表記等)→世界観に合う日本語に翻訳(Terra、家側監修)。
+  - 追加発見: 拡張ランク装備36件(item_expansion_rank4_0〜7_2)のitemNameが「Rank 4 Warrior Weapon」等の英語で、変換テーブル(BalanceExpansionDefinition)にも未登録の真の漏れ→「ランク4 戦士の武器」等に機械的日本語化(家側)。
+- 変換方式: itemName/descriptionを直接日本語化。JapaneseDisplayText.GetItemNameは変換テーブル未ヒット時にitemNameをそのまま返すため、日本語itemNameがそのまま表示される(コード変更不要)。拡張装備/消耗品はBalanceExpansionDefinitionのEnglishName→JapaneseNameマッピングで従来通り日本語表示。
+- 最終検証: itemName/descriptionともASCII英語のまま(かつ変換テーブル未登録)の漏れ0件を確認。変更はitemName/descriptionのみで他フィールド不変。dotnet build 0/0。
+- 改善余地(記録): 現方式はswitch/定義への個別登録で新規追加時に漏れやすい。将来はItemDataSOに日本語表示名/説明フィールドを持たせるか、表示文字列の英語混入を検査するEditModeテスト追加が望ましい(Sol提案)。
+- Unity確認待ち: 市場/倉庫/鍛冶/図鑑でアイテム名・説明が日本語表示されるか。未コミット。
+
+## 2026-07-27 家側・借金を5000万に変更＋別動隊に戦闘HP消耗と治療費を導入 ※Unity確認待ち
+### (1) 借金額変更
+- DebtManager.InitialDebt 1億→5000万(50000000)。周回測定で1億は周回のみだと非現実的(最上位通し259周/実挙動1337回)、5000万+別動隊活用で約200〜400日完済の現実的水準と判断。テストは全てInitialDebt定数参照でハードコード無し=影響なし。
+### (2) 別動隊の戦闘シミュレーション+治療費(ユーザー要望)
+- 従来は成功時HP消耗ゼロ・報酬のみで「無償で強すぎ」だった。成功時も戦闘でHP消耗させ、消耗分を自動治療してその治療費をゴールドから差し引くよう変更。連続周回可能なまま無償ではなくする。
+- ApplySuccessfulEncounterDamage: 遭遇ごとに敵数・敵グレード・敵攻撃力合計・ダンジョングレードに応じてHP消耗。戦力が必要値の2倍以上で最大50%軽減。最低1ダメージ、HP最低1。
+- SettleExpeditionHealing: 遠征1日分の全member欠損HPの治療費(HealingCostService.CalculateFullHealCost)を合算し merchantData.TryPayGold(accountingDay付, reason=ExpeditionHealing)。支払えたら全回復、払えなければHP減のまま(次回失敗リスク=自然なペナルティ)。成功時・失敗時とも実施。
+- GoldTransactionReason.ExpeditionHealing を enum末尾追加、日次リザルトで「別動隊治療費」表示。限定装備ドロップ(bossLimitedDropChance×0.5)は従来通り別動隊でも機能(確認済み)。
+- 二重計上なし(報酬AddGold1回/治療TryPayGold1回)。TryPayGoldは残高不足でfalse+Gold非減。
+- テスト追加: 成功時報酬-治療費+全回復+会計日、資金不足時未治療+Gold非負、失敗時も治療精算。dotnet build 0/0。
+- Unity確認待ち: Test Runner全緑、別動隊で日次に治療費が出てHPが自動精算されるか、資金不足時にHPが減ったままか。未コミット。
+
+## 2026-07-27 家側・別動隊の獲得品処理モードを部隊ごとに選択可能に ※Unity確認待ち
+- 質問回答: 別動隊は解散するまで毎日自動で報酬を出し続ける(1日ごとの再設定不要)。獲得品は派遣先ダンジョンの最寄り町倉庫に入庫。セーブ/ロードで継続、別の町に移動しても継続(メンバーは派遣先の町に留まり同行対象外)。
+- 従来は倉庫満杯時に獲得品を黙って捨てていた。処理モード ExpeditionLootPolicy を部隊ごとに導入:
+  - Store(倉庫に入れる, 既定=0): 入庫。満杯なら装備以外を自動売却、限定装備も入らなければ売却。「満杯で捨てる」を廃止。
+  - SellNonEquipment(装備以外は売却): 素材/消耗品/遺物は即売却、限定装備は倉庫へ(満杯なら売却)。
+  - SellAll(すべて売却): 全て即売却。
+- DungeonExpedition に lootPolicy、TryFormExpedition に policy 引数(既定Store)、SetExpeditionLootPolicy で派遣中も切替。SavedDungeonExpedition に int lootPolicy 追加(既存セーブは0=Store)。NormalizeLootPolicy で範囲外正規化。
+- 売却は GetSellPrice→AddGold(ItemSale, accountingDay)のみ(在庫操作SellItemは不使用)。入庫と売却は排他で二重計上なし。報酬(ExpeditionReward)/治療費(ExpeditionHealing)とも別トランザクション。
+- UI: 派遣編成画面と派遣中管理カードに「獲得品: 倉庫→装備以外売却→すべて売却」サイクルボタン(SimpleMercenaryHireUI.Expedition.cs)。
+- テスト: SellAll/SellNonEquipment(空き・満杯)/Store(空き・満杯)/セーブ往復・旧値0。※テスト期待値は当初「遭遇数=ドロップ数」と誤想定+魔石混入で失敗→乱数0.5固定で魔石除外(0.5>0.3)・敵数1体固定・4遭遇=材料4個 に修正。実装ロジックは不変。dotnet build 0/0。Unity全緑確認済み。
+
+## 2026-07-27 家側・ストーリー進行の返済率トリガー化 + エンディングシーン
+
+- **物語進行を借金返済率でトリガー化**: DebtManager.DebtChanged 購読で残債から返済率(10/25/50/75/90/100%)を判定し、対応 StoryMilestone を完了・提示。判定は `(long)InitialDebt * percentage`（境界 `>=`）。StoryProgressManager に Initialize(DebtManager) 明示注入シーム追加（OnEnable の fake-null 回避は `== null` 判定）。
+- **エンディング別シーン**: Ending.unity + EndingSceneController.cs 新規。DebtCleared 到達で父母からの手紙エピローグ。
+- ストーリー文言確定（第一章〜エピローグ）、オンボーディングカード文言を StoryProgressManager に分離。TutorialController を「別動隊」用語・5000万G・転職神殿に更新。SaveDataMigrator を CurrentVersion 参照化。SaveManager は StoryMilestone 完了時に即セーブ。
+- **バグ修正（真犯人）**: StoryProgressManagerTests 3件の長時間 false 失敗は、テストヘルパー `RemainingDebtForPercentage` の **int オーバーフロー**が原因。初期借金5000万化で `50000000 * 75` が int上限を超え負値→Restoreがclampで丸め返済0扱い。ヘルパーを long 計算に修正。**本体(HasRepaidAtLeast/SaveDataMigrator)は (long) キャスト済みで無事**、実ゲーム影響なし。今後 InitialDebt×割合は必ず long。
+- 検証: build 0/0、EditMode全緑（ユーザー確認済み）。

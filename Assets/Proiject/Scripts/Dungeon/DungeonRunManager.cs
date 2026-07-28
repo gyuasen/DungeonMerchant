@@ -73,7 +73,8 @@ public class DungeonRunManager : MonoBehaviour
             optionIndex,
             restHealAmount,
             treasureGoldReward,
-            hazardDamage);
+            hazardDamage,
+            dungeonData);
     }
 
     public string GetEventOptionImageKey(int optionIndex)
@@ -600,9 +601,9 @@ public class DungeonRunManager : MonoBehaviour
                 result.LimitedDropSourceLabel);
         }
 
-        if (result.AddExplorationDelay)
+        if (result.ExplorationDelayDays > 0)
         {
-            progressionManager?.AddExplorationDelay(1);
+            progressionManager?.AddExplorationDelay(result.ExplorationDelayDays);
         }
     }
 

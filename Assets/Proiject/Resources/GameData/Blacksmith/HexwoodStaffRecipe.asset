@@ -15,11 +15,11 @@ MonoBehaviour:
   recipeName: Hexwood Staff
   resultItem: {fileID: 11400000, guid: 81d100a996844af29042c1fd2c6c8655, type: 2}
   resultAmount: 1
-  goldCost: 380
+  goldCost: 600
   materials:
   - item: {fileID: 11400000, guid: f66e9fe18b5c428a86a912bdf72fc5ba, type: 2}
     amount: 4
-  - item: {fileID: 11400000, guid: 52a98352167a4bce926ac5c343b9c6e8, type: 2}
+  - item: {fileID: 11400000, guid: df1a2b3c4d5e6f708192a3b4c5d6e7f8, type: 2}
     amount: 3
   - item: {fileID: 11400000, guid: 28ea52f6212db55409b8ea0e99271947, type: 2}
-    amount: 1
+    amount: 3

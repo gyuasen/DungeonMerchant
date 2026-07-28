@@ -17,9 +17,9 @@ public sealed class HireAndPartyController
     private readonly MercenaryGenerator mercenaryGenerator;
     private readonly MerchantInventory merchantInventory;
     private readonly HealingManager healingManager;
+    private readonly RoadCargoSession roadCargoSession;
     private readonly TownProgressState townProgressState;
     private readonly SaveManager saveManager;
-    private readonly TransportManager transportManager;
     private readonly Action<string> setStatus;
     private readonly Action refreshHirePage;
     private readonly Action refreshCompanyPage;
@@ -44,7 +44,6 @@ public sealed class HireAndPartyController
         HealingManager healingManager,
         TownProgressState townProgressState,
         SaveManager saveManager,
-        TransportManager transportManager,
         Action<string> setStatus,
         Action refreshHirePage,
         Action refreshCompanyPage,
@@ -59,9 +58,9 @@ public sealed class HireAndPartyController
         this.mercenaryGenerator = mercenaryGenerator;
         this.merchantInventory = merchantInventory;
         this.healingManager = healingManager;
+        roadCargoSession = UnityEngine.Object.FindObjectOfType<RoadCargoSession>();
         this.townProgressState = townProgressState;
         this.saveManager = saveManager;
-        this.transportManager = transportManager;
         this.setStatus = setStatus;
         this.refreshHirePage = refreshHirePage;
         this.refreshCompanyPage = refreshCompanyPage;
@@ -186,13 +185,17 @@ public sealed class HireAndPartyController
 
         if (!partyManager.TryAdd(mercenary))
         {
+            MercenaryDuty duty = mercenary != null
+                ? MercenaryDutyService.GetDuty(mercenary.InstanceId)
+                : MercenaryDuty.None;
             setStatus(townProgressState != null &&
                       mercenary.CurrentTownIndex !=
                       townProgressState.CurrentTownIndex
                 ? $"{mercenary.MercenaryName}は別の町にいます"
-                : transportManager != null &&
-                      transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId)
-                ? "輸送任務中の傭兵は編成できません"
+                : duty == MercenaryDuty.RoadTransit
+                ? "街道移動中の傭兵は編成できません"
+                : duty == MercenaryDuty.Expedition
+                ? "別動隊中の傭兵は編成できません"
                 : "パーティーは満員です。");
         }
     }
@@ -252,10 +255,35 @@ public sealed class HireAndPartyController
                (mercenary.IsUnique || HasSpecialJobCertificate());
     }
 
+    public IEnumerable<MercenaryInstance> GetCompanyMercenaries()
+    {
+        foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
+        {
+            if (mercenary != null && !IsUnavailableForPromotion(mercenary))
+            {
+                yield return mercenary;
+            }
+        }
+    }
+
+    public IEnumerable<MercenaryInstance> GetPromotionCandidates()
+    {
+        foreach (MercenaryInstance mercenary in GetCompanyMercenaries())
+        {
+            yield return mercenary;
+        }
+    }
+
     public void PromoteMercenary(
         MercenaryInstance mercenary,
         MercenaryClass target)
     {
+        if (mercenary == null || IsUnavailableForPromotion(mercenary))
+        {
+            setStatus("修練中の傭兵は転職できません。");
+            return;
+        }
+
         bool isSpecial =
             target == MercenaryClassProgression.GetSpecialClass(
                 mercenary.MercenaryClass);
@@ -302,6 +330,17 @@ public sealed class HireAndPartyController
     public MercenaryContractType GetUnlockedContractType()
     {
         return hireManager.SelectedContract;
+    }
+
+    private static bool IsUnavailableForPromotion(MercenaryInstance mercenary)
+    {
+        if (mercenary == null)
+        {
+            return false;
+        }
+        MercenaryDuty duty = MercenaryDutyService.GetDuty(mercenary.InstanceId);
+        return duty == MercenaryDuty.Training ||
+               duty == MercenaryDuty.Expedition;
     }
 
     public void CycleHireContract()

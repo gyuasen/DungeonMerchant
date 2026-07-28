@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 0
   rarity: 0
   materialClassification: 1
-  description: A small horn taken from a horn rabbit.
-  basePrice: 30
+  description: "魔大陸で採れる、角ウサギから採れる小さな角。"
+  basePrice: 60
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0

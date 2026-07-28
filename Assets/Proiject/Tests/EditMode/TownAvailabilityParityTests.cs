@@ -4,6 +4,41 @@ using UnityEngine;
 
 public sealed class TownAvailabilityParityTests
 {
+    [TestCase(0, true)]
+    [TestCase(1, true)]
+    [TestCase(2, false)]
+    [TestCase(3, true)]
+    [TestCase(4, true)]
+    [TestCase(5, true)]
+    [TestCase(6, true)]
+    [TestCase(WorldMapService.HiddenIslandTownIndex, false)]
+    public void TrainingGroundAvailability_ExcludesSailAndHiddenIsland(
+        int townIndex,
+        bool expected)
+    {
+        Assert.That(TownServicePolicy.IsTrainingGroundAvailable(townIndex),
+            Is.EqualTo(expected));
+    }
+
+    // 転職神殿は進行順でエルド以降の町で使える。訪問順は
+    // セイル(2)→リーフ(1)→エルド(0)→ノルン(3)→…なので、
+    // エルドより手前のセイル・リーフでは使えない。隠し島も対象外。
+    [TestCase(2, false)] // セイル（エルドより前）
+    [TestCase(1, false)] // リーフ（エルドより前）
+    [TestCase(0, true)]  // エルド（解放）
+    [TestCase(3, true)]  // ノルン
+    [TestCase(4, true)]  // グラード
+    [TestCase(5, true)]  // ヴェルム
+    [TestCase(6, true)]  // アビス
+    [TestCase(WorldMapService.HiddenIslandTownIndex, false)]
+    public void JobChangeAvailability_UnlocksFromEldOnwardInProgressionOrder(
+        int townIndex,
+        bool expected)
+    {
+        Assert.That(TownServicePolicy.IsJobChangeAvailable(townIndex),
+            Is.EqualTo(expected));
+    }
+
     [TestCase(2, 1)]
     [TestCase(1, 2)]
     [TestCase(0, 3)]
@@ -30,13 +65,13 @@ public sealed class TownAvailabilityParityTests
     [TestCase(4, 6)]
     [TestCase(5, 7)]
     [TestCase(6, 8)]
-    public void Blacksmith_UsesOneRankAboveTheTownMarket(
+    public void Blacksmith_UnlocksEquipmentUpToOneRankAboveTheTownMarket(
         int townIndex, int expectedRank)
     {
         WorldMapService.EquipmentRankRange range =
             WorldMapService.GetBlacksmithEquipmentRankRange(townIndex);
 
-        Assert.That(range.Minimum, Is.EqualTo(expectedRank));
+        Assert.That(range.Minimum, Is.EqualTo(1));
         Assert.That(range.Maximum, Is.EqualTo(expectedRank));
         Assert.That(WorldMapService.IsBlacksmithEquipmentAllowedInTown(
             townIndex,
@@ -47,7 +82,25 @@ public sealed class TownAvailabilityParityTests
             townIndex,
             MercenaryClass.Warrior,
             expectedRank - 1,
+            EquipmentSlot.Weapon), Is.True);
+        Assert.That(WorldMapService.IsBlacksmithEquipmentAllowedInTown(
+            townIndex,
+            MercenaryClass.Warrior,
+            expectedRank + 1,
             EquipmentSlot.Weapon), Is.False);
+    }
+
+    [Test]
+    public void Blacksmith_NornKeepsRankFourRecipesAvailableAfterLeavingEld()
+    {
+        const int nornTownIndex = 3;
+        const int eldBlacksmithRank = 4;
+
+        Assert.That(WorldMapService.IsBlacksmithEquipmentAllowedInTown(
+            nornTownIndex,
+            MercenaryClass.Warrior,
+            eldBlacksmithRank,
+            EquipmentSlot.Weapon), Is.True);
     }
 
     [TestCase(2, 3)]

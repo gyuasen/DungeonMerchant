@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 2
   materialClassification: 0
-  description: An ancient mantle woven with protective runes.
+  description: "ランク5戦士向けに仕立てられた防具。"
   basePrice: 1400
   acquisitionType: 2
   equipmentSlot: 1

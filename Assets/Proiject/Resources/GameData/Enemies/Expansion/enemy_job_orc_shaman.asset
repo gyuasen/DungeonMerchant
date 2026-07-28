@@ -23,7 +23,7 @@ MonoBehaviour:
   specialVariantTitle: 
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
-  battleVisualKey: Grade05_orc_shaman
+  battleVisualKey: enemy_job_orc_shaman
   maxHP: 250
   attack: 38
   defense: 18

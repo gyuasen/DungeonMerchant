@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 0
   rarity: 2
   materialClassification: 2
-  description: A durable scale used for high-grade armor.
-  basePrice: 320
+  description: "魔大陸で採れる、上質な鎧に用いられる丈夫な鱗。"
+  basePrice: 450
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0

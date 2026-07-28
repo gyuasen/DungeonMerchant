@@ -298,13 +298,23 @@ public class MercenaryInstance
         }
 
         mercenaryClass = targetClass;
-        maxHP += 15;
-        attack += 5;
-        defense += 3;
-        maxMagicPower += 15;
-        attackSpeed += 0.04f;
+        PromotionPreview.ApplyBasePromotion(this);
         currentHP = Mathf.Min(MaxHP, currentHP + 15);
         return true;
+    }
+
+    internal void ApplyPromotionBaseStats(
+        int hp,
+        int attackValue,
+        int defenseValue,
+        int magic,
+        float speed)
+    {
+        maxHP += hp;
+        attack += attackValue;
+        defense += defenseValue;
+        maxMagicPower += magic;
+        attackSpeed += speed;
     }
 
     public void SetContract(
@@ -338,9 +348,9 @@ public class MercenaryInstance
 
     public int GetRenewalCost()
     {
-        return contractType == MercenaryContractType.Temporary
-            ? Mathf.Max(1, hireCost / 2)
-            : Mathf.Max(1, hireCost / 3);
+        return MercenaryContractRules.CalculateRenewalCost(
+            hireCost,
+            contractType);
     }
 
     public void RenewContract(int currentDay)
@@ -738,33 +748,19 @@ public class MercenaryInstance
     private int GetProgressionBonus(
         Func<MercenarySkillDefinition, int> selector)
     {
-        int total = 0;
-        foreach (MercenarySkillDefinition skill in
-                 MercenaryClassProgression.GetSkillProgression(
-                     mercenaryClass))
-        {
-            if (skill.IsPassive && level >= skill.UnlockLevel)
-            {
-                total += selector(skill);
-            }
-        }
-        return total;
+        return MercenaryClassProgression.GetPassiveBonus(
+            mercenaryClass,
+            level,
+            selector);
     }
 
     private float GetProgressionBonusFloat(
         Func<MercenarySkillDefinition, float> selector)
     {
-        float total = 0f;
-        foreach (MercenarySkillDefinition skill in
-                 MercenaryClassProgression.GetSkillProgression(
-                     mercenaryClass))
-        {
-            if (skill.IsPassive && level >= skill.UnlockLevel)
-            {
-                total += selector(skill);
-            }
-        }
-        return total;
+        return MercenaryClassProgression.GetPassiveBonusFloat(
+            mercenaryClass,
+            level,
+            selector);
     }
 
     private int GetEquipmentBonusAttack()
@@ -847,46 +843,34 @@ public class MercenaryInstance
 
     private int GetSkillBonusMaxHP()
     {
-        int bonus = OriginalClass == MercenaryClass.Warrior && level >= 2
-            ? 10
-            : 0;
         return IsUnique &&
                level >= Mathf.Max(1, baseData.uniqueSkillUnlockLevel)
-            ? bonus + baseData.uniqueSkillBonusMaxHP
-            : bonus;
+            ? baseData.uniqueSkillBonusMaxHP
+            : 0;
     }
 
     private int GetSkillBonusAttack()
     {
-        int bonus = OriginalClass == MercenaryClass.Mage && level >= 2
-            ? 4
-            : 0;
         return IsUnique &&
                level >= Mathf.Max(1, baseData.uniqueSkillUnlockLevel)
-            ? bonus + baseData.uniqueSkillBonusAttack
-            : bonus;
+            ? baseData.uniqueSkillBonusAttack
+            : 0;
     }
 
     private int GetSkillBonusDefense()
     {
-        int bonus = OriginalClass == MercenaryClass.Warrior && level >= 2
-            ? 3
-            : 0;
         return IsUnique &&
                level >= Mathf.Max(1, baseData.uniqueSkillUnlockLevel)
-            ? bonus + baseData.uniqueSkillBonusDefense
-            : bonus;
+            ? baseData.uniqueSkillBonusDefense
+            : 0;
     }
 
     private float GetSkillBonusAttackSpeed()
     {
-        float bonus = OriginalClass == MercenaryClass.Archer && level >= 2
-            ? 0.05f
-            : 0f;
         return IsUnique &&
                level >= Mathf.Max(1, baseData.uniqueSkillUnlockLevel)
-            ? bonus + baseData.uniqueSkillBonusAttackSpeed
-            : bonus;
+            ? baseData.uniqueSkillBonusAttackSpeed
+            : 0f;
     }
 
     private int GetSkillBonusMaxMagicPower()

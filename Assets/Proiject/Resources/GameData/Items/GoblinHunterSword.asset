@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 1
   rarity: 2
   materialClassification: 0
-  description: A blacksmith-only blade forged from monster materials.
-  basePrice: 620
+  description: "ランク3戦士向けに仕立てられた武器。"
+  basePrice: 1240
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 0

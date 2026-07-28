@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Standard iron armor for novice warriors.
+  description: "ランク1戦士向けに仕立てられた防具。"
   basePrice: 130
   acquisitionType: 0
   equipmentSlot: 1

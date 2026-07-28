@@ -17,14 +17,18 @@ public static class SaveDataMigrator
 
         int sourceVersion = Mathf.Max(0, data.version);
         MigrateMerchantProgression(data, sourceVersion);
+        MigrateQuestLocations(data, sourceVersion);
         MigrateDebt(data, sourceVersion);
         PreserveLegacyCollectionSemantics(data, sourceVersion);
         EnsureCollections(data);
         MigrateTownInventories(data, sourceVersion);
         MigrateMercenaryConsumables(data, sourceVersion);
         MigrateMercenaryLocations(data, sourceVersion);
+        MigrateLegacyTransportAndExpeditions(data, sourceVersion);
+        NormalizeEquipmentReferences(data);
         PopulatePersistentIds(data);
         MigrateStoryProgress(data, sourceVersion);
+        MigrateOnboardingGuide(data, sourceVersion);
         data.version = GameSaveData.CurrentVersion;
         return data;
     }
@@ -80,7 +84,7 @@ public static class SaveDataMigrator
 
     private static void MigrateStoryProgress(GameSaveData data, int sourceVersion)
     {
-        if (sourceVersion >= 21)
+        if (sourceVersion >= 36)
         {
             return;
         }
@@ -89,22 +93,66 @@ public static class SaveDataMigrator
         {
             StoryMilestone.OpeningDebtNotice
         };
-        if (data.hiredMercenaries != null && data.hiredMercenaries.Count > 0)
+        AddDebtMilestones(data, data.remainingDebt);
+    }
+
+    private static void AddDebtMilestones(GameSaveData data, int remainingDebt)
+    {
+        int clampedRemainingDebt = Mathf.Clamp(remainingDebt, 0, DebtManager.InitialDebt);
+        long repaidDebt = DebtManager.InitialDebt - (long)clampedRemainingDebt;
+        AddDebtMilestoneIfReached(data, repaidDebt, 10, StoryMilestone.DebtRepaid10);
+        AddDebtMilestoneIfReached(data, repaidDebt, 25, StoryMilestone.DebtRepaid25);
+        AddDebtMilestoneIfReached(data, repaidDebt, 50, StoryMilestone.DebtRepaid50);
+        AddDebtMilestoneIfReached(data, repaidDebt, 75, StoryMilestone.DebtRepaid75);
+        AddDebtMilestoneIfReached(data, repaidDebt, 90, StoryMilestone.DebtRepaid90);
+        AddDebtMilestoneIfReached(data, repaidDebt, 100, StoryMilestone.DebtCleared);
+    }
+
+    private static void AddDebtMilestoneIfReached(
+        GameSaveData data, long repaidDebt, int percentage, StoryMilestone milestone)
+    {
+        if (repaidDebt * 100L >= (long)DebtManager.InitialDebt * percentage)
         {
-            AddStoryMilestone(data, StoryMilestone.FirstMercenary);
+            AddStoryMilestone(data, milestone);
         }
-        if (HasFullyClearedDungeon(data.dungeonFloorProgress))
+    }
+
+    private static void MigrateQuestLocations(GameSaveData data, int sourceVersion)
+    {
+        if (sourceVersion >= 34 || data.progression?.quests == null)
         {
-            AddStoryMilestone(data, StoryMilestone.FirstDungeonClear);
+            return;
         }
-        if (data.unlockedTownIndices != null)
+
+        foreach (QuestRecord quest in data.progression.quests)
         {
-            if (data.unlockedTownIndices.Contains(1)) AddStoryMilestone(data, StoryMilestone.LeafUnlocked);
-            if (WorldMapService.HasUnlockedTownInWorld(data.unlockedTownIndices, 1)) AddStoryMilestone(data, StoryMilestone.RegionGateCleared);
-            if (data.unlockedTownIndices.Contains(6)) AddStoryMilestone(data, StoryMilestone.AbyssReached);
-            if (data.unlockedTownIndices.Contains(WorldMapService.HiddenIslandTownIndex)) AddStoryMilestone(data, StoryMilestone.HiddenIslandReached);
+            if (quest == null)
+            {
+                continue;
+            }
+
+            quest.issuedTownIndex = data.currentTownIndex;
+            if (string.IsNullOrWhiteSpace(quest.questId))
+            {
+                quest.questId = System.Guid.NewGuid().ToString("N");
+            }
         }
-        if (data.remainingDebt <= 0) AddStoryMilestone(data, StoryMilestone.DebtCleared);
+    }
+
+    private static void MigrateOnboardingGuide(
+        GameSaveData data,
+        int sourceVersion)
+    {
+        if (sourceVersion < 30)
+        {
+            data.onboardingEnabled = false;
+            data.onboardingStep = OnboardingGuideStep.Completed;
+        }
+
+        if (sourceVersion < 31 || data.onboardingShownCards == null)
+        {
+            data.onboardingShownCards = new List<OnboardingGuideCard>();
+        }
     }
 
     private static void MigrateTownInventories(
@@ -173,6 +221,105 @@ public static class SaveDataMigrator
         }
     }
 
+    private static void MigrateLegacyTransportAndExpeditions(
+        GameSaveData data,
+        int sourceVersion)
+    {
+        if (sourceVersion < 32)
+        {
+            foreach (SavedTransportConvoy convoy in data.transportConvoys)
+            {
+                ReturnLegacyConvoyCargo(data, convoy);
+                ReleaseLegacyConvoyEscorts(data, convoy);
+            }
+            data.transportConvoys.Clear();
+        }
+        if (sourceVersion < 35)
+        {
+            if (data.dungeonExpeditions != null)
+            {
+                data.dungeonExpeditions.Clear();
+            }
+        }
+    }
+
+    private static void ReturnLegacyConvoyCargo(
+        GameSaveData data,
+        SavedTransportConvoy convoy)
+    {
+        if (convoy?.cargo == null)
+        {
+            return;
+        }
+
+        foreach (SavedTransportCargo cargo in convoy.cargo)
+        {
+            if (cargo == null || cargo.amount <= 0)
+            {
+                continue;
+            }
+
+            ItemDataSO item = GameAssetRepository.FindByPersistentId<ItemDataSO>(
+                cargo.itemPersistentId,
+                cargo.itemAssetName);
+            if (item == null)
+            {
+                Debug.LogWarning(
+                    $"Legacy transport cargo could not be restored: " +
+                    $"{cargo.itemPersistentId} / {cargo.itemAssetName}.");
+                continue;
+            }
+
+            AddReturnedInventory(data, convoy.originTownIndex, item, cargo.amount);
+        }
+    }
+
+    private static void AddReturnedInventory(
+        GameSaveData data,
+        int townIndex,
+        ItemDataSO item,
+        int amount)
+    {
+        SavedInventoryItem existing = data.inventory.Find(value =>
+            value != null &&
+            value.townIndex == townIndex &&
+            value.itemPersistentId == item.PersistentId);
+        if (existing != null)
+        {
+            existing.amount += amount;
+            return;
+        }
+
+        data.inventory.Add(new SavedInventoryItem
+        {
+            townIndex = townIndex,
+            itemPersistentId = item.PersistentId,
+            itemAssetName = item.name,
+            itemName = item.itemName,
+            amount = amount
+        });
+    }
+
+    private static void ReleaseLegacyConvoyEscorts(
+        GameSaveData data,
+        SavedTransportConvoy convoy)
+    {
+        if (convoy?.escortInstanceIds == null)
+        {
+            return;
+        }
+
+        foreach (string escortId in convoy.escortInstanceIds)
+        {
+            SavedMercenary mercenary = data.hiredMercenaries.Find(value =>
+                value != null && value.instanceId == escortId);
+            if (mercenary != null)
+            {
+                mercenary.townIndex = convoy.originTownIndex;
+            }
+        }
+    }
+
     private static bool HasFullyClearedDungeon(
         List<SavedDungeonFloorProgress> progressEntries)
     {
@@ -209,16 +356,26 @@ public static class SaveDataMigrator
         if (data.hiredMercenaries == null) data.hiredMercenaries = new List<SavedMercenary>();
         if (data.partyMemberIds == null) data.partyMemberIds = new List<string>();
         if (data.transportConvoys == null) data.transportConvoys = new List<SavedTransportConvoy>();
+        if (data.roadCargoSession != null && data.roadCargoSession.cargo == null) data.roadCargoSession.cargo = new List<SavedTransportCargo>();
+        if (data.roadCargoSession != null && data.roadCargoSession.companionInstanceIds == null) data.roadCargoSession.companionInstanceIds = new List<string>();
         if (data.remoteSaleOrders == null) data.remoteSaleOrders = new List<SavedRemoteSaleOrder>();
         if (data.dungeonExpeditions == null)
         {
             data.dungeonExpeditions = new List<SavedDungeonExpedition>();
+        }
+        if (data.trainingAssignments == null)
+        {
+            data.trainingAssignments = new List<SavedTrainingAssignment>();
         }
         if (data.discoveredEquipmentAssetNames == null) data.discoveredEquipmentAssetNames = new List<string>();
         if (data.discoveredEquipmentPersistentIds == null) data.discoveredEquipmentPersistentIds = new List<string>();
         if (data.encounteredEnemyIds == null) data.encounteredEnemyIds = new List<string>();
         if (data.completedStoryMilestones == null) data.completedStoryMilestones = new List<StoryMilestone>();
         if (data.progression == null) data.progression = new ProgressionSaveData();
+        if (data.onboardingShownCards == null)
+        {
+            data.onboardingShownCards = new List<OnboardingGuideCard>();
+        }
     }
 
     private static void PopulatePersistentIds(GameSaveData data)
@@ -320,6 +477,43 @@ public static class SaveDataMigrator
                 slot.count = Mathf.Clamp(slot.count, 0, MercenaryConsumableSlot.MaxCount);
             }
         }
+    }
+
+    private static void NormalizeEquipmentReferences(GameSaveData data)
+    {
+        foreach (SavedMercenary mercenary in data.hiredMercenaries)
+        {
+            if (mercenary == null)
+            {
+                continue;
+            }
+
+            mercenary.equippedWeaponInstance = NormalizeEquipmentReference(
+                mercenary.equippedWeaponInstance);
+            mercenary.equippedArmorInstance = NormalizeEquipmentReference(
+                mercenary.equippedArmorInstance);
+            mercenary.equippedAccessoryInstance = NormalizeEquipmentReference(
+                mercenary.equippedAccessoryInstance);
+        }
+    }
+
+    private static SavedEquipmentInstance NormalizeEquipmentReference(
+        SavedEquipmentInstance equipment)
+    {
+        if (!IsEmptyEquipmentReference(equipment))
+        {
+            return equipment;
+        }
+
+        return null;
+    }
+
+    private static bool IsEmptyEquipmentReference(
+        SavedEquipmentInstance equipment)
+    {
+        return equipment != null &&
+               string.IsNullOrWhiteSpace(equipment.baseItemPersistentId) &&
+               string.IsNullOrWhiteSpace(equipment.baseItemAssetName);
     }
 
     private static void PopulateEquipmentId(SavedEquipmentInstance equipment)

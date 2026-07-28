@@ -22,6 +22,9 @@ public sealed class DungeonPageUI : RefreshOnlyPageUIBase
     private Func<DungeonDataSO, bool> dungeonUnlockedProvider;
     private Func<DungeonDataSO> selectedDungeonProvider;
     private Action<DungeonDataSO> selectDungeonAction;
+    private Func<DungeonDataSO, bool> canExpeditionProvider;
+    private Func<DungeonDataSO, bool> hasExpeditionProvider;
+    private Action<DungeonDataSO> expeditionAction;
 
     public void ConfigureSelectionRefresh(UnityAction refresh)
     {
@@ -43,7 +46,10 @@ public sealed class DungeonPageUI : RefreshOnlyPageUIBase
         Func<DungeonDataSO, int> targetClearedFloorsProvider,
         Func<DungeonDataSO, bool> targetDungeonUnlockedProvider,
         Func<DungeonDataSO> targetSelectedDungeonProvider,
-        Action<DungeonDataSO> targetSelectDungeonAction)
+        Action<DungeonDataSO> targetSelectDungeonAction,
+        Func<DungeonDataSO, bool> targetCanExpeditionProvider = null,
+        Func<DungeonDataSO, bool> targetHasExpeditionProvider = null,
+        Action<DungeonDataSO> targetExpeditionAction = null)
     {
         selectionListRoot = targetSelectionListRoot;
         rowFont = targetFont;
@@ -60,6 +66,9 @@ public sealed class DungeonPageUI : RefreshOnlyPageUIBase
         dungeonUnlockedProvider = targetDungeonUnlockedProvider;
         selectedDungeonProvider = targetSelectedDungeonProvider;
         selectDungeonAction = targetSelectDungeonAction;
+        canExpeditionProvider = targetCanExpeditionProvider;
+        hasExpeditionProvider = targetHasExpeditionProvider;
+        expeditionAction = targetExpeditionAction;
     }
 
     public void RefreshSelection()
@@ -87,7 +96,7 @@ public sealed class DungeonPageUI : RefreshOnlyPageUIBase
             }
 
             CreateDungeonSelectionRow(dungeon, currentTownIndex, rowTop);
-            rowTop -= 50f;
+            rowTop -= 84f;
             createdAnyRow = true;
         }
 
@@ -121,7 +130,7 @@ public sealed class DungeonPageUI : RefreshOnlyPageUIBase
         row.anchorMin = new Vector2(0f, 1f);
         row.anchorMax = new Vector2(1f, 1f);
         row.pivot = new Vector2(0.5f, 1f);
-        row.offsetMin = new Vector2(0f, top - 44f);
+        row.offsetMin = new Vector2(0f, top - 78f);
         row.offsetMax = new Vector2(0f, top);
 
         Image image = row.gameObject.AddComponent<Image>();
@@ -145,8 +154,8 @@ public sealed class DungeonPageUI : RefreshOnlyPageUIBase
             14,
             FontStyle.Bold,
             TextAnchor.MiddleLeft,
-            new Vector2(14f, -44f),
-            new Vector2(-130f, -8f),
+            new Vector2(14f, -78f),
+            new Vector2(-130f, -40f),
             rowTextColor);
 
         bool unlocked = dungeonUnlockedProvider?.Invoke(dungeon) == true;
@@ -162,9 +171,45 @@ public sealed class DungeonPageUI : RefreshOnlyPageUIBase
             buttonTextColor,
             () => selectDungeonAction?.Invoke(dungeon));
         RectTransform buttonRect = button.GetComponent<RectTransform>();
-        buttonRect.sizeDelta = new Vector2(108f, 34f);
         button.interactable = unlocked && !selected &&
                               dungeon.nearbyTownIndex == currentTownIndex;
+
+        bool canExpedition = canExpeditionProvider?.Invoke(dungeon) == true;
+        bool hasExpedition = hasExpeditionProvider?.Invoke(dungeon) == true;
+        bool showExpedition = canExpedition || hasExpedition;
+
+        // 別動隊ボタンがある行では、選択ボタンを上・別動隊ボタンを下に分けて
+        // 縦に並べ、重ならないようにする。別動隊が無い行は選択ボタンを縦中央に。
+        if (showExpedition)
+        {
+            buttonRect.anchorMin = buttonRect.anchorMax = new Vector2(1f, 1f);
+            buttonRect.pivot = new Vector2(1f, 1f);
+            buttonRect.anchoredPosition = new Vector2(-8f, -6f);
+            buttonRect.sizeDelta = new Vector2(142f, 30f);
+        }
+        else
+        {
+            buttonRect.sizeDelta = new Vector2(108f, 34f);
+        }
+
+        if (showExpedition)
+        {
+            Button expeditionButton = CreateActionButton(
+                row,
+                hasExpedition ? "別動隊 周回中" : "別動隊を送る",
+                rowFont,
+                buttonColor,
+                frameColor,
+                buttonTextColor,
+                () => expeditionAction?.Invoke(dungeon));
+            RectTransform expeditionRect = expeditionButton.GetComponent<RectTransform>();
+            expeditionRect.anchorMin = new Vector2(1f, 0f);
+            expeditionRect.anchorMax = new Vector2(1f, 0f);
+            expeditionRect.pivot = new Vector2(1f, 0f);
+            expeditionRect.anchoredPosition = new Vector2(-8f, 6f);
+            expeditionRect.sizeDelta = new Vector2(142f, 30f);
+            expeditionButton.interactable = unlocked;
+        }
     }
 
     private string GetTownName(int townIndex)

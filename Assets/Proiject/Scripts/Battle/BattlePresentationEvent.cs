@@ -9,6 +9,9 @@ public enum BattlePresentationEventType
     Status,
     Defeated,
     BattleCompleted,
+    Reward,
+    Log,
+    PresentationComplete,
     SkipRequested
 }
 
@@ -17,6 +20,20 @@ public enum BattlePresentationActionKind
     NormalAttack,
     Skill,
     StatusEffect
+}
+
+public enum BattleSoundCue
+{
+    None,
+    Attack,
+    Impact,
+    Evade,
+    Heal,
+    Defeat,
+    Skill,
+    Victory,
+    Loss,
+    Reward
 }
 
 public sealed class BattleVisualUnitDescriptor
@@ -70,6 +87,9 @@ public sealed class BattlePresentationEvent
     public BattleStatusEffect StatusEffect { get; }
     public bool Victory { get; }
     public string ActionLabel { get; }
+    public string LogMessage { get; }
+    public BattleLogType LogType { get; }
+    public BattleSoundCue SoundCue { get; }
 
     public BattlePresentationEvent(
         BattlePresentationEventType type,
@@ -83,7 +103,10 @@ public sealed class BattlePresentationEvent
         bool victory = false,
         BattlePresentationActionKind actionKind =
             BattlePresentationActionKind.NormalAttack,
-        string actionLabel = null)
+        string actionLabel = null,
+        string logMessage = null,
+        BattleLogType logType = BattleLogType.System,
+        BattleSoundCue soundCue = BattleSoundCue.None)
     {
         Type = type;
         Actor = actor;
@@ -96,5 +119,8 @@ public sealed class BattlePresentationEvent
         Victory = victory;
         ActionKind = actionKind;
         ActionLabel = actionLabel;
+        LogMessage = logMessage;
+        LogType = logType;
+        SoundCue = soundCue;
     }
 }

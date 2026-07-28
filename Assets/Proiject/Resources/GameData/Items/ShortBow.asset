@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: A light bow suitable for novice archers.
+  description: "ランク1弓使い向けに仕立てられた武器。"
   basePrice: 120
   acquisitionType: 0
   equipmentSlot: 0

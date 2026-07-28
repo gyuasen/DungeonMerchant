@@ -23,7 +23,7 @@ MonoBehaviour:
   specialVariantTitle: 
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
-  battleVisualKey: Grade06_slime_quicksilver
+  battleVisualKey: enemy_slime_slime_quicksilver
   maxHP: 128
   attack: 23
   defense: 10

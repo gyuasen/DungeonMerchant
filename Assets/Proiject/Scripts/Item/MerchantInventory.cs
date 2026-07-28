@@ -12,6 +12,26 @@ public sealed class TownInventoryBucket
         new List<EquipmentInstance>();
 }
 
+public readonly struct MerchantInventorySale
+{
+    public MerchantInventorySale(
+        ItemDataSO item,
+        EquipmentInstance equipment,
+        int amount,
+        int totalPrice)
+    {
+        Item = item;
+        Equipment = equipment;
+        Amount = amount;
+        TotalPrice = totalPrice;
+    }
+
+    public ItemDataSO Item { get; }
+    public EquipmentInstance Equipment { get; }
+    public int Amount { get; }
+    public int TotalPrice { get; }
+}
+
 public class MerchantInventory : MonoBehaviour
 {
     private const int FallbackTownIndex = 2;
@@ -38,6 +58,7 @@ public class MerchantInventory : MonoBehaviour
         discoveredEquipmentPersistentIds;
 
     public event Action InventoryChanged;
+    public event Action<MerchantInventorySale> ItemSold;
 
     public int GetUsedStorageSlots()
     {
@@ -52,7 +73,7 @@ public class MerchantInventory : MonoBehaviour
             return 0;
         }
 
-        int amount = bucket.equipmentInstances.Count;
+        int amount = 0;
         foreach (InventoryItemStack stack in bucket.items)
         {
             if (stack != null) amount += stack.Amount;
@@ -68,7 +89,7 @@ public class MerchantInventory : MonoBehaviour
         }
     }
 
-    public bool TryAddItem(ItemDataSO item, int amount = 1)
+    public bool CanAddItem(ItemDataSO item, int amount = 1)
     {
         if (item == null || amount <= 0)
         {
@@ -76,8 +97,17 @@ public class MerchantInventory : MonoBehaviour
         }
 
         ResolveReferences();
-        if (progressionManager != null &&
-            !progressionManager.CanStore(amount))
+        return progressionManager == null || progressionManager.CanStore(amount);
+    }
+
+    public bool TryAddItem(ItemDataSO item, int amount = 1)
+    {
+        if (item == null || amount <= 0)
+        {
+            return false;
+        }
+
+        if (!CanAddItem(item, amount))
         {
             return false;
         }
@@ -102,14 +132,6 @@ public class MerchantInventory : MonoBehaviour
     {
         if (equipment?.BaseItem == null)
         {
-            return;
-        }
-
-        ResolveReferences();
-        if (progressionManager != null &&
-            !progressionManager.CanStore())
-        {
-            Debug.LogWarning("Storage capacity exceeded.");
             return;
         }
 
@@ -150,7 +172,10 @@ public class MerchantInventory : MonoBehaviour
             return EquipmentEnhancementResult.NotEnoughMaterial;
         }
 
-        if (!merchantData.TryPayGold(cost))
+        if (!merchantData.TryPayGold(
+                cost,
+                GoldTransactionReason.Blacksmith,
+                equipment.BaseItem.itemName))
         {
             return EquipmentEnhancementResult.NotEnoughGold;
         }
@@ -190,7 +215,11 @@ public class MerchantInventory : MonoBehaviour
             return false;
         }
 
-        merchantData.AddGold(GetSellPrice(item) * amount);
+        int totalPrice = GetSellPrice(item) * amount;
+        merchantData.AddGold(
+            totalPrice,
+            GoldTransactionReason.ItemSale,
+            item.itemName);
 
         if (stack.Amount <= 0)
         {
@@ -199,6 +228,11 @@ public class MerchantInventory : MonoBehaviour
 
         Debug.Log($"Sold item: {item.itemName} x{amount}");
         InventoryChanged?.Invoke();
+        ItemSold?.Invoke(new MerchantInventorySale(
+            item,
+            null,
+            amount,
+            totalPrice));
         return true;
     }
 
@@ -247,8 +281,17 @@ public class MerchantInventory : MonoBehaviour
             return false;
         }
 
-        merchantData.AddGold(GetSellPrice(equipment));
+        int totalPrice = GetSellPrice(equipment);
+        merchantData.AddGold(
+            totalPrice,
+            GoldTransactionReason.ItemSale,
+            equipment.BaseItem.itemName);
         InventoryChanged?.Invoke();
+        ItemSold?.Invoke(new MerchantInventorySale(
+            equipment.BaseItem,
+            equipment,
+            1,
+            totalPrice));
         return true;
     }
 
@@ -431,14 +474,6 @@ public class MerchantInventory : MonoBehaviour
             return;
         }
 
-        ResolveReferences();
-        if (progressionManager != null &&
-            !progressionManager.CanStore())
-        {
-            Debug.LogWarning("Storage capacity exceeded.");
-            return;
-        }
-
         equipment.ToggleLock();
         InventoryChanged?.Invoke();
     }
@@ -484,6 +519,13 @@ public class MerchantInventory : MonoBehaviour
             return false;
         }
 
+        ResolveReferences();
+        if (progressionManager != null &&
+            !progressionManager.CanStoreIn(townIndex, amount))
+        {
+            return false;
+        }
+
         TownInventoryBucket bucket = GetBucket(townIndex, true);
         InventoryItemStack stack = FindStack(bucket, item);
         if (stack == null)
@@ -498,6 +540,18 @@ public class MerchantInventory : MonoBehaviour
         RegisterEquipmentDiscovery(item);
         InventoryChanged?.Invoke();
         return true;
+    }
+
+    public bool CanDepositItemsTo(int townIndex, int amount)
+    {
+        if (amount < 0)
+        {
+            return false;
+        }
+
+        ResolveReferences();
+        return progressionManager == null ||
+               progressionManager.CanStoreIn(townIndex, amount);
     }
 
     public bool TryRemoveItemFrom(int townIndex, ItemDataSO item, int amount)

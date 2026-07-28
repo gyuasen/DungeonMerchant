@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Rank 5 Warrior Weapon
-  basePrice: 1300
+  description: "ランク5戦士用の武器。"
+  basePrice: 2600
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 0

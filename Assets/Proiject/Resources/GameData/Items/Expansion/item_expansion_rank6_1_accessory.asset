@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Rank 6 Archer Accessory
-  basePrice: 2100
+  description: "ランク6弓使い用の装飾。"
+  basePrice: 4200
   acquisitionType: 1
   equipmentSlot: 2
   requiredClass: 1

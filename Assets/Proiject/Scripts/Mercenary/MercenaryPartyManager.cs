@@ -5,8 +5,8 @@ using UnityEngine;
 public class MercenaryPartyManager : MonoBehaviour
 {
     [SerializeField] private MercenaryHireManager hireManager;
-    [SerializeField] private TransportManager transportManager;
-    [SerializeField] private DungeonExpeditionManager dungeonExpeditionManager;
+    [SerializeField] private TrainingGroundManager trainingGroundManager;
+    [SerializeField] private RoadCargoSession roadCargoSession;
     [SerializeField] private TownProgressState townProgressState;
     [SerializeField, Min(1)] private int maxPartySize = 3;
     [SerializeField] private List<MercenaryInstance> members = new List<MercenaryInstance>();
@@ -47,10 +47,7 @@ public class MercenaryPartyManager : MonoBehaviour
             !mercenary.IsContractActive ||
             !IsHired(mercenary) ||
             !IsAtCurrentTown(mercenary) ||
-            (transportManager != null &&
-             transportManager.IsMercenaryOnTransportDuty(mercenary.InstanceId)) ||
-            (dungeonExpeditionManager != null &&
-             dungeonExpeditionManager.IsMercenaryOnExpeditionDuty(mercenary.InstanceId)) ||
+            MercenaryDutyService.IsOnDuty(mercenary.InstanceId) ||
             Contains(mercenary) ||
             IsFull)
         {
@@ -82,6 +79,7 @@ public class MercenaryPartyManager : MonoBehaviour
             {
                 if (mercenary != null &&
                     mercenary.IsContractActive &&
+                    !MercenaryDutyService.IsOnDuty(mercenary.InstanceId) &&
                     members.Count < maxPartySize &&
                     IsHired(mercenary))
                 {
@@ -102,15 +100,10 @@ public class MercenaryPartyManager : MonoBehaviour
             return false;
         }
 
-        if (transportManager == null)
+        if (trainingGroundManager == null)
         {
-            transportManager = GetComponent<TransportManager>() ??
-                               FindObjectOfType<TransportManager>();
-        }
-        if (dungeonExpeditionManager == null)
-        {
-            dungeonExpeditionManager = GetComponent<DungeonExpeditionManager>() ??
-                                       FindObjectOfType<DungeonExpeditionManager>();
+            trainingGroundManager = GetComponent<TrainingGroundManager>() ??
+                                  FindObjectOfType<TrainingGroundManager>();
         }
 
         foreach (MercenaryInstance hiredMercenary in hireManager.HiredMercenaries)
@@ -169,6 +162,12 @@ public class MercenaryPartyManager : MonoBehaviour
         {
             townProgressState = GetComponent<TownProgressState>() ??
                                 FindObjectOfType<TownProgressState>();
+        }
+
+        if (roadCargoSession == null)
+        {
+            roadCargoSession = GetComponent<RoadCargoSession>() ??
+                               FindObjectOfType<RoadCargoSession>();
         }
     }
 }

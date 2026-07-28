@@ -63,7 +63,7 @@ public partial class SimpleMercenaryHireUI
         int townIndex = townProgressState != null ? townProgressState.CurrentTownIndex : 0;
         if (!facilityGreetingController.ShouldShowGreeting(currentDay, townIndex, facilityKey))
         {
-            destination?.Invoke();
+            EnterFacility(facilityKey, destination);
             return;
         }
         string townName = townIndex >= 0 && townIndex < WorldMapService.TownNames.Length
@@ -87,9 +87,16 @@ public partial class SimpleMercenaryHireUI
         int currentDay = dayManager != null ? dayManager.CurrentDay : 1;
         int townIndex = townProgressState != null ? townProgressState.CurrentTownIndex : 0;
         facilityGreetingController.MarkEntered(currentDay, townIndex, pendingFacilityKey);
+        string facilityKey = pendingFacilityKey;
         Action destination = pendingFacilityDestination;
         HideFacilityGreeting();
+        EnterFacility(facilityKey, destination);
+    }
+
+    private void EnterFacility(string facilityKey, Action destination)
+    {
         destination?.Invoke();
+        FacilityEntered?.Invoke(facilityKey);
     }
 
     private void HideFacilityGreeting()

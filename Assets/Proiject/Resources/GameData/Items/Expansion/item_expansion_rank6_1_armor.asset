@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Rank 6 Archer Armor
-  basePrice: 2500
+  description: "ランク6弓使い用の防具。"
+  basePrice: 5000
   acquisitionType: 1
   equipmentSlot: 1
   requiredClass: 1

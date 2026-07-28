@@ -23,7 +23,7 @@ MonoBehaviour:
   specialVariantTitle: 
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
-  battleVisualKey: Grade09_goblin_raider
+  battleVisualKey: enemy_job_goblin_raider
   maxHP: 34
   attack: 8
   defense: 2

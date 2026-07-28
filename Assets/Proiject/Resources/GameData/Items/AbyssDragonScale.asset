@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 0
   rarity: 3
   materialClassification: 2
-  description: A scale saturated with power from the abyss.
-  basePrice: 650
+  description: "深淵の力を宿した、漆黒の竜鱗。"
+  basePrice: 1400
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0

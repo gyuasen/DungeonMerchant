@@ -16,9 +16,9 @@ MonoBehaviour:
   itemName: "\u970A\u6728\u6750"
   itemType: 0
   rarity: 0
-  materialClassification: 2
-  description: Crafting material gathered in the demon continent.
-  basePrice: 220
+  materialClassification: 1
+  description: "魔大陸で採れる、霊気を帯びた木材。"
+  basePrice: 600
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0

@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Beast Hunter Bow
-  basePrice: 720
+  description: "獣狩りのために仕立てられた狩人の弓。"
+  basePrice: 1440
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 1

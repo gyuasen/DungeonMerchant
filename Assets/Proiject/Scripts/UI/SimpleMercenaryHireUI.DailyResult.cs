@@ -5,6 +5,19 @@ using UnityEngine.UI;
 // The snapshot data and text building live in DailyResultController.
 public partial class SimpleMercenaryHireUI
 {
+    private void HandleTrainingCompleted(TrainingReservation reservation)
+    {
+        string line = dailyResultController.RecordTrainingCompleted(reservation);
+        if (!string.IsNullOrEmpty(line) &&
+            dailyResultOverlay != null &&
+            dailyResultOverlay.gameObject.activeSelf &&
+            dailyResultText != null)
+        {
+            dailyResultText.text += "\n" + line;
+            dailyResultController.ConsumeRecordedTrainingCompletion(line);
+        }
+    }
+
     private void BuildDailyResultOverlay()
     {
         dailyResultOverlay =
@@ -61,6 +74,7 @@ public partial class SimpleMercenaryHireUI
             new Vector2(16f, 16f),
             new Vector2(-16f, -16f),
             ParchmentTextColor);
+        dailyResultText.supportRichText = true;
         dailyResultText.rectTransform.anchorMin = Vector2.zero;
         dailyResultText.rectTransform.anchorMax = Vector2.one;
 
@@ -87,6 +101,7 @@ public partial class SimpleMercenaryHireUI
     private void HideDailyResult()
     {
         dailyResultOverlay?.gameObject.SetActive(false);
+        ShowPendingDailyResultIfReady();
     }
 
     private void HandleDayChanged(int currentDay)
@@ -109,20 +124,26 @@ public partial class SimpleMercenaryHireUI
             : string.Empty;
         statusText.text =
             $"{currentDay}日目になりました。市場価格が更新されました。{debtNotice}";
-        if (battleVisualController != null &&
-            battleVisualController.IsPresentationBusy)
-        {
-            hasPendingDailyResult = true;
-            pendingDailyResultDay = currentDay;
-            return;
-        }
+    }
 
-        ShowDailyResult(currentDay);
+    private void HandleDayChangeFinalized(int currentDay)
+    {
+        // 各日のリザルトをキューへ積むだけにとどめ、表示は複数日の進行が
+        // すべて終わってから(HandleDaysAdvanceCompleted)まとめて行う。
+        // これにより複数日一気に進んでも1画面に連結して表示できる。
+        QueueDailyResult(currentDay);
+    }
+
+    private void HandleDaysAdvanceCompleted(int advancedDays)
+    {
+        ShowPendingDailyResultIfReady();
     }
 
     private void ShowPendingDailyResultIfReady()
     {
-        if (!hasPendingDailyResult)
+        if (!hasPendingDailyResult ||
+            (dailyResultOverlay != null &&
+             dailyResultOverlay.gameObject.activeSelf))
         {
             return;
         }
@@ -133,13 +154,27 @@ public partial class SimpleMercenaryHireUI
             return;
         }
 
-        int resultDay = pendingDailyResultDay;
+        // キューに溜まった複数日分を1画面へ連結して表示する。
+        System.Text.StringBuilder combined = new System.Text.StringBuilder();
+        bool first = true;
+        while (pendingDailyResultTexts.Count > 0)
+        {
+            if (!first)
+            {
+                combined.AppendLine();
+                combined.AppendLine("────────────");
+                combined.AppendLine();
+            }
+
+            combined.Append(pendingDailyResultTexts.Dequeue());
+            first = false;
+        }
+
         hasPendingDailyResult = false;
-        pendingDailyResultDay = 0;
-        ShowDailyResult(resultDay);
+        ShowDailyResult(combined.ToString());
     }
 
-    private void ShowDailyResult(int currentDay)
+    private void QueueDailyResult(int currentDay)
     {
         string resultText =
             dailyResultOverlay == null || dailyResultText == null
@@ -151,12 +186,18 @@ public partial class SimpleMercenaryHireUI
             return;
         }
 
+        pendingDailyResultTexts.Enqueue(resultText);
+        hasPendingDailyResult = true;
+        dailyResultController.CaptureDailySnapshot(currentDay);
+    }
+
+    private void ShowDailyResult(string resultText)
+    {
         dailyResultText.text = resultText;
         int lineCount = resultText.Split('\n').Length;
         dailyResultContent.sizeDelta =
             new Vector2(0f, Mathf.Max(420f, 40f + lineCount * 34f));
         dailyResultOverlay.SetAsLastSibling();
         dailyResultOverlay.gameObject.SetActive(true);
-        dailyResultController.CaptureDailySnapshot(currentDay);
     }
 }

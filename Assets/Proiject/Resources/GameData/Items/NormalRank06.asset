@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: NormalRank06
   m_EditorClassIdentifier: 
   persistentId: item.normal.rank06
-  itemName: Traveler Charm VI
+  itemName: "旅人の護符VI"
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Standard market equipment for every basic class.
+  description: "基本職向けに市場で流通する標準的な装備。"
   basePrice: 2100
   acquisitionType: 0
   equipmentSlot: 2

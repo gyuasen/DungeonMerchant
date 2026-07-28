@@ -52,6 +52,43 @@ public sealed class DungeonEventServiceTests
         StringAssert.Contains(expectedText, preview);
     }
 
+    [Test]
+    public void GatheringEvent_CarefulTakesTwoDays_HurriedTakesOne()
+    {
+        DungeonDataSO dungeon = ScriptableObject.CreateInstance<DungeonDataSO>();
+        dungeon.worldMapIndex = 0;
+        dungeon.nearbyTownIndex = 0;
+        dungeon.grade = DungeonGrade.Middle;
+
+        DungeonEventChoiceResult careful =
+            DungeonEnvironmentEventService.ResolveEnvironmentalChoice(
+                DungeonEventType.MineralVein, 0, dungeon);
+        DungeonEventChoiceResult hurried =
+            DungeonEnvironmentEventService.ResolveEnvironmentalChoice(
+                DungeonEventType.MineralVein, 1, dungeon);
+
+        Assert.That(careful.ExplorationDelayDays, Is.EqualTo(2));
+        Assert.That(hurried.ExplorationDelayDays, Is.EqualTo(1));
+        Assert.That(careful.MaterialAmount, Is.GreaterThan(hurried.MaterialAmount));
+        Object.DestroyImmediate(dungeon);
+    }
+
+    [Test]
+    public void CreateChoicePreview_ForGathering_ShowsMaterialAndDelayDays()
+    {
+        DungeonDataSO dungeon = ScriptableObject.CreateInstance<DungeonDataSO>();
+        dungeon.worldMapIndex = 0;
+        dungeon.nearbyTownIndex = 0;
+        dungeon.grade = DungeonGrade.Middle;
+
+        string preview = DungeonEventService.CreateChoicePreview(
+            DungeonEventType.MineralVein, 0, 40, 40, 15, dungeon);
+
+        StringAssert.Contains("入手", preview);
+        StringAssert.Contains("2日", preview);
+        Object.DestroyImmediate(dungeon);
+    }
+
     [TestCase(DungeonEventType.AbandonedCamp, 0, "AbandonedCamp_Rest")]
     [TestCase(DungeonEventType.TreasureCache, 1, "TreasureCache_Force")]
     [TestCase(DungeonEventType.CollapsedPassage, 0, "CollapsedPassage_Detour")]

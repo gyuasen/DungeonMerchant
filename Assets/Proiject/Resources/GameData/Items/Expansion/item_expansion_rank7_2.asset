@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Rank 7 Mage Weapon
-  basePrice: 4100
+  description: "ランク7魔術師用の武器。"
+  basePrice: 8200
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 2

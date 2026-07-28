@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 0
   rarity: 2
   materialClassification: 2
-  description: A congealed bloodstone taken from an ogre mage.
-  basePrice: 180
+  description: "魔大陸で採れる、オーガ魔術師から採れる凝固した血石。"
+  basePrice: 220
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0

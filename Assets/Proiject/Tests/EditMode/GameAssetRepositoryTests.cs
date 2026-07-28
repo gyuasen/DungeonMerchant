@@ -3,6 +3,18 @@ using NUnit.Framework;
 
 public sealed class GameAssetRepositoryTests
 {
+    private static readonly HashSet<string> KnownMissingDungeonBackgrounds =
+        new HashSet<string>
+        {
+            "EldOldQuarry",
+            "EldUndergroundWaterway",
+            "FinalBlackSoilAbyss",
+            "GlaadSkyFortress",
+            "LeafForestTrail",
+            "NornCanopyLabyrinth",
+            "VelmBlackIronMine"
+        };
+
     [Test]
     public void ItemPersistentIds_ArePresentAndUnique()
     {
@@ -338,6 +350,82 @@ public sealed class GameAssetRepositoryTests
             Is.GreaterThan(AverageStat(glaad.normalEnemies, enemy => enemy.attack)));
         Assert.That(velm.bossEnemy.maxHP, Is.GreaterThan(glaad.bossEnemy.maxHP));
         Assert.That(velm.bossEnemy.attack, Is.GreaterThan(glaad.bossEnemy.attack));
+    }
+
+    [Test]
+    public void AllEnemySprites_AreResolvedForMonsterCodex()
+    {
+        IReadOnlyList<EnemyDataSO> enemies =
+            GameAssetRepository.LoadAll<EnemyDataSO>();
+        List<string> unresolvedEnemies = new List<string>();
+
+        Assert.That(enemies.Count, Is.EqualTo(99));
+        foreach (EnemyDataSO enemy in enemies)
+        {
+            if (EnemySpriteResolver.Resolve(enemy) == null)
+            {
+                unresolvedEnemies.Add(enemy != null ? enemy.name : "<null>");
+            }
+        }
+
+        Assert.That(
+            unresolvedEnemies,
+            Is.Empty,
+            "Monster Codex sprite not resolved: " +
+            string.Join(", ", unresolvedEnemies));
+    }
+
+    [Test]
+    public void DungeonBackgroundKeys_ResolveExceptKnownUnassignedDungeons()
+    {
+        IReadOnlyList<DungeonDataSO> dungeons =
+            GameAssetRepository.LoadAll<DungeonDataSO>();
+        List<string> unresolvedDungeons = new List<string>();
+
+        Assert.That(dungeons.Count, Is.EqualTo(15));
+        foreach (DungeonDataSO dungeon in dungeons)
+        {
+            Assert.That(dungeon, Is.Not.Null);
+            if (KnownMissingDungeonBackgrounds.Contains(dungeon.name))
+            {
+                Assert.That(
+                    dungeon.battleBackground,
+                    Is.Null,
+                    dungeon.name + " must remain an unassigned background.");
+                Assert.That(
+                    dungeon.battleBackgroundKey,
+                    Is.Null.Or.Empty,
+                    dungeon.name + " must remain an unassigned background.");
+                continue;
+            }
+
+            if (!IsDungeonBackgroundResolved(dungeon))
+            {
+                unresolvedDungeons.Add(dungeon.name);
+            }
+        }
+
+        Assert.That(
+            unresolvedDungeons,
+            Is.Empty,
+            "Dungeon background not resolved: " +
+            string.Join(", ", unresolvedDungeons));
+    }
+
+    private static bool IsDungeonBackgroundResolved(DungeonDataSO dungeon)
+    {
+        if (dungeon.battleBackground != null)
+        {
+            return true;
+        }
+
+        if (string.IsNullOrWhiteSpace(dungeon.battleBackgroundKey))
+        {
+            return false;
+        }
+
+        return UnityEngine.Resources.Load<UnityEngine.Sprite>(
+            "Battle/Backgrounds/" + dungeon.battleBackgroundKey.Trim()) != null;
     }
 
     private static void AssertPersistentIds<T>()

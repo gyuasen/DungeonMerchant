@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 2
   rarity: 3
   materialClassification: 0
-  description: The command emblem of the black iron general.
+  description: "魔大陸で採れる、黒鉄将軍が用いた指揮の紋章。"
   basePrice: 750
   acquisitionType: 0
   equipmentSlot: 0

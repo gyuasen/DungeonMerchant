@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 2
   rarity: 2
   materialClassification: 0
-  description: The massive pickaxe carried by the mine tyrant.
+  description: "魔大陸で採れる、坑道の暴君が携えた巨大なつるはし。"
   basePrice: 350
   acquisitionType: 0
   equipmentSlot: 0

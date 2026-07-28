@@ -8,6 +8,9 @@ public class MercenaryHireManager : MonoBehaviour
     [SerializeField] private MerchantData merchantData;
     [SerializeField] private DayManager dayManager;
     [SerializeField] private TownProgressState townProgressState;
+    [SerializeField] private TrainingGroundManager trainingGroundManager;
+    [SerializeField] private MerchantInventory merchantInventory;
+    [SerializeField] private RoadCargoSession roadCargoSession;
     [SerializeField] private MercenaryContractType selectedContract =
         MercenaryContractType.Local;
 
@@ -24,6 +27,19 @@ public class MercenaryHireManager : MonoBehaviour
     public event Action<MercenaryInstance> MercenaryHired;
     public event Action<MercenaryInstance> MercenaryDismissed;
     public event Action ContractsChanged;
+
+    public enum ContractChangeUnavailableReason
+    {
+        None,
+        SameOrLower,
+        ContractLocked,
+        InTraining,
+        InTransit,
+        OnExpedition,
+        InsufficientGold,
+        AtMaxContract,
+        NotHired
+    }
 
     private void OnEnable()
     {
@@ -102,21 +118,24 @@ public class MercenaryHireManager : MonoBehaviour
             return false;
         }
 
-        if (!merchantData.CanPay(mercenary.HireCost))
-        {
-            Debug.Log($"Not enough gold to hire {mercenary.MercenaryName}.");
-            return false;
-        }
-
         MercenaryContractType contractType = merchantData.IsContractUnlocked(
             selectedContract)
             ? selectedContract
             : MercenaryContractType.Local;
+        int initialContractCost = GetInitialContractCost(mercenary, contractType);
+        if (!merchantData.CanPay(initialContractCost))
+        {
+            Debug.Log($"Not enough gold to hire {mercenary.MercenaryName}.");
+            return false;
+        }
         if (UnityEngine.Random.value > GetSelectedContractSuccessRate())
         {
             return false;
         }
-        if (!merchantData.TryPayGold(mercenary.HireCost))
+        if (!merchantData.TryPayGold(
+                initialContractCost,
+                GoldTransactionReason.MercenaryHire,
+                mercenary.MercenaryName))
         {
             return false;
         }
@@ -143,7 +162,10 @@ public class MercenaryHireManager : MonoBehaviour
         if (mercenary == null ||
             !hiredMercenaries.Contains(mercenary) ||
             !mercenary.ContractNeedsRenewal ||
-            !merchantData.TryPayGold(GetRenewalCost(mercenary)))
+            !merchantData.TryPayGold(
+                GetRenewalCost(mercenary),
+                GoldTransactionReason.ContractRenewal,
+                mercenary.MercenaryName))
         {
             return false;
         }
@@ -156,10 +178,18 @@ public class MercenaryHireManager : MonoBehaviour
 
     public bool TryReleaseMercenary(MercenaryInstance mercenary)
     {
-        if (mercenary == null || !hiredMercenaries.Remove(mercenary))
+        ResolveReferences();
+        if (mercenary == null ||
+            MercenaryDutyService.IsOnDutyExcept(
+                mercenary.InstanceId,
+                MercenaryDuty.Party) ||
+            !hiredMercenaries.Contains(mercenary) ||
+            !TryReturnEquippedEquipment(mercenary))
         {
             return false;
         }
+
+        hiredMercenaries.Remove(mercenary);
 
         MercenaryDismissed?.Invoke(mercenary);
         ContractsChanged?.Invoke();
@@ -173,13 +203,158 @@ public class MercenaryHireManager : MonoBehaviour
             return 0;
         }
 
+        if (mercenary.ContractType == MercenaryContractType.Exclusive)
+        {
+            return 0;
+        }
+
         ResolveReferences();
         float multiplier = merchantData != null
             ? merchantData.GetRenewalCostMultiplier()
             : 1f;
-        return Mathf.Max(
-            1,
-            Mathf.RoundToInt(mercenary.GetRenewalCost() * multiplier));
+        return MercenaryContractRules.CalculateRenewalCost(
+            mercenary.HireCost,
+            mercenary.ContractType,
+            multiplier);
+    }
+
+    public int GetRenewalCost(
+        MercenaryDataSO mercenary,
+        MercenaryContractType contractType)
+    {
+        if (mercenary == null)
+        {
+            return 0;
+        }
+
+        ResolveReferences();
+        float multiplier = merchantData != null
+            ? merchantData.GetRenewalCostMultiplier()
+            : 1f;
+        return MercenaryContractRules.CalculateRenewalCost(
+            mercenary.hireCost,
+            contractType,
+            multiplier);
+    }
+
+    public int GetRenewalCost(
+        MercenaryInstance mercenary,
+        MercenaryContractType contractType)
+    {
+        if (mercenary == null)
+        {
+            return 0;
+        }
+
+        ResolveReferences();
+        float multiplier = merchantData != null
+            ? merchantData.GetRenewalCostMultiplier()
+            : 1f;
+        return MercenaryContractRules.CalculateRenewalCost(
+            mercenary.HireCost,
+            contractType,
+            multiplier);
+    }
+
+    public int GetInitialContractCost(
+        MercenaryDataSO mercenary,
+        MercenaryContractType contractType)
+    {
+        return mercenary == null
+            ? 0
+            : MercenaryContractRules.CalculateInitialCost(
+                mercenary.hireCost,
+                contractType);
+    }
+
+    public int GetInitialContractCost(
+        MercenaryInstance mercenary,
+        MercenaryContractType contractType)
+    {
+        return mercenary == null
+            ? 0
+            : MercenaryContractRules.CalculateInitialCost(
+                mercenary.HireCost,
+                contractType);
+    }
+
+    public bool TryChangeContract(
+        MercenaryInstance mercenary,
+        MercenaryContractType newContractType)
+    {
+        if (!CanChangeContract(mercenary, newContractType))
+        {
+            return false;
+        }
+
+        int cost = GetInitialContractCost(mercenary, newContractType);
+        if (!merchantData.TryPayGold(
+                cost,
+                GoldTransactionReason.ContractChange,
+                mercenary.MercenaryName))
+        {
+            return false;
+        }
+
+        mercenary.SetContract(
+            newContractType,
+            dayManager != null ? dayManager.CurrentDay : 1);
+        ContractsChanged?.Invoke();
+        return true;
+    }
+
+    public bool CanChangeContract(
+        MercenaryInstance mercenary,
+        MercenaryContractType newContractType)
+    {
+        return GetContractChangeUnavailableReason(
+            mercenary,
+            newContractType) == ContractChangeUnavailableReason.None;
+    }
+
+    public ContractChangeUnavailableReason GetContractChangeUnavailableReason(
+        MercenaryInstance mercenary,
+        MercenaryContractType newContractType)
+    {
+        ResolveReferences();
+        if (mercenary == null ||
+            merchantData == null ||
+            !hiredMercenaries.Contains(mercenary))
+        {
+            return ContractChangeUnavailableReason.NotHired;
+        }
+        if (mercenary.ContractType == MercenaryContractType.Exclusive)
+        {
+            return ContractChangeUnavailableReason.AtMaxContract;
+        }
+        if (!MercenaryContractRules.IsUpgrade(
+                mercenary.ContractType,
+                newContractType))
+        {
+            return ContractChangeUnavailableReason.SameOrLower;
+        }
+        if (!merchantData.IsContractUnlocked(newContractType))
+        {
+            return ContractChangeUnavailableReason.ContractLocked;
+        }
+        MercenaryDuty duty = MercenaryDutyService.GetDuty(mercenary.InstanceId);
+        if (duty == MercenaryDuty.Training)
+        {
+            return ContractChangeUnavailableReason.InTraining;
+        }
+        if (duty == MercenaryDuty.RoadTransit)
+        {
+            return ContractChangeUnavailableReason.InTransit;
+        }
+        if (duty == MercenaryDuty.Expedition)
+        {
+            return ContractChangeUnavailableReason.OnExpedition;
+        }
+        return merchantData.CanPay(GetInitialContractCost(
+            mercenary,
+            newContractType))
+            ? ContractChangeUnavailableReason.None
+            : ContractChangeUnavailableReason.InsufficientGold;
     }
 
     private MercenaryContractType GetBestUnlockedContract()
@@ -237,10 +412,15 @@ public class MercenaryHireManager : MonoBehaviour
             }
 
             mercenary.UpdateContractForDay(currentDay);
-            if (mercenary.ContractType == MercenaryContractType.Local &&
+            if ((mercenary.ContractType == MercenaryContractType.Local ||
+                 mercenary.ContractType == MercenaryContractType.Temporary) &&
                 mercenary.ContractNeedsRenewal &&
                 merchantData != null &&
-                merchantData.TryPayGold(GetRenewalCost(mercenary)))
+                merchantData.TryPayGold(
+                    GetRenewalCost(mercenary),
+                    GoldTransactionReason.ContractRenewal,
+                    mercenary.MercenaryName,
+                    currentDay - 1))
             {
                 mercenary.RenewContract(currentDay);
             }
@@ -255,7 +435,9 @@ public class MercenaryHireManager : MonoBehaviour
         return merchantData != null &&
                mercenary != null &&
                mercenary.hireCost >= 0 &&
-               merchantData.CanPay(mercenary.hireCost);
+               merchantData.CanPay(GetInitialContractCost(
+                   mercenary,
+                   selectedContract));
     }
 
     public bool CanAfford(MercenaryInstance mercenary)
@@ -265,7 +447,9 @@ public class MercenaryHireManager : MonoBehaviour
         return merchantData != null &&
                mercenary != null &&
                mercenary.HireCost >= 0 &&
-               merchantData.CanPay(mercenary.HireCost);
+               merchantData.CanPay(GetInitialContractCost(
+                   mercenary,
+                   selectedContract));
     }
 
     public void RestoreHiredMercenaries(
@@ -310,5 +494,92 @@ public class MercenaryHireManager : MonoBehaviour
             townProgressState = GetComponent<TownProgressState>() ??
                                 FindObjectOfType<TownProgressState>();
         }
+
+        if (trainingGroundManager == null)
+        {
+            trainingGroundManager = GetComponent<TrainingGroundManager>() ??
+                                  FindObjectOfType<TrainingGroundManager>();
+        }
+
+        if (merchantInventory == null)
+        {
+            merchantInventory = GetComponent<MerchantInventory>() ??
+                                FindObjectOfType<MerchantInventory>();
+        }
+
+        if (roadCargoSession == null)
+        {
+            roadCargoSession = GetComponent<RoadCargoSession>() ??
+                               FindObjectOfType<RoadCargoSession>();
+        }
+    }
+
+    private bool TryReturnEquippedEquipment(MercenaryInstance mercenary)
+    {
+        EquipmentSlot[] slots =
+        {
+            EquipmentSlot.Weapon,
+            EquipmentSlot.Armor,
+            EquipmentSlot.Accessory
+        };
+        List<EquipmentInstance> equipmentToReturn =
+            new List<EquipmentInstance>();
+        foreach (EquipmentSlot slot in slots)
+        {
+            ItemDataSO item = mercenary.GetEquippedItem(slot);
+            if (item == null)
+            {
+                continue;
+            }
+
+            EquipmentInstance equipment = mercenary.GetEquippedInstance(slot) ??
+                EquipmentInstance.CreateFixed(item);
+            if (equipment.BaseItem == null)
+            {
+                Debug.LogWarning(
+                    "Could not return equipped item while releasing " +
+                    mercenary.MercenaryName + ".");
+                return false;
+            }
+
+            equipmentToReturn.Add(equipment);
+        }
+
+        if (equipmentToReturn.Count == 0)
+        {
+            return true;
+        }
+
+        if (merchantInventory == null)
+        {
+            Debug.LogWarning(
+                "Could not release " + mercenary.MercenaryName +
+                " because equipped items cannot be returned without inventory.");
+            return false;
+        }
+
+        try
+        {
+            foreach (EquipmentInstance equipment in equipmentToReturn)
+            {
+                merchantInventory.DepositEquipmentTo(
+                    mercenary.CurrentTownIndex,
+                    equipment);
+            }
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning(
+                "Could not return equipped items while releasing " +
+                mercenary.MercenaryName + ": " + exception.Message);
+            return false;
+        }
+
+        foreach (EquipmentSlot slot in slots)
+        {
+            mercenary.UnequipEquipment(slot);
+        }
+
+        return true;
     }
 }

@@ -17,7 +17,7 @@ public partial class SimpleMercenaryHireUI
             "東方平原地域\n低級～中級",
             new Vector2(225f, -5f),
             new Vector2(390f, 390f),
-            ShowWorldMap);
+            () => ShowWorldMap(0));
         ConfigureWorldRegionHover(
             currentContinentButton,
             new Color(0.08f, 0.7f, 0.35f, 0.28f));
@@ -34,7 +34,7 @@ public partial class SimpleMercenaryHireUI
 
         Button thirdContinentButton = CreateWorldRegionButton(
             globalMapPage,
-            "南西黒土地域\n最高級",
+            "南西黒土地域\n最上級",
             new Vector2(-225f, -125f),
             new Vector2(360f, 245f),
             () => ShowWorldMap(2));
@@ -146,7 +146,7 @@ public partial class SimpleMercenaryHireUI
             CreateUIObject("Travel Confirmation Window", travelConfirmationOverlay);
         window.anchorMin = window.anchorMax = window.pivot =
             new Vector2(0.5f, 0.5f);
-        window.sizeDelta = new Vector2(560f, 300f);
+        window.sizeDelta = new Vector2(780f, 650f);
         ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
 
         CreateText(
@@ -155,8 +155,8 @@ public partial class SimpleMercenaryHireUI
             28,
             FontStyle.Bold,
             TextAnchor.MiddleCenter,
-            new Vector2(24f, -74f),
-            new Vector2(-24f, -22f),
+            new Vector2(24f, -58f),
+            new Vector2(-24f, -16f),
             ParchmentTextColor);
 
         travelConfirmationText = CreateText(
@@ -165,15 +165,31 @@ public partial class SimpleMercenaryHireUI
             18,
             FontStyle.Normal,
             TextAnchor.MiddleCenter,
-            new Vector2(36f, -190f),
-            new Vector2(-36f, -82f),
+            new Vector2(36f, -116f),
+            new Vector2(-36f, -64f),
             ParchmentMutedColor);
+
+        travelCargoSummaryText = CreateText(
+            window,
+            string.Empty,
+            17,
+            FontStyle.Bold,
+            TextAnchor.MiddleLeft,
+            new Vector2(36f, -154f),
+            new Vector2(-36f, -120f),
+            ParchmentTextColor);
+        travelCargoContent = CreateScrollableContent(
+            window,
+            "Travel Cargo Viewport",
+            "Travel Cargo Content",
+            new Vector2(36f, 96f),
+            new Vector2(-36f, -170f));
 
         Button confirmButton =
             CreateActionButton(
                 window,
                 "移動する",
-                () => townTravelController.ConfirmTownTravel());
+                ConfirmTownTravelWithCargo);
         RectTransform confirmRect = confirmButton.GetComponent<RectTransform>();
         confirmRect.anchorMin = confirmRect.anchorMax =
             confirmRect.pivot = new Vector2(0.5f, 0f);
@@ -190,6 +206,220 @@ public partial class SimpleMercenaryHireUI
         cancelRect.anchoredPosition = new Vector2(105f, 28f);
 
         travelConfirmationOverlay.gameObject.SetActive(false);
+    }
+
+    private void ConfirmTownTravelWithCargo()
+    {
+        List<RoadCargoEntry> cargo = new List<RoadCargoEntry>();
+        foreach (KeyValuePair<ItemDataSO, int> entry in selectedTravelCargo)
+        {
+            if (entry.Key != null && entry.Value > 0)
+            {
+                cargo.Add(new RoadCargoEntry(entry.Key, entry.Value));
+            }
+        }
+        townTravelController.ConfirmTownTravel(
+            cargo,
+            new List<string>(selectedTravelCompanions));
+    }
+
+    private void RefreshTravelCargoSelection()
+    {
+        if (travelCargoContent == null || townTravelController == null)
+        {
+            return;
+        }
+
+        for (int i = travelCargoContent.childCount - 1; i >= 0; i--)
+        {
+            Destroy(travelCargoContent.GetChild(i).gameObject);
+        }
+
+        int origin = townTravelController.ConfirmationOriginTownIndex;
+        int destination = townTravelController.ConfirmationDestinationTownIndex;
+        int used = 0;
+        foreach (int amount in selectedTravelCargo.Values)
+        {
+            used += amount;
+        }
+        int capacity = roadCargoSession != null ? roadCargoSession.Capacity : 0;
+        travelCargoSummaryText.text =
+            $"積載量 {used} / {capacity}　同行傭兵 {selectedTravelCompanions.Count}人";
+        float top = -10f;
+        bool hasCargo = false;
+        foreach (InventoryItemStack stack in merchantInventory.GetItemsIn(origin))
+        {
+            ItemDataSO item = stack?.Item;
+            if (item == null ||
+                (item.itemType != ItemType.Material &&
+                 item.itemType != ItemType.Consumable))
+            {
+                continue;
+            }
+
+            hasCargo = true;
+            selectedTravelCargo.TryGetValue(item, out int selected);
+            int currentPrice = GetTravelSellPrice(origin, item);
+            int destinationPrice = GetTravelSellPrice(destination, item);
+            int difference = destinationPrice - currentPrice;
+            CreateTravelCargoRow(
+                item,
+                stack.Amount,
+                selected,
+                currentPrice,
+                destinationPrice,
+                difference,
+                ref top);
+        }
+
+        if (!hasCargo)
+        {
+            CreateScrollLabel(travelCargoContent, "積める素材・消耗品はありません。", ref top);
+        }
+        top -= 12f;
+        CreateScrollLabel(travelCargoContent, "同行する傭兵", ref top);
+        bool hasCompanion = false;
+        foreach (MercenaryInstance mercenary in hireManager.HiredMercenaries)
+        {
+            if (!CanTravelWithCompanion(mercenary, origin))
+            {
+                continue;
+            }
+            hasCompanion = true;
+            CreateTravelCompanionRow(mercenary, ref top);
+        }
+        if (!hasCompanion)
+        {
+            CreateScrollLabel(
+                travelCargoContent,
+                "同行できる非編成傭兵はいません。",
+                ref top);
+        }
+        travelCargoContent.sizeDelta = new Vector2(0f, Mathf.Max(260f, -top + 12f));
+    }
+
+    private bool CanTravelWithCompanion(MercenaryInstance mercenary, int origin)
+    {
+        return mercenary != null && mercenary.IsContractActive &&
+               mercenary.CurrentTownIndex == origin &&
+               !MercenaryDutyService.IsOnDuty(mercenary.InstanceId);
+    }
+
+    private void CreateTravelCompanionRow(
+        MercenaryInstance mercenary,
+        ref float top)
+    {
+        bool selected = selectedTravelCompanions.Contains(mercenary.InstanceId);
+        CreateScrollLabel(
+            travelCargoContent,
+            mercenary.MercenaryName + (mercenary.IsIncapacitated ? "（戦闘不能）" : ""),
+            ref top);
+        Button toggle = CreateActionButton(
+            travelCargoContent,
+            selected ? "解除" : "同行",
+            () => ToggleTravelCompanion(mercenary.InstanceId));
+        ConfigureTravelCargoStepButton(toggle, new Vector2(-18f, top + 18f));
+        top -= 8f;
+    }
+
+    private void ToggleTravelCompanion(string instanceId)
+    {
+        if (string.IsNullOrWhiteSpace(instanceId))
+        {
+            return;
+        }
+        if (!selectedTravelCompanions.Add(instanceId))
+        {
+            selectedTravelCompanions.Remove(instanceId);
+        }
+        RefreshTravelCargoSelection();
+    }
+
+    private void CreateTravelCargoRow(
+        ItemDataSO item,
+        int owned,
+        int selected,
+        int currentPrice,
+        int destinationPrice,
+        int difference,
+        ref float top)
+    {
+        string differenceText = difference >= 0 ? $"+{difference}" : difference.ToString();
+        Text label = CreateText(
+            travelCargoContent,
+            $"{JapaneseDisplayText.GetItemName(item)} 所持 {owned} / 積載 {selected}\n" +
+            $"売値 {currentPrice}G → {destinationPrice}G （差額 {differenceText}G）",
+            14,
+            FontStyle.Normal,
+            TextAnchor.MiddleLeft,
+            new Vector2(12f, top - 50f),
+            new Vector2(-130f, top),
+            ParchmentMutedColor);
+        label.horizontalOverflow = HorizontalWrapMode.Wrap;
+
+        Button minus = CreateActionButton(
+            travelCargoContent,
+            "－",
+            () => ChangeTravelCargo(item, -1));
+        ConfigureTravelCargoStepButton(minus, new Vector2(-112f, top - 30f));
+        Button plus = CreateActionButton(
+            travelCargoContent,
+            "＋",
+            () => ChangeTravelCargo(item, 1));
+        ConfigureTravelCargoStepButton(plus, new Vector2(-56f, top - 30f));
+        top -= 58f;
+    }
+
+    private static void ConfigureTravelCargoStepButton(Button button, Vector2 position)
+    {
+        RectTransform rect = button.GetComponent<RectTransform>();
+        rect.anchorMin = rect.anchorMax = new Vector2(1f, 1f);
+        rect.pivot = new Vector2(1f, 1f);
+        rect.sizeDelta = new Vector2(48f, 32f);
+        rect.anchoredPosition = position;
+    }
+
+    private void ChangeTravelCargo(ItemDataSO item, int delta)
+    {
+        if (item == null || delta == 0)
+        {
+            return;
+        }
+
+        selectedTravelCargo.TryGetValue(item, out int selected);
+        int owned = merchantInventory.GetItemAmountIn(
+            townTravelController.ConfirmationOriginTownIndex,
+            item);
+        int used = 0;
+        foreach (int amount in selectedTravelCargo.Values)
+        {
+            used += amount;
+        }
+        int capacity = roadCargoSession != null ? roadCargoSession.Capacity : 0;
+        if (delta > 0 && (selected >= owned || used >= capacity))
+        {
+            return;
+        }
+
+        selected = Mathf.Clamp(selected + delta, 0, owned);
+        if (selected == 0)
+        {
+            selectedTravelCargo.Remove(item);
+        }
+        else
+        {
+            selectedTravelCargo[item] = selected;
+        }
+        RefreshTravelCargoSelection();
+    }
+
+    private int GetTravelSellPrice(int townIndex, ItemDataSO item)
+    {
+        int basePrice = marketPriceManager != null
+            ? marketPriceManager.GetSellPrice(item)
+            : item.basePrice;
+        return Mathf.Max(1, Mathf.RoundToInt(basePrice *
+            WorldMapService.GetTownDemandMultiplier(townIndex, item)));
     }
 
     private void BuildWorldMapPage()
@@ -348,7 +578,7 @@ public partial class SimpleMercenaryHireUI
 
     private void BuildTownMapPage()
     {
-        AddMapBackground(townMapPage, "Maps/TownMap");
+        townMapBackgroundImage = AddMapBackground(townMapPage, "Maps/TownMap");
 
         standardTownFacilityButtons.Clear();
         hireFacilityButton = CreateMapButton(
@@ -385,6 +615,21 @@ public partial class SimpleMercenaryHireUI
             new Vector2(110f, 48f),
             () => OpenFacilityWithGreeting(FacilityGreetingController.TempleKey, ShowJobChangePage));
         standardTownFacilityButtons.Add(jobFacilityButton);
+        trainingGroundFacilityButton = CreateMapButton(
+            townMapPage, "修練場", new Vector2(-105f, -105f),
+            new Vector2(110f, 48f),
+            () => OpenFacilityWithGreeting(
+                FacilityGreetingController.TrainingGroundKey,
+                ShowTrainingGroundPage));
+        standardTownFacilityButtons.Add(trainingGroundFacilityButton);
+        roadCargoReceiveButton = CreateMapButton(
+            townMapPage,
+            "街道荷物\n受取",
+            new Vector2(285f, -172f),
+            new Vector2(118f, 52f),
+            () => townTravelController.TryReceivePendingRoadCargo());
+        roadCargoReceiveButton.targetGraphic.color = AccentColor;
+        roadCargoReceiveButton.gameObject.SetActive(false);
         Button continentButton = CreateMapButton(
             townMapPage, "← 地域マップへ", new Vector2(-300f, -172f),
             new Vector2(142f, 52f), ShowWorldMap);
@@ -408,7 +653,7 @@ public partial class SimpleMercenaryHireUI
         pageRouter.Register(townMapPage);
     }
 
-    private void AddMapBackground(
+    private RawImage AddMapBackground(
         RectTransform parent,
         string resourcePath,
         string fallbackResourcePath = null)
@@ -427,6 +672,29 @@ public partial class SimpleMercenaryHireUI
         image.texture = texture;
         image.color = texture != null ? Color.white : RowColor;
         image.raycastTarget = false;
+        return image;
+    }
+
+    // Swaps the town map background to the current town's dedicated image,
+    // falling back to the shared TownMap when a town image is missing.
+    private void UpdateTownMapBackground()
+    {
+        if (townMapBackgroundImage == null)
+        {
+            return;
+        }
+
+        string townImagePath = WorldMapService.GetTownMapImageResourcePath(
+            townProgressState.CurrentTownIndex);
+        Texture2D texture = string.IsNullOrEmpty(townImagePath)
+            ? null
+            : Resources.Load<Texture2D>(townImagePath);
+        if (texture == null)
+        {
+            texture = Resources.Load<Texture2D>("Maps/TownMap");
+        }
+        townMapBackgroundImage.texture = texture;
+        townMapBackgroundImage.color = texture != null ? Color.white : RowColor;
     }
 
     private Button CreateMapButton(
@@ -527,6 +795,7 @@ public partial class SimpleMercenaryHireUI
 
     private void RefreshTownMapPage()
     {
+        UpdateTownMapBackground();
         bool hiddenIsland = TownServicePolicy.IsHiddenIslandTown(
             townProgressState.CurrentTownIndex);
         statusText.text =
@@ -543,25 +812,44 @@ public partial class SimpleMercenaryHireUI
 
         if (hiddenIsland)
         {
+            if (roadCargoReceiveButton != null)
+            {
+                roadCargoReceiveButton.gameObject.SetActive(
+                    townTravelController.CanReceivePendingRoadCargo());
+            }
             return;
+        }
+
+        if (roadCargoReceiveButton != null)
+        {
+            roadCargoReceiveButton.gameObject.SetActive(
+                townTravelController.CanReceivePendingRoadCargo());
         }
 
         if (jobFacilityButton != null)
         {
             jobFacilityButton.gameObject.SetActive(
-                townProgressState.CurrentTownIndex == 0 ||
-                townProgressState.CurrentTownIndex >= 3);
+                TownServicePolicy.IsJobChangeAvailable(
+                    townProgressState.CurrentTownIndex));
         }
         if (hireFacilityButton != null)
         {
             hireFacilityButton.gameObject.SetActive(
                 TownServicePolicy.IsHiringAvailable(townProgressState.CurrentTownIndex));
         }
+        if (trainingGroundFacilityButton != null)
+        {
+            trainingGroundFacilityButton.gameObject.SetActive(
+                TownServicePolicy.IsTrainingGroundAvailable(
+                    townProgressState.CurrentTownIndex));
+        }
     }
 
     private void HideTravelConfirmation()
     {
         travelConfirmationOverlay?.gameObject.SetActive(false);
+        selectedTravelCargo.Clear();
+        selectedTravelCompanions.Clear();
         townTravelController.ClearTravelConfirmation();
     }
 

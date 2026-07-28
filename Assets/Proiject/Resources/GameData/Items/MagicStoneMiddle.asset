@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 0
   rarity: 0
   materialClassification: 2
-  description: Crafting material gathered in the demon continent.
-  basePrice: 360
+  description: "魔大陸で採れる、安定した魔力を宿した中級魔石。"
+  basePrice: 550
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0

@@ -23,6 +23,13 @@ public static class WorldMapService
         0, 0, 0, 1, 1, 2, 2, HiddenIslandWorldMapIndex
     };
 
+    // Resources-relative map image name per town (index matches TownNames).
+    // Files live at Resources/Maps/Towns/{name}.png.
+    private static readonly string[] TownMapImageNames =
+    {
+        "Eld", "Leaf", "Sail", "Norn", "Glaad", "Velm", "Abyss", "Astera"
+    };
+
     public static readonly int[] TownProgressionOrder =
     {
         2, 1, 0, 3, 4, 5, 6
@@ -170,6 +177,15 @@ public static class WorldMapService
         return Array.IndexOf(TownProgressionOrder, townIndex);
     }
 
+    // Resources path of the town-specific map image. Returns null for an
+    // invalid town so callers can fall back to the shared TownMap image.
+    public static string GetTownMapImageResourcePath(int townIndex)
+    {
+        return townIndex >= 0 && townIndex < TownMapImageNames.Length
+            ? "Maps/Towns/" + TownMapImageNames[townIndex]
+            : null;
+    }
+
     public static bool AreTownsAdjacent(int leftTown, int rightTown)
     {
         if (leftTown == HiddenIslandTownIndex ||
@@ -226,9 +242,16 @@ public static class WorldMapService
             result.Add(currentTownIndex);
         }
 
-        if (savedUnlockedTownIndices == null)
+        // Towns are only reachable by adjacent road travel along the fixed
+        // progression order, so arriving at the current town guarantees every
+        // town up to it on that path has already been unlocked. Always
+        // backfill the route (not just when the saved set is null) so a save
+        // whose unlocked set is inconsistent with the current town — e.g. a
+        // save whose storage location changed and lost intermediate towns —
+        // is repaired on load instead of stranding the player.
+        int currentOrder = GetTownProgressionPosition(currentTownIndex);
+        if (currentOrder >= 0)
         {
-            int currentOrder = GetTownProgressionPosition(currentTownIndex);
             for (int i = 0; i <= currentOrder; i++)
             {
                 result.Add(TownProgressionOrder[i]);
@@ -422,7 +445,7 @@ public static class WorldMapService
     public static EquipmentRankRange GetBlacksmithEquipmentRankRange(int townIndex)
     {
         int rank = Math.Min(GetTownEquipmentRank(townIndex) + 1, 10);
-        return new EquipmentRankRange(rank, rank);
+        return new EquipmentRankRange(1, rank);
     }
 
     public static int GetDungeonEquipmentRank(int townIndex)

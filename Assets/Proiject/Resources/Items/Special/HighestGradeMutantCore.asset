@@ -12,7 +12,7 @@ MonoBehaviour:
   rarity: 3
   materialClassification: 2
   description: 極限まで練り上げられた変異核。武具に伝説級の異質な力を与える。
-  basePrice: 2700
+  basePrice: 5000
   acquisitionType: 2
   equipmentSlot: 0
   requiredClass: 0

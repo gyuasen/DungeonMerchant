@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 0
   rarity: 1
   materialClassification: 2
-  description: A heavy tusk valued by weapon craftsmen.
+  description: "魔大陸で採れる、武器職人に重宝される重い牙。"
   basePrice: 115
   acquisitionType: 0
   equipmentSlot: 0

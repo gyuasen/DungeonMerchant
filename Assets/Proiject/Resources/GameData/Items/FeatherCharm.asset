@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: A feather charm favored by novice archers.
+  description: "ランク1弓使い向けに仕立てられた装飾。"
   basePrice: 110
   acquisitionType: 0
   equipmentSlot: 2

@@ -191,7 +191,14 @@ public class RemoteSaleManager : MonoBehaviour
         }
         else
         {
-            inventory.DepositItemTo(order.TownIndex, order.Item, order.Amount);
+            if (!inventory.DepositItemTo(
+                    order.TownIndex,
+                    order.Item,
+                    order.Amount))
+            {
+                activeOrders.Add(order);
+                return false;
+            }
         }
         RemoteSaleChanged?.Invoke();
         return true;
@@ -314,7 +321,9 @@ public class RemoteSaleManager : MonoBehaviour
                 continue;
             }
             int gold = GetEstimatedGold(order);
-            merchantData?.AddGold(gold);
+            merchantData?.AddGold(
+                gold,
+                GoldTransactionReason.RemoteSale);
             activeOrders.RemoveAt(i);
             RemoteSaleEventOccurred?.Invoke(new RemoteSaleEvent(
                 RemoteSaleEventType.Settled,

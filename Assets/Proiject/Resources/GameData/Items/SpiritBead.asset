@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 1
   rarity: 2
   materialClassification: 0
-  description: A prayer bead that stores magic drawn from monster remains.
-  basePrice: 590
+  description: "ランク3司祭向けに仕立てられた装飾。"
+  basePrice: 1180
   acquisitionType: 1
   equipmentSlot: 2
   requiredClass: 3

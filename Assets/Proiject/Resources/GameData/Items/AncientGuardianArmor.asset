@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 3
   materialClassification: 0
-  description: Armor that still carries the protection of ancient guardians.
+  description: "ランク5戦士向けに仕立てられた防具。"
   basePrice: 1500
   acquisitionType: 2
   equipmentSlot: 1

@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 2
   rarity: 2
   materialClassification: 0
-  description: A jewel that powered an ancient ruin guardian.
+  description: "魔大陸で採れる、古代遺跡の守護者を動かしていた宝珠。"
   basePrice: 520
   acquisitionType: 0
   equipmentSlot: 0

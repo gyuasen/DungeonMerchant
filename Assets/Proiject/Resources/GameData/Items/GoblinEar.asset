@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 0
   rarity: 0
   materialClassification: 1
-  description: A common proof of a defeated goblin.
-  basePrice: 35
+  description: "魔大陸で採れる、ゴブリンを倒した証として扱われる耳。"
+  basePrice: 70
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0

@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 0
   rarity: 0
   materialClassification: 2
-  description: Strong silk suitable for bowstrings and cloth.
+  description: "魔大陸で採れる、弓の弦や布地に適した強靭な糸。"
   basePrice: 50
   acquisitionType: 0
   equipmentSlot: 0

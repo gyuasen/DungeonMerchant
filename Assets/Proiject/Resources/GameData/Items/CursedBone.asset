@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 0
   rarity: 1
   materialClassification: 2
-  description: A bone carrying a faint magical curse.
+  description: "魔大陸で採れる、かすかな呪いを帯びた骨。"
   basePrice: 80
   acquisitionType: 0
   equipmentSlot: 0

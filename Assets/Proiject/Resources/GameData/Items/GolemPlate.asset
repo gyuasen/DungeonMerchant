@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 1
   rarity: 2
   materialClassification: 0
-  description: Plate armor reinforced by the dense shell of a golem core.
-  basePrice: 840
+  description: "ランク3槍兵向けに仕立てられた防具。"
+  basePrice: 1680
   acquisitionType: 1
   equipmentSlot: 1
   requiredClass: 5

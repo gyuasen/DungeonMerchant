@@ -11,6 +11,7 @@ public sealed class BlacksmithPageUI : ListPageUIBase
     private Func<EquipmentRecipeSO, bool> canCraftRecipe;
     private Action<EquipmentRecipeSO> craftAction;
     private Action<Button, EquipmentRecipeSO> registerCraftButton;
+    private Action<EquipmentRecipeSO> detailAction;
 
     public void ConfigureBlacksmith(
         Font font,
@@ -25,7 +26,8 @@ public sealed class BlacksmithPageUI : ListPageUIBase
         Func<ItemDataSO, int> targetOwnedAmountProvider,
         Func<EquipmentRecipeSO, bool> targetCanCraftRecipe,
         Action<EquipmentRecipeSO> targetCraftAction,
-        Action<Button, EquipmentRecipeSO> targetRegisterCraftButton)
+        Action<Button, EquipmentRecipeSO> targetRegisterCraftButton,
+        Action<EquipmentRecipeSO> targetDetailAction)
     {
         Configure(
             font,
@@ -42,13 +44,14 @@ public sealed class BlacksmithPageUI : ListPageUIBase
         canCraftRecipe = targetCanCraftRecipe;
         craftAction = targetCraftAction;
         registerCraftButton = targetRegisterCraftButton;
+        detailAction = targetDetailAction;
     }
 
     public override void Refresh()
     {
         RebuildRows(
             recipeProvider?.Invoke(),
-            140f,
+            162f,
             430f,
             "制作可能なレシピはありません。",
             shouldShowRecipe,
@@ -66,7 +69,9 @@ public sealed class BlacksmithPageUI : ListPageUIBase
                 top,
                 RowColor,
                 FrameColor);
-        row.offsetMin = new Vector2(0f, top - 124f);
+        row.offsetMin = new Vector2(0f, top - 150f);
+
+        CreateItemIcon(row, item);
 
         CreateText(
             row,
@@ -75,36 +80,55 @@ public sealed class BlacksmithPageUI : ListPageUIBase
             21,
             FontStyle.Bold,
             TextAnchor.MiddleLeft,
-            new Vector2(18f, -38f),
-            new Vector2(-160f, -8f),
+            new Vector2(82f, -30f),
+            new Vector2(-330f, -6f),
             RowTextColor);
 
-        string stats =
-            EquipmentRankPresentation.GetRichText(item) + "  |  " +
-            $"{JapaneseDisplayText.GetMercenaryClass(item.requiredClass)}用  |  " +
-            $"攻撃+{item.bonusAttack}  " +
-            $"防御+{item.bonusDefense}  HP+{item.bonusMaxHP}";
         CreateText(
             row,
-            stats,
+            $"{EquipmentRankPresentation.GetRichText(item)}  |  " +
+            $"{JapaneseDisplayText.GetMercenaryClass(item.requiredClass)}用",
             RowFont,
             13,
             FontStyle.Normal,
             TextAnchor.MiddleLeft,
-            new Vector2(18f, -70f),
-            new Vector2(-160f, -42f),
+            new Vector2(82f, -50f),
+            new Vector2(-330f, -32f),
             MutedTextColor);
 
         CreateText(
             row,
-            $"{BuildRecipeMaterialText(recipe)}  |  費用 {recipe.goldCost} G",
+            $"<b>ステータス</b>  攻撃+{item.bonusAttack}  防御+{item.bonusDefense}  HP+{item.bonusMaxHP}",
             RowFont,
             13,
             FontStyle.Normal,
             TextAnchor.MiddleLeft,
-            new Vector2(18f, -104f),
-            new Vector2(-160f, -76f),
-            MutedTextColor);
+            new Vector2(82f, -78f),
+            new Vector2(-330f, -56f),
+            RowTextColor);
+
+        Text materialText = CreateText(
+            row,
+            $"<b>素材</b>  {BuildRecipeMaterialText(recipe)}",
+            RowFont,
+            13,
+            FontStyle.Normal,
+            TextAnchor.MiddleLeft,
+            new Vector2(82f, -104f),
+            new Vector2(-330f, -82f),
+            RowTextColor);
+        materialText.horizontalOverflow = HorizontalWrapMode.Wrap;
+
+        CreateText(
+            row,
+            $"<b>費用</b>  {recipe.goldCost} G",
+            RowFont,
+            13,
+            FontStyle.Normal,
+            TextAnchor.MiddleLeft,
+            new Vector2(82f, -134f),
+            new Vector2(-330f, -112f),
+            RowTextColor);
 
         Button craftButton = CreateActionButton(
             row,
@@ -116,6 +140,36 @@ public sealed class BlacksmithPageUI : ListPageUIBase
             () => craftAction?.Invoke(recipe));
         craftButton.interactable = canCraftRecipe?.Invoke(recipe) == true;
         registerCraftButton?.Invoke(craftButton, recipe);
+
+        Button detailButton = CreateActionButton(
+            row,
+            "詳細",
+            RowFont,
+            ButtonColor,
+            FrameColor,
+            ButtonTextColor,
+            () => detailAction?.Invoke(recipe));
+        RectTransform detailRect = detailButton.GetComponent<RectTransform>();
+        detailRect.anchoredPosition = new Vector2(-160f, 0f);
+    }
+
+    private void CreateItemIcon(RectTransform row, ItemDataSO item)
+    {
+        RectTransform iconRect = CreateUIObject("Item Icon", row);
+        iconRect.anchorMin = new Vector2(0f, 0.5f);
+        iconRect.anchorMax = new Vector2(0f, 0.5f);
+        iconRect.pivot = new Vector2(0f, 0.5f);
+        iconRect.sizeDelta = new Vector2(54f, 54f);
+        iconRect.anchoredPosition = new Vector2(18f, 0f);
+        Image icon = iconRect.gameObject.AddComponent<Image>();
+        Sprite sprite = ItemPresentationService.ResolveSprite(item);
+        icon.sprite = sprite;
+        icon.color = sprite != null ? Color.white : new Color(0.2f, 0.2f, 0.2f, 1f);
+        if (sprite == null)
+        {
+            CreateText(iconRect, "?", RowFont, 28, FontStyle.Bold,
+                TextAnchor.MiddleCenter, Vector2.zero, Vector2.zero, Color.white);
+        }
     }
 
     private string BuildRecipeMaterialText(EquipmentRecipeSO recipe)

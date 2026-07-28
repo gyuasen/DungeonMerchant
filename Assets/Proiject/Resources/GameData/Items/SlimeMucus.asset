@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 0
   rarity: 0
   materialClassification: 2
-  description: A viscous alchemical reagent gathered from a defeated slime.
+  description: "魔大陸で採れる、粘り気の強い錬金素材。"
   basePrice: 25
   acquisitionType: 0
   equipmentSlot: 0

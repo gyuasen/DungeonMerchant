@@ -16,9 +16,9 @@ MonoBehaviour:
   itemName: "\u9244\u9271\u77F3"
   itemType: 0
   rarity: 0
-  materialClassification: 2
-  description: Crafting material gathered in the demon continent.
-  basePrice: 55
+  materialClassification: 1
+  description: "魔大陸で採れる、鉄の鉱石。"
+  basePrice: 300
   acquisitionType: 0
   equipmentSlot: 0
   requiredClass: 0

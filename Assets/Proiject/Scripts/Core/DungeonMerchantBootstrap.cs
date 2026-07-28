@@ -29,7 +29,8 @@ public static class DungeonMerchantBootstrap
     {
         // The title scene runs standalone: it must not spawn the game
         // managers or the game UI on top of the title screen.
-        if (Object.FindObjectOfType<TitleSceneController>() != null)
+        if (Object.FindObjectOfType<TitleSceneController>() != null ||
+            Object.FindObjectOfType<EndingSceneController>() != null)
         {
             return;
         }
@@ -43,7 +44,7 @@ public static class DungeonMerchantBootstrap
             ? Object.FindObjectOfType<MercenaryHireManager>().gameObject
             : new GameObject("DungeonMerchant Runtime");
 
-        EnsureComponent<MerchantData>(root);
+        MerchantData merchantData = EnsureComponent<MerchantData>(root);
         EnsureComponent<DayManager>(root);
         EnsureComponent<TownProgressState>(root);
         EnsureComponent<MarketPriceManager>(root);
@@ -52,18 +53,23 @@ public static class DungeonMerchantBootstrap
         EnsureComponent<BlacksmithManager>(root);
         EnsureComponent<MercenaryHireManager>(root);
         EnsureComponent<HealingManager>(root);
+        EnsureComponent<TrainingGroundManager>(root);
         EnsureComponent<MercenaryPartyManager>(root);
-        EnsureComponent<TransportManager>(root);
-        EnsureComponent<DungeonExpeditionManager>(root);
+        EnsureComponent<RoadCargoSession>(root);
         EnsureComponent<RemoteSaleManager>(root);
         EnsureComponent<MercenaryGenerator>(root);
         EnsureComponent<BattleManager>(root);
         EnsureComponent<MonsterCodexManager>(root);
         EnsureComponent<DungeonRunManager>(root);
+        EnsureComponent<DungeonExpeditionManager>(root);
         EnsureComponent<RoadEncounterService>(root);
-        EnsureComponent<DebtManager>(root);
+        DebtManager debtManager = EnsureComponent<DebtManager>(root);
         EnsureComponent<ProgressionManager>(root);
-        EnsureComponent<StoryProgressManager>(root);
+        // 明示注入で debtManager・merchantData 参照を確実に結び、fake-null で
+        // 購読が漏れることを防ぐ。merchantData はマイナス中の物語進行停止に使う。
+        EnsureComponent<StoryProgressManager>(root)
+            .Initialize(debtManager, merchantData);
+        EnsureComponent<OnboardingGuideController>(root);
         EnsureComponent<AudioFeedbackService>(root);
         EnsureComponent<SimpleMercenaryHireUI>(root);
         SaveManager saveManager = EnsureComponent<SaveManager>(root);

@@ -26,7 +26,9 @@ public sealed class DungeonRewardService
             return;
         }
 
-        merchantData?.AddGold(safeAmount);
+        merchantData?.AddGold(
+            safeAmount,
+            GoldTransactionReason.DungeonReward);
         SendMessage($"{safeAmount} Gを獲得しました。");
     }
 
@@ -40,7 +42,9 @@ public sealed class DungeonRewardService
         int goldReward = Mathf.Max(0, dungeonData.clearGoldReward);
         if (goldReward > 0)
         {
-            merchantData?.AddGold(goldReward);
+            merchantData?.AddGold(
+                goldReward,
+                GoldTransactionReason.DungeonReward);
             SendMessage($"踏破報酬: {goldReward} G");
         }
 
@@ -56,9 +60,17 @@ public sealed class DungeonRewardService
                 continue;
             }
 
-            merchantInventory.AddItem(reward.item, reward.amount);
-            SendMessage(
-                $"踏破報酬: {JapaneseDisplayText.GetItemName(reward.item)} x{reward.amount}");
+            if (merchantInventory.TryAddItem(reward.item, reward.amount))
+            {
+                SendMessage(
+                    $"踏破報酬: {JapaneseDisplayText.GetItemName(reward.item)} x{reward.amount}");
+            }
+            else
+            {
+                SendMessage(
+                    $"倉庫が満杯で受け取れませんでした: " +
+                    $"{JapaneseDisplayText.GetItemName(reward.item)} x{reward.amount}");
+            }
         }
     }
 

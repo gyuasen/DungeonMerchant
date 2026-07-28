@@ -23,7 +23,7 @@ MonoBehaviour:
   specialVariantTitle: 
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
-  battleVisualKey: Grade07_skeleton_captain
+  battleVisualKey: enemy_job_skeleton_captain
   maxHP: 95
   attack: 15
   defense: 7

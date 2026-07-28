@@ -11,6 +11,11 @@ using System.Text;
 /// </summary>
 public sealed class DailyResultController
 {
+    private const string PositiveColor = "#65D88A";
+    private const string NegativeColor = "#FF7474";
+    private const string NeutralColor = "#AEB6BE";
+    private const string HeadingColor = "#5A3B24";
+    private const string AccentColor = "#B86B2B";
     private readonly MerchantData merchantData;
     private readonly MercenaryHireManager hireManager;
     private readonly MercenaryPartyManager partyManager;
@@ -41,6 +46,17 @@ public sealed class DailyResultController
     private readonly List<string> dailyAcquiredEquipment =
         new List<string>();
     private readonly List<string> dailyTransportEvents = new List<string>();
+    private readonly List<string> dailyQuestCompletionLines = new List<string>();
+    private readonly List<string> trainingCompletionLines = new List<string>();
+    private readonly HashSet<string> trainingCompletionKeys =
+        new HashSet<string>();
+    private readonly HashSet<string> dailyHiredMercenaryIds =
+        new HashSet<string>();
+    private readonly List<GoldTransaction> dailyGoldLedger =
+        new List<GoldTransaction>();
+    private readonly Dictionary<int, List<ExpeditionEvent>>
+        expeditionEventsByAccountingDay =
+        new Dictionary<int, List<ExpeditionEvent>>();
 
     private sealed class DailyMercenarySnapshot
     {
@@ -48,11 +64,15 @@ public sealed class DailyResultController
         public int Level;
         public int Experience;
         public int MaxHP;
+        public int CurrentHP;
         public int Attack;
         public int Defense;
         public int MaxMagicPower;
         public float AttackSpeed;
+        public BattleStatusEffect StatusEffect;
         public bool ContractActive;
+        public bool ContractNeedsRenewal;
+        public bool WasDefeated;
         public bool WasInParty;
     }
 
@@ -62,7 +82,8 @@ public sealed class DailyResultController
         MercenaryPartyManager partyManager,
         MerchantInventory merchantInventory,
         ProgressionManager progressionManager,
-        Func<EquipmentInstance, string> getEquipmentDisplayName)
+        Func<EquipmentInstance, string> getEquipmentDisplayName,
+        DungeonExpeditionManager dungeonExpeditionManager = null)
     {
         this.merchantData = merchantData;
         this.hireManager = hireManager;
@@ -70,6 +91,18 @@ public sealed class DailyResultController
         this.merchantInventory = merchantInventory;
         this.progressionManager = progressionManager;
         this.getEquipmentDisplayName = getEquipmentDisplayName;
+        if (progressionManager != null)
+        {
+            progressionManager.QuestCompleted += HandleQuestCompleted;
+        }
+        if (merchantData != null)
+        {
+            merchantData.GoldTransactionRecorded += HandleGoldTransactionRecorded;
+        }
+        if (dungeonExpeditionManager != null)
+        {
+            dungeonExpeditionManager.ExpeditionDayResolved += RecordExpeditionEvent;
+        }
     }
 
     /// <summary>
@@ -87,48 +120,49 @@ public sealed class DailyResultController
         }
 
         StringBuilder result = new StringBuilder();
-        result.AppendLine(
-            $"{dailySnapshotDay}日目の終了 → {currentDay}日目");
+        result.AppendLine(Heading(
+            $"{dailySnapshotDay}日目の終了 → {currentDay}日目"));
         result.AppendLine();
-        result.AppendLine("【商人】");
+        result.AppendLine(Heading("【商人】"));
 
         bool hasMerchantChange = false;
         int goldChange = merchantData.Gold - dailySnapshotGold;
         if (goldChange != 0)
         {
-            result.AppendLine(
+            result.AppendLine(ColorByDirection(
                 $"所持金  {dailySnapshotGold}G → {merchantData.Gold}G " +
-                $"({FormatSignedValue(goldChange)}G)");
+                $"({FormatSignedValue(goldChange)}G)", goldChange > 0));
             hasMerchantChange = true;
         }
         if (merchantData.MerchantLevel > dailySnapshotMerchantLevel)
         {
-            result.AppendLine(
+            result.AppendLine(Emphasis(
                 $"★ レベルアップ  Lv{dailySnapshotMerchantLevel} → " +
-                $"Lv{merchantData.MerchantLevel}");
+                $"Lv{merchantData.MerchantLevel}"));
             hasMerchantChange = true;
         }
         if (merchantData.MerchantLevel == dailySnapshotMerchantLevel &&
             merchantData.MerchantExperience >
             dailySnapshotMerchantExperience)
         {
-            result.AppendLine(
+            result.AppendLine(Positive(
                 $"獲得G進行  +{merchantData.MerchantExperience - dailySnapshotMerchantExperience} " +
                 $"({merchantData.MerchantExperience}/" +
-                $"{merchantData.ExperienceToNextLevel})");
+                $"{merchantData.ExperienceToNextLevel})"));
             hasMerchantChange = true;
         }
         else if (merchantData.MerchantLevel > dailySnapshotMerchantLevel)
         {
-            result.AppendLine(
+            result.AppendLine(Positive(
                 $"現在の獲得G進行  {merchantData.MerchantExperience}/" +
-                $"{merchantData.ExperienceToNextLevel}");
+                $"{merchantData.ExperienceToNextLevel}"));
         }
         if (merchantData.MerchantSkillPoints != dailySnapshotSkillPoints)
         {
-            result.AppendLine(
+            result.AppendLine(ColorByDirection(
                 $"技能ポイント  {dailySnapshotSkillPoints} → " +
-                $"{merchantData.MerchantSkillPoints}");
+                $"{merchantData.MerchantSkillPoints}",
+                merchantData.MerchantSkillPoints > dailySnapshotSkillPoints));
             hasMerchantChange = true;
         }
         hasMerchantChange |= AppendRankChange(
@@ -141,7 +175,7 @@ public sealed class DailyResultController
             result, "物流", dailySnapshotLogistics, merchantData.Logistics);
         if (!hasMerchantChange)
         {
-            result.AppendLine("大きな変化はありません。");
+            result.AppendLine(Neutral("大きな変化はありません。"));
         }
 
         int storageUsed = merchantInventory != null
@@ -152,49 +186,49 @@ public sealed class DailyResultController
             : 0;
         int storageRemaining = Math.Max(0, storageCapacity - storageUsed);
         result.AppendLine();
-        result.AppendLine("【倉庫】");
+        result.AppendLine(Heading("【倉庫】"));
         if (dailySnapshotStorageUsed != storageUsed ||
             dailySnapshotStorageCapacity != storageCapacity)
         {
-            result.AppendLine(
+            result.AppendLine(Neutral(
                 $"使用量 {dailySnapshotStorageUsed}/{dailySnapshotStorageCapacity} → " +
-                $"{storageUsed}/{storageCapacity}");
+                $"{storageUsed}/{storageCapacity}"));
         }
         else
         {
-            result.AppendLine($"使用量 {storageUsed}/{storageCapacity}");
+            result.AppendLine(Neutral($"使用量 {storageUsed}/{storageCapacity}"));
         }
-        result.AppendLine($"空き容量 {storageRemaining}");
+        result.AppendLine(Neutral($"空き容量 {storageRemaining}"));
         if (storageCapacity > 0 && storageRemaining == 0)
         {
-            result.AppendLine("！倉庫が満杯です。売却または倉庫拡張を行ってください。");
+            result.AppendLine(Negative("！倉庫が満杯です。売却または倉庫拡張を行ってください。"));
         }
 
         result.AppendLine();
-        result.AppendLine("【入手アイテム】");
+        result.AppendLine(Heading("【入手アイテム】"));
         if (dailyAcquiredItems.Count == 0 &&
             dailyAcquiredEquipment.Count == 0)
         {
-            result.AppendLine("入手したアイテムはありません。");
+            result.AppendLine(Neutral("入手したアイテムはありません。"));
         }
 
         else
         {
             foreach (KeyValuePair<string, int> entry in dailyAcquiredItems)
             {
-                result.AppendLine($"・{entry.Key} ×{entry.Value}");
+                result.AppendLine(Positive($"・{EscapeRichText(entry.Key)} ×{entry.Value}"));
             }
             foreach (string equipmentName in dailyAcquiredEquipment)
             {
-                result.AppendLine($"・{equipmentName}");
+                result.AppendLine(Positive($"・{EscapeRichText(equipmentName)}"));
             }
         }
 
         result.AppendLine();
-        result.AppendLine("【輸送】");
+        result.AppendLine(Heading("【輸送】"));
         if (dailyTransportEvents.Count == 0)
         {
-            result.AppendLine("輸送に関する報告はありません。");
+            result.AppendLine(Neutral("輸送に関する報告はありません。"));
         }
         else
         {
@@ -203,6 +237,23 @@ public sealed class DailyResultController
                 result.AppendLine(transportEvent);
             }
         }
+
+        result.AppendLine();
+        result.AppendLine(Heading("【依頼達成】"));
+        if (dailyQuestCompletionLines.Count == 0)
+        {
+            result.AppendLine(Neutral("依頼達成はありません。"));
+        }
+        else
+        {
+            foreach (string line in dailyQuestCompletionLines)
+            {
+                result.AppendLine(Emphasis(line));
+            }
+        }
+
+        int accountingDay = currentDay - 1;
+        AppendExpeditionResults(result, accountingDay);
 
         List<string> mercenaryLines = new List<string>();
         List<string> contractLines = new List<string>();
@@ -216,82 +267,41 @@ public sealed class DailyResultController
                 mercenary.InstanceId,
                 out DailyMercenarySnapshot previous);
 
-            StringBuilder growth = new StringBuilder();
-            bool leveledUp =
-                previous != null && mercenary.Level > previous.Level;
-            if (leveledUp)
+            bool inParty = partyManager != null && partyManager.Contains(mercenary);
+            bool isNewHire = dailyHiredMercenaryIds.Contains(mercenary.InstanceId) ||
+                previous == null;
+            string changeLine = BuildMercenaryChangeLine(
+                mercenary,
+                previous,
+                inParty,
+                isNewHire);
+            if (!string.IsNullOrEmpty(changeLine))
             {
-                growth.Append(
-                    $" / Lv{previous.Level}→{mercenary.Level}");
+                mercenaryLines.Add(changeLine);
             }
-            else if (previous != null &&
-                     mercenary.CurrentExperience > previous.Experience)
-            {
-                growth.Append(
-                    $" / EXP +" +
-                    $"{mercenary.CurrentExperience - previous.Experience}");
-            }
-            if (previous != null)
-            {
-                AppendStatChange(
-                    growth, "HP", mercenary.MaxHP - previous.MaxHP);
-                AppendStatChange(
-                    growth, "攻撃", mercenary.Attack - previous.Attack);
-                AppendStatChange(
-                    growth, "防御", mercenary.Defense - previous.Defense);
-                AppendStatChange(
-                    growth,
-                    "魔力",
-                    mercenary.MaxMagicPower - previous.MaxMagicPower);
-                float speedChange =
-                    mercenary.AttackSpeed - previous.AttackSpeed;
-                if (speedChange > 0.001f)
-                {
-                    growth.Append($" / 速度 +{speedChange:0.##}");
-                }
-            }
-
-            string experienceText = mercenary.IsAtLevelCap
-                ? "MAX"
-                : $"{mercenary.CurrentExperience}/" +
-                  $"{mercenary.ExperienceToNextLevel}";
-            string contractText = mercenary.ContractNeedsRenewal
-                ? "更新待ち"
-                : mercenary.ContractEndDay > 0
-                    ? $"{mercenary.ContractEndDay}日目まで"
-                    : "無期限";
-            bool inParty = partyManager.Contains(mercenary);
-            mercenaryLines.Add(
-                $"{(leveledUp ? "★ " : "・")}{mercenary.MercenaryName} " +
-                $"[{JapaneseDisplayText.GetMercenaryClass(mercenary.MercenaryClass)}] " +
-                $"Lv{mercenary.Level}{growth}\n" +
-                $"  HP {mercenary.CurrentHP}/{mercenary.MaxHP} / " +
-                $"EXP {experienceText} / 攻撃 {mercenary.Attack} / " +
-                $"防御 {mercenary.Defense} / 魔力 {mercenary.MaxMagicPower}\n" +
-                $"  速度 {mercenary.AttackSpeed:0.##} / " +
-                $"会心 {mercenary.CriticalRate * 100f:0.#}% / " +
-                $"回避 {mercenary.EvasionRate * 100f:0.#}% / " +
-                $"{JapaneseDisplayText.GetContractType(mercenary.ContractType)} " +
-                $"({contractText}) / {(inParty ? "編成中" : "待機")}");
 
             if (previous != null &&
                 previous.ContractActive &&
                 !mercenary.IsContractActive)
             {
                 bool removedFromParty =
-                    previous.WasInParty && !partyManager.Contains(mercenary);
+                    previous.WasInParty && !inParty;
                 contractLines.Add(
-                    $"! {previous.Name}: " +
+                    Negative($"! {EscapeRichText(previous.Name)}: " +
                     $"{JapaneseDisplayText.GetContractType(mercenary.ContractType)}が終了" +
-                    (removedFromParty ? "（編成から外れました）" : string.Empty));
+                    (removedFromParty ? "（編成から外れました）" : string.Empty)));
             }
         }
 
         result.AppendLine();
-        result.AppendLine("【傭兵の成長・現在状況】");
+        result.AppendLine(Heading("【傭兵の成長・現在状況】"));
+        foreach (string trainingLine in trainingCompletionLines)
+        {
+            result.AppendLine(trainingLine);
+        }
         if (mercenaryLines.Count == 0)
         {
-            result.AppendLine("雇用中の傭兵はいません。");
+            result.AppendLine(Neutral("本日、状態が変化した傭兵はいません。"));
         }
         else
         {
@@ -302,10 +312,10 @@ public sealed class DailyResultController
         }
 
         result.AppendLine();
-        result.AppendLine("【契約】");
+        result.AppendLine(Heading("【契約】"));
         if (contractLines.Count == 0)
         {
-            result.AppendLine("契約終了による編成変更はありません。");
+            result.AppendLine(Neutral("契約終了による編成変更はありません。"));
         }
         else
         {
@@ -313,10 +323,41 @@ public sealed class DailyResultController
             {
                 result.AppendLine(line);
             }
-            result.AppendLine("商会画面から契約を更新できます。");
+            result.AppendLine(Negative("商会画面から契約を更新できます。"));
         }
 
+        AppendDailyGoldLedger(
+            result,
+            dailySnapshotDay,
+            currentDay,
+            goldChange);
+        RemoveGoldLedgerEntries(dailySnapshotDay, currentDay);
+        expeditionEventsByAccountingDay.Remove(accountingDay);
+
         return result.ToString().TrimEnd();
+    }
+
+    private void HandleGoldTransactionRecorded(GoldTransaction transaction)
+    {
+        if (transaction != null)
+        {
+            dailyGoldLedger.Add(transaction);
+        }
+    }
+
+    private void HandleQuestCompleted(QuestCompletionInfo completion)
+    {
+        if (completion?.Quest == null)
+        {
+            return;
+        }
+        string target = completion.Quest.questType == QuestType.ItemDelivery
+            ? EscapeRichText(JapaneseDisplayText.GetItemNameByRawName(completion.Quest.targetName)) +
+              " ×" + completion.DeliveredAmount
+            : EscapeRichText(JapaneseDisplayText.GetEnemyName(completion.Quest.targetName));
+        dailyQuestCompletionLines.Add(
+            "依頼達成: " + EscapeRichText(completion.Quest.title) + " (" + target + ") " +
+            completion.GoldReward + "G / " + GetTownName(completion.TownIndex));
     }
 
     public void CaptureDailySnapshot(int currentDay)
@@ -349,8 +390,109 @@ public sealed class DailyResultController
         }
         ResetDailyInventoryTracking();
         dailyTransportEvents.Clear();
+        dailyQuestCompletionLines.Clear();
+        trainingCompletionLines.Clear();
+        trainingCompletionKeys.Clear();
+        dailyHiredMercenaryIds.Clear();
     }
 
+    public string RecordTrainingCompleted(TrainingReservation reservation)
+    {
+        if (reservation == null)
+        {
+            return string.Empty;
+        }
+
+        string key = reservation.MercenaryInstanceId + ":" +
+            reservation.CompletionDay;
+        if (!trainingCompletionKeys.Add(key))
+        {
+            return string.Empty;
+        }
+
+        MercenaryInstance mercenary = null;
+        foreach (MercenaryInstance candidate in hireManager.HiredMercenaries)
+        {
+            if (candidate != null &&
+                candidate.InstanceId == reservation.MercenaryInstanceId)
+            {
+                mercenary = candidate;
+                break;
+            }
+        }
+
+        string name = mercenary != null
+            ? EscapeRichText(mercenary.MercenaryName)
+            : "傭兵";
+        string line = Emphasis(
+            $"★ 修練完了: {name}がLv{reservation.TargetLevel}になった");
+        trainingCompletionLines.Add(line);
+        return line;
+    }
+
+    public void ConsumeRecordedTrainingCompletion(string line)
+    {
+        if (!string.IsNullOrEmpty(line))
+        {
+            trainingCompletionLines.Remove(line);
+        }
+    }
+
+    public void RecordExpeditionEvent(
+        ExpeditionEvent expeditionEvent,
+        int accountingDay)
+    {
+        if (expeditionEvent?.Expedition?.dungeon != null)
+        {
+            if (!expeditionEventsByAccountingDay.TryGetValue(
+                    accountingDay,
+                    out List<ExpeditionEvent> events))
+            {
+                events = new List<ExpeditionEvent>();
+                expeditionEventsByAccountingDay[accountingDay] = events;
+            }
+            events.Add(expeditionEvent);
+        }
+    }
+
+    private void AppendExpeditionResults(StringBuilder result, int accountingDay)
+    {
+        result.AppendLine();
+        result.AppendLine(Heading("【別動隊の成果】"));
+        if (!expeditionEventsByAccountingDay.TryGetValue(
+                accountingDay,
+                out List<ExpeditionEvent> events) ||
+            events.Count == 0)
+        {
+            result.AppendLine(Neutral("別動隊の周回結果はありません。"));
+            return;
+        }
+        foreach (ExpeditionEvent expeditionEvent in events)
+        {
+            string dungeonName = EscapeRichText(expeditionEvent.Expedition.dungeon.dungeonName);
+            if (expeditionEvent.Type == ExpeditionEventType.Failed)
+            {
+                result.AppendLine(Negative(dungeonName + ": 戦力不足で報酬なし・HP減少"));
+                continue;
+            }
+            List<string> rewards = new List<string>();
+            if (expeditionEvent.ExperiencePerMercenary > 0)
+            {
+                rewards.Add("経験値 +" + expeditionEvent.ExperiencePerMercenary + "（各隊員）");
+            }
+            if (expeditionEvent.Materials != null && expeditionEvent.Materials.Count > 0)
+            {
+                rewards.Add("素材 " + expeditionEvent.Materials.Count + "個");
+            }
+            if (expeditionEvent.LimitedEquipment != null)
+            {
+                rewards.Add("限定装備 " + EscapeRichText(getEquipmentDisplayName(expeditionEvent.LimitedEquipment)));
+            }
+            result.AppendLine(Positive(dungeonName + ": " + (rewards.Count > 0 ? string.Join(" / ", rewards) : "周回完了")));
+        }
+    }
+
+    #if false
     public void RecordTransportEvent(TransportEvent transportEvent)
     {
         if (transportEvent?.Convoy == null)
@@ -375,6 +517,8 @@ public sealed class DailyResultController
         }
     }
 
+    #endif
+
     public void RecordRemoteSaleEvent(RemoteSaleEvent remoteSaleEvent)
     {
         if (remoteSaleEvent == null || remoteSaleEvent.Order == null)
@@ -390,6 +534,7 @@ public sealed class DailyResultController
             remoteSaleEvent.Gold + "Gで売却");
     }
 
+    #if false
     public void RecordExpeditionEvent(ExpeditionEvent expeditionEvent)
     {
         if (expeditionEvent?.Expedition?.dungeon == null)
@@ -418,6 +563,8 @@ public sealed class DailyResultController
             "』を持ち帰った！");
     }
 
+    #endif
+
     public void CaptureMercenarySnapshot(MercenaryInstance mercenary)
     {
         if (mercenary == null ||
@@ -432,15 +579,27 @@ public sealed class DailyResultController
                 Level = mercenary.Level,
                 Experience = mercenary.CurrentExperience,
                 MaxHP = mercenary.MaxHP,
+                CurrentHP = mercenary.CurrentHP,
                 Attack = mercenary.Attack,
                 Defense = mercenary.Defense,
                 MaxMagicPower = mercenary.MaxMagicPower,
                 AttackSpeed = mercenary.AttackSpeed,
+                StatusEffect = mercenary.StatusEffect,
                 ContractActive = mercenary.IsContractActive,
+                ContractNeedsRenewal = mercenary.ContractNeedsRenewal,
+                WasDefeated = mercenary.CurrentHP <= 0,
                 WasInParty =
                     partyManager != null &&
                     partyManager.Contains(mercenary)
             };
+    }
+
+    public void RecordMercenaryHired(MercenaryInstance mercenary)
+    {
+        if (mercenary != null && !string.IsNullOrEmpty(mercenary.InstanceId))
+        {
+            dailyHiredMercenaryIds.Add(mercenary.InstanceId);
+        }
     }
 
     public void RememberDailyPartyMembers()
@@ -568,21 +727,263 @@ public sealed class DailyResultController
         {
             return false;
         }
-        result.AppendLine($"{label}  {before} → {after}");
+        result.AppendLine(ColorByDirection(
+            $"{label}  {before} → {after}", after > before));
         return true;
     }
 
-    private static void AppendStatChange(
-        StringBuilder result,
-        string label,
-        int difference)
+    private static string BuildMercenaryChangeLine(
+        MercenaryInstance mercenary,
+        DailyMercenarySnapshot previous,
+        bool inParty,
+        bool isNewHire)
     {
-        if (difference <= 0)
+        if (isNewHire)
+        {
+            return $"{EscapeRichText(mercenary.MercenaryName)}: " +
+                Emphasis("新たに加入");
+        }
+        if (previous == null)
+        {
+            return string.Empty;
+        }
+
+        List<string> changes = new List<string>();
+        AppendValueChange(changes, "HP", previous.CurrentHP, mercenary.CurrentHP,
+            mercenary.CurrentHP > previous.CurrentHP ? "回復" : "被弾");
+        AppendValueChange(changes, "Lv", previous.Level, mercenary.Level, null);
+        AppendValueChange(changes, "EXP", previous.Experience,
+            mercenary.CurrentExperience, null);
+        AppendValueChange(changes, "最大HP", previous.MaxHP, mercenary.MaxHP, null);
+        AppendValueChange(changes, "攻撃", previous.Attack, mercenary.Attack, null);
+        AppendValueChange(changes, "防御", previous.Defense, mercenary.Defense, null);
+        AppendValueChange(changes, "魔力", previous.MaxMagicPower,
+            mercenary.MaxMagicPower, null);
+        if (Math.Abs(mercenary.AttackSpeed - previous.AttackSpeed) > 0.001f)
+        {
+            changes.Add(ColorByDirection(
+                $"速度 {previous.AttackSpeed:0.##}→{mercenary.AttackSpeed:0.##}",
+                mercenary.AttackSpeed > previous.AttackSpeed));
+        }
+        if (previous.StatusEffect != mercenary.StatusEffect)
+        {
+            string status = mercenary.StatusEffect == BattleStatusEffect.None
+                ? $"{JapaneseDisplayText.GetBattleStatus(previous.StatusEffect)}解除"
+                : $"状態異常: {JapaneseDisplayText.GetBattleStatus(mercenary.StatusEffect)}";
+            changes.Add(mercenary.StatusEffect == BattleStatusEffect.None
+                ? Positive(status)
+                : Negative(status));
+        }
+        bool isDefeated = mercenary.CurrentHP <= 0;
+        if (previous.WasDefeated != isDefeated)
+        {
+            changes.Add(isDefeated ? Negative("戦闘不能") : Positive("戦闘不能から復帰"));
+        }
+        if (previous.ContractActive != mercenary.IsContractActive ||
+            previous.ContractNeedsRenewal != mercenary.ContractNeedsRenewal)
+        {
+            changes.Add(mercenary.ContractNeedsRenewal
+                ? Negative("契約更新待ち")
+                : Positive("契約更新"));
+        }
+        if (previous.WasInParty != inParty)
+        {
+            changes.Add(inParty ? Positive("編成に加入") : Neutral("編成から離脱"));
+        }
+        return changes.Count == 0
+            ? string.Empty
+            : EscapeRichText(mercenary.MercenaryName) + ": " +
+              string.Join("、", changes);
+    }
+
+    private static void AppendValueChange(
+        List<string> changes,
+        string label,
+        int before,
+        int after,
+        string annotation)
+    {
+        if (before == after)
         {
             return;
         }
-        result.Append($" / {label} +{difference}");
+        string text = $"{label} {before}→{after}";
+        if (!string.IsNullOrEmpty(annotation))
+        {
+            text += $"（{annotation}）";
+        }
+        changes.Add(ColorByDirection(text, after > before));
     }
+
+    private static string ColorByDirection(string text, bool increased)
+    {
+        return increased ? Positive(text) : Negative(text);
+    }
+
+    private static string EscapeRichText(string value)
+    {
+        return string.IsNullOrEmpty(value)
+            ? string.Empty
+            : value.Replace("&", "＆").Replace("<", "＜")
+                .Replace(">", "＞");
+    }
+
+    private void AppendDailyGoldLedger(
+        StringBuilder result,
+        int startAccountingDay,
+        int endAccountingDayExclusive,
+        int expectedNet)
+    {
+        Dictionary<GoldTransactionReason, int> totals =
+            new Dictionary<GoldTransactionReason, int>();
+        List<GoldTransaction> entries = new List<GoldTransaction>();
+        foreach (GoldTransaction transaction in dailyGoldLedger)
+        {
+            if (transaction.AccountingDay >= startAccountingDay &&
+                transaction.AccountingDay < endAccountingDayExclusive)
+            {
+                entries.Add(transaction);
+            }
+        }
+        HashSet<string> cancelledTransactionIds =
+            FindRefundedTransactionIds(entries);
+        int net = 0;
+        foreach (GoldTransaction transaction in entries)
+        {
+            if (cancelledTransactionIds.Contains(transaction.TransactionId))
+            {
+                continue;
+            }
+            totals.TryGetValue(transaction.Reason, out int total);
+            totals[transaction.Reason] = total + transaction.SignedAmount;
+            net += transaction.SignedAmount;
+        }
+        if (net != expectedNet)
+        {
+            int adjustment = expectedNet - net;
+            totals.TryGetValue(GoldTransactionReason.Unclassified, out int total);
+            totals[GoldTransactionReason.Unclassified] = total + adjustment;
+            net += adjustment;
+            UnityEngine.Debug.LogWarning(
+                $"Daily gold ledger mismatch for days {startAccountingDay}" +
+                $"-{endAccountingDayExclusive - 1}: ledger " +
+                $"{net - adjustment}G, snapshot {expectedNet}G.");
+        }
+
+        result.AppendLine();
+        result.AppendLine(Heading("【本日の金銭収支】"));
+        AppendGoldLedgerSection(result, totals, true, "収入");
+        AppendGoldLedgerSection(result, totals, false, "支出");
+        result.AppendLine(ColorByDirection(
+            $"差引  {FormatSignedValue(net)}G", net >= 0));
+    }
+
+    private static HashSet<string> FindRefundedTransactionIds(
+        List<GoldTransaction> entries)
+    {
+        HashSet<string> cancelled = new HashSet<string>();
+        foreach (GoldTransaction refund in entries)
+        {
+            if (refund.Reason != GoldTransactionReason.Refund ||
+                refund.SignedAmount <= 0 ||
+                string.IsNullOrEmpty(refund.RelatedTransactionId))
+            {
+                continue;
+            }
+            foreach (GoldTransaction payment in entries)
+            {
+                if (payment.TransactionId != refund.RelatedTransactionId ||
+                    payment.SignedAmount >= 0 ||
+                    -payment.SignedAmount != refund.SignedAmount)
+                {
+                    continue;
+                }
+                cancelled.Add(payment.TransactionId);
+                cancelled.Add(refund.TransactionId);
+                break;
+            }
+        }
+        return cancelled;
+    }
+
+    private static void AppendGoldLedgerSection(
+        StringBuilder result,
+        Dictionary<GoldTransactionReason, int> totals,
+        bool income,
+        string title)
+    {
+        int sectionTotal = 0;
+        foreach (KeyValuePair<GoldTransactionReason, int> entry in totals)
+        {
+            if ((income && entry.Value > 0) || (!income && entry.Value < 0))
+            {
+                sectionTotal += entry.Value;
+            }
+        }
+        result.AppendLine(income
+            ? Positive($"{title}  +{sectionTotal:N0}G")
+            : Negative($"{title}  {sectionTotal:N0}G"));
+        foreach (KeyValuePair<GoldTransactionReason, int> entry in totals)
+        {
+            if ((income && entry.Value <= 0) || (!income && entry.Value >= 0))
+            {
+                continue;
+            }
+            string amount = entry.Value > 0
+                ? $"+{entry.Value:N0}G"
+                : $"{entry.Value:N0}G";
+            string line = $"  ・{GetGoldTransactionReasonName(entry.Key),-12} {amount}";
+            result.AppendLine(income ? Positive(line) : Negative(line));
+        }
+    }
+
+    private void RemoveGoldLedgerEntries(
+        int startAccountingDay,
+        int endAccountingDayExclusive)
+    {
+        dailyGoldLedger.RemoveAll(
+            transaction => transaction.AccountingDay >= startAccountingDay &&
+                transaction.AccountingDay < endAccountingDayExclusive);
+    }
+
+    private static string GetGoldTransactionReasonName(
+        GoldTransactionReason reason)
+    {
+        switch (reason)
+        {
+            case GoldTransactionReason.ItemSale: return "商品売却";
+            case GoldTransactionReason.QuestReward: return "依頼報酬";
+            case GoldTransactionReason.BattleReward: return "戦闘報酬";
+            case GoldTransactionReason.DungeonReward: return "ダンジョン報酬";
+            case GoldTransactionReason.RemoteSale: return "遠隔売却";
+            case GoldTransactionReason.MarketPurchase: return "仕入";
+            case GoldTransactionReason.Blacksmith: return "鍛冶";
+            case GoldTransactionReason.MercenaryHire: return "雇用";
+            case GoldTransactionReason.ContractRenewal: return "契約更新";
+            case GoldTransactionReason.ContractChange: return "契約変更";
+            case GoldTransactionReason.ExpeditionReward: return "別動隊報酬";
+            case GoldTransactionReason.ExpeditionHealing: return "別動隊治療費";
+            case GoldTransactionReason.Healing: return "治療費";
+            case GoldTransactionReason.Training: return "修練";
+            case GoldTransactionReason.DebtRepayment: return "借金返済";
+            case GoldTransactionReason.StorageUpgrade: return "倉庫拡張";
+            case GoldTransactionReason.StorageMaintenance: return "倉庫維持費";
+            case GoldTransactionReason.ExplorationExpense: return "探索費";
+            case GoldTransactionReason.Refund: return "返金";
+            default: return "その他/未分類";
+        }
+    }
+
+    private static string Color(string text, string color)
+    {
+        return $"<color={color}>{text}</color>";
+    }
+
+    private static string Positive(string text) { return Color(text, PositiveColor); }
+    private static string Negative(string text) { return Color(text, NegativeColor); }
+    private static string Neutral(string text) { return Color(text, NeutralColor); }
+    private static string Heading(string text) { return Color(text, HeadingColor); }
+    private static string Emphasis(string text) { return $"<b><color={AccentColor}>{text}</color></b>"; }
 
     private static string FormatSignedValue(int value)
     {

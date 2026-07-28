@@ -17,8 +17,8 @@ MonoBehaviour:
   itemType: 1
   rarity: 2
   materialClassification: 0
-  description: A blacksmith-only staff infused with cursed bone and dark crystal.
-  basePrice: 700
+  description: "ランク3魔術師向けに仕立てられた武器。"
+  basePrice: 1400
   acquisitionType: 1
   equipmentSlot: 0
   requiredClass: 2

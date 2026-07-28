@@ -15,11 +15,11 @@ MonoBehaviour:
   recipeName: Iron Vanguard Armor
   resultItem: {fileID: 11400000, guid: ff7673fa51d84194894477be92217549, type: 2}
   resultAmount: 1
-  goldCost: 420
+  goldCost: 470
   materials:
-  - item: {fileID: 11400000, guid: 02cca79ae8434c1eb64f32d3d4d206a0, type: 2}
-    amount: 5
-  - item: {fileID: 11400000, guid: 6c4764172bbd4245ab4c951ba5b53403, type: 2}
+  - item: {fileID: 11400000, guid: f66e9fe18b5c428a86a912bdf72fc5ba, type: 2}
     amount: 2
+  - item: {fileID: 11400000, guid: cf1a2b3c4d5e6f708192a3b4c5d6e7f8, type: 2}
+    amount: 4
   - item: {fileID: 11400000, guid: 28ea52f6212db55409b8ea0e99271947, type: 2}
-    amount: 1
+    amount: 4

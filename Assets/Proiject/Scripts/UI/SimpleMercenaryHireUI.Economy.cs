@@ -32,6 +32,13 @@ public partial class SimpleMercenaryHireUI
         nextDayRect.pivot = new Vector2(1f, 1f);
         nextDayRect.anchoredPosition = new Vector2(0f, -34f);
 
+        // 上部ボタンは2段に整列する。
+        // 1段目(y=-78): 操作系(絞込 / 並替)。2段目(y=-120): 機能系
+        // (装備図鑑 / 倉庫拡張 / 売却用素材を一括売却)。いずれも左アンカーで
+        // 等間隔に並べ、右上の「翌日へ」やビューポートと重ならないようにする。
+        const float topRowY = -78f;
+        const float bottomRowY = -120f;
+
         inventoryFilterButton =
             CreateActionButton(inventoryPage, "絞込: 全て",
                 economyController.CycleInventoryFilter);
@@ -40,7 +47,7 @@ public partial class SimpleMercenaryHireUI
         filterRect.anchorMin = filterRect.anchorMax = new Vector2(0f, 1f);
         filterRect.pivot = new Vector2(0f, 1f);
         filterRect.sizeDelta = new Vector2(150f, 38f);
-        filterRect.anchoredPosition = new Vector2(0f, -78f);
+        filterRect.anchoredPosition = new Vector2(142f, topRowY);
 
         equipmentSortButton =
             CreateActionButton(inventoryPage, "並替: 名前",
@@ -50,32 +57,44 @@ public partial class SimpleMercenaryHireUI
         sortRect.anchorMin = sortRect.anchorMax = new Vector2(0f, 1f);
         sortRect.pivot = new Vector2(0f, 1f);
         sortRect.sizeDelta = new Vector2(150f, 38f);
-        sortRect.anchoredPosition = new Vector2(166f, -78f);
+        sortRect.anchoredPosition = new Vector2(308f, topRowY);
 
         Button collectionButton =
             CreateActionButton(inventoryPage, "装備図鑑", ShowEquipmentCollection);
         RectTransform collectionRect = collectionButton.GetComponent<RectTransform>();
         collectionRect.anchorMin = collectionRect.anchorMax = new Vector2(0f, 1f);
         collectionRect.pivot = new Vector2(0f, 1f);
-        collectionRect.sizeDelta = new Vector2(130f, 38f);
-        collectionRect.anchoredPosition = new Vector2(332f, -78f);
+        collectionRect.sizeDelta = new Vector2(150f, 38f);
+        collectionRect.anchoredPosition = new Vector2(142f, bottomRowY);
 
         Button storageButton =
             CreateActionButton(
                 inventoryPage,
                 "倉庫拡張",
-                merchantStatusAndQuestController.UpgradeStorage);
+                ShowStorageUpgradeConfirmation);
         RectTransform storageRect = storageButton.GetComponent<RectTransform>();
         storageRect.anchorMin = storageRect.anchorMax = new Vector2(0f, 1f);
         storageRect.pivot = new Vector2(0f, 1f);
-        storageRect.sizeDelta = new Vector2(130f, 38f);
-        storageRect.anchoredPosition = new Vector2(478f, -78f);
+        storageRect.sizeDelta = new Vector2(150f, 38f);
+        storageRect.anchoredPosition = new Vector2(308f, bottomRowY);
+
+        Button sellOnlyButton = CreateActionButton(
+            inventoryPage,
+            "売却用素材を一括売却",
+            ShowSellOnlyConfirmation);
+        RectTransform sellOnlyRect = sellOnlyButton.GetComponent<RectTransform>();
+        sellOnlyRect.anchorMin = sellOnlyRect.anchorMax = new Vector2(0f, 1f);
+        sellOnlyRect.pivot = new Vector2(0f, 1f);
+        sellOnlyRect.sizeDelta = new Vector2(210f, 38f);
+        sellOnlyRect.anchoredPosition = new Vector2(474f, bottomRowY);
+
+        CreateInventorySidebar();
 
         RectTransform viewport = CreateUIObject("Inventory Viewport", inventoryPage);
         viewport.anchorMin = new Vector2(0f, 0f);
         viewport.anchorMax = new Vector2(1f, 1f);
-        viewport.offsetMin = Vector2.zero;
-        viewport.offsetMax = new Vector2(0f, -126f);
+        viewport.offsetMin = new Vector2(142f, 0f);
+        viewport.offsetMax = new Vector2(0f, -166f);
 
         Image viewportImage = viewport.gameObject.AddComponent<Image>();
         viewportImage.color = new Color(0f, 0f, 0f, 0.01f);
@@ -120,7 +139,7 @@ public partial class SimpleMercenaryHireUI
                 : 1f,
             CharacterEquipmentController.GetEquipmentDisplayName,
             CharacterEquipmentController.GetEquipmentQualityColor,
-            economyController.SellItem,
+            ShowSellQuantityOverlay,
             characterEquipmentController.UseConsumable,
             characterEquipmentController.ShowEquipmentDetails);
         pageRouter.Register(inventoryPage);
@@ -143,10 +162,12 @@ public partial class SimpleMercenaryHireUI
             new Vector2(0f, -38f),
             ParchmentMutedColor);
 
+        CreateMarketSidebar();
+
         RectTransform viewport = CreateUIObject("Market Viewport", marketPage);
         viewport.anchorMin = new Vector2(0f, 0f);
         viewport.anchorMax = new Vector2(1f, 1f);
-        viewport.offsetMin = Vector2.zero;
+        viewport.offsetMin = new Vector2(142f, 0f);
         viewport.offsetMax = new Vector2(0f, -84f);
 
         Image viewportImage = viewport.gameObject.AddComponent<Image>();
@@ -181,12 +202,13 @@ public partial class SimpleMercenaryHireUI
             WoodButtonColor,
             FrameColor,
             economyController.GetMarketRows,
-            EconomyController.ShouldShowMarketEntry,
+            economyController.ShouldShowMarketEntryForSidebar,
             entry => marketStockManager.CanBuy(entry),
             economyController.BuyMarketItem,
             economyController.RegisterMarketBuyButton,
             demandSummary,
-            GetCurrentTownDemandSummary);
+            GetCurrentTownDemandSummary,
+            ShowMarketItemDetail);
         pageRouter.Register(marketPage);
     }
 
@@ -206,10 +228,32 @@ public partial class SimpleMercenaryHireUI
             new Vector2(0f, -38f),
             ParchmentMutedColor);
 
+        CreateBlacksmithSidebar();
+
+        Button craftableButton = CreateActionButton(
+            blacksmithPage,
+            "製作可能のみ: OFF",
+            ToggleBlacksmithCraftableOnly);
+        RectTransform craftableRect = craftableButton.GetComponent<RectTransform>();
+        craftableRect.anchorMin = craftableRect.anchorMax = new Vector2(1f, 1f);
+        craftableRect.pivot = new Vector2(1f, 1f);
+        craftableRect.sizeDelta = new Vector2(150f, 32f);
+        craftableRect.anchoredPosition = new Vector2(0f, -34f);
+
+        Button rankSortButton = CreateActionButton(
+            blacksmithPage,
+            "ランク順: 昇順",
+            ToggleBlacksmithRankSort);
+        RectTransform rankSortRect = rankSortButton.GetComponent<RectTransform>();
+        rankSortRect.anchorMin = rankSortRect.anchorMax = new Vector2(1f, 1f);
+        rankSortRect.pivot = new Vector2(1f, 1f);
+        rankSortRect.sizeDelta = new Vector2(150f, 32f);
+        rankSortRect.anchoredPosition = new Vector2(-160f, -34f);
+
         RectTransform viewport = CreateUIObject("Blacksmith Viewport", blacksmithPage);
         viewport.anchorMin = Vector2.zero;
         viewport.anchorMax = Vector2.one;
-        viewport.offsetMin = Vector2.zero;
+        viewport.offsetMin = new Vector2(142f, 0f);
         viewport.offsetMax = new Vector2(0f, -84f);
 
         Image viewportImage = viewport.gameObject.AddComponent<Image>();
@@ -243,12 +287,13 @@ public partial class SimpleMercenaryHireUI
             RowColor,
             WoodButtonColor,
             FrameColor,
-            economyController.GetBlacksmithRows,
-            EconomyController.ShouldShowBlacksmithRecipe,
+            economyController.GetSortedBlacksmithRows,
+            economyController.ShouldShowBlacksmithRecipeForSidebar,
             item => merchantInventory.GetItemAmount(item),
             recipe => blacksmithManager.CanCraft(recipe),
             economyController.CraftEquipment,
-            economyController.RegisterBlacksmithCraftButton);
+            economyController.RegisterBlacksmithCraftButton,
+            ShowBlacksmithRecipeDetail);
         pageRouter.Register(blacksmithPage);
     }
 
@@ -343,6 +388,625 @@ public partial class SimpleMercenaryHireUI
             : remaining <= Mathf.Max(3, Mathf.CeilToInt(capacity * 0.1f))
                 ? new Color(0.72f, 0.35f, 0.04f)
                 : ParchmentTextColor;
+    }
+
+    private void BuildStorageUpgradeConfirmationOverlay()
+    {
+        storageUpgradeConfirmationOverlay = CreateUIObject(
+            "Storage Upgrade Confirmation Overlay",
+            overlayRoot);
+        storageUpgradeConfirmationOverlay.anchorMin = Vector2.zero;
+        storageUpgradeConfirmationOverlay.anchorMax = Vector2.one;
+        storageUpgradeConfirmationOverlay.offsetMin = Vector2.zero;
+        storageUpgradeConfirmationOverlay.offsetMax = Vector2.zero;
+        storageUpgradeConfirmationOverlay.gameObject.AddComponent<Image>().color =
+            new Color(0f, 0f, 0f, 0.82f);
+
+        RectTransform window = CreateUIObject(
+            "Storage Upgrade Confirmation Window",
+            storageUpgradeConfirmationOverlay);
+        window.anchorMin = window.anchorMax = window.pivot =
+            new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(560f, 340f);
+        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
+
+        CreateText(
+            window,
+            "倉庫を拡張しますか？",
+            26,
+            FontStyle.Bold,
+            TextAnchor.MiddleCenter,
+            new Vector2(28f, -72f),
+            new Vector2(-28f, -22f),
+            ParchmentTextColor);
+
+        storageUpgradeConfirmationText = CreateText(
+            window,
+            string.Empty,
+            18,
+            FontStyle.Normal,
+            TextAnchor.MiddleCenter,
+            new Vector2(36f, -190f),
+            new Vector2(-36f, -82f),
+            ParchmentTextColor);
+        storageUpgradeConfirmationReasonText = CreateText(
+            window,
+            string.Empty,
+            15,
+            FontStyle.Bold,
+            TextAnchor.MiddleCenter,
+            new Vector2(36f, -238f),
+            new Vector2(-36f, -190f),
+            MutedTextColor);
+
+        storageUpgradeConfirmButton = CreateActionButton(
+            window,
+            "拡張する",
+            ConfirmStorageUpgrade);
+        RectTransform confirmRect =
+            storageUpgradeConfirmButton.GetComponent<RectTransform>();
+        confirmRect.anchorMin = confirmRect.anchorMax = confirmRect.pivot =
+            new Vector2(0.5f, 0f);
+        confirmRect.sizeDelta = new Vector2(180f, 48f);
+        confirmRect.anchoredPosition = new Vector2(-105f, 26f);
+        storageUpgradeConfirmButton.targetGraphic.color = AccentColor;
+
+        Button cancelButton = CreateActionButton(
+            window,
+            "キャンセル",
+            HideStorageUpgradeConfirmation);
+        RectTransform cancelRect = cancelButton.GetComponent<RectTransform>();
+        cancelRect.anchorMin = cancelRect.anchorMax = cancelRect.pivot =
+            new Vector2(0.5f, 0f);
+        cancelRect.sizeDelta = new Vector2(180f, 48f);
+        cancelRect.anchoredPosition = new Vector2(105f, 26f);
+
+        storageUpgradeConfirmationOverlay.gameObject.SetActive(false);
+    }
+
+    private void CreateInventorySidebar()
+    {
+        inventorySidebarButtons.Clear();
+        CreateSidebarButton(inventoryPage, inventorySidebarButtons, "全て", 0, () => economyController.SetInventorySidebarCategory(InventorySidebarCategory.All));
+        CreateSidebarButton(inventoryPage, inventorySidebarButtons, "素材", 1, () => economyController.SetInventorySidebarCategory(InventorySidebarCategory.Material));
+        CreateSidebarButton(inventoryPage, inventorySidebarButtons, "消耗品", 2, () => economyController.SetInventorySidebarCategory(InventorySidebarCategory.Consumable));
+        CreateSidebarButton(inventoryPage, inventorySidebarButtons, "装備", 3, () => economyController.SetInventorySidebarCategory(InventorySidebarCategory.Equipment));
+        CreateSidebarButton(inventoryPage, inventorySidebarButtons, "売却用", 4, () => economyController.SetInventorySidebarCategory(InventorySidebarCategory.SellOnly));
+        SetSidebarSelection(inventorySidebarButtons, 0);
+    }
+
+    private void CreateMarketSidebar()
+    {
+        marketSidebarButtons.Clear();
+        CreateSidebarButton(marketPage, marketSidebarButtons, "全て", 0, () => economyController.SetMarketSidebarCategory(MarketSidebarCategory.All));
+        CreateSidebarButton(marketPage, marketSidebarButtons, "装備", 1, () => economyController.SetMarketSidebarCategory(MarketSidebarCategory.Equipment));
+        CreateSidebarButton(marketPage, marketSidebarButtons, "消耗品", 2, () => economyController.SetMarketSidebarCategory(MarketSidebarCategory.Consumable));
+        CreateSidebarButton(marketPage, marketSidebarButtons, "素材", 3, () => economyController.SetMarketSidebarCategory(MarketSidebarCategory.Material));
+        SetSidebarSelection(marketSidebarButtons, 0);
+    }
+
+    private void CreateBlacksmithSidebar()
+    {
+        blacksmithSidebarButtons.Clear();
+        CreateSidebarButton(blacksmithPage, blacksmithSidebarButtons, "全職種", 0, () => economyController.SetBlacksmithSidebarCategory(BlacksmithSidebarCategory.All));
+        CreateSidebarButton(blacksmithPage, blacksmithSidebarButtons, "戦士", 1, () => economyController.SetBlacksmithSidebarCategory(BlacksmithSidebarCategory.Warrior));
+        CreateSidebarButton(blacksmithPage, blacksmithSidebarButtons, "弓使い", 2, () => economyController.SetBlacksmithSidebarCategory(BlacksmithSidebarCategory.Archer));
+        CreateSidebarButton(blacksmithPage, blacksmithSidebarButtons, "魔術師", 3, () => economyController.SetBlacksmithSidebarCategory(BlacksmithSidebarCategory.Mage));
+        CreateSidebarButton(blacksmithPage, blacksmithSidebarButtons, "僧侶", 4, () => economyController.SetBlacksmithSidebarCategory(BlacksmithSidebarCategory.Priest));
+        CreateSidebarButton(blacksmithPage, blacksmithSidebarButtons, "盗賊", 5, () => economyController.SetBlacksmithSidebarCategory(BlacksmithSidebarCategory.Rogue));
+        CreateSidebarButton(blacksmithPage, blacksmithSidebarButtons, "槍使い", 6, () => economyController.SetBlacksmithSidebarCategory(BlacksmithSidebarCategory.Lancer));
+        SetSidebarSelection(blacksmithSidebarButtons, 0);
+    }
+
+    private void CreateSidebarButton(RectTransform page, List<Button> buttons, string label, int index, System.Action action)
+    {
+        Button button = CreateActionButton(page, label, () =>
+        {
+            action();
+            SetSidebarSelection(buttons, index);
+        });
+        RectTransform rect = button.GetComponent<RectTransform>();
+        rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
+        rect.pivot = new Vector2(0f, 1f);
+        rect.sizeDelta = new Vector2(126f, 36f);
+        rect.anchoredPosition = new Vector2(0f, -94f - index * 42f);
+        buttons.Add(button);
+    }
+
+    private void SetSidebarSelection(List<Button> buttons, int selectedIndex)
+    {
+        for (int i = 0; i < buttons.Count; i++)
+        {
+            Image image = buttons[i].targetGraphic as Image;
+            if (image != null)
+            {
+                image.color = i == selectedIndex ? AccentColor : WoodButtonColor;
+            }
+        }
+    }
+
+    private void ToggleBlacksmithCraftableOnly()
+    {
+        economyController.ToggleBlacksmithCraftableOnly();
+        RefreshBlacksmithFilterLabels();
+    }
+
+    private void ToggleBlacksmithRankSort()
+    {
+        economyController.ToggleBlacksmithRankSort();
+        RefreshBlacksmithFilterLabels();
+    }
+
+    private void RefreshBlacksmithFilterLabels()
+    {
+        foreach (Button button in blacksmithPage.GetComponentsInChildren<Button>())
+        {
+            Text label = button.GetComponentInChildren<Text>();
+            if (label == null)
+            {
+                continue;
+            }
+            if (label.text.StartsWith("製作可能のみ:"))
+            {
+                label.text = "製作可能のみ: " + (economyController.IsBlacksmithCraftableOnly ? "ON" : "OFF");
+            }
+            else if (label.text.StartsWith("ランク順:"))
+            {
+                label.text = "ランク順: " + (economyController.IsBlacksmithRankAscending ? "昇順" : "降順");
+            }
+        }
+    }
+
+    private void BuildItemDetailOverlay()
+    {
+        itemDetailOverlay = CreateUIObject("Item Detail Overlay", overlayRoot);
+        itemDetailOverlay.anchorMin = Vector2.zero;
+        itemDetailOverlay.anchorMax = Vector2.one;
+        itemDetailOverlay.offsetMin = Vector2.zero;
+        itemDetailOverlay.offsetMax = Vector2.zero;
+        itemDetailOverlay.gameObject.AddComponent<Image>().color =
+            new Color(0f, 0f, 0f, 0.82f);
+
+        RectTransform window = CreateUIObject("Item Detail Window", itemDetailOverlay);
+        window.anchorMin = window.anchorMax = window.pivot =
+            new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(680f, 600f);
+        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
+        itemDetailTitle = CreateText(window, string.Empty, 25, FontStyle.Bold,
+            TextAnchor.MiddleLeft, new Vector2(142f, -64f),
+            new Vector2(-34f, -20f), ParchmentTextColor);
+
+        RectTransform imageRect = CreateUIObject("Item Detail Image", window);
+        imageRect.anchorMin = imageRect.anchorMax = new Vector2(0f, 1f);
+        imageRect.pivot = new Vector2(0f, 1f);
+        imageRect.sizeDelta = new Vector2(92f, 92f);
+        imageRect.anchoredPosition = new Vector2(34f, -28f);
+        itemDetailImage = imageRect.gameObject.AddComponent<Image>();
+        itemDetailImagePlaceholder = CreateText(imageRect, "?", 42,
+            FontStyle.Bold, TextAnchor.MiddleCenter, Vector2.zero,
+            Vector2.zero, Color.white);
+        itemDetailImagePlaceholder.rectTransform.anchorMin = Vector2.zero;
+        itemDetailImagePlaceholder.rectTransform.anchorMax = Vector2.one;
+        itemDetailImagePlaceholder.rectTransform.offsetMin = Vector2.zero;
+        itemDetailImagePlaceholder.rectTransform.offsetMax = Vector2.zero;
+        itemDetailText = CreateText(window, string.Empty, 15, FontStyle.Normal,
+            TextAnchor.UpperLeft, new Vector2(34f, -230f),
+            new Vector2(-34f, -92f), ParchmentTextColor);
+        itemDetailTransactionText = CreateText(window, string.Empty, 15,
+            FontStyle.Bold, TextAnchor.UpperLeft, new Vector2(34f, -490f),
+            new Vector2(-34f, -232f), MutedTextColor);
+
+        itemDetailActionButton = CreateActionButton(
+            window,
+            string.Empty,
+            ExecuteItemDetailAction);
+        RectTransform actionRect = itemDetailActionButton.GetComponent<RectTransform>();
+        actionRect.anchorMin = actionRect.anchorMax = actionRect.pivot =
+            new Vector2(0.5f, 0f);
+        actionRect.sizeDelta = new Vector2(180f, 48f);
+        actionRect.anchoredPosition = new Vector2(-105f, 26f);
+        Button closeButton = CreateActionButton(
+            window,
+            "閉じる",
+            HideItemDetail);
+        RectTransform closeRect = closeButton.GetComponent<RectTransform>();
+        closeRect.anchorMin = closeRect.anchorMax = closeRect.pivot =
+            new Vector2(0.5f, 0f);
+        closeRect.sizeDelta = new Vector2(180f, 48f);
+        closeRect.anchoredPosition = new Vector2(105f, 26f);
+        itemDetailOverlay.gameObject.SetActive(false);
+    }
+
+    private void BuildSellOnlyConfirmationOverlay()
+    {
+        sellOnlyConfirmationOverlay = CreateUIObject("Sell Only Confirmation Overlay", overlayRoot);
+        sellOnlyConfirmationOverlay.anchorMin = Vector2.zero;
+        sellOnlyConfirmationOverlay.anchorMax = Vector2.one;
+        sellOnlyConfirmationOverlay.offsetMin = Vector2.zero;
+        sellOnlyConfirmationOverlay.offsetMax = Vector2.zero;
+        sellOnlyConfirmationOverlay.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.82f);
+        RectTransform window = CreateUIObject("Sell Only Confirmation Window", sellOnlyConfirmationOverlay);
+        window.anchorMin = window.anchorMax = window.pivot = new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(560f, 340f);
+        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
+        CreateText(window, "売却用素材を一括売却しますか？", 24, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(28f, -72f), new Vector2(-28f, -22f), ParchmentTextColor);
+        sellOnlyConfirmationText = CreateText(window, string.Empty, 18, FontStyle.Normal, TextAnchor.MiddleCenter, new Vector2(36f, -194f), new Vector2(-36f, -82f), ParchmentTextColor);
+        Button confirm = CreateActionButton(window, "すべて売却", ConfirmSellOnlyMaterials);
+        RectTransform confirmRect = confirm.GetComponent<RectTransform>();
+        confirmRect.anchorMin = confirmRect.anchorMax = confirmRect.pivot = new Vector2(0.5f, 0f);
+        confirmRect.sizeDelta = new Vector2(180f, 48f);
+        confirmRect.anchoredPosition = new Vector2(-105f, 26f);
+        confirm.targetGraphic.color = ImportantButtonColor;
+        Button cancel = CreateActionButton(window, "キャンセル", HideSellOnlyConfirmation);
+        RectTransform cancelRect = cancel.GetComponent<RectTransform>();
+        cancelRect.anchorMin = cancelRect.anchorMax = cancelRect.pivot = new Vector2(0.5f, 0f);
+        cancelRect.sizeDelta = new Vector2(180f, 48f);
+        cancelRect.anchoredPosition = new Vector2(105f, 26f);
+        sellOnlyConfirmationOverlay.gameObject.SetActive(false);
+    }
+
+    private void ShowSellOnlyConfirmation()
+    {
+        List<InventoryItemStack> stacks = economyController.GetSellOnlyStacks();
+        int itemCount = 0;
+        foreach (InventoryItemStack stack in stacks)
+        {
+            itemCount += stack.Amount;
+        }
+        sellOnlyConfirmationText.text = itemCount > 0
+            ? $"売却対象: {stacks.Count}種類 / {itemCount}個\n合計獲得: {economyController.GetSellOnlyTotalGold():N0}G\n制作素材は対象に含まれません。"
+            : "売却できる売却用素材はありません。\n制作素材は対象に含まれません。";
+        sellOnlyConfirmationOverlay.SetAsLastSibling();
+        sellOnlyConfirmationOverlay.gameObject.SetActive(true);
+    }
+
+    private void ConfirmSellOnlyMaterials()
+    {
+        int earnedGold = economyController.SellAllSellOnlyMaterials(out int soldCount, out bool stoppedEarly);
+        HideSellOnlyConfirmation();
+        statusText.text = stoppedEarly
+            ? $"{soldCount}個を売却し、{earnedGold:N0}Gを獲得しました。残りは売却していません。"
+            : soldCount > 0
+            ? $"売却用素材を{soldCount}個まとめて売却し、{earnedGold:N0}Gを獲得しました。"
+            : "売却できる売却用素材はありません。";
+    }
+
+    private void HideSellOnlyConfirmation()
+    {
+        sellOnlyConfirmationOverlay?.gameObject.SetActive(false);
+    }
+
+    private void BuildSellQuantityOverlay()
+    {
+        sellQuantityOverlay = CreateUIObject("Sell Quantity Overlay", overlayRoot);
+        sellQuantityOverlay.anchorMin = Vector2.zero;
+        sellQuantityOverlay.anchorMax = Vector2.one;
+        sellQuantityOverlay.offsetMin = Vector2.zero;
+        sellQuantityOverlay.offsetMax = Vector2.zero;
+        sellQuantityOverlay.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.82f);
+        RectTransform window = CreateUIObject("Sell Quantity Window", sellQuantityOverlay);
+        window.anchorMin = window.anchorMax = window.pivot = new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(560f, 360f);
+        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
+        sellQuantityTitleText = CreateText(window, string.Empty, 24, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(28f, -58f), new Vector2(-28f, -18f), ParchmentTextColor);
+
+        RectTransform sellImageRect = CreateUIObject("Sell Item Image", window);
+        sellImageRect.anchorMin = sellImageRect.anchorMax = sellImageRect.pivot = new Vector2(0.5f, 1f);
+        sellImageRect.sizeDelta = new Vector2(72f, 72f);
+        sellImageRect.anchoredPosition = new Vector2(0f, -64f);
+        sellQuantityImage = sellImageRect.gameObject.AddComponent<Image>();
+        sellQuantityImagePlaceholder = CreateText(sellImageRect, "?", 32, FontStyle.Bold, TextAnchor.MiddleCenter, Vector2.zero, Vector2.zero, ParchmentTextColor);
+
+        sellQuantityDetailText = CreateText(window, string.Empty, 18, FontStyle.Normal, TextAnchor.MiddleCenter, new Vector2(36f, -220f), new Vector2(-36f, -146f), ParchmentTextColor);
+        Button minusButton = CreateActionButton(window, "－", () => AdjustSellQuantity(-1));
+        RectTransform minusRect = minusButton.GetComponent<RectTransform>();
+        minusRect.anchorMin = minusRect.anchorMax = minusRect.pivot = new Vector2(0.5f, 0f);
+        minusRect.sizeDelta = new Vector2(64f, 48f);
+        minusRect.anchoredPosition = new Vector2(-150f, 96f);
+        Button plusButton = CreateActionButton(window, "＋", () => AdjustSellQuantity(1));
+        RectTransform plusRect = plusButton.GetComponent<RectTransform>();
+        plusRect.anchorMin = plusRect.anchorMax = plusRect.pivot = new Vector2(0.5f, 0f);
+        plusRect.sizeDelta = new Vector2(64f, 48f);
+        plusRect.anchoredPosition = new Vector2(-78f, 96f);
+        Button allButton = CreateActionButton(window, "全部", SelectAllSellQuantity);
+        RectTransform allRect = allButton.GetComponent<RectTransform>();
+        allRect.anchorMin = allRect.anchorMax = allRect.pivot = new Vector2(0.5f, 0f);
+        allRect.sizeDelta = new Vector2(120f, 48f);
+        allRect.anchoredPosition = new Vector2(120f, 96f);
+        Button confirm = CreateActionButton(window, "売却する", ConfirmSellQuantity);
+        RectTransform confirmRect = confirm.GetComponent<RectTransform>();
+        confirmRect.anchorMin = confirmRect.anchorMax = confirmRect.pivot = new Vector2(0.5f, 0f);
+        confirmRect.sizeDelta = new Vector2(180f, 48f);
+        confirmRect.anchoredPosition = new Vector2(-105f, 26f);
+        confirm.targetGraphic.color = ImportantButtonColor;
+        Button cancel = CreateActionButton(window, "やめる", HideSellQuantityOverlay);
+        RectTransform cancelRect = cancel.GetComponent<RectTransform>();
+        cancelRect.anchorMin = cancelRect.anchorMax = cancelRect.pivot = new Vector2(0.5f, 0f);
+        cancelRect.sizeDelta = new Vector2(180f, 48f);
+        cancelRect.anchoredPosition = new Vector2(105f, 26f);
+        sellQuantityOverlay.gameObject.SetActive(false);
+    }
+
+    private void ShowSellQuantityOverlay(ItemDataSO item)
+    {
+        if (item == null || economyController == null)
+        {
+            return;
+        }
+
+        int owned = economyController.GetItemAmount(item);
+        if (owned <= 0)
+        {
+            statusText.text = $"{JapaneseDisplayText.GetItemName(item)}は所持していません。";
+            return;
+        }
+
+        sellQuantityItem = item;
+        sellQuantityAmount = 1;
+        sellQuantityTitleText.text = JapaneseDisplayText.GetItemName(item);
+
+        Sprite sprite = ItemPresentationService.ResolveSprite(item);
+        sellQuantityImage.sprite = sprite;
+        sellQuantityImage.color = sprite != null ? Color.white : new Color(1f, 1f, 1f, 0f);
+        sellQuantityImagePlaceholder.gameObject.SetActive(sprite == null);
+
+        RefreshSellQuantityDetail();
+        sellQuantityOverlay.SetAsLastSibling();
+        sellQuantityOverlay.gameObject.SetActive(true);
+    }
+
+    private void AdjustSellQuantity(int delta)
+    {
+        if (sellQuantityItem == null)
+        {
+            return;
+        }
+
+        int owned = economyController.GetItemAmount(sellQuantityItem);
+        if (owned <= 0)
+        {
+            statusText.text = $"{JapaneseDisplayText.GetItemName(sellQuantityItem)}は所持していません。";
+            HideSellQuantityOverlay();
+            return;
+        }
+        sellQuantityAmount = Mathf.Clamp(sellQuantityAmount + delta, 1, Mathf.Max(1, owned));
+        RefreshSellQuantityDetail();
+    }
+
+    private void SelectAllSellQuantity()
+    {
+        if (sellQuantityItem == null)
+        {
+            return;
+        }
+
+        int owned = economyController.GetItemAmount(sellQuantityItem);
+        if (owned <= 0)
+        {
+            statusText.text = $"{JapaneseDisplayText.GetItemName(sellQuantityItem)}は所持していません。";
+            HideSellQuantityOverlay();
+            return;
+        }
+        sellQuantityAmount = owned;
+        RefreshSellQuantityDetail();
+    }
+
+    private void RefreshSellQuantityDetail()
+    {
+        if (sellQuantityItem == null)
+        {
+            return;
+        }
+
+        int owned = economyController.GetItemAmount(sellQuantityItem);
+        int unitPrice = economyController.GetSellPrice(sellQuantityItem);
+        sellQuantityDetailText.text =
+            $"数量: {sellQuantityAmount} / 所持 {owned}\n単価: {unitPrice:N0}G\n合計獲得: {unitPrice * sellQuantityAmount:N0}G";
+    }
+
+    private void ConfirmSellQuantity()
+    {
+        if (sellQuantityItem == null)
+        {
+            HideSellQuantityOverlay();
+            return;
+        }
+
+        ItemDataSO item = sellQuantityItem;
+        int owned = economyController.GetItemAmount(item);
+        if (owned <= 0)
+        {
+            HideSellQuantityOverlay();
+            statusText.text = $"{JapaneseDisplayText.GetItemName(item)}は所持していません。";
+            return;
+        }
+        int amount = Mathf.Clamp(sellQuantityAmount, 1, owned);
+        HideSellQuantityOverlay();
+        economyController.SellItem(item, amount);
+    }
+
+    private void HideSellQuantityOverlay()
+    {
+        sellQuantityItem = null;
+        sellQuantityOverlay?.gameObject.SetActive(false);
+    }
+
+    private void ShowBlacksmithRecipeDetail(EquipmentRecipeSO recipe)
+    {
+        if (recipe == null || recipe.resultItem == null)
+        {
+            return;
+        }
+
+        string materials = BuildRecipeDetailText(recipe);
+        string transaction = materials + "\n必要金額: " + recipe.goldCost +
+            "G  |  所持金: " + merchantData.Gold + "G";
+        ShowItemDetail(
+            recipe.resultItem,
+            transaction,
+            "制作する",
+            () => economyController.CraftEquipment(recipe),
+            blacksmithManager.CanCraft(recipe));
+    }
+
+    private void ShowMarketItemDetail(MarketStockEntry entry)
+    {
+        if (entry == null || entry.Item == null)
+        {
+            return;
+        }
+
+        string transaction = "価格: " + entry.BuyPrice + "G  |  所持金: " +
+            merchantData.Gold + "G\n在庫: " + entry.Quantity;
+        ShowItemDetail(
+            entry.Item,
+            transaction,
+            "購入する",
+            () => economyController.BuyMarketItem(entry),
+            marketStockManager.CanBuy(entry));
+    }
+
+    private string BuildRecipeDetailText(EquipmentRecipeSO recipe)
+    {
+        if (recipe.materials == null || recipe.materials.Length == 0)
+        {
+            return "必要素材: なし";
+        }
+
+        System.Text.StringBuilder result = new System.Text.StringBuilder(
+            "必要素材:");
+        foreach (CraftingMaterialRequirement requirement in recipe.materials)
+        {
+            if (requirement == null || requirement.item == null)
+            {
+                continue;
+            }
+
+            int owned = merchantInventory.GetItemAmount(requirement.item);
+            string color = owned >= requirement.amount ? "#3D8A45" : "#B43A2F";
+            result.Append("\n<color=").Append(color).Append(">")
+                .Append(JapaneseDisplayText.GetItemName(requirement.item))
+                .Append(" ").Append(owned).Append("/")
+                .Append(requirement.amount).Append("</color>")
+                .Append("\n  入手: ")
+                .Append(ItemUsageTextBuilder.BuildAcquisitionText(requirement.item));
+        }
+        return result.ToString();
+    }
+
+    private void ShowItemDetail(
+        ItemDataSO item,
+        string transactionText,
+        string actionLabel,
+        System.Action action,
+        bool canExecute)
+    {
+        itemDetailTitle.text = JapaneseDisplayText.GetItemName(item);
+        Sprite sprite = ItemPresentationService.ResolveSprite(item);
+        itemDetailImage.sprite = sprite;
+        itemDetailImage.color = sprite != null
+            ? Color.white
+            : new Color(0.2f, 0.2f, 0.2f, 1f);
+        itemDetailImagePlaceholder.gameObject.SetActive(sprite == null);
+        itemDetailText.text = ItemPresentationService.BuildDetailText(item);
+        itemDetailTransactionText.text = transactionText;
+        SetOrCreateButtonLabel(
+            itemDetailActionButton.GetComponent<RectTransform>(),
+            actionLabel,
+            17);
+        itemDetailAction = action;
+        itemDetailActionButton.interactable = canExecute;
+        itemDetailOverlay.SetAsLastSibling();
+        itemDetailOverlay.gameObject.SetActive(true);
+    }
+
+    private void ExecuteItemDetailAction()
+    {
+        itemDetailAction?.Invoke();
+        HideItemDetail();
+    }
+
+    private void HideItemDetail()
+    {
+        itemDetailOverlay?.gameObject.SetActive(false);
+        itemDetailAction = null;
+    }
+
+    private void ShowStorageUpgradeConfirmation()
+    {
+        RefreshStorageUpgradeConfirmation();
+        storageUpgradeConfirmationOverlay.SetAsLastSibling();
+        storageUpgradeConfirmationOverlay.gameObject.SetActive(true);
+    }
+
+    private void HideStorageUpgradeConfirmation()
+    {
+        storageUpgradeConfirmationOverlay?.gameObject.SetActive(false);
+    }
+
+    private void ConfirmStorageUpgrade()
+    {
+        if (merchantStatusAndQuestController.TryUpgradeStorage())
+        {
+            HideStorageUpgradeConfirmation();
+            return;
+        }
+
+        RefreshStorageUpgradeConfirmation();
+    }
+
+    private void RefreshStorageUpgradeConfirmation()
+    {
+        if (storageUpgradeConfirmationText == null ||
+            storageUpgradeConfirmationReasonText == null ||
+            storageUpgradeConfirmButton == null)
+        {
+            return;
+        }
+
+        if (progressionManager == null || merchantData == null)
+        {
+            storageUpgradeConfirmationText.text = "倉庫情報を取得できません。";
+            storageUpgradeConfirmationReasonText.text = string.Empty;
+            storageUpgradeConfirmButton.interactable = false;
+            return;
+        }
+
+        if (progressionManager.IsStorageAtMaximumTier)
+        {
+            storageUpgradeConfirmationText.text =
+                $"現在の容量: {progressionManager.StorageCapacity}枠\n倉庫は最大まで拡張済みです。";
+            storageUpgradeConfirmationReasonText.text =
+                "これ以上拡張できません。";
+            storageUpgradeConfirmButton.interactable = false;
+            return;
+        }
+
+        int cost = progressionManager.StorageUpgradeCost;
+        int requiredLevel = progressionManager.NextStorageRequiredMerchantLevel;
+        int missingGold = Mathf.Max(0, cost - merchantData.Gold);
+        storageUpgradeConfirmationText.text =
+            $"容量: {progressionManager.StorageCapacity}枠 → " +
+            $"{progressionManager.NextStorageCapacity}枠\n" +
+            $"必要金額: {cost:N0}G  |  所持金: {merchantData.Gold:N0}G\n" +
+            $"必要商人レベル: Lv{requiredLevel}（現在 Lv{merchantData.MerchantLevel}）";
+        if (merchantData.MerchantLevel < requiredLevel)
+        {
+            storageUpgradeConfirmationReasonText.text =
+                $"商人レベルが不足しています。（あと {requiredLevel - merchantData.MerchantLevel}）";
+        }
+        else if (missingGold > 0)
+        {
+            storageUpgradeConfirmationReasonText.text =
+                $"資金が不足しています。（あと {missingGold:N0}G）";
+        }
+        else
+        {
+            storageUpgradeConfirmationReasonText.text = "拡張できます。";
+        }
+
+        storageUpgradeConfirmButton.interactable =
+            progressionManager.CanUpgradeStorage();
     }
 
     private string GetCurrentTownDemandSummary()

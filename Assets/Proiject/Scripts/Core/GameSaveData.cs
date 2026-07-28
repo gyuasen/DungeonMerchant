@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public class GameSaveData
 {
-    public const int CurrentVersion = 28;
+    public const int CurrentVersion = 36;
 
     public int version = CurrentVersion;
     public int gold = 500;
@@ -36,6 +36,9 @@ public class GameSaveData
         new List<SavedTransportConvoy>();
     public List<SavedDungeonExpedition> dungeonExpeditions =
         new List<SavedDungeonExpedition>();
+    public SavedRoadCargoSession roadCargoSession;
+    public List<SavedTrainingAssignment> trainingAssignments =
+        new List<SavedTrainingAssignment>();
     public List<SavedRemoteSaleOrder> remoteSaleOrders =
         new List<SavedRemoteSaleOrder>();
     public List<string> discoveredEquipmentAssetNames = new List<string>();
@@ -45,6 +48,21 @@ public class GameSaveData
     public List<StoryMilestone> completedStoryMilestones =
         new List<StoryMilestone>();
     public ProgressionSaveData progression = new ProgressionSaveData();
+    public bool onboardingEnabled;
+    public OnboardingGuideStep onboardingStep = OnboardingGuideStep.Completed;
+    public List<OnboardingGuideCard> onboardingShownCards =
+        new List<OnboardingGuideCard>();
+}
+
+[Serializable]
+public class SavedTrainingAssignment
+{
+    public string mercenaryInstanceId;
+    public int trainingTownIndex;
+    public int startDay;
+    public int completionDay;
+    public int targetLevel;
+    public int paidCost;
 }
 
 [Serializable]
@@ -67,6 +85,16 @@ public class SavedTransportCargo
 }
 
 [Serializable]
+public class SavedRoadCargoSession
+{
+    public int originTownIndex;
+    public int destinationTownIndex;
+    public bool defeatLossApplied;
+    public List<SavedTransportCargo> cargo = new List<SavedTransportCargo>();
+    public List<string> companionInstanceIds = new List<string>();
+}
+
+[Serializable]
 public class SavedRemoteSaleOrder
 {
     public int townIndex;
@@ -83,6 +111,8 @@ public class SavedDungeonExpedition
     public string dungeonPersistentId;
     public string dungeonAssetName;
     public List<string> memberInstanceIds = new List<string>();
+    // Missing fields from older JSON saves deserialize to 0 (Store).
+    public int lootPolicy;
 }
 
 [Serializable]

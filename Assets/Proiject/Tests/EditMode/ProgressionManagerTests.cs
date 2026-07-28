@@ -142,13 +142,16 @@ public sealed class ProgressionManagerTests
         Assert.That(progressionManager.ProfitableDungeonClears, Is.EqualTo(4));
     }
 
-    [TestCase(0, 30, false, 60, 4)]
-    [TestCase(1, 60, false, 100, 8)]
-    [TestCase(2, 100, false, 160, 12)]
-    [TestCase(3, 160, true, 160, 0)]
+    [TestCase(0, 30, 1500, false, 60, 4)]
+    [TestCase(1, 60, 5000, false, 100, 8)]
+    [TestCase(2, 100, 12000, false, 160, 12)]
+    [TestCase(3, 160, 25000, false, 230, 18)]
+    [TestCase(13, 980, 950000, false, 1000, 100)]
+    [TestCase(14, 1000, 0, true, 1000, 0)]
     public void StorageProperties_ForEachTier_ReportCapacityAndNextUpgrade(
         int tier,
         int expectedCapacity,
+        int expectedCost,
         bool expectedMaximum,
         int expectedNextCapacity,
         int expectedRequiredLevel)
@@ -161,11 +164,32 @@ public sealed class ProgressionManagerTests
 
         Assert.That(progressionManager.StorageTier, Is.EqualTo(tier));
         Assert.That(progressionManager.StorageCapacity, Is.EqualTo(expectedCapacity));
+        Assert.That(progressionManager.StorageUpgradeCost, Is.EqualTo(expectedCost));
         Assert.That(progressionManager.IsStorageAtMaximumTier, Is.EqualTo(expectedMaximum));
         Assert.That(progressionManager.NextStorageCapacity, Is.EqualTo(expectedNextCapacity));
         Assert.That(
             progressionManager.NextStorageRequiredMerchantLevel,
             Is.EqualTo(expectedRequiredLevel));
+    }
+
+    [Test]
+    public void TryUpgradeStorage_PaysConfiguredCostAndAppliesNextCapacity()
+    {
+        GameObject upgradeRoot = Track(new GameObject("Storage Upgrade Test"));
+        MerchantData merchantData = upgradeRoot.AddComponent<MerchantData>();
+        upgradeRoot.AddComponent<MerchantInventory>();
+        ProgressionManager upgradeProgression =
+            upgradeRoot.AddComponent<ProgressionManager>();
+        merchantData.RestoreProgression(4, 0);
+        merchantData.AddGold(2000);
+        int goldBefore = merchantData.Gold;
+
+        Assert.That(upgradeProgression.CanUpgradeStorage(), Is.True);
+        Assert.That(upgradeProgression.TryUpgradeStorage(), Is.True);
+        Assert.That(upgradeProgression.StorageCapacity, Is.EqualTo(60));
+        Assert.That(
+            merchantData.Gold,
+            Is.EqualTo(goldBefore - 1500));
     }
 
     [Test]
@@ -187,6 +211,60 @@ public sealed class ProgressionManagerTests
 
         Assert.That(dayManager.CurrentDay, Is.EqualTo(4));
         Assert.That(progressionManager.LastExplorationResult, Does.Contain("3日"));
+    }
+
+    [Test]
+    public void CanAcceptQuestHere_ExpiresQuestWhenDeadlineHasPassed()
+    {
+        DayManager dayManager = root.AddComponent<DayManager>();
+        dayManager.SetCurrentDay(5);
+        QuestRecord quest = new QuestRecord
+        {
+            questId = "deadline-test",
+            issuedTownIndex = 2,
+            questType = QuestType.ItemDelivery,
+            targetName = "Missing Item",
+            deadlineDay = 4
+        };
+
+        progressionManager.Restore(new ProgressionSaveData
+        {
+            quests = new List<QuestRecord> { quest }
+        });
+
+        Assert.That(progressionManager.CanAcceptQuestHere(quest), Is.False);
+        Assert.That(quest.expired, Is.True);
+    }
+
+    [Test]
+    public void GetAvailableQuestsForCurrentTown_ValidatesSpecialQuestTargets()
+    {
+        QuestRecord quest = new QuestRecord
+        {
+            questId = "special-target-test",
+            issuedTownIndex = 2,
+            isSpecial = true,
+            questType = QuestType.ItemDelivery,
+            targetName = "Missing Item",
+            deadlineDay = 10
+        };
+
+        progressionManager.Restore(new ProgressionSaveData
+        {
+            quests = new List<QuestRecord> { quest }
+        });
+
+        bool containsQuest = false;
+        foreach (QuestRecord availableQuest in
+                 progressionManager.GetAvailableQuestsForCurrentTown())
+        {
+            if (availableQuest == quest)
+            {
+                containsQuest = true;
+            }
+        }
+
+        Assert.That(containsQuest, Is.False);
     }
 
     private T Track<T>(T created) where T : Object

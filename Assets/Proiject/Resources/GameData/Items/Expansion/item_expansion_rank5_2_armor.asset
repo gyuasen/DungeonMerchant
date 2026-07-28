@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Rank 5 Mage Armor
+  description: "ランク5魔術師用の防具。"
   basePrice: 1400
   acquisitionType: 0
   equipmentSlot: 1

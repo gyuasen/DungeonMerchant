@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 0
   rarity: 0
   materialClassification: 2
-  description: A hard shell from a rock beetle.
+  description: "魔大陸で採れる、岩甲虫から採れる硬い甲殻。"
   basePrice: 50
   acquisitionType: 0
   equipmentSlot: 0

@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Rank 4 Warrior Armor
+  description: "ランク4戦士用の防具。"
   basePrice: 780
   acquisitionType: 0
   equipmentSlot: 1

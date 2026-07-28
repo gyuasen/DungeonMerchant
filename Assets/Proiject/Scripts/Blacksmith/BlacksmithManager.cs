@@ -12,32 +12,47 @@ public class BlacksmithManager : MonoBehaviour
         new List<EquipmentRecipeSO>();
     [SerializeField, Range(0, WorldMapService.HiddenIslandTownIndex)]
     private int currentTownIndex = 2;
+    [NonSerialized] private bool recipesPopulated;
 
-    public IReadOnlyList<EquipmentRecipeSO> Recipes => availableRecipes;
+    public IReadOnlyList<EquipmentRecipeSO> Recipes
+    {
+        get
+        {
+            EnsureRecipesPopulated();
+            return availableRecipes;
+        }
+    }
     public EquipmentInstance LastCraftedEquipment { get; private set; }
 
     public event Action CraftingChanged;
 
     public void SetTownIndex(int townIndex)
     {
-        currentTownIndex = Mathf.Clamp(
+        int nextTownIndex = Mathf.Clamp(
             townIndex,
             0,
             WorldMapService.HiddenIslandTownIndex);
-        RefreshAvailableRecipes();
+        bool townChanged = currentTownIndex != nextTownIndex;
+        currentTownIndex = nextTownIndex;
+        EnsureRecipesPopulated();
+        if (townChanged)
+        {
+            RefreshAvailableRecipes();
+        }
+
         CraftingChanged?.Invoke();
     }
 
     private void OnEnable()
     {
         ResolveReferences();
-        PopulateRecipesIfNeeded();
-        RefreshAvailableRecipes();
+        EnsureRecipesPopulated();
     }
 
     public bool CanCraft(EquipmentRecipeSO recipe)
     {
         ResolveReferences();
+        EnsureRecipesPopulated();
 
         if (recipe == null ||
             recipe.resultItem == null ||
@@ -45,7 +60,11 @@ public class BlacksmithManager : MonoBehaviour
             !availableRecipes.Contains(recipe) ||
             merchantData == null ||
             merchantInventory == null ||
-            !merchantData.CanPay(recipe.goldCost))
+            !merchantData.CanPay(recipe.goldCost) ||
+            (!recipe.resultItem.IsEquipment &&
+             !merchantInventory.CanAddItem(
+                 recipe.resultItem,
+                 recipe.resultAmount)))
         {
             return false;
         }
@@ -74,28 +93,47 @@ public class BlacksmithManager : MonoBehaviour
         ResolveReferences();
         LastCraftedEquipment = null;
 
-        if (!CanCraft(recipe) || !merchantData.TryPayGold(recipe.goldCost))
+        if (!CanCraft(recipe))
         {
+            return false;
+        }
+
+        bool addedItems = !recipe.resultItem.IsEquipment;
+        if (addedItems &&
+            !merchantInventory.TryAddItem(recipe.resultItem, recipe.resultAmount))
+        {
+            return false;
+        }
+
+        if (!merchantData.TryPayGold(
+                recipe.goldCost,
+                GoldTransactionReason.Blacksmith,
+                recipe.resultItem.itemName,
+                out string craftingTransactionId))
+        {
+            RollbackCraftedItems(recipe, addedItems);
             return false;
         }
 
         if (!merchantInventory.TryConsumeMaterials(recipe.materials))
         {
+            merchantData.AddGold(
+                recipe.goldCost,
+                GoldTransactionReason.Refund,
+                recipe.resultItem.itemName,
+                craftingTransactionId);
+            RollbackCraftedItems(recipe, addedItems);
             return false;
         }
 
-        for (int i = 0; i < recipe.resultAmount; i++)
+        if (recipe.resultItem.IsEquipment)
         {
-            if (recipe.resultItem.IsEquipment)
+            for (int i = 0; i < recipe.resultAmount; i++)
             {
                 EquipmentInstance equipment =
                     EquipmentInstance.CreateFixed(recipe.resultItem);
                 merchantInventory.AddEquipmentInstance(equipment);
                 LastCraftedEquipment = equipment;
-            }
-            else
-            {
-                merchantInventory.AddItem(recipe.resultItem);
             }
         }
         Debug.Log($"Crafted {recipe.resultItem.itemName} x{recipe.resultAmount}");
@@ -103,8 +141,26 @@ public class BlacksmithManager : MonoBehaviour
         return true;
     }
 
-    private void PopulateRecipesIfNeeded()
+    private void RollbackCraftedItems(
+        EquipmentRecipeSO recipe,
+        bool addedItems)
     {
+        if (addedItems &&
+            !merchantInventory.TryRemoveItem(
+                recipe.resultItem,
+                recipe.resultAmount))
+        {
+            Debug.LogError("Failed to roll back a crafted item inventory addition.", this);
+        }
+    }
+
+    private void EnsureRecipesPopulated()
+    {
+        if (recipesPopulated)
+        {
+            return;
+        }
+
         recipes.RemoveAll(recipe => recipe == null);
 
         foreach (EquipmentRecipeSO recipe in
@@ -112,6 +168,8 @@ public class BlacksmithManager : MonoBehaviour
         {
             AddRecipe(recipe);
         }
+
+        recipesPopulated = true;
         RefreshAvailableRecipes();
     }
 
@@ -137,6 +195,13 @@ public class BlacksmithManager : MonoBehaviour
 
     private bool IsRecipeAvailableInCurrentTown(EquipmentRecipeSO recipe)
     {
+        return IsRecipeAvailableInTown(recipe, currentTownIndex);
+    }
+
+    public static bool IsRecipeAvailableInTown(
+        EquipmentRecipeSO recipe,
+        int townIndex)
+    {
         if (recipe?.resultItem == null)
         {
             return false;
@@ -145,13 +210,13 @@ public class BlacksmithManager : MonoBehaviour
         ItemDataSO item = recipe.resultItem;
         if (item.itemName == "Mutant Core Charm")
         {
-            return currentTownIndex == 6;
+            return townIndex == 6;
         }
 
         MercenaryClass itemClass =
             MercenaryClassProgression.GetBaseClass(item.requiredClass);
         return WorldMapService.IsBlacksmithEquipmentAllowedInTown(
-            currentTownIndex,
+            townIndex,
             itemClass,
             item.equipmentRank,
             item.equipmentSlot);

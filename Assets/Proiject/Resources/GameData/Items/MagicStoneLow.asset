@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 0
   rarity: 0
   materialClassification: 2
-  description: Crafting material gathered in the demon continent.
+  description: "魔大陸で採れる、扱いやすい低級魔石。"
   basePrice: 90
   acquisitionType: 0
   equipmentSlot: 0

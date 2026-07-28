@@ -15,19 +15,25 @@ public class SaveManager : MonoBehaviour
     private MercenaryHireManager hireManager;
     private MercenaryPartyManager partyManager;
     private HealingManager healingManager;
+    private TrainingGroundManager trainingGroundManager;
     private BattleManager battleManager;
     private DungeonRunManager dungeonRunManager;
+    private DungeonExpeditionManager dungeonExpeditionManager;
     private ProgressionManager progressionManager;
     private DebtManager debtManager;
     private TownProgressState townProgressState;
     private StoryProgressManager storyProgressManager;
-    private TransportManager transportManager;
-    private DungeonExpeditionManager dungeonExpeditionManager;
+    private RoadCargoSession roadCargoSession;
     private RemoteSaleManager remoteSaleManager;
     private MonsterCodexManager monsterCodexManager;
+    private OnboardingGuideController onboardingGuideController;
     private bool initialized;
     private bool isLoading;
     private bool suppressAutoSaveAfterDelete;
+    // 既存セーブのロードに失敗した(バージョン超過/破損)場合に立てる。
+    // 失敗したセーブを初期状態や部分ロード状態で上書きしないよう、以降の
+    // 保存を全面的に抑止する。
+    private bool saveBlockedByLoadFailure;
     private string savePathOverride = string.Empty;
     private Coroutine pendingAutoSaveCoroutine;
 
@@ -51,6 +57,7 @@ public class SaveManager : MonoBehaviour
         ? savePathOverride
         : DefaultSavePath;
     public bool HasSaveData => File.Exists(SavePath);
+    public bool HasExistingSaveAtInitialization { get; private set; }
 
     public void InitializeAndLoad()
     {
@@ -60,17 +67,30 @@ public class SaveManager : MonoBehaviour
         }
 
         ResolveReferences();
-        bool hasExistingSave = File.Exists(SavePath);
-        if (hasExistingSave)
+        HasExistingSaveAtInitialization = File.Exists(SavePath);
+        bool loadedExistingSave = false;
+        if (HasExistingSaveAtInitialization)
         {
-            LoadGame();
+            loadedExistingSave = LoadGame();
         }
-        else
+
+        // 既存セーブが無い場合のみ新規状態を適用する。既存セーブのロードに
+        // 失敗した場合は、新規状態で上書きしないよう ApplySaveData を呼ばず、
+        // 保存も saveBlockedByLoadFailure により抑止される。
+        if (!HasExistingSaveAtInitialization)
         {
-            ApplySaveData(new GameSaveData());
+            ApplySaveData(new GameSaveData
+            {
+                onboardingEnabled = true,
+                onboardingStep = OnboardingGuideStep.Opening
+            });
         }
         Subscribe();
-        if (!hasExistingSave)
+        if (loadedExistingSave)
+        {
+            onboardingGuideController?.CompleteOpeningAfterExistingSaveLoad();
+        }
+        if (!HasExistingSaveAtInitialization)
         {
             storyProgressManager?.BeginNewGame();
         }
@@ -86,25 +106,49 @@ public class SaveManager : MonoBehaviour
             return;
         }
 
+        if (saveBlockedByLoadFailure)
+        {
+            Debug.LogWarning(
+                "既存セーブのロードに失敗しているため、保存を行いません。");
+            return;
+        }
+
         ResolveReferences();
         GameSaveData data = CreateSaveData();
+        WriteSaveFileAtomically(JsonUtility.ToJson(data, true));
+        Debug.Log($"ゲームを保存しました: {SavePath}");
+    }
+
+    // 一時ファイルへ書き込んでから本番ファイルへ置換する。書き込み途中に
+    // 中断・失敗しても、既存の完全なセーブが破損しないようにする。
+    private void WriteSaveFileAtomically(string json)
+    {
         string directory = Path.GetDirectoryName(SavePath);
         if (!string.IsNullOrEmpty(directory))
         {
             Directory.CreateDirectory(directory);
         }
 
-        File.WriteAllText(SavePath, JsonUtility.ToJson(data, true));
-        Debug.Log($"ゲームを保存しました: {SavePath}");
+        string tempPath = SavePath + ".tmp";
+        File.WriteAllText(tempPath, json);
+        if (File.Exists(SavePath))
+        {
+            // File.Replace は元ファイルを一時退避しつつ原子的に置換する。
+            File.Replace(tempPath, SavePath, SavePath + ".bak");
+        }
+        else
+        {
+            File.Move(tempPath, SavePath);
+        }
     }
 
     [ContextMenu("ゲームを読込")]
-    public void LoadGame()
+    public bool LoadGame()
     {
         ResolveReferences();
         if (!File.Exists(SavePath))
         {
-            return;
+            return false;
         }
 
         try
@@ -113,7 +157,9 @@ public class SaveManager : MonoBehaviour
                 File.ReadAllText(SavePath));
             if (data == null)
             {
-                return;
+                BlockSaveAfterLoadFailure(
+                    "セーブデータを解釈できませんでした。");
+                return false;
             }
 
             if (data.version > GameSaveData.CurrentVersion)
@@ -122,7 +168,9 @@ public class SaveManager : MonoBehaviour
                     $"Save data version {data.version} is newer than the " +
                     $"supported version {GameSaveData.CurrentVersion}. " +
                     "The save was not loaded or modified.");
-                return;
+                BlockSaveAfterLoadFailure(
+                    "対応していない新しいバージョンのセーブデータです。");
+                return false;
             }
 
             bool requiresMigration =
@@ -133,24 +181,35 @@ public class SaveManager : MonoBehaviour
             ApplySaveData(data);
             if (requiresMigration)
             {
-                File.WriteAllText(
-                    SavePath,
-                    JsonUtility.ToJson(data, true));
+                WriteSaveFileAtomically(JsonUtility.ToJson(data, true));
                 Debug.Log(
                     $"Save data migrated to version " +
                     $"{GameSaveData.CurrentVersion}.");
             }
             Debug.Log($"ゲームを読み込みました: {SavePath}");
+            return true;
         }
         catch (Exception exception)
         {
             Debug.LogError($"セーブデータの読込に失敗しました: {exception.Message}");
+            BlockSaveAfterLoadFailure(
+                "セーブデータの読込中にエラーが発生しました。");
+            return false;
         }
         finally
         {
             isLoading = false;
             storyProgressManager?.EndRestore();
         }
+    }
+
+    // ロード失敗時に呼ぶ。以降の保存を抑止し、失敗したセーブファイルを
+    // 上書きしないようにする。
+    private void BlockSaveAfterLoadFailure(string reason)
+    {
+        saveBlockedByLoadFailure = true;
+        Debug.LogWarning(
+            $"既存セーブの保護のため以降の自動保存を停止します: {reason}");
     }
 
     [ContextMenu("セーブデータを削除")]
@@ -347,7 +406,7 @@ public class SaveManager : MonoBehaviour
                     continue;
                 }
 
-                data.hiredMercenaries.Add(new SavedMercenary
+                SavedMercenary savedMercenary = new SavedMercenary
                 {
                     instanceId = mercenary.InstanceId,
                     townIndex = mercenary.CurrentTownIndex,
@@ -411,7 +470,23 @@ public class SaveManager : MonoBehaviour
                                 mercenary.EquippedAccessoryInstance)
                             : null,
                     consumableSlots = CreateSavedConsumableSlots(mercenary)
-                });
+                };
+                NormalizeSavedMercenaryEquipment(
+                    savedMercenary,
+                    EquipmentSlot.Weapon,
+                    mercenary.EquippedWeapon,
+                    mercenary.EquippedWeaponInstance);
+                NormalizeSavedMercenaryEquipment(
+                    savedMercenary,
+                    EquipmentSlot.Armor,
+                    mercenary.EquippedArmor,
+                    mercenary.EquippedArmorInstance);
+                NormalizeSavedMercenaryEquipment(
+                    savedMercenary,
+                    EquipmentSlot.Accessory,
+                    mercenary.EquippedAccessory,
+                    mercenary.EquippedAccessoryInstance);
+                data.hiredMercenaries.Add(savedMercenary);
             }
         }
 
@@ -431,22 +506,35 @@ public class SaveManager : MonoBehaviour
             data.progression = progressionManager.CreateSaveData();
         }
 
-        if (transportManager != null)
+        if (roadCargoSession != null)
         {
-            data.transportConvoys = transportManager.CreateSaveData();
+            data.roadCargoSession = roadCargoSession.CreateSaveData();
         }
-        if (dungeonExpeditionManager != null)
+        if (trainingGroundManager != null)
         {
-            data.dungeonExpeditions = dungeonExpeditionManager.CreateSaveData();
+            data.trainingAssignments = trainingGroundManager.CreateSaveData();
         }
         if (remoteSaleManager != null)
         {
             data.remoteSaleOrders = remoteSaleManager.CreateSaveData();
         }
+        if (dungeonExpeditionManager != null)
+        {
+            data.dungeonExpeditions = dungeonExpeditionManager.CreateSaveData();
+        }
         if (monsterCodexManager != null)
         {
             data.encounteredEnemyIds.AddRange(
                 monsterCodexManager.EncounteredEnemyIds);
+        }
+
+        if (onboardingGuideController != null)
+        {
+            data.onboardingEnabled = onboardingGuideController.IsEnabled;
+            data.onboardingStep = onboardingGuideController.CurrentStep;
+            data.onboardingShownCards.Clear();
+            data.onboardingShownCards.AddRange(
+                onboardingGuideController.ShownCards);
         }
 
         return data;
@@ -567,6 +655,11 @@ public class SaveManager : MonoBehaviour
             }
         }
         hireManager?.RestoreHiredMercenaries(restoredMercenaries);
+        partyManager?.RestoreParty(null);
+        trainingGroundManager?.Restore(null);
+        roadCargoSession?.Restore(null);
+        dungeonExpeditionManager?.ClearActiveExpeditions();
+        trainingGroundManager?.Restore(data.trainingAssignments);
         if (merchantInventory != null)
         {
             foreach (MercenaryInstance mercenary in restoredMercenaries)
@@ -600,8 +693,8 @@ public class SaveManager : MonoBehaviour
             }
         }
         partyManager?.RestoreParty(restoredParty);
-        transportManager?.Restore(data.transportConvoys, mercenaryById);
-        dungeonExpeditionManager?.Restore(data.dungeonExpeditions, mercenaryById);
+        roadCargoSession?.Restore(data.roadCargoSession);
+        RollBackInterruptedRoadCargoSession();
         remoteSaleManager?.Restore(data.remoteSaleOrders);
         progressionManager?.Restore(data.progression);
 
@@ -614,8 +707,34 @@ public class SaveManager : MonoBehaviour
             data.selectedDungeonPersistentId,
             data.dungeonFloorProgress);
         dungeonRunManager?.SetCurrentWorldMapIndex(townProgressState.CurrentWorldMapIndex);
+        dungeonExpeditionManager?.Restore(
+            data.dungeonExpeditions,
+            mercenaryById);
         storyProgressManager?.RestoreCompletedMilestones(
             data.completedStoryMilestones);
+        onboardingGuideController?.Restore(
+            data.onboardingEnabled,
+            data.onboardingStep,
+            data.onboardingShownCards);
+    }
+
+    private void RollBackInterruptedRoadCargoSession()
+    {
+        if (roadCargoSession == null || !roadCargoSession.IsActive ||
+            townProgressState == null ||
+            roadCargoSession.ActiveSession.originTownIndex !=
+            townProgressState.CurrentTownIndex)
+        {
+            return;
+        }
+
+        RoadCargoResolutionResult result = roadCargoSession.Retreat();
+        if (result == RoadCargoResolutionResult.StorageFull)
+        {
+            Debug.LogWarning(
+                "Interrupted road cargo remains pending at the origin because " +
+                "storage is full. Free storage and receive it before travelling.");
+        }
     }
 
     private MercenaryInstance RestoreMercenary(SavedMercenary saved)
@@ -689,6 +808,33 @@ public class SaveManager : MonoBehaviour
         return savedSlots;
     }
 
+    private static void NormalizeSavedMercenaryEquipment(
+        SavedMercenary saved,
+        EquipmentSlot slot,
+        ItemDataSO item,
+        EquipmentInstance instance)
+    {
+        if (item == null || !item.IsEquipment || item.equipmentSlot != slot)
+        {
+            return;
+        }
+
+        SavedEquipmentInstance savedInstance = CreateSavedEquipment(
+            instance ?? EquipmentInstance.CreateFixed(item));
+        if (slot == EquipmentSlot.Weapon)
+        {
+            saved.equippedWeaponInstance = savedInstance;
+        }
+        else if (slot == EquipmentSlot.Armor)
+        {
+            saved.equippedArmorInstance = savedInstance;
+        }
+        else
+        {
+            saved.equippedAccessoryInstance = savedInstance;
+        }
+    }
+
     private static void RestoreMercenaryConsumableSlots(
         MercenaryInstance mercenary,
         SavedMercenaryConsumableSlot[] savedSlots)
@@ -725,13 +871,57 @@ public class SaveManager : MonoBehaviour
         EquipmentInstance equipment = RestoreEquipment(savedInstance);
         if (equipment != null)
         {
+            LogMismatchedEquipmentReference(
+                slot,
+                itemPersistentId,
+                itemAssetName,
+                equipment.BaseItem);
             mercenary.RestoreEquippedEquipment(slot, equipment);
+            return;
+        }
+
+        ItemDataSO legacyItem = FindItem(
+            itemPersistentId,
+            itemAssetName,
+            string.Empty);
+        if (legacyItem == null || !legacyItem.IsEquipment ||
+            legacyItem.equipmentSlot != slot)
+        {
+            if (!string.IsNullOrWhiteSpace(itemPersistentId) ||
+                !string.IsNullOrWhiteSpace(itemAssetName))
+            {
+                Debug.LogWarning("Skipped an invalid legacy equipped item reference.");
+            }
             return;
         }
 
         mercenary.RestoreEquippedEquipment(
             slot,
-            FindItem(itemPersistentId, itemAssetName, string.Empty));
+            EquipmentInstance.CreateFixed(legacyItem));
+    }
+
+    private void LogMismatchedEquipmentReference(
+        EquipmentSlot slot,
+        string itemPersistentId,
+        string itemAssetName,
+        ItemDataSO instanceItem)
+    {
+        if (instanceItem == null ||
+            (string.IsNullOrWhiteSpace(itemPersistentId) &&
+             string.IsNullOrWhiteSpace(itemAssetName)))
+        {
+            return;
+        }
+
+        ItemDataSO outerItem = FindItem(
+            itemPersistentId,
+            itemAssetName,
+            string.Empty);
+        if (outerItem != null && outerItem != instanceItem)
+        {
+            Debug.LogWarning(
+                $"Equipped {slot} reference disagreed with its instance. The instance was used.");
+        }
     }
 
     private static SavedEquipmentInstance CreateSavedEquipment(
@@ -783,7 +973,7 @@ public class SaveManager : MonoBehaviour
             saved.baseItemPersistentId,
             saved.baseItemAssetName,
             string.Empty);
-        if (baseItem == null)
+        if (baseItem == null || !baseItem.IsEquipment)
         {
             return null;
         }
@@ -818,16 +1008,20 @@ public class SaveManager : MonoBehaviour
         if (hireManager != null) hireManager.MercenaryDismissed += HandleMercenaryChanged;
         if (hireManager != null) hireManager.ContractsChanged += HandleChanged;
         if (storyProgressManager != null) storyProgressManager.MilestoneCompleted += HandleStoryMilestoneCompleted;
-        if (transportManager != null) transportManager.TransportChanged += HandleChanged;
-        if (dungeonExpeditionManager != null) dungeonExpeditionManager.ExpeditionChanged += HandleChanged;
+        if (roadCargoSession != null) roadCargoSession.CargoChanged += HandleChanged;
         if (remoteSaleManager != null) remoteSaleManager.RemoteSaleChanged += HandleChanged;
         if (partyManager != null) partyManager.PartyChanged += HandleChanged;
         if (healingManager != null) healingManager.HealingChanged += HandleChanged;
+        if (trainingGroundManager != null) trainingGroundManager.TrainingChanged += HandleChanged;
         if (battleManager != null) battleManager.BattleCompleted += HandleBattleCompleted;
         if (dungeonRunManager != null)
         {
             dungeonRunManager.DungeonCompleted += HandleDungeonCompleted;
             dungeonRunManager.DungeonStateChanged += HandleChanged;
+        }
+        if (dungeonExpeditionManager != null)
+        {
+            dungeonExpeditionManager.ExpeditionChanged += HandleChanged;
         }
         if (progressionManager != null)
         {
@@ -836,6 +1030,10 @@ public class SaveManager : MonoBehaviour
         if (debtManager != null)
         {
             debtManager.DebtChanged += HandleChanged;
+        }
+        if (onboardingGuideController != null)
+        {
+            onboardingGuideController.StateChanged += HandleOnboardingGuideChanged;
         }
     }
 
@@ -849,16 +1047,20 @@ public class SaveManager : MonoBehaviour
         if (hireManager != null) hireManager.MercenaryDismissed -= HandleMercenaryChanged;
         if (hireManager != null) hireManager.ContractsChanged -= HandleChanged;
         if (storyProgressManager != null) storyProgressManager.MilestoneCompleted -= HandleStoryMilestoneCompleted;
-        if (transportManager != null) transportManager.TransportChanged -= HandleChanged;
-        if (dungeonExpeditionManager != null) dungeonExpeditionManager.ExpeditionChanged -= HandleChanged;
+        if (roadCargoSession != null) roadCargoSession.CargoChanged -= HandleChanged;
         if (remoteSaleManager != null) remoteSaleManager.RemoteSaleChanged -= HandleChanged;
         if (partyManager != null) partyManager.PartyChanged -= HandleChanged;
         if (healingManager != null) healingManager.HealingChanged -= HandleChanged;
+        if (trainingGroundManager != null) trainingGroundManager.TrainingChanged -= HandleChanged;
         if (battleManager != null) battleManager.BattleCompleted -= HandleBattleCompleted;
         if (dungeonRunManager != null)
         {
             dungeonRunManager.DungeonCompleted -= HandleDungeonCompleted;
             dungeonRunManager.DungeonStateChanged -= HandleChanged;
+        }
+        if (dungeonExpeditionManager != null)
+        {
+            dungeonExpeditionManager.ExpeditionChanged -= HandleChanged;
         }
         if (progressionManager != null)
         {
@@ -868,6 +1070,10 @@ public class SaveManager : MonoBehaviour
         {
             debtManager.DebtChanged -= HandleChanged;
         }
+        if (onboardingGuideController != null)
+        {
+            onboardingGuideController.StateChanged -= HandleOnboardingGuideChanged;
+        }
     }
 
     private void HandleChanged() => RequestAutoSave();
@@ -875,7 +1081,17 @@ public class SaveManager : MonoBehaviour
     private void HandleMercenaryChanged(MercenaryInstance mercenary) => RequestAutoSave();
     private void HandleBattleCompleted(bool victory) => RequestAutoSave();
     private void HandleDungeonCompleted(bool cleared) => RequestAutoSave();
-    private void HandleStoryMilestoneCompleted(StoryMilestone milestone) => RequestAutoSave();
+    private void HandleStoryMilestoneCompleted(StoryMilestone milestone)
+    {
+        if (isLoading || suppressAutoSaveAfterDelete)
+        {
+            return;
+        }
+
+        CancelPendingAutoSave();
+        SaveGame();
+    }
+    private void HandleOnboardingGuideChanged(OnboardingGuideStep step) => RequestAutoSave();
 
     private void RequestAutoSave()
     {
@@ -973,9 +1189,15 @@ public class SaveManager : MonoBehaviour
             GetComponent<MercenaryPartyManager>() ?? FindObjectOfType<MercenaryPartyManager>();
         healingManager =
             GetComponent<HealingManager>() ?? FindObjectOfType<HealingManager>();
+        trainingGroundManager =
+            GetComponent<TrainingGroundManager>() ??
+            FindObjectOfType<TrainingGroundManager>();
         battleManager = GetComponent<BattleManager>() ?? FindObjectOfType<BattleManager>();
         dungeonRunManager =
             GetComponent<DungeonRunManager>() ?? FindObjectOfType<DungeonRunManager>();
+        dungeonExpeditionManager =
+            GetComponent<DungeonExpeditionManager>() ??
+            FindObjectOfType<DungeonExpeditionManager>();
         progressionManager =
             GetComponent<ProgressionManager>() ?? FindObjectOfType<ProgressionManager>();
         debtManager =
@@ -986,17 +1208,16 @@ public class SaveManager : MonoBehaviour
         storyProgressManager =
             GetComponent<StoryProgressManager>() ??
             FindObjectOfType<StoryProgressManager>();
-        transportManager =
-            GetComponent<TransportManager>() ??
-            FindObjectOfType<TransportManager>();
-        dungeonExpeditionManager =
-            GetComponent<DungeonExpeditionManager>() ??
-            FindObjectOfType<DungeonExpeditionManager>();
+        roadCargoSession = GetComponent<RoadCargoSession>() ??
+            FindObjectOfType<RoadCargoSession>();
         remoteSaleManager =
             GetComponent<RemoteSaleManager>() ??
             FindObjectOfType<RemoteSaleManager>();
         monsterCodexManager =
             GetComponent<MonsterCodexManager>() ??
             FindObjectOfType<MonsterCodexManager>();
+        onboardingGuideController =
+            GetComponent<OnboardingGuideController>() ??
+            FindObjectOfType<OnboardingGuideController>();
     }
 }

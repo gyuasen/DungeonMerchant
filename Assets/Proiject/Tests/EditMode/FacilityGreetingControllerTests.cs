@@ -39,7 +39,22 @@ public sealed class FacilityGreetingControllerTests
     }
 
     [Test]
-    public void VisitSkipState_AppliesOnlyToSameDayTownAndFacility()
+    public void TrainingGround_HasFacilityGreeting()
+    {
+        FacilityGreetingController controller = new FacilityGreetingController();
+
+        FacilityGreeting greeting = controller.GetGreeting(
+            1,
+            1,
+            "リーフ",
+            FacilityGreetingController.TrainingGroundKey);
+
+        Assert.That(greeting.Title, Is.Not.Empty);
+        Assert.That(greeting.Dialogue, Is.Not.Empty);
+    }
+
+    [Test]
+    public void VisitSkipState_ShowsEachFacilityOncePerSession()
     {
         FacilityGreetingController controller = new FacilityGreetingController();
 
@@ -47,8 +62,8 @@ public sealed class FacilityGreetingControllerTests
         controller.MarkEntered(2, 0, FacilityGreetingController.TavernKey);
 
         Assert.That(controller.ShouldShowGreeting(2, 0, FacilityGreetingController.TavernKey), Is.False);
-        Assert.That(controller.ShouldShowGreeting(3, 0, FacilityGreetingController.TavernKey), Is.True);
-        Assert.That(controller.ShouldShowGreeting(2, 1, FacilityGreetingController.TavernKey), Is.True);
+        Assert.That(controller.ShouldShowGreeting(3, 0, FacilityGreetingController.TavernKey), Is.False);
+        Assert.That(controller.ShouldShowGreeting(2, 1, FacilityGreetingController.TavernKey), Is.False);
         Assert.That(controller.ShouldShowGreeting(2, 0, FacilityGreetingController.MarketKey), Is.True);
     }
 }

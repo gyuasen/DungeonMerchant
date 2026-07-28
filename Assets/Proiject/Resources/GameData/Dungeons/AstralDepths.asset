@@ -35,7 +35,7 @@ MonoBehaviour:
   specialBossChance: 0.05
   specialVariantSkillPool: 01000000030000000400000007000000090000000b0000000e0000000f00000010000000110000001300000014000000
   battleBackground: {fileID: 0}
-  battleBackgroundKey: 
+  battleBackgroundKey: Dungeon_AstralDepths
   floorClearGoldReward: 450
   clearGoldReward: 5000
   clearItemRewards: []

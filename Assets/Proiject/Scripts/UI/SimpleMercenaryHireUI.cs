@@ -16,9 +16,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     [SerializeField] private MerchantInventory merchantInventory;
     [SerializeField] private DayManager dayManager;
     [SerializeField] private MarketPriceManager marketPriceManager;
+    [SerializeField] private RoadCargoSession roadCargoSession;
     [SerializeField] private MarketStockManager marketStockManager;
     [SerializeField] private BlacksmithManager blacksmithManager;
     [SerializeField] private DungeonRunManager dungeonRunManager;
+    [SerializeField] private DungeonExpeditionManager dungeonExpeditionManager;
     [SerializeField] private HealingManager healingManager;
     [SerializeField] private SaveManager saveManager;
     [SerializeField] private ProgressionManager progressionManager;
@@ -26,9 +28,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     [SerializeField] private RoadEncounterService roadEncounterService;
     [SerializeField] private TownProgressState townProgressState;
     [SerializeField] private StoryProgressManager storyProgressManager;
-    [SerializeField] private TransportManager transportManager;
-    [SerializeField] private DungeonExpeditionManager dungeonExpeditionManager;
     [SerializeField] private RemoteSaleManager remoteSaleManager;
+    [SerializeField] private TrainingGroundManager trainingGroundManager;
 
     [Header("UI Prefab")]
     [SerializeField] private SimpleMercenaryHireUIView uiViewPrefab;
@@ -41,6 +42,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         new List<RectTransform>();
     private readonly List<Button> standardTownFacilityButtons =
         new List<Button>();
+    private readonly HashSet<RectTransform> dirtyPages =
+        new HashSet<RectTransform>();
 
     private RectTransform guildPanel;
     private RectTransform overlayRoot;
@@ -59,6 +62,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private ScrollRect characterEquipmentScrollRect;
     private bool showingCharacterStatusPage = true;
     private RectTransform equipmentDetailOverlay;
+    private RectTransform equipmentSlotSelectionOverlay;
+    private RectTransform equipmentSlotSelectionContent;
+    private Text equipmentSlotSelectionTitle;
+    private EquipmentSlot selectedEquipmentSlot;
+    private int selectedConsumableSlotIndex = -1;
     private Text equipmentDetailTitle;
     private Text equipmentDetailText;
     private Button equipmentEnhanceButton;
@@ -94,10 +102,18 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Button tutorialCloseButton;
     private Button globalMenuButton;
     private Text travelConfirmationText;
+    private Text travelCargoSummaryText;
+    private RectTransform travelCargoContent;
+    private Button roadCargoReceiveButton;
+    private readonly Dictionary<ItemDataSO, int> selectedTravelCargo =
+        new Dictionary<ItemDataSO, int>();
+    private readonly HashSet<string> selectedTravelCompanions =
+        new HashSet<string>();
     private RectTransform hirePage;
     private RectTransform globalMapPage;
     private RectTransform worldMapPage;
     private RectTransform townMapPage;
+    private RawImage townMapBackgroundImage;
     private RectTransform hireList;
     private RectTransform companyPage;
     private RectTransform partyPage;
@@ -113,8 +129,10 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform blacksmithPage;
     private RectTransform inventoryPage;
     private RectTransform jobChangePage;
+    private RectTransform trainingGroundPage;
     private RectTransform jobChangeList;
     private Button jobFacilityButton;
+    private Button trainingGroundFacilityButton;
     private RectTransform companyScrollContent;
     private RectTransform companyList;
     private RectTransform partyList;
@@ -151,6 +169,9 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Button contractSelectButton;
     private Button inventoryFilterButton;
     private Button equipmentSortButton;
+    private readonly List<Button> inventorySidebarButtons = new List<Button>();
+    private readonly List<Button> marketSidebarButtons = new List<Button>();
+    private readonly List<Button> blacksmithSidebarButtons = new List<Button>();
     private Text goldText;
     private Text dayText;
     private Text statusText;
@@ -167,6 +188,42 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Button dungeonNextFloorButton;
     private Text marketInfoText;
     private Text storageCapacityText;
+    private RectTransform storageUpgradeConfirmationOverlay;
+    private Text storageUpgradeConfirmationText;
+    private Text storageUpgradeConfirmationReasonText;
+    private Button storageUpgradeConfirmButton;
+    private RectTransform sellOnlyConfirmationOverlay;
+    private Text sellOnlyConfirmationText;
+    private RectTransform sellQuantityOverlay;
+    private Text sellQuantityTitleText;
+    private Image sellQuantityImage;
+    private Text sellQuantityImagePlaceholder;
+    private Text sellQuantityDetailText;
+    private ItemDataSO sellQuantityItem;
+    private int sellQuantityAmount;
+    private RectTransform releaseConfirmationOverlay;
+    private Text releaseConfirmationText;
+    private MercenaryInstance releaseConfirmationMercenary;
+    private RectTransform contractChangeConfirmationOverlay;
+    private RectTransform contractDetailsOverlay;
+    private Text contractChangeConfirmationText;
+    private Button contractChangeConfirmButton;
+    private MercenaryInstance contractChangeMercenary;
+    private MercenaryContractType contractChangeTarget;
+    private RectTransform itemDetailOverlay;
+    private Image itemDetailImage;
+    private Text itemDetailImagePlaceholder;
+    private Text itemDetailTitle;
+    private Text itemDetailText;
+    private Text itemDetailTransactionText;
+    private Button itemDetailActionButton;
+    private System.Action itemDetailAction;
+    private RectTransform promotionPreviewOverlay;
+    private Text promotionPreviewText;
+    private Text promotionPreviewReasonText;
+    private Button promotionPreviewConfirmButton;
+    private MercenaryInstance promotionPreviewMercenary;
+    private MercenaryClass promotionPreviewTarget;
     private RemoteSaleController remoteSaleController;
     private Font uiFont;
     private Font uiBodyFont;
@@ -180,8 +237,18 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private bool pendingDungeonCompletionCleared;
     private Coroutine pendingDungeonCompletionCoroutine;
     private Coroutine dungeonEventPresentationCoroutine;
+    private bool hasPendingRoadBattleOutcome;
+    private bool pendingRoadBattleVictory;
+    private Coroutine pendingRoadBattleOutcomeCoroutine;
+    private int displayedRoadOriginTownIndex = -1;
+    private int displayedRoadDestinationTownIndex = -1;
+    private bool IsProgressionLocked =>
+        (battleManager != null && battleManager.IsBattling) ||
+        (battleVisualController != null && battleVisualController.IsPresentationBusy) ||
+        hasPendingRoadBattleOutcome;
     private bool hasPendingDailyResult;
-    private int pendingDailyResultDay;
+    private readonly Queue<string> pendingDailyResultTexts =
+        new Queue<string>();
     private DailyResultController dailyResultController;
     private HireAndPartyController hireAndPartyController;
     private EconomyController economyController;
@@ -190,21 +257,16 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private TownTravelController townTravelController;
     private DungeonBattleController dungeonBattleController;
     private TutorialController tutorialController;
+    private OnboardingGuideController onboardingGuideController;
     private AudioFeedbackService audioFeedbackService;
-    private TransportController transportController;
     private FacilityGreetingController facilityGreetingController;
+    public event System.Action<string> FacilityEntered;
     private RectTransform facilityGreetingOverlay;
     private Text facilityGreetingTitle;
     private Text facilityGreetingDialogue;
     private Image facilityGreetingPortrait;
     private string pendingFacilityKey;
     private System.Action pendingFacilityDestination;
-    private RectTransform transportOverlay;
-    private RectTransform transportContent;
-    private Text transportFooterText;
-    private ExpeditionController expeditionController;
-    private RectTransform expeditionOverlay;
-    private RectTransform expeditionContent;
 
     // Aliases into the shared palette (UITheme) so the many partial files
     // of this class can keep their existing short references.
@@ -240,7 +302,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             partyManager,
             merchantInventory,
             progressionManager,
-            CharacterEquipmentController.GetEquipmentDisplayName);
+            CharacterEquipmentController.GetEquipmentDisplayName,
+            dungeonExpeditionManager);
         hireAndPartyController = new HireAndPartyController(
             hireManager,
             partyManager,
@@ -249,7 +312,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             healingManager,
             townProgressState,
             saveManager,
-            transportManager,
             message => statusText.text = message,
             () => RefreshPage(hirePage),
             () => RefreshPage(companyPage),
@@ -269,11 +331,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             RefreshUI,
             label => inventoryFilterButton.GetComponentInChildren<Text>().text = label,
             label => equipmentSortButton.GetComponentInChildren<Text>().text = label);
-        transportController = new TransportController(
-            transportManager, merchantInventory, hireManager, partyManager,
-            townProgressState, marketPriceManager,
-            message => statusText.text = message,
-            RefreshTransportOverlay);
         remoteSaleController = new RemoteSaleController(
             remoteSaleManager,
             merchantInventory,
@@ -281,10 +338,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             message => statusText.text = message,
             RefreshRemoteSaleOverlay);
         facilityGreetingController = new FacilityGreetingController();
-        expeditionController = new ExpeditionController(
-            dungeonExpeditionManager, dungeonRunManager, hireManager,
-            partyManager, transportManager, message => statusText.text = message,
-            RefreshExpeditionOverlay);
         characterEquipmentController = new CharacterEquipmentController(
             merchantData,
             merchantInventory,
@@ -373,12 +426,16 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             marketStockManager,
             blacksmithManager,
             saveManager,
+            roadCargoSession,
             message => statusText.text = message,
             ShowTownMap,
             ShowWorldMap,
             message =>
             {
                 travelConfirmationText.text = message;
+                selectedTravelCargo.Clear();
+                selectedTravelCompanions.Clear();
+                RefreshTravelCargoSelection();
                 travelConfirmationOverlay.SetAsLastSibling();
                 travelConfirmationOverlay.gameObject.SetActive(true);
             },
@@ -426,7 +483,13 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
                                FindObjectOfType<StoryProgressManager>();
         if (storyProgressManager != null)
         {
-            storyProgressManager.MilestoneCompleted += HandleStoryMilestoneCompleted;
+            storyProgressManager.PresentationQueued += HandleStoryPresentationQueued;
+        }
+        onboardingGuideController = GetComponent<OnboardingGuideController>() ??
+            FindObjectOfType<OnboardingGuideController>();
+        if (onboardingGuideController != null)
+        {
+            onboardingGuideController.StateChanged += HandleOnboardingGuideStateChanged;
         }
         merchantData.GoldChanged += HandleGoldChanged;
         merchantData.ProgressionChanged += HandleProgressionChanged;
@@ -440,17 +503,17 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         dungeonRunManager.DungeonStateChanged += HandleDungeonStateChanged;
         dungeonRunManager.DungeonCompleted += HandleDungeonCompleted;
         healingManager.HealingChanged += HandleHealingChanged;
+        trainingGroundManager.TrainingChanged += HandleTrainingGroundChanged;
+        trainingGroundManager.TrainingCompleted += HandleTrainingCompleted;
         merchantInventory.InventoryChanged += HandleInventoryChanged;
         dayManager.DayChanged += HandleDayChanged;
+        dayManager.DayChangeFinalized += HandleDayChangeFinalized;
+        dayManager.DaysAdvanceCompleted += HandleDaysAdvanceCompleted;
         marketPriceManager.PricesChanged += HandlePricesChanged;
         marketStockManager.StockChanged += HandleMarketStockChanged;
         blacksmithManager.CraftingChanged += HandleCraftingChanged;
-        transportManager.TransportChanged += HandleTransportChanged;
-        transportManager.TransportEventOccurred += HandleTransportEvent;
         remoteSaleManager.RemoteSaleChanged += HandleRemoteSaleChanged;
         remoteSaleManager.RemoteSaleEventOccurred += HandleRemoteSaleEvent;
-        dungeonExpeditionManager.ExpeditionChanged += HandleExpeditionChanged;
-        dungeonExpeditionManager.ExpeditionEventOccurred += HandleExpeditionEvent;
         if (progressionManager != null)
         {
             progressionManager.ProgressionChanged += HandleProgressionChanged;
@@ -576,6 +639,12 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             dungeonRunManager = gameObject.AddComponent<DungeonRunManager>();
         }
 
+        if (dungeonExpeditionManager == null)
+        {
+            dungeonExpeditionManager = GetComponent<DungeonExpeditionManager>() ??
+                                       FindObjectOfType<DungeonExpeditionManager>();
+        }
+
         if (healingManager == null)
         {
             healingManager = GetComponent<HealingManager>();
@@ -589,6 +658,23 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         if (healingManager == null)
         {
             healingManager = gameObject.AddComponent<HealingManager>();
+        }
+
+        if (roadCargoSession == null)
+        {
+            roadCargoSession = GetComponent<RoadCargoSession>() ??
+                FindObjectOfType<RoadCargoSession>();
+        }
+
+        if (trainingGroundManager == null)
+        {
+            trainingGroundManager = GetComponent<TrainingGroundManager>() ??
+                                  FindObjectOfType<TrainingGroundManager>();
+        }
+
+        if (trainingGroundManager == null)
+        {
+            trainingGroundManager = gameObject.AddComponent<TrainingGroundManager>();
         }
 
         if (merchantData == null)
@@ -638,20 +724,10 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
                 FindObjectOfType<TownProgressState>();
         }
 
-        if (transportManager == null)
-        {
-            transportManager = GetComponent<TransportManager>() ??
-                               FindObjectOfType<TransportManager>();
-        }
         if (remoteSaleManager == null)
         {
             remoteSaleManager = GetComponent<RemoteSaleManager>() ??
                                 FindObjectOfType<RemoteSaleManager>();
-        }
-        if (dungeonExpeditionManager == null)
-        {
-            dungeonExpeditionManager = GetComponent<DungeonExpeditionManager>() ??
-                                       FindObjectOfType<DungeonExpeditionManager>();
         }
     }
 
@@ -731,19 +807,9 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             hasAllReferences = false;
         }
 
-        if (transportManager == null)
-        {
-            Debug.LogError("Simple hire UI is missing TransportManager.", this);
-            hasAllReferences = false;
-        }
         if (remoteSaleManager == null)
         {
             Debug.LogError("Simple hire UI is missing RemoteSaleManager.", this);
-            hasAllReferences = false;
-        }
-        if (dungeonExpeditionManager == null)
-        {
-            Debug.LogError("Simple hire UI is missing DungeonExpeditionManager.", this);
             hasAllReferences = false;
         }
 
@@ -859,8 +925,12 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             battleManager.BattleCompleted -= HandleBattleCompleted;
         }
 
+        CompletePendingRoadBattleOutcome();
+
         if (battleVisualController != null)
         {
+            battleVisualController.PresentationLog -= HandlePresentationLog;
+            battleVisualController.PresentationSound -= HandlePresentationSound;
             battleVisualController.PresentationCompleted -=
                 HandleBattleVisualPresentationCompleted;
         }
@@ -877,6 +947,12 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             healingManager.HealingChanged -= HandleHealingChanged;
         }
 
+        if (trainingGroundManager != null)
+        {
+            trainingGroundManager.TrainingChanged -= HandleTrainingGroundChanged;
+            trainingGroundManager.TrainingCompleted -= HandleTrainingCompleted;
+        }
+
         if (merchantInventory != null)
         {
             merchantInventory.InventoryChanged -= HandleInventoryChanged;
@@ -885,6 +961,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         if (dayManager != null)
         {
             dayManager.DayChanged -= HandleDayChanged;
+            dayManager.DayChangeFinalized -= HandleDayChangeFinalized;
+            dayManager.DaysAdvanceCompleted -= HandleDaysAdvanceCompleted;
         }
 
         if (marketPriceManager != null)
@@ -901,20 +979,10 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         {
             blacksmithManager.CraftingChanged -= HandleCraftingChanged;
         }
-        if (transportManager != null)
-        {
-            transportManager.TransportChanged -= HandleTransportChanged;
-            transportManager.TransportEventOccurred -= HandleTransportEvent;
-        }
         if (remoteSaleManager != null)
         {
             remoteSaleManager.RemoteSaleChanged -= HandleRemoteSaleChanged;
             remoteSaleManager.RemoteSaleEventOccurred -= HandleRemoteSaleEvent;
-        }
-        if (dungeonExpeditionManager != null)
-        {
-            dungeonExpeditionManager.ExpeditionChanged -= HandleExpeditionChanged;
-            dungeonExpeditionManager.ExpeditionEventOccurred -= HandleExpeditionEvent;
         }
         if (progressionManager != null)
         {
@@ -926,7 +994,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         }
         if (storyProgressManager != null)
         {
-            storyProgressManager.MilestoneCompleted -= HandleStoryMilestoneCompleted;
+            storyProgressManager.PresentationQueued -= HandleStoryPresentationQueued;
+        }
+        if (onboardingGuideController != null)
+        {
+            onboardingGuideController.StateChanged -= HandleOnboardingGuideStateChanged;
         }
     }
 
@@ -1047,6 +1119,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         BuildBlacksmithPage();
         BuildInventoryPage();
         BuildJobChangePage();
+        BuildTrainingGroundPage();
 
         if (!view.HasChromeLayout)
         {
@@ -1060,18 +1133,25 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
 
         BuildCharacterDetailOverlay();
         BuildEquipmentDetailOverlay();
+        BuildEquipmentSlotSelectionOverlay();
         BuildEquipmentCollectionOverlay();
         BuildMonsterCollectionOverlay();
         BuildQuestOverlay();
         BuildMerchantStatusOverlay();
         BuildTravelConfirmationOverlay();
+        BuildReleaseConfirmationOverlay();
+        BuildContractChangeConfirmationOverlay();
+        BuildStorageUpgradeConfirmationOverlay();
+        BuildSellOnlyConfirmationOverlay();
+        BuildSellQuantityOverlay();
+        BuildItemDetailOverlay();
+        BuildPromotionPreviewOverlay();
         BuildGlobalMenuOverlay();
         BuildDailyResultOverlay();
         BuildFacilityGreetingOverlay();
-        BuildTransportOverlay();
         BuildRemoteSaleOverlay();
-        BuildExpeditionOverlay();
         BuildTutorialOverlay();
+        BuildOnboardingGuideBanner();
     }
 
     private void ShowWorldMap(int worldMapIndex)

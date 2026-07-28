@@ -12,6 +12,7 @@ public sealed class MarketPageUI : ListPageUIBase
     private Action<Button, MarketStockEntry> registerBuyButton;
     private Text demandSummaryText;
     private Func<string> demandSummaryProvider;
+    private Action<MarketStockEntry> detailAction;
 
     public void ConfigureMarket(
         Font font,
@@ -27,7 +28,8 @@ public sealed class MarketPageUI : ListPageUIBase
         Action<MarketStockEntry> targetBuyAction,
         Action<Button, MarketStockEntry> targetRegisterBuyButton,
         Text targetDemandSummaryText,
-        Func<string> targetDemandSummaryProvider)
+        Func<string> targetDemandSummaryProvider,
+        Action<MarketStockEntry> targetDetailAction)
     {
         Configure(
             font,
@@ -45,6 +47,7 @@ public sealed class MarketPageUI : ListPageUIBase
         registerBuyButton = targetRegisterBuyButton;
         demandSummaryText = targetDemandSummaryText;
         demandSummaryProvider = targetDemandSummaryProvider;
+        detailAction = targetDetailAction;
     }
 
     public override void Refresh()
@@ -56,7 +59,7 @@ public sealed class MarketPageUI : ListPageUIBase
 
         RebuildRows(
             stockProvider?.Invoke(),
-            112f,
+            140f,
             430f,
             "本日仕入れ可能な商品はありません。",
             shouldShowEntry,
@@ -74,35 +77,55 @@ public sealed class MarketPageUI : ListPageUIBase
                 top,
                 RowColor,
                 FrameColor);
+        row.offsetMin = new Vector2(0f, top - 128f);
+
+        CreateItemIcon(row, item);
 
         CreateText(
             row,
             $"{JapaneseDisplayText.GetItemName(item)} x{entry.Quantity}",
             RowFont,
-            22,
+            21,
             FontStyle.Bold,
             TextAnchor.MiddleLeft,
-            new Vector2(18f, -42f),
-            new Vector2(-160f, -12f),
+            new Vector2(82f, -30f),
+            new Vector2(-330f, -6f),
             RowTextColor);
 
-        string details =
-            EquipmentRankPresentation.GetRichText(item) + "  |  " +
-            $"{JapaneseDisplayText.GetMercenaryClass(item.requiredClass)}用  |  " +
-            $"{JapaneseDisplayText.GetEquipmentSlot(item.equipmentSlot)}  |  " +
-            $"攻撃+{item.bonusAttack}  " +
-            $"防御+{item.bonusDefense}  HP+{item.bonusMaxHP}  |  " +
-            $"仕入れ {entry.BuyPrice} G";
         CreateText(
             row,
-            details,
+            $"{EquipmentRankPresentation.GetRichText(item)}  |  " +
+            $"{JapaneseDisplayText.GetMercenaryClass(item.requiredClass)}用  |  " +
+            $"{JapaneseDisplayText.GetEquipmentSlot(item.equipmentSlot)}",
             RowFont,
             13,
             FontStyle.Normal,
             TextAnchor.MiddleLeft,
-            new Vector2(18f, -76f),
-            new Vector2(-160f, -48f),
+            new Vector2(82f, -50f),
+            new Vector2(-330f, -32f),
             MutedTextColor);
+
+        CreateText(
+            row,
+            $"<b>ステータス</b>  攻撃+{item.bonusAttack}  防御+{item.bonusDefense}  HP+{item.bonusMaxHP}",
+            RowFont,
+            13,
+            FontStyle.Normal,
+            TextAnchor.MiddleLeft,
+            new Vector2(82f, -78f),
+            new Vector2(-330f, -56f),
+            RowTextColor);
+
+        CreateText(
+            row,
+            $"<b>仕入れ</b>  {entry.BuyPrice} G",
+            RowFont,
+            13,
+            FontStyle.Normal,
+            TextAnchor.MiddleLeft,
+            new Vector2(82f, -104f),
+            new Vector2(-330f, -82f),
+            RowTextColor);
 
         Button buyButton = CreateActionButton(
             row,
@@ -114,5 +137,35 @@ public sealed class MarketPageUI : ListPageUIBase
             () => buyAction?.Invoke(entry));
         buyButton.interactable = canBuyEntry?.Invoke(entry) == true;
         registerBuyButton?.Invoke(buyButton, entry);
+
+        Button detailButton = CreateActionButton(
+            row,
+            "詳細",
+            RowFont,
+            ButtonColor,
+            FrameColor,
+            ButtonTextColor,
+            () => detailAction?.Invoke(entry));
+        RectTransform detailRect = detailButton.GetComponent<RectTransform>();
+        detailRect.anchoredPosition = new Vector2(-160f, 0f);
+    }
+
+    private void CreateItemIcon(RectTransform row, ItemDataSO item)
+    {
+        RectTransform iconRect = CreateUIObject("Item Icon", row);
+        iconRect.anchorMin = new Vector2(0f, 0.5f);
+        iconRect.anchorMax = new Vector2(0f, 0.5f);
+        iconRect.pivot = new Vector2(0f, 0.5f);
+        iconRect.sizeDelta = new Vector2(54f, 54f);
+        iconRect.anchoredPosition = new Vector2(18f, 0f);
+        Image icon = iconRect.gameObject.AddComponent<Image>();
+        Sprite sprite = ItemPresentationService.ResolveSprite(item);
+        icon.sprite = sprite;
+        icon.color = sprite != null ? Color.white : new Color(0.2f, 0.2f, 0.2f, 1f);
+        if (sprite == null)
+        {
+            CreateText(iconRect, "?", RowFont, 28, FontStyle.Bold,
+                TextAnchor.MiddleCenter, Vector2.zero, Vector2.zero, Color.white);
+        }
     }
 }

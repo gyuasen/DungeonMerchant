@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Undead Purification Ward
+  description: "不死者を浄化する力を宿した魔術師用の護符。"
   basePrice: 650
   acquisitionType: 0
   equipmentSlot: 2

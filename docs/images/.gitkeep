@@ -1,0 +1,3 @@
+# このフォルダには README 掲載用のスクリーンショットを置きます。
+# 想定ファイル名: town.png / battle.png / inventory.png / dungeon.png
+# (ゲーム本体の Resources とは別管理。.meta は不要)

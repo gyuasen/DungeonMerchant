@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 1
   rarity: 0
   materialClassification: 0
-  description: Rank 4 Warrior Accessory
+  description: "ランク4戦士用の装飾。"
   basePrice: 650
   acquisitionType: 0
   equipmentSlot: 2

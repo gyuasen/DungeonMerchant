@@ -81,6 +81,7 @@ public class MercenarySkillDefinition
     public int MagicCost;
     public float Power;
     public string Description;
+    public string DisplayDescription;
     public int UnlockLevel = 1;
     public bool IsPassive;
     public int BonusMaxHP;
@@ -97,6 +98,38 @@ public static class MercenaryClassProgression
     public const int PromotionLevel = 15;
     public const int AdvancedLevelCap = 30;
     public const int SpecialLevelCap = 50;
+
+    public static int GetPassiveBonus(
+        MercenaryClass value,
+        int level,
+        System.Func<MercenarySkillDefinition, int> selector)
+    {
+        int total = 0;
+        foreach (MercenarySkillDefinition skill in GetSkillProgression(value))
+        {
+            if (skill.IsPassive && level >= skill.UnlockLevel)
+            {
+                total += selector(skill);
+            }
+        }
+        return total;
+    }
+
+    public static float GetPassiveBonusFloat(
+        MercenaryClass value,
+        int level,
+        System.Func<MercenarySkillDefinition, float> selector)
+    {
+        float total = 0f;
+        foreach (MercenarySkillDefinition skill in GetSkillProgression(value))
+        {
+            if (skill.IsPassive && level >= skill.UnlockLevel)
+            {
+                total += selector(skill);
+            }
+        }
+        return total;
+    }
 
     public static MercenaryClass[] GetBaseClasses()
     {
@@ -196,13 +229,19 @@ public static class MercenaryClassProgression
         {
             case MercenaryClass.Warrior:
                 return Skill(MercenarySkillId.Taunt, "挑発", 35, 0f,
-                    "敵の攻撃を自分に引きつける。");
+                    "敵の攻撃を自分に引きつける。",
+                    displayDescription:
+                        "敵の攻撃を自分に引きつけます。ダメージを与えるスキルではありませんが、味方を守りたい場面で有効です。");
             case MercenaryClass.Archer:
                 return Skill(MercenarySkillId.DoubleShot, "連射", 45, 0.75f,
-                    "低威力の射撃を2回行う。");
+                    "低威力の射撃を2回行う。",
+                    displayDescription:
+                        "攻撃力を少し下げた射撃を2回行います。通常攻撃より有効な対象がいる場合に自動発動します。");
             case MercenaryClass.Mage:
                 return Skill(MercenarySkillId.Fireball, "火球", 50, 1.65f,
-                    "敵1体へ高威力の魔法攻撃を行う。");
+                    "敵1体へ高威力の魔法攻撃を行う。",
+                    displayDescription:
+                        "敵1体に高威力の魔法攻撃を行います。通常攻撃では倒しきれない相手への決定打になります。");
             case MercenaryClass.Priest:
                 return Skill(MercenarySkillId.Heal, "治癒", 40, 1.2f,
                     "最も傷ついた味方を回復する。");
@@ -397,16 +436,27 @@ public static class MercenaryClassProgression
         switch (baseClass)
         {
             case MercenaryClass.Warrior:
+                result.Add(Passive("基礎体力", 2, "最大HP+10、防御+3。",
+                    hp: 10, defense: 3,
+                    displayDescription:
+                        "最大HPが10、防御が3上昇します。前衛として長く戦えるようになります。"));
                 result.Add(Passive("堅守", 5, "防御+3。", defense: 3));
                 result.Add(Passive("闘志", 10, "攻撃+3。", attack: 3));
                 break;
             case MercenaryClass.Archer:
+                result.Add(Passive("速射訓練", 2, "攻撃速度+0.05。",
+                    attackSpeed: 0.05f,
+                    displayDescription:
+                        "攻撃速度が0.05上昇します。行動順が早くなり、魔力の回復機会も増えやすくなります。"));
                 result.Add(Passive("鷹の目", 5, "クリティカル率+5%。",
                     critical: 0.05f));
                 result.Add(Passive("軽足", 10, "回避率+4%。",
                     evasion: 0.04f));
                 break;
             case MercenaryClass.Mage:
+                result.Add(Passive("魔力集中", 2, "攻撃+4。", attack: 4,
+                    displayDescription:
+                        "攻撃が4上昇します。通常攻撃と火球の両方の威力が上がります。"));
                 result.Add(Passive("魔力循環", 5, "最大魔力+15。",
                     magic: 15));
                 result.Add(Passive("魔導増幅", 10, "攻撃+4。",
@@ -479,7 +529,7 @@ public static class MercenaryClassProgression
             case MercenaryClass.Rogue:
                 skills.Add(Passive(name, level,
                     $"速度+{0.02f * tier:0.00}、回避率+{2 * tier}%。",
-                    speed: 0.02f * tier, evasion: 0.02f * tier));
+                    attackSpeed: 0.02f * tier, evasion: 0.02f * tier));
                 break;
             default:
                 skills.Add(Passive(name, level,
@@ -522,21 +572,23 @@ public static class MercenaryClassProgression
         int attack = 0,
         int defense = 0,
         int magic = 0,
-        float speed = 0f,
+        float attackSpeed = 0f,
         float critical = 0f,
-        float evasion = 0f)
+        float evasion = 0f,
+        string displayDescription = null)
     {
         return new MercenarySkillDefinition
         {
             Name = name,
             UnlockLevel = level,
             Description = description,
+            DisplayDescription = displayDescription ?? description,
             IsPassive = true,
             BonusMaxHP = hp,
             BonusAttack = attack,
             BonusDefense = defense,
             BonusMaxMagicPower = magic,
-            BonusAttackSpeed = speed,
+            BonusAttackSpeed = attackSpeed,
             BonusCriticalRate = critical,
             BonusEvasionRate = evasion
         };
@@ -544,12 +596,15 @@ public static class MercenaryClassProgression
 
     private static MercenarySkillDefinition Skill(
         MercenarySkillId id, string name, int cost, float power,
-        string description, int unlockLevel = 1)
+        string description, int unlockLevel = 1,
+        string displayDescription = null)
     {
         return new MercenarySkillDefinition
         {
             Id = id, Name = name, MagicCost = cost,
-            Power = power, Description = description, UnlockLevel = unlockLevel
+            Power = power, Description = description,
+            DisplayDescription = displayDescription ?? description,
+            UnlockLevel = unlockLevel
         };
     }
 }

@@ -119,6 +119,15 @@ public sealed class InventoryPageUI : ListPageUIBase
                 top,
                 RowColor,
                 FrameColor);
+        Canvas canvas = row.GetComponentInParent<Canvas>();
+        GenericHoverTooltipTrigger tooltip =
+            row.gameObject.AddComponent<GenericHoverTooltipTrigger>();
+        tooltip.Configure(
+            ItemUsageTextBuilder.Build(item),
+            RowFont,
+            canvas != null ? canvas.transform as RectTransform : ListRoot);
+
+        CreateItemIcon(row, item);
 
         CreateText(
             row,
@@ -127,7 +136,7 @@ public sealed class InventoryPageUI : ListPageUIBase
             22,
             FontStyle.Bold,
             TextAnchor.MiddleLeft,
-            new Vector2(18f, -42f),
+            new Vector2(82f, -42f),
             new Vector2(-160f, -12f),
             RowTextColor);
 
@@ -285,5 +294,24 @@ public sealed class InventoryPageUI : ListPageUIBase
     private static string FormatSigned(float value)
     {
         return value >= 0f ? $"+{value:0.##}" : value.ToString("0.##");
+    }
+
+    private void CreateItemIcon(RectTransform row, ItemDataSO item)
+    {
+        RectTransform iconRect = CreateUIObject("Item Icon", row);
+        iconRect.anchorMin = new Vector2(0f, 0.5f);
+        iconRect.anchorMax = new Vector2(0f, 0.5f);
+        iconRect.pivot = new Vector2(0f, 0.5f);
+        iconRect.sizeDelta = new Vector2(54f, 54f);
+        iconRect.anchoredPosition = new Vector2(18f, 0f);
+        Image icon = iconRect.gameObject.AddComponent<Image>();
+        Sprite sprite = ItemPresentationService.ResolveSprite(item);
+        icon.sprite = sprite;
+        icon.color = sprite != null ? Color.white : new Color(0.2f, 0.2f, 0.2f, 1f);
+        if (sprite == null)
+        {
+            CreateText(iconRect, "?", RowFont, 28, FontStyle.Bold,
+                TextAnchor.MiddleCenter, Vector2.zero, Vector2.zero, Color.white);
+        }
     }
 }

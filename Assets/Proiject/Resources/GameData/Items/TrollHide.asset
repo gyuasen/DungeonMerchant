@@ -17,7 +17,7 @@ MonoBehaviour:
   itemType: 0
   rarity: 1
   materialClassification: 2
-  description: Thick troll hide used in sturdy crafting.
+  description: "魔大陸で採れる、頑丈な細工に用いられる分厚い皮。"
   basePrice: 120
   acquisitionType: 0
   equipmentSlot: 0

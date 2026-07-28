@@ -7,7 +7,8 @@ public class MerchantData : MonoBehaviour
     public const int MaxSkillRank = 50;
 
     [Header("Merchant Status")]
-    [SerializeField, Min(0)] private int gold = 500;
+    // 月次返済の強制徴収で残高が負になり得るため Min 制約は付けない。
+    [SerializeField] private int gold = 500;
     [SerializeField, Min(1)] private int merchantLevel = 1;
     [SerializeField, Min(0)] private int merchantExperience;
     [SerializeField, Min(0)] private int lifetimeGoldEarned;
@@ -18,6 +19,8 @@ public class MerchantData : MonoBehaviour
     [SerializeField, Range(0, MaxSkillRank)] private int logistics;
 
     public int Gold => gold;
+    // 月次返済の強制徴収で残高が負に沈んでいる状態。支出行動とストーリー進行を止める。
+    public bool HasNegativeGold => gold < 0;
     public int MerchantLevel => merchantLevel;
     public int MerchantExperience => merchantExperience;
     public int ExperienceToNextLevel => GetGoldRequiredForLevel(merchantLevel);
@@ -29,12 +32,8 @@ public class MerchantData : MonoBehaviour
     public int Logistics => logistics;
 
     public event Action<int> GoldChanged;
+    public event Action<GoldTransaction> GoldTransactionRecorded;
     public event Action ProgressionChanged;
-
-    private void OnValidate()
-    {
-        gold = Mathf.Max(0, gold);
-    }
 
     public bool CanPay(int amount)
     {
@@ -43,6 +42,43 @@ public class MerchantData : MonoBehaviour
 
     public bool TryPayGold(int amount)
     {
+        return TryPayGold(amount, GoldTransactionReason.Unclassified);
+    }
+
+    public bool TryPayGold(
+        int amount,
+        GoldTransactionReason reason,
+        string detail = null)
+    {
+        return TryPayGold(amount, reason, detail, out _);
+    }
+
+    public bool TryPayGold(
+        int amount,
+        GoldTransactionReason reason,
+        string detail,
+        out string transactionId)
+    {
+        return TryPayGold(amount, reason, detail, out transactionId, null);
+    }
+
+    public bool TryPayGold(
+        int amount,
+        GoldTransactionReason reason,
+        string detail,
+        int accountingDay)
+    {
+        return TryPayGold(amount, reason, detail, out _, accountingDay);
+    }
+
+    private bool TryPayGold(
+        int amount,
+        GoldTransactionReason reason,
+        string detail,
+        out string transactionId,
+        int? accountingDay)
+    {
+        transactionId = null;
         if (amount < 0)
         {
             Debug.LogError("Invalid payment amount.");
@@ -57,16 +93,25 @@ public class MerchantData : MonoBehaviour
 
         gold -= amount;
         GoldChanged?.Invoke(gold);
+        transactionId = RecordGoldTransaction(
+            -amount,
+            reason,
+            detail,
+            accountingDay: accountingDay);
         Debug.Log($"Paid {amount} G. Current gold: {gold} G");
         return true;
     }
 
-    public void PayGold(int amount)
+    public void AddGold(int amount)
     {
-        TryPayGold(amount);
+        AddGold(amount, GoldTransactionReason.Unclassified);
     }
 
-    public void AddGold(int amount)
+    public void AddGold(
+        int amount,
+        GoldTransactionReason reason,
+        string detail = null,
+        string relatedTransactionId = null)
     {
         if (amount < 0)
         {
@@ -78,18 +123,84 @@ public class MerchantData : MonoBehaviour
         lifetimeGoldEarned += amount;
         RecalculateLevelFromEarnings();
         GoldChanged?.Invoke(gold);
+        RecordGoldTransaction(amount, reason, detail, relatedTransactionId);
         Debug.Log($"Gained {amount} G. Current gold: {gold} G");
+    }
+
+    public void AddGold(
+        int amount,
+        GoldTransactionReason reason,
+        string detail,
+        int accountingDay)
+    {
+        AddGoldAtAccountingDay(amount, reason, detail, accountingDay);
+    }
+
+    private void AddGoldAtAccountingDay(
+        int amount,
+        GoldTransactionReason reason,
+        string detail,
+        int accountingDay)
+    {
+        if (amount < 0)
+        {
+            Debug.LogError("Invalid gold reward amount.");
+            return;
+        }
+
+        gold += amount;
+        lifetimeGoldEarned += amount;
+        RecalculateLevelFromEarnings();
+        GoldChanged?.Invoke(gold);
+        RecordGoldTransaction(amount, reason, detail, accountingDay: accountingDay);
+        Debug.Log($"Gained {amount} G. Current gold: {gold} G");
+    }
+
+    // 月次返済の強制徴収。所持金が足りなくても引き、残高を負に沈める。
+    // 通常の TryPayGold と違い CanPay で弾かず、支払い可否をガードしない。
+    public void ForceDeductGold(
+        int amount,
+        GoldTransactionReason reason,
+        string detail = null,
+        int? accountingDay = null)
+    {
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        gold -= amount;
+        GoldChanged?.Invoke(gold);
+        RecordGoldTransaction(-amount, reason, detail, accountingDay: accountingDay);
+        Debug.Log($"Force deducted {amount} G. Current gold: {gold} G");
     }
 
     public void SetGold(int value)
     {
-        gold = Mathf.Max(0, value);
+        // 負の残高もそのまま復元する（マイナス状態のセーブ復元に必要）。
+        gold = value;
         GoldChanged?.Invoke(gold);
     }
 
-    public void AddExperience(int amount)
+    private string RecordGoldTransaction(
+        int signedAmount,
+        GoldTransactionReason reason,
+        string detail,
+        string relatedTransactionId = null,
+        int? accountingDay = null)
     {
-        // Merchant growth is based only on earned gold.
+        DayManager dayManager = GetComponent<DayManager>();
+        int resolvedAccountingDay = accountingDay ??
+            (dayManager != null ? dayManager.CurrentDay : 0);
+        string transactionId = Guid.NewGuid().ToString("N");
+        GoldTransactionRecorded?.Invoke(new GoldTransaction(
+            transactionId,
+            signedAmount,
+            reason,
+            detail,
+            resolvedAccountingDay,
+            relatedTransactionId));
+        return transactionId;
     }
 
     public void RestoreProgression(
@@ -155,12 +266,8 @@ public class MerchantData : MonoBehaviour
 
     public bool IsContractUnlocked(MercenaryContractType type)
     {
-        switch (type)
-        {
-            case MercenaryContractType.Exclusive: return merchantLevel >= 5;
-            case MercenaryContractType.Temporary: return merchantLevel >= 2;
-            default: return true;
-        }
+        return merchantLevel >=
+            MercenaryContractRules.GetRequiredMerchantLevel(type);
     }
 
     public float GetHireSuccessRate()

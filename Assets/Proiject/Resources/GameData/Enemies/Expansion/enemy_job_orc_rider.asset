@@ -23,7 +23,7 @@ MonoBehaviour:
   specialVariantTitle: 
   combatBalanceStage1Applied: 1
   battleSprite: {fileID: 0}
-  battleVisualKey: Grade05_orc_rider
+  battleVisualKey: enemy_job_orc_rider
   maxHP: 212
   attack: 34
   defense: 16
