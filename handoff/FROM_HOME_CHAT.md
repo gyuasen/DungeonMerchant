@@ -1219,6 +1219,25 @@
 - Rank 10鍛冶レシピ3種、Rank 10ダンジョン固有装備3種、Rank 9アビス固有装備3種を追加した。
 - ビルドは警告0・エラー0。Unity Test Runnerと実画面での最終確認が必要。
 
+## 2026-07-22 家側・提出前検証とUX改善バックログ受領（Claude Code）
+
+### 提出前検証（実施済み）
+- **テスト全緑**: EditMode 559件(成功557/失敗0/スキップ2)、PlayMode 8/8。合計567件中565成功、**失敗0**。スキップ2件は`Explicit`属性の手動実行専用アセット検証で不具合ではない。以前失敗報告のあった`LowHpDamageBonus_ActivatesBelowButNotAtThreshold`は現在Passed。
+- Unity Editorを開いたまま実行できた。プロジェクトを非破壊クローンして`-projectPath`をクローンへ向ければ排他ロックを回避できる（Editorを閉じる必要なし）。
+- **セーブ整合性: 新装備・特殊能力の消失リスクなし**。ItemDataSO 226件すべてに`persistentId`あり・重複なし。特殊能力は`ItemDataSO.equipmentEffects`(マスタ側)に保持され`EquipmentInstance`へ複製されないため、**セーブDTO変更もバージョン更新も不要**。`CurrentVersion=28`と`SaveDataMigrator`は整合。
+- **要注意: `EnemyDataSO` 54件が`persistentId`未設定**。現在はアセット名フォールバックで動作するが、**ID付与が完了するまで対象アセット名を変更しないこと**。恒久対応は不変IDの付与＋非空・一意を検証するEditModeテスト追加。
+- **Windowsビルドは未検証**。クローンのパスがMAX_PATH(260文字)超過でDLLを開けず失敗した環境制約で、本体プロジェクト(183文字)では発生しない。コンパイルエラーは0件。**Build Settingsからの手動ビルドが必要**。
+- 新規ドキュメント: `TEST_BASELINE.md` / `MANUAL_TEST_CHECKLIST.md` / `IMPROVEMENT_PROPOSALS.md`（プロジェクト直下）。`README.md`は既存内容を保持したまま、実在しない`SampleSave/game-save.json`の「同梱予定」記述を削除し、テスト件数を実測値へ修正、既知の問題・テスト状況・起動方法を追記。
+- 検証結果のWeb版: https://claude.ai/code/artifact/9cfc45f3-b58d-4220-856b-0ab879d0ed50
+
+### UX改善バックログ（未着手）
+- ユーザーから改善案15件を受領し `handoff/UX_IMPROVEMENT_BACKLOG.md` へ保存。施設説明のオンボーディング、治療院/転職の情報表示、倉庫の一括売却・ツールチップ・装備保管枠、鍛冶屋の段階化、市場/鍛冶屋の画像表示、日次リザルトの色分け、町マップ画像の町別化など。
+- 全件未着手。**着手前にユーザー確認が必要な項目あり**（#1と#15の説明表示方式、#9「奥に進む」の具体化、#11の倉庫容量計算方針）。#11・#15はセーブ構造へ波及する可能性があるため要事前判定。
+- **提出前検証（ビルド・手動確認・スクリーンショット/動画）が優先**。学校側で着手する場合も、まず `handoff/UX_IMPROVEMENT_BACKLOG.md` の「着手にあたっての注意」を読むこと。
+
+### 備考
+- Codexサブエージェントのモデル指定は`gpt-5.6-sol`/`gpt-5.6-luna`は使えるが、**`gpt-5.6-tera`は「ChatGPTアカウントのCodexでは非対応」の400エラーで使用不可**。今回はSol中心で実行した。
+
 ## 2026-07-15 学校側への次回引き継ぎ
 
 - 次回は`handoff/SHARED_PROJECT_STATUS.md`末尾の「次回の学校作業への引き継ぎ（2026-07-15）」を正本として作業する。

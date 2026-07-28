@@ -403,3 +403,107 @@
 - 段階5+6: Sol最終監査。**数値調整不要でバランス完成**。全14セットは崖なし単調増加、特攻同種最大は竜50%(60%上限未達)、被ダメ軽減は全て防具スロットで排他のため最大15%(30%上限未達)、最終盤瞬間倍率(黒鉄+36%/黒土+41.6%)も終盤・種族・瀕死条件付きで許容。旧共有SO(鬼狩り/採掘/NormalRank流用)はドロップ参照から完全除外。テスト1件(EquipmentAvailabilityTests、黒土深淵の旧6点前提)を専用3点前提へ更新(HighestAbyss_UsesOnlyItsDedicatedThreePieceSetへリネーム)。
 - **全14ダンジョン専用装備実装 完了(Sol判定: 提出可能水準)**。専用装備計42点、全14セット効果。build警告0エラー0、GUID/persistentId重複0、EditMode全緑ユーザー確認済み。
 - 画像: docs/IMAGE_ASSET_LISTへ専用装備の図鑑画像(未配置)を全段階で追記済み。戦闘スプライトは装備には不要(図鑑画像のみ)。
+
+## 2026-07-22 家側・提出前検証（テスト/セーブ監査/ビルド）とドキュメント整備
+
+### 実行環境の制約と回避
+- Unity Editor(PID常駐)が対象プロジェクトを開いており、バッチモードのテスト実行が`HandleProjectAlreadyOpenInAnotherInstance`でクラッシュした。**Editorは終了させず**、`Assets`/`Library`/`Packages`/`ProjectSettings`をスクラッチパッドへrobocopyした非破壊クローン上で実行して回避した。検証後にクローンは削除済み。
+- 補足: robocopyの終了コード1は「コピー成功」であり失敗ではない（PowerShellツールが誤って失敗判定する）。
+
+### テスト結果（クローン上でバッチ実行）
+- **EditMode 559件: 成功557 / 失敗0 / スキップ2**（10.15秒、result=Passed）
+- **PlayMode 8件: 成功8 / 失敗0**（result=Passed）
+- 合計567件中565成功、**失敗0件**。
+- スキップ2件は`BalanceExpansionDefinitionTests`の`AllEnemyAssets_HaveAssignedRace`と`SlimeRaceAssets_ContainBaseFourPlusNineVariants`。いずれも`Explicit`属性付きで、Editorツール(`Assign Missing Races` / `Build Balance Expansion Assets`)の実行が前提のアセット検証。バッチ実行では自動除外される仕様であり不具合ではない。
+- 過去に失敗報告のあった`BalanceExpansionSpecialEquipmentTests.LowHpDamageBonus_ActivatesBelowButNotAtThreshold`は**現在Passed**。再発監視対象として記録。
+- 新規ドロップ装備・特殊能力は`DungeonLimitedEquipmentStage1Tests.ReorganizedDungeon_UsesItsThreeDedicatedEquipmentDrops`および`ExistingDungeonEquipmentStage4Tests.ExistingDungeon_DropsOnlyItsThreeSetItemsWithSpecifiedWeaponEffect`でPassed。
+
+### セーブデータ整合性監査（Sol、read-only）
+新装備・特殊能力の追加によるセーブ破損リスクを検証。**結論: 消失リスクなし**。
+- `IPersistentGameAsset`実装は5型(ItemDataSO/MercenaryDataSO/MercenaryArchetypeSO/EnemyDataSO/DungeonDataSO)、serializedフィールド名はすべて`persistentId`。`EquipmentRecipeSO`は非実装。
+- 対象アセット355件を`.meta`のGUIDと`m_Script`照合で機械集計。**ItemDataSO 226件はすべて`persistentId`設定済み・重複なし**。
+- **特殊能力は`EquipmentInstance`へ複製保存されない**。`EquipmentInstance.EquipmentEffects`は常に`baseItem.equipmentEffects`を返すため、`baseItemPersistentId`から`ItemDataSO`を引き直せば復元される。**セーブDTOの変更もバージョン更新も不要**。
+- `SavedEquipmentInstance`の保存項目: townIndex / instanceId / baseItemAssetName / baseItemPersistentId / quality / enhancementLevel / isLocked / modifiers(type,value)。
+- `GameSaveData.CurrentVersion=28`、`SaveDataMigrator`の最新明示移行も`sourceVersion < 28`対象で**整合**。
+- **潜在リスク: `EnemyDataSO` 54件がserialized `persistentId`未設定**。`EnemyDataSO.PersistentId`は空時に`name`を返すため実行時の返却値は空にならず、実効IDの重複もない。ただし将来アセット名を変更すると図鑑・遭遇状態の復元が壊れる。**暫定: ID付与完了まで対象アセット名を変更しない**。恒久: 不変の一意ID(例`enemy.grade10.blue_slime`)付与+「対象355件のpersistentIdが非空かつ一意」を検証するEditModeテスト追加。
+
+### Windowsビルド検証（未完了・環境制約）
+- クローンへ`CIBuild.BuildWindows`(BuildPipeline.BuildPlayer)を配置して試行したが、`Extracting referenced dlls failed` → `Error building Player: 2 errors`で失敗。
+- **原因はMAX_PATH(260文字)超過**。クローン側の`Library/PackageCache`内DLLのフルパスが283〜352文字となりUnityが開けなかった(`Unity.Collections.LowLevel.ILSupport.dll` / `TextMateSharpPlastic.Grammars.dll`)。**本体プロジェクトでは同ファイルが183文字**で問題なし。
+- `\\?\`長パスプレフィックスでファイル配置自体は可能だが、**Unity側が通常パスでアクセスするため解決しない**。短いパス(`C:\dmbuild-tmp`)への複製はサンドボックスにブロックされた。
+- **コンパイルエラー(`error CS****`)は0件**。スクリプトのビルド自体は通っている。
+- → **Build Settingsからの手動ビルドが必要**（Editorを開いたまま実施可能）。
+
+### 作成・更新したドキュメント
+- 新規 `TEST_BASELINE.md`（プロジェクト直下）: 実行結果、スキップ分類、失敗分類の基準5区分、セーブ監査記録、ビルド検証の顛末、再実行手順。
+- 新規 `MANUAL_TEST_CHECKLIST.md`（同上）: セクション0に新装備のセーブ復元検証を最優先配置、セクション1主要サイクル一周、セクション2動画用の見せ場フロー(踏破→ドロップ→装備→特殊能力発動)、セクション3起動終了、セクション4 Console確認。
+- 更新 `README.md`: **既存内容は保持**し、事実との齟齬のみ修正。(1)実在しない`SampleSave/game-save.json`の「同梱予定です」を削除しセーブ保存先の説明へ置換 (2)「250件以上のEditModeテスト」→実測559件+PlayMode8件 (3)起動方法・動作環境・テスト状況・既知の問題・関連ドキュメントを追記 (4)「今後の予定」を優先度付き着手順へ具体化。`handoff/CLAUDE_WORK_LOG.md`と`LICENSES.txt`は実在を確認し記述維持。
+- 新規 `IMPROVEMENT_PROPOSALS.md`（同上）: コードベース精査に基づく改善案（高6/中5/低1）と費用対効果順の着手トップ5。
+- 検証結果を他環境から閲覧できるようArtifact公開: https://claude.ai/code/artifact/9cfc45f3-b58d-4220-856b-0ab879d0ed50 （既定は非公開。共有はページの共有メニューから）
+
+### 教訓
+- **Unity Editor起動中でもテストは実行できる**。プロジェクトを非破壊クローンして`-projectPath`をクローンへ向ければ排他ロックを回避でき、Editorを閉じてもらう必要がない。ただしクローン先のパス長がMAX_PATHに収まることが条件で、深いTempパスではビルドが通らない。
+- サブエージェント(Codex)のモデル指定は`gpt-5.6-sol`/`gpt-5.6-luna`は通るが、**`gpt-5.6-tera`は「ChatGPTアカウントのCodexでは非対応」の400エラーで使用不可**。今回はSol中心で実行した。config上のtera割当モデルの見直しが必要。
+
+## 2026-07-22 家側・UX改善バックログ受領（未着手）
+
+- ユーザーから改善案15件を受領し、`handoff/UX_IMPROVEMENT_BACKLOG.md` へ原文を保存した。**全件未着手**（この時点では設計・実装なし、記録が目的）。
+- 分類: 説明・オンボーディング3件(#1施設説明/#13従業員の言葉を起動時1回/#15施設初回訪問時の説明)、傭兵・治療・転職3件(#2治療院で傭兵詳細/#3転職先ステータス表示/#7回復必要な傭兵のみ表示)、倉庫・装備管理5件(#4倉庫拡張の確認UI/#5一括売却/#6ホバーで詳細/#10枠クリックで装備選択/#11装備の保管枠分離)、市場・鍛冶屋2件(#9鍛冶屋の段階化/#12画像表示)、表示・演出2件(#8日次リザルトの色分け/#14町マップ画像の町別化)。
+- **着手前にユーザー確認が必要**: #1と#15の方式選択（新規開始時にまとめて表示するか、施設ごと初回訪問時か、併用か）、#9「奥に進む」の具体化（階層UI/解放段階/商人レベル連動）、#11の倉庫容量計算方針（装備枠を容量に含めるか）。
+- **セーブ波及の可能性**: #11（装備の保管枠分離→`ProgressionManager`/`MerchantInventory`の容量判定）、#15（初回訪問フラグの永続化）。着手前に`CurrentVersion=28`からの更新要否を判定すること。#13は「ゲーム起動時に一回」＝セッション単位の抑制であり永続化不要と読める。
+- **優先順位**: 提出前検証（ビルド・手動確認・スクリーンショット/動画）が先。本バックログは提出後または余力がある場合に着手する。
+
+### 2026-07-22 追記: UX改善バックログへ2件追加（#16/#17）
+
+- ユーザー追加提案: **#16 装備以外のアイテムの図鑑をメニューに追加**、**#17 タイトル画面に戻るボタンをメニューに追加**。`handoff/UX_IMPROVEMENT_BACKLOG.md` の「F. 図鑑・メニュー」節へ記録。バックログは計17件。
+- #16の注意: 既存`BookPageUI`は装備図鑑・魔物図鑑で共用のため**改変せず兄弟コンポーネントとして追加**する方針を踏襲（装備の特殊ページ実装時と同じ判断）。発見管理は装備=`MerchantInventory.HasDiscoveredEquipment`(discoveredEquipmentPersistentIds)、魔物=`MonsterCodexManager`(encounteredEnemyIds、v25追加)。**アイテム用の発見管理が既存に無ければセーブ構造追加が必要**でv28→v29とマイグレーションを伴う。着手前に既存流用の可否を確認すること。
+- #17の注意: タイトルは専用シーン分離済み(`Scenes/Title.unity`)のため遷移自体は容易。**戻る前のセーブ確定**と誤操作防止の確認ダイアログ、および戦闘中・ダンジョン探索中・輸送/遠征進行中に戻れた場合の状態整合を要確認。
+
+## 2026-07-22 家側・低級強化鉱石の入手経路調査（Luna調査→Sol裏取り）
+
+ユーザー質問への回答として調査。**入手経路はダンジョン踏破報酬のみ**と確定。
+
+### 対象アイテム
+- 表示名「低級強化鉱石」/ 内部名 `Low Grade Enhancement Ore` / persistentId `item.EnhancementOre`
+- アセット: `Assets/Proiject/Resources/GameData/Items/EnhancementOre.asset`、基準価格80G
+- 日本語マッピング: `Assets/Proiject/Scripts/UI/JapaneseDisplayText.cs:171`
+
+### 入手経路（唯一）
+`clearItemRewards` による**完全踏破時の確定付与**（確率抽選ではない）。処理は `DungeonRewardService.GrantClearRewards`。
+
+| ダンジョン | 等級 | 近隣町 | 量 |
+|---|---|---|---:|
+| はじまりの洞窟 (`GameData/Dungeons/DungeonData.asset`) | 低級 | セイル港湾都市 | 1 |
+| ヴェルム黒鉄坑 (`Dungeons/VelmBlackIronMine.asset`) | 上級 | ヴェルム黒鉄都市 | 4 |
+
+### 入手できない経路（すべて実ファイル確認済み）
+- **通常敵ドロップ / ボスドロップ**: なし。全`EnemyDataSO.itemDrops`を対象GUID(`41759c6c3b674e80badbff072ddc6b6d`)で走査し0件。
+- **市場**: なし。`MarketStockManager`は装備または消耗品のみを候補にするため素材は構造的に除外。
+- **鍛冶屋で購入**: なし。`BlacksmithManager`は装備レシピの製作管理のみで鉱石販売処理は存在しない。
+- **鉱脈イベント**: なし。`DungeonEventService`の鉱脈産出は地域別に鉄鉱石／銀鉱石のみ。
+- **共通ドロップルール**: なし。`BattleRewardService`の共通追加は魔石のみ。
+- **遠征部隊**: **なし**（下記の訂正を参照）。
+
+### ⚠ 調査中に発生した誤りと訂正（Sol裏取りで確定）
+- Luna初回調査は「遠征: **あり**（DungeonExpeditionManagerがBattleRewardService経由で通常戦闘報酬を取得するため）」と報告したが、**これは誤り**。同じ回答内で「敵ドロップなし」と述べており内部矛盾していたため裏取りを実施した。
+- Sol検証結果: 遠征成功時に呼ぶのは`GrantNormalEncounterRewards`と`TryDepositLimitedEquipment`の2つのみ（`DungeonExpeditionManager.cs:268`）。**`DungeonRewardService.GrantClearRewards`は呼ばれず、`clearItemRewards`（踏破報酬）は一切付与されない**。
+- 遠征が付与するのは①敵の`itemDrops`抽選 ②敵グレード対応魔石30% ③限定装備（通常確率の0.5倍）のみ。さらに`CalculateVictoryRewards`へ`fallbackItem = null`を明示的に渡しているため（`DungeonExpeditionManager.cs:298,303`）補填アイテムもない。
+- したがって、どの敵も本鉱石を落とさない以上**遠征では入手不可能**。
+- **教訓**: サブエージェントの回答に内部矛盾（「Aなし」かつ「A経由のBあり」）がある場合は必ず裏取りすること。今回はLuna（簡易調査）→Sol（裏取り）の二段で検出できた。
+
+### 5等級の対応と用途
+| 等級 | アセット | 強化対象 | 踏破報酬ダンジョン・量 |
+|---|---|---|---|
+| 低級 | `EnhancementOre` | +1〜+2 | はじまりの洞窟1、ヴェルム黒鉄坑4 |
+| 下級 | `LowerGradeEnhancementOre` | +3〜+4 | 封じられた廃坑2 |
+| 中級 | `MiddleGradeEnhancementOre` | +5〜+6 | 霧の古代遺跡・翠樹族の集落跡・竜鱗峡谷 各3 |
+| 上級 | `UpperGradeEnhancementOre` | +7〜+8 | グラード天嶺砦4、熔炉防衛区5、奈落境門6 |
+| 最上級 | `HighestGradeEnhancementOre` | +9〜+10 | 終焉の黒土深淵6 |
+
+- 強化時の等級選択は `MerchantInventory.GetEnhancementMaterial`（`MerchantInventory.cs:446`）、必要個数は `EquipmentInstance.GetEnhancementMaterialAmount()`、消費は `MerchantInventory.cs:132`。
+- **鍛冶レシピ25種でも材料として消費**: Rank4武器3種=各1、Beast Hunter Bow=1、Dragonbane Blade=3、Rank5武器3種=各2、Rank6の9種=各3、Rank7の9種=各4。レシピは`Resources/GameData/Blacksmith/Expansion/`配下。
+
+### ⚠ 検出したバランス懸念（未対応・要判断）
+- **低級強化鉱石は供給が極端に不足している可能性がある**。入手源は踏破報酬2箇所のみで**総供給5個**（はじまりの洞窟1＋ヴェルム黒鉄坑4、いずれも踏破1回あたり）。一方、消費先は装備強化（+1〜+2）に加えて**鍛冶レシピ25種**（1レシピあたり1〜4個）と非常に多い。
+- 踏破報酬は完全踏破のたびに再取得できるのか、初回のみかを確認したうえで、供給量または消費量の調整要否をユーザーが判断すること。
+- 他等級も同様に「入手＝踏破報酬のみ」の構造のため、同じ懸念が当てはまる可能性がある。

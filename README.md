@@ -44,19 +44,17 @@ DungeonMerchantは、**商人として傭兵団を運営し、交易・育成・
 ## コードの見どころ
 
 - **UIの責務分離（Controllerパターン抽出）**: 巨大UIクラスからロジックを段階的に抽出しています。`Assets/Proiject/Scripts/UI/EconomyController.cs` が入口としておすすめです
-- **純粋ロジック＋テスト**: `Assets/Proiject/Scripts/Core/WorldMapService.cs` などUnity非依存のロジック層に対し、`Assets/Proiject/Tests/EditMode/` に250件以上のEditModeテストを整備しています（リファクタリング前後の等価性を810通りの組み合わせで検証するパリティテストを含みます）
+- **純粋ロジック＋テスト**: `Assets/Proiject/Scripts/Core/WorldMapService.cs` などUnity非依存のロジック層に対し、`Assets/Proiject/Tests/EditMode/` に559件のEditModeテストを整備しています（リファクタリング前後の等価性を810通りの組み合わせで検証するパリティテストを含みます）。PlayModeテスト8件と合わせて計567件が自動実行され、現時点で失敗0件です（[TEST_BASELINE.md](TEST_BASELINE.md)）
 - **セーブ・マイグレーション**: 永続IDによる参照解決と、旧形式セーブデータを移行する `SaveDataMigrator` を実装しています
 - **AI支援リファクタリングの記録**: `handoff/CLAUDE_WORK_LOG.md` に、AIエージェントと協働した設計判断・リファクタリングの経緯を全て記録しています
 
-## サンプルセーブ
+## セーブデータの保存先
 
-進行済みのサンプルセーブデータをリポジトリの `SampleSave/game-save.json` に同梱予定です。以下の場所に配置してからゲームを起動すると、進行済みの状態からプレイできます。
+プレイ内容は以下の場所にJSON形式で保存されます。新規プレイの場合は初回起動時に自動生成されます。
 
 ```
 %USERPROFILE%\AppData\LocalLow\YugaSen\DungeonMerchant\game-save.json
 ```
-
-<!-- TODO: SampleSave/game-save.json を配置したら「同梱予定です」を「同梱しています」に変更し、このコメントを削除 -->
 
 ---
 
@@ -179,17 +177,90 @@ AIとの作業経緯・設計判断の記録は `handoff/` ディレクトリに
 
 ---
 
+# 起動方法・動作環境
+
+## Unity Editor で実行する
+
+1. Unity Hub の「Add project from disk」からリポジトリルートを選択する
+2. **Unity 2022.3.62f3** でプロジェクトを開く
+3. `Assets/Proiject/Scenes/Title.unity` を開く
+4. Play ボタンを押し、タイトル画面から「新しく始める」を選択する
+
+Build Settings には `Title.unity` → `SampleScene.unity` の順でシーンが登録されています。
+
+## 動作環境
+
+|項目|内容|
+|---|---|
+|Unity Editor|2022.3.62f3|
+|対象プラットフォーム|Windows (StandaloneWindows64)|
+|操作デバイス|マウス|
+|セーブ先|`%USERPROFILE%\AppData\LocalLow\YugaSen\DungeonMerchant\game-save.json`|
+|セーブ形式|JSON|
+
+---
+
+# テスト状況
+
+2026-07-22 時点の自動テスト実行結果です。Unity バッチモードで実行しています。
+
+|プラットフォーム|総数|成功|失敗|スキップ|
+|---|---:|---:|---:|---:|
+|EditMode|559|557|0|2|
+|PlayMode|8|8|0|0|
+|**合計**|**567**|**565**|**0**|**2**|
+
+スキップされた2件は `Explicit` 属性を付与した手動実行専用のアセット検証テストであり、不具合ではありません。詳細な内訳・分類・再実行手順は [TEST_BASELINE.md](TEST_BASELINE.md) に記録しています。
+
+---
+
+# 既知の問題
+
+|内容|影響|状態|
+|---|---|---|
+|`EnemyDataSO` 54件で `persistentId` が未設定|実行時はアセット名へフォールバックするため現在の動作に影響なし。実効IDの重複もない。将来アセット名を変更した場合に参照復元が壊れる可能性がある|既知。ID付与が完了するまで対象アセット名を変更しない運用で回避|
+|`BalanceExpansionDefinitionTests` の2件が自動実行から除外|Editorツールによるアセット生成が前提のため `Explicit` 指定。バッチ実行では検証されない|仕様。Test Runner から手動実行で確認可能|
+|`SimpleMercenaryHireUI`（1,129行）、`SaveManager`（1,002行）への責務集中|動作上の不具合ではないが、今後の機能追加で変更影響範囲が広がりやすい|課題として特定済み。段階的改善計画を策定|
+|セーブがファイルへ直接書き込まれ、一時ファイル経由の原子的置換とバックアップを行っていない|書き込み中の異常終了時にセーブデータが破損する可能性がある|課題として特定済み。改善計画に記載|
+
+なお、新規追加したドロップ装備と装備特殊能力については、セーブデータ整合性の監査を実施済みです。`ItemDataSO` 226件すべてに `persistentId` が設定され重複がないこと、特殊能力がマスタ側（`ItemDataSO.equipmentEffects`）に保持されるため個体データの保存形式変更を伴わないこと、`GameSaveData.CurrentVersion = 28` と `SaveDataMigrator` の整合が取れていることを確認しており、**セーブ・再起動・ロードによる装備や特殊能力の消失リスクはありません**。
+
+---
+
 # 今後の予定
 
-- UIクラスの責務分割
-- コードリファクタリング
+機能拡張を重ねた結果、一部のクラスに責務が集中しています。これらを場当たり的に書き換えるのではなく、静的解析と実コードの根拠に基づいて課題を洗い出し、優先度と工数を評価したうえで、既存の自動テストで挙動を維持しながら段階的に改善する計画を策定しました。
+
+着手順（費用対効果で優先度付け）:
+
+1. 倉庫容量判定の fail-open 修正（依存欠落時に容量制限が無効化される箇所）
+2. セーブの原子的書き込みと破損時の復旧経路の追加
+3. Bootstrap の初期化順・イベント購読タイミングの固定
+4. `SimpleMercenaryHireUI` の Presenter/View 分割（1画面ずつ段階適用）
+5. `FindObjectOfType` による依存解決の Composition Root への集約
+
+その他の予定:
+
 - ゲームバランス調整
 - 新地域・新ダンジョン追加
 - 新職業・新装備追加
 - 演出・エフェクト強化
-- セーブデータ管理改善
+
+改善案の詳細（対象ファイル・行番号・問題点・改善方針・工数見積り）は [IMPROVEMENT_PROPOSALS.md](IMPROVEMENT_PROPOSALS.md) に記載しています。
 
 プロトタイプとして完成した現在のシステムをさらにブラッシュアップし、完成度の高い作品へ発展させることを目標としています。
+
+---
+
+# 関連ドキュメント
+
+|ドキュメント|内容|
+|---|---|
+|[TEST_BASELINE.md](TEST_BASELINE.md)|自動テストの実行結果、スキップ理由の分類、セーブデータ整合性の監査記録、再実行手順|
+|[MANUAL_TEST_CHECKLIST.md](MANUAL_TEST_CHECKLIST.md)|提出前の手動動作確認チェックリスト（セーブ復元、主要ゲームサイクル、Console確認）|
+|[IMPROVEMENT_PROPOSALS.md](IMPROVEMENT_PROPOSALS.md)|コードベース精査に基づく改善案と、優先度・工数を評価した着手計画|
+|[handoff/CLAUDE_WORK_LOG.md](handoff/CLAUDE_WORK_LOG.md)|AIエージェントと協働した設計判断・リファクタリングの経緯|
+|[LICENSES.txt](LICENSES.txt)|使用素材のライセンス（ビルド配布時に同梱してください）|
 
 ---
 
