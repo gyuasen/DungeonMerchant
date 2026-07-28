@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -224,6 +225,28 @@ public sealed class DungeonRunManagerTests
         Assert.That(
             dungeonRunManager.HighestUnlockedGrade,
             Is.EqualTo(DungeonGrade.Middle));
+    }
+
+    [Test]
+    public void RestoreProgress_AfterSettingWorldMapIndex_RestoresSelectedDungeon()
+    {
+        DungeonDataSO firstWorldDungeon = CreateDungeon(
+            "FirstWorldDungeon", null, worldMapIndex: 0, nearbyTownIndex: 2);
+        DungeonDataSO selectedDungeon = CreateDungeon(
+            "SecondWorldDungeon", null, worldMapIndex: 1, nearbyTownIndex: 2);
+        typeof(DungeonRunManager)
+            .GetField("availableDungeons", BindingFlags.NonPublic | BindingFlags.Instance)
+            .SetValue(
+                dungeonRunManager,
+                new List<DungeonDataSO> { firstWorldDungeon, selectedDungeon });
+
+        dungeonRunManager.SetCurrentWorldMapIndex(1);
+        dungeonRunManager.RestoreProgress(
+            DungeonGrade.Low,
+            selectedDungeon.name,
+            selectedDungeon.PersistentId);
+
+        Assert.That(dungeonRunManager.SelectedDungeon, Is.SameAs(selectedDungeon));
     }
 
     private DungeonDataSO CreateDungeon(

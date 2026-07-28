@@ -698,6 +698,7 @@ public class SaveManager : MonoBehaviour
         remoteSaleManager?.Restore(data.remoteSaleOrders);
         progressionManager?.Restore(data.progression);
 
+        dungeonRunManager?.SetCurrentWorldMapIndex(townProgressState.CurrentWorldMapIndex);
         dungeonRunManager?.RestoreProgress(
             (DungeonGrade)Mathf.Clamp(
                 data.highestUnlockedDungeonGrade,
@@ -706,7 +707,6 @@ public class SaveManager : MonoBehaviour
             data.selectedDungeonAssetName,
             data.selectedDungeonPersistentId,
             data.dungeonFloorProgress);
-        dungeonRunManager?.SetCurrentWorldMapIndex(townProgressState.CurrentWorldMapIndex);
         dungeonExpeditionManager?.Restore(
             data.dungeonExpeditions,
             mercenaryById);
