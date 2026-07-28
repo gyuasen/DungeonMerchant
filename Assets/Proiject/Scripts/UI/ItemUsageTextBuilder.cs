@@ -8,6 +8,7 @@ public static class ItemUsageTextBuilder
     private static Dictionary<ItemDataSO, List<EquipmentRecipeSO>> recipesByMaterial;
     private static Dictionary<ItemDataSO, List<EnemyDataSO>> enemiesByDropItem;
     private static Dictionary<ItemDataSO, List<DungeonDataSO>> dungeonsByClearReward;
+    private static TownProgressState cachedTownProgressState;
 
     public static string BuildAcquisitionText(ItemDataSO item)
     {
@@ -367,10 +368,14 @@ public static class ItemUsageTextBuilder
 
     private static int? TryGetCurrentTownIndex()
     {
-        TownProgressState townProgressState = UnityEngine.Object.FindObjectOfType<TownProgressState>();
-        return townProgressState != null &&
-               WorldMapService.IsValidTownIndex(townProgressState.CurrentTownIndex)
-            ? townProgressState.CurrentTownIndex
+        if (cachedTownProgressState == null)
+        {
+            cachedTownProgressState = UnityEngine.Object.FindObjectOfType<TownProgressState>();
+        }
+
+        return cachedTownProgressState != null &&
+               WorldMapService.IsValidTownIndex(cachedTownProgressState.CurrentTownIndex)
+            ? cachedTownProgressState.CurrentTownIndex
             : null;
     }
 }
