@@ -96,11 +96,14 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform partyPage;
     private RectTransform healPage;
     private RectTransform battlePage;
+    private readonly SimpleMercenaryHireUIView.BattleViewReferences battleView =
+        new SimpleMercenaryHireUIView.BattleViewReferences();
+    private readonly SimpleMercenaryHireUIView.DungeonViewReferences dungeonView =
+        new SimpleMercenaryHireUIView.DungeonViewReferences();
     private RectTransform roadBattlePage;
     private Text roadBattleRouteText;
     private Button roadContinueButton;
     private Button roadRetreatButton;
-    private RectTransform battleLogPanel;
     private RectTransform dungeonPage;
     private RectTransform marketPage;
     private RectTransform blacksmithPage;
@@ -117,7 +120,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform inventoryList;
     private RectTransform marketList;
     private RectTransform blacksmithList;
-    private RectTransform dungeonSelectionList;
     private Button hireTabButton = null;
     private Button mapButton;
     private Button townMapButton;
@@ -132,9 +134,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Button hireFacilityButton;
     private Button hiddenIslandRegionButton;
     private Button startBattleButton;
-    private Button battleSpeedButton;
-    private Button battlePauseButton;
-    private Button battleSkipButton;
     private Button roadSpeedButton;
     private Button roadPauseButton;
     private Button roadSkipButton;
@@ -152,17 +151,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Text goldText;
     private Text dayText;
     private Text statusText;
-    private Text battleLogText;
-    private Text battlePageTitleText;
-    private Text battleEncounterText;
-    private Text dungeonStatusText;
-    private Text dungeonEventTitleText;
-    private Text dungeonEventDescriptionText;
-    private Text dungeonEventPreviewText;
-    private RectTransform dungeonEventPanel;
-    private RectTransform dungeonResultPanel;
-    private Text dungeonResultText;
-    private Button dungeonNextFloorButton;
     private Text marketInfoText;
     private Text storageCapacityText;
     private RectTransform storageUpgradeConfirmationOverlay;
@@ -205,9 +193,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Font uiFont;
     private Font uiBodyFont;
     private SimpleMercenaryHireUIFactory uiFactory;
-    private RectTransform battleLogContent;
-    private RectTransform battleLogViewport;
-    private ScrollRect battleLogScrollRect;
     private Coroutine battleLogScrollCoroutine;
     private BattleVisualController battleVisualController;
     private bool hasPendingDungeonCompletion;
@@ -360,8 +345,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             ShowDungeonPage,
             interactable => startBattleButton.interactable = interactable,
             active => startBattleButton.gameObject.SetActive(active),
-            title => battlePageTitleText.text = title,
-            encounter => battleEncounterText.text = encounter,
+            title => battleView.pageTitleText.text = title,
+            encounter => battleView.encounterText.text = encounter,
             () =>
             {
                 RefreshPage(companyPage);
@@ -371,9 +356,9 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             UpdateDungeonEventUI,
             label =>
             {
-                if (battleSpeedButton != null)
+                if (battleView.speedButton != null)
                 {
-                    SetButtonLabel(battleSpeedButton, label);
+                    SetButtonLabel(battleView.speedButton, label);
                 }
                 if (roadSpeedButton != null)
                 {
@@ -382,9 +367,9 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             },
             label =>
             {
-                if (battlePauseButton != null)
+                if (battleView.pauseButton != null)
                 {
-                    SetButtonLabel(battlePauseButton, label);
+                    SetButtonLabel(battleView.pauseButton, label);
                 }
                 if (roadPauseButton != null)
                 {

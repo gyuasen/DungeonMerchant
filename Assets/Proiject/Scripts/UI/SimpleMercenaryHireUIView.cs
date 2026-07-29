@@ -63,6 +63,54 @@ public sealed class SimpleMercenaryHireUIView : MonoBehaviour
     }
 
     /// <summary>
+    /// Groups the battle page widgets: the log panel and its scrolling parts
+    /// plus the playback controls.
+    /// </summary>
+    [Serializable]
+    public sealed class BattleViewReferences
+    {
+        public RectTransform logPanel;
+        public RectTransform logContent;
+        public RectTransform logViewport;
+        public ScrollRect logScrollRect;
+        public Text logText;
+        public Text pageTitleText;
+        public Text encounterText;
+        public Button speedButton;
+        public Button pauseButton;
+        public Button skipButton;
+
+        public bool IsValid =>
+            logPanel != null &&
+            logText != null &&
+            logScrollRect != null;
+    }
+
+    /// <summary>
+    /// Groups the dungeon page widgets: the selection list, the random-event
+    /// panel and the floor-result panel.
+    /// </summary>
+    [Serializable]
+    public sealed class DungeonViewReferences
+    {
+        public RectTransform selectionList;
+        public Text statusText;
+        public Text eventTitleText;
+        public Text eventDescriptionText;
+        public Text eventPreviewText;
+        public RectTransform eventPanel;
+        public RectTransform resultPanel;
+        public Text resultText;
+        public Button nextFloorButton;
+
+        public bool IsValid =>
+            selectionList != null &&
+            statusText != null &&
+            eventPanel != null &&
+            resultPanel != null;
+    }
+
+    /// <summary>
     /// Groups the equipment codex overlay: the shared book page plus the
     /// normal/special tab roots and their tab buttons.
     /// </summary>
