@@ -388,24 +388,24 @@ public partial class SimpleMercenaryHireUI
 
     private void BuildPromotionPreviewOverlay()
     {
-        promotionPreviewOverlay = CreateUIObject("Promotion Preview Overlay", overlayRoot);
-        promotionPreviewOverlay.anchorMin = Vector2.zero;
-        promotionPreviewOverlay.anchorMax = Vector2.one;
-        promotionPreviewOverlay.offsetMin = Vector2.zero;
-        promotionPreviewOverlay.offsetMax = Vector2.zero;
-        promotionPreviewOverlay.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.82f);
-        RectTransform window = CreateUIObject("Promotion Preview Window", promotionPreviewOverlay);
+        promotionPreview.overlay = CreateUIObject("Promotion Preview Overlay", overlayRoot);
+        promotionPreview.overlay.anchorMin = Vector2.zero;
+        promotionPreview.overlay.anchorMax = Vector2.one;
+        promotionPreview.overlay.offsetMin = Vector2.zero;
+        promotionPreview.overlay.offsetMax = Vector2.zero;
+        promotionPreview.overlay.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.82f);
+        RectTransform window = CreateUIObject("Promotion Preview Window", promotionPreview.overlay);
         window.anchorMin = window.anchorMax = window.pivot = new Vector2(0.5f, 0.5f);
         window.sizeDelta = new Vector2(700f, 520f);
         ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
         CreateText(window, "転職確認", 26, FontStyle.Bold, TextAnchor.MiddleCenter,
             new Vector2(28f, -68f), new Vector2(-28f, -18f), ParchmentTextColor);
-        promotionPreviewText = CreateText(window, string.Empty, 15, FontStyle.Normal,
+        promotionPreview.text = CreateText(window, string.Empty, 15, FontStyle.Normal,
             TextAnchor.UpperLeft, new Vector2(34f, -360f), new Vector2(-34f, -82f), ParchmentTextColor);
-        promotionPreviewReasonText = CreateText(window, string.Empty, 14, FontStyle.Bold,
+        promotionPreview.reasonText = CreateText(window, string.Empty, 14, FontStyle.Bold,
             TextAnchor.MiddleCenter, new Vector2(34f, -414f), new Vector2(-34f, -362f), MutedTextColor);
-        promotionPreviewConfirmButton = CreateActionButton(window, "転職する", ConfirmPromotionPreview);
-        RectTransform confirmRect = promotionPreviewConfirmButton.GetComponent<RectTransform>();
+        promotionPreview.confirmButton = CreateActionButton(window, "転職する", ConfirmPromotionPreview);
+        RectTransform confirmRect = promotionPreview.confirmButton.GetComponent<RectTransform>();
         confirmRect.anchorMin = confirmRect.anchorMax = confirmRect.pivot = new Vector2(0.5f, 0f);
         confirmRect.sizeDelta = new Vector2(180f, 48f);
         confirmRect.anchoredPosition = new Vector2(-105f, 25f);
@@ -414,23 +414,23 @@ public partial class SimpleMercenaryHireUI
         cancelRect.anchorMin = cancelRect.anchorMax = cancelRect.pivot = new Vector2(0.5f, 0f);
         cancelRect.sizeDelta = new Vector2(180f, 48f);
         cancelRect.anchoredPosition = new Vector2(105f, 25f);
-        promotionPreviewOverlay.gameObject.SetActive(false);
+        promotionPreview.overlay.gameObject.SetActive(false);
     }
 
     private void ShowPromotionPreview(MercenaryInstance mercenary, MercenaryClass target)
     {
-        promotionPreviewMercenary = mercenary;
-        promotionPreviewTarget = target;
+        promotionPreview.mercenary = mercenary;
+        promotionPreview.target = target;
         PromotionPreview preview = new PromotionPreview(mercenary, target);
         bool special = target == MercenaryClassProgression.GetSpecialClass(mercenary.MercenaryClass);
         ItemDataSO certificate = special && !mercenary.IsUnique ? hireAndPartyController.GetSpecialJobCertificate() : null;
         int certificateCount = certificate != null ? merchantInventory.GetItemAmount(certificate) : 0;
         bool canPromote = mercenary.CanPromote && (!special || mercenary.IsUnique || certificateCount > 0);
-        promotionPreviewText.text = BuildPromotionPreviewText(mercenary, preview, certificate, certificateCount);
-        promotionPreviewReasonText.text = canPromote ? string.Empty : certificate != null ? "転職証が不足しています。" : "転職条件を満たしていません。";
-        promotionPreviewConfirmButton.interactable = canPromote;
-        promotionPreviewOverlay.SetAsLastSibling();
-        promotionPreviewOverlay.gameObject.SetActive(true);
+        promotionPreview.text.text = BuildPromotionPreviewText(mercenary, preview, certificate, certificateCount);
+        promotionPreview.reasonText.text = canPromote ? string.Empty : certificate != null ? "転職証が不足しています。" : "転職条件を満たしていません。";
+        promotionPreview.confirmButton.interactable = canPromote;
+        promotionPreview.overlay.SetAsLastSibling();
+        promotionPreview.overlay.gameObject.SetActive(true);
     }
 
     private string BuildPromotionPreviewText(MercenaryInstance mercenary, PromotionPreview preview, ItemDataSO certificate, int certificateCount)
@@ -463,24 +463,24 @@ public partial class SimpleMercenaryHireUI
 
     private void ConfirmPromotionPreview()
     {
-        if (promotionPreviewMercenary == null ||
-            !promotionPreviewMercenary.CanPromote ||
-            MercenaryClassProgression.GetBaseClass(promotionPreviewTarget) !=
-            promotionPreviewMercenary.OriginalClass ||
-            MercenaryClassProgression.IsBaseClass(promotionPreviewTarget))
+        if (promotionPreview.mercenary == null ||
+            !promotionPreview.mercenary.CanPromote ||
+            MercenaryClassProgression.GetBaseClass(promotionPreview.target) !=
+            promotionPreview.mercenary.OriginalClass ||
+            MercenaryClassProgression.IsBaseClass(promotionPreview.target))
         {
             HidePromotionPreview();
             return;
         }
 
-        hireAndPartyController.PromoteMercenary(promotionPreviewMercenary, promotionPreviewTarget);
+        hireAndPartyController.PromoteMercenary(promotionPreview.mercenary, promotionPreview.target);
         HidePromotionPreview();
     }
 
     private void HidePromotionPreview()
     {
-        promotionPreviewOverlay?.gameObject.SetActive(false);
-        promotionPreviewMercenary = null;
+        promotionPreview.overlay?.gameObject.SetActive(false);
+        promotionPreview.mercenary = null;
     }
 
     private void ConfigureHireListPage(HirePageUI pageUI)
@@ -529,19 +529,19 @@ public partial class SimpleMercenaryHireUI
 
     private void BuildReleaseConfirmationOverlay()
     {
-        releaseConfirmationOverlay = CreateUIObject(
+        releaseConfirmation.overlay = CreateUIObject(
             "Release Confirmation Overlay",
             overlayRoot);
-        releaseConfirmationOverlay.anchorMin = Vector2.zero;
-        releaseConfirmationOverlay.anchorMax = Vector2.one;
-        releaseConfirmationOverlay.offsetMin = Vector2.zero;
-        releaseConfirmationOverlay.offsetMax = Vector2.zero;
-        releaseConfirmationOverlay.gameObject.AddComponent<Image>().color =
+        releaseConfirmation.overlay.anchorMin = Vector2.zero;
+        releaseConfirmation.overlay.anchorMax = Vector2.one;
+        releaseConfirmation.overlay.offsetMin = Vector2.zero;
+        releaseConfirmation.overlay.offsetMax = Vector2.zero;
+        releaseConfirmation.overlay.gameObject.AddComponent<Image>().color =
             new Color(0f, 0f, 0f, 0.82f);
 
         RectTransform window = CreateUIObject(
             "Release Confirmation Window",
-            releaseConfirmationOverlay);
+            releaseConfirmation.overlay);
         window.anchorMin = window.anchorMax = window.pivot =
             new Vector2(0.5f, 0.5f);
         window.sizeDelta = new Vector2(600f, 390f);
@@ -555,7 +555,7 @@ public partial class SimpleMercenaryHireUI
             new Vector2(28f, -72f),
             new Vector2(-28f, -22f),
             ParchmentTextColor);
-        releaseConfirmationText = CreateText(
+        releaseConfirmation.text = CreateText(
             window,
             string.Empty,
             17,
@@ -583,7 +583,7 @@ public partial class SimpleMercenaryHireUI
             new Vector2(0.5f, 0f);
         cancelRect.sizeDelta = new Vector2(180f, 48f);
         cancelRect.anchoredPosition = new Vector2(110f, 26f);
-        releaseConfirmationOverlay.gameObject.SetActive(false);
+        releaseConfirmation.overlay.gameObject.SetActive(false);
     }
 
     private void BuildContractChangeConfirmationOverlay()
@@ -768,10 +768,10 @@ public partial class SimpleMercenaryHireUI
             return;
         }
 
-        releaseConfirmationMercenary = mercenary;
-        releaseConfirmationText.text = BuildReleaseConfirmationText(mercenary);
-        releaseConfirmationOverlay.SetAsLastSibling();
-        releaseConfirmationOverlay.gameObject.SetActive(true);
+        releaseConfirmation.mercenary = mercenary;
+        releaseConfirmation.text.text = BuildReleaseConfirmationText(mercenary);
+        releaseConfirmation.overlay.SetAsLastSibling();
+        releaseConfirmation.overlay.gameObject.SetActive(true);
     }
 
     private string GetReleaseUnavailableReason(MercenaryInstance mercenary)
@@ -819,7 +819,7 @@ public partial class SimpleMercenaryHireUI
 
     private void ConfirmRelease()
     {
-        MercenaryInstance mercenary = releaseConfirmationMercenary;
+        MercenaryInstance mercenary = releaseConfirmation.mercenary;
         HideReleaseConfirmation();
         if (string.IsNullOrEmpty(GetReleaseUnavailableReason(mercenary)))
         {
@@ -833,8 +833,8 @@ public partial class SimpleMercenaryHireUI
 
     private void HideReleaseConfirmation()
     {
-        releaseConfirmationOverlay?.gameObject.SetActive(false);
-        releaseConfirmationMercenary = null;
+        releaseConfirmation.overlay?.gameObject.SetActive(false);
+        releaseConfirmation.mercenary = null;
     }
 
     private void ConfigurePartyListPage(PartyPageUI pageUI)

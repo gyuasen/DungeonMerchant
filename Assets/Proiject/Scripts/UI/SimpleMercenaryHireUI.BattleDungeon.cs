@@ -163,7 +163,7 @@ public partial class SimpleMercenaryHireUI
         roadTitleOutline.effectColor = new Color(0f, 0f, 0f, 0.9f);
         roadTitleOutline.effectDistance = new Vector2(1f, -1f);
 
-        roadBattleRouteText = CreateText(
+        roadBattle.routeText = CreateText(
             roadBattlePage,
             string.Empty,
             16,
@@ -173,76 +173,76 @@ public partial class SimpleMercenaryHireUI
             new Vector2(0f, -42f),
             new Color(1f, 0.94f, 0.76f));
         Outline roadRouteOutline =
-            roadBattleRouteText.gameObject.AddComponent<Outline>();
+            roadBattle.routeText.gameObject.AddComponent<Outline>();
         roadRouteOutline.effectColor = new Color(0f, 0f, 0f, 0.9f);
         roadRouteOutline.effectDistance = new Vector2(1f, -1f);
 
-        roadSpeedButton =
+        roadBattle.speedButton =
             CreateActionButton(
                 roadBattlePage,
                 "速度 x1",
                 () => dungeonBattleController.CycleBattleSpeed());
         RectTransform roadSpeedRect =
-            roadSpeedButton.GetComponent<RectTransform>();
+            roadBattle.speedButton.GetComponent<RectTransform>();
         roadSpeedRect.anchorMin = roadSpeedRect.anchorMax =
             new Vector2(1f, 1f);
         roadSpeedRect.pivot = new Vector2(1f, 1f);
         roadSpeedRect.sizeDelta = new Vector2(100f, 38f);
         roadSpeedRect.anchoredPosition = new Vector2(-270f, -4f);
 
-        roadPauseButton = CreateActionButton(
+        roadBattle.pauseButton = CreateActionButton(
             roadBattlePage,
             "一時停止",
             () => dungeonBattleController.ToggleBattlePause());
         RectTransform roadPauseRect =
-            roadPauseButton.GetComponent<RectTransform>();
+            roadBattle.pauseButton.GetComponent<RectTransform>();
         roadPauseRect.anchorMin = roadPauseRect.anchorMax =
             new Vector2(1f, 1f);
         roadPauseRect.pivot = new Vector2(1f, 1f);
         roadPauseRect.sizeDelta = new Vector2(100f, 38f);
         roadPauseRect.anchoredPosition = new Vector2(-380f, -4f);
 
-        roadSkipButton = CreateActionButton(
+        roadBattle.skipButton = CreateActionButton(
             roadBattlePage,
             "結果まで",
             () => dungeonBattleController.SkipBattleToEnd());
         RectTransform roadSkipRect =
-            roadSkipButton.GetComponent<RectTransform>();
+            roadBattle.skipButton.GetComponent<RectTransform>();
         roadSkipRect.anchorMin = roadSkipRect.anchorMax =
             new Vector2(1f, 1f);
         roadSkipRect.pivot = new Vector2(1f, 1f);
         roadSkipRect.sizeDelta = new Vector2(100f, 38f);
         roadSkipRect.anchoredPosition = new Vector2(-490f, -4f);
 
-        roadContinueButton =
+        roadBattle.continueButton =
             CreateActionButton(
                 roadBattlePage,
                 "次へ進む",
                 () => townTravelController.ContinueTownTravel());
         RectTransform continueRect =
-            roadContinueButton.GetComponent<RectTransform>();
+            roadBattle.continueButton.GetComponent<RectTransform>();
         continueRect.anchorMin = continueRect.anchorMax =
             new Vector2(1f, 1f);
         continueRect.pivot = new Vector2(1f, 1f);
         continueRect.sizeDelta = new Vector2(120f, 40f);
         continueRect.anchoredPosition = new Vector2(-130f, -4f);
 
-        roadRetreatButton =
+        roadBattle.retreatButton =
             CreateActionButton(
                 roadBattlePage,
                 "撤退する",
                 () => townTravelController.RetreatFromTownTravel());
         RectTransform retreatRect =
-            roadRetreatButton.GetComponent<RectTransform>();
+            roadBattle.retreatButton.GetComponent<RectTransform>();
         retreatRect.anchorMin = retreatRect.anchorMax =
             new Vector2(1f, 1f);
         retreatRect.pivot = new Vector2(1f, 1f);
         retreatRect.sizeDelta = new Vector2(120f, 40f);
         retreatRect.anchoredPosition = new Vector2(0f, -4f);
-        roadRetreatButton.targetGraphic.color = ImportantButtonColor;
+        roadBattle.retreatButton.targetGraphic.color = ImportantButtonColor;
 
-        roadContinueButton.gameObject.SetActive(false);
-        roadRetreatButton.gameObject.SetActive(false);
+        roadBattle.continueButton.gameObject.SetActive(false);
+        roadBattle.retreatButton.gameObject.SetActive(false);
 
         RoadBattlePageUI pageUI =
             roadBattlePage.GetComponent<RoadBattlePageUI>() ??
@@ -708,8 +708,8 @@ public partial class SimpleMercenaryHireUI
         {
             hasPendingRoadBattleOutcome = true;
             pendingRoadBattleVictory = victory;
-            roadContinueButton?.gameObject.SetActive(false);
-            roadRetreatButton?.gameObject.SetActive(false);
+            roadBattle.continueButton?.gameObject.SetActive(false);
+            roadBattle.retreatButton?.gameObject.SetActive(false);
             RefreshUI();
             if (pendingRoadBattleOutcomeCoroutine == null)
             {
@@ -1100,22 +1100,22 @@ public partial class SimpleMercenaryHireUI
                             displayedRoadDestinationTownIndex));
         mapButton?.gameObject.SetActive(false);
         townMapButton?.gameObject.SetActive(false);
-        roadContinueButton.gameObject.SetActive(
+        roadBattle.continueButton.gameObject.SetActive(
             isActive &&
             roadTravelState.IsAwaitingChoice &&
             !hasPendingRoadBattleOutcome);
-        roadRetreatButton.gameObject.SetActive(
+        roadBattle.retreatButton.gameObject.SetActive(
             isActive &&
             roadTravelState.IsAwaitingChoice &&
             !hasPendingRoadBattleOutcome);
-        roadSkipButton.interactable =
+        roadBattle.skipButton.interactable =
             battleManager.IsBattling &&
             !battleManager.IsSkippingToBattleEnd;
-        roadPauseButton.interactable =
+        roadBattle.pauseButton.interactable =
             battleManager.IsBattling &&
             !battleManager.IsSkippingToBattleEnd;
         SetButtonLabel(
-            roadPauseButton,
+            roadBattle.pauseButton,
             battleManager.IsPaused ? "再開" : "一時停止");
         string originTownName = WorldMapService.GetTownName(
             displayedRoadOriginTownIndex);
@@ -1125,11 +1125,11 @@ public partial class SimpleMercenaryHireUI
             string.IsNullOrEmpty(originTownName) ||
             string.IsNullOrEmpty(destinationTownName))
         {
-            roadBattleRouteText.text = "街道移動は終了しました。";
+            roadBattle.routeText.text = "街道移動は終了しました。";
             return;
         }
 
-        roadBattleRouteText.text =
+        roadBattle.routeText.text =
             $"{originTownName} → {destinationTownName}\n" +
             $"接敵 {roadTravelState.EncounterIndex}/" +
             $"{roadTravelState.EncounterCount}  |  " +

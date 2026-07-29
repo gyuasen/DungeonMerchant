@@ -68,7 +68,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             new SimpleMercenaryHireUIView.EquipmentCodexReferences();
     private RectTransform monsterCollectionOverlay;
     private BookPageUI monsterCodexBook;
-    private RectTransform travelConfirmationOverlay;
     private RectTransform globalMenuOverlay;
     private RectTransform dailyResultOverlay;
     private RectTransform dailyResultContent;
@@ -78,14 +77,17 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform remoteSaleOverlay;
     private RectTransform remoteSaleContent;
     private Button globalMenuButton;
-    private Text travelConfirmationText;
-    private Text travelCargoSummaryText;
-    private RectTransform travelCargoContent;
-    private Button roadCargoReceiveButton;
-    private readonly Dictionary<ItemDataSO, int> selectedTravelCargo =
-        new Dictionary<ItemDataSO, int>();
-    private readonly HashSet<string> selectedTravelCompanions =
-        new HashSet<string>();
+    private readonly SimpleMercenaryHireUIView.RoadBattleReferences roadBattle =
+        new SimpleMercenaryHireUIView.RoadBattleReferences();
+    private readonly SimpleMercenaryHireUIView.TravelConfirmationReferences
+        travelConfirmation =
+            new SimpleMercenaryHireUIView.TravelConfirmationReferences();
+    private readonly SimpleMercenaryHireUIView.PromotionPreviewReferences
+        promotionPreview =
+            new SimpleMercenaryHireUIView.PromotionPreviewReferences();
+    private readonly SimpleMercenaryHireUIView.ReleaseConfirmationReferences
+        releaseConfirmation =
+            new SimpleMercenaryHireUIView.ReleaseConfirmationReferences();
     private RectTransform hirePage;
     private RectTransform globalMapPage;
     private RectTransform worldMapPage;
@@ -101,9 +103,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private readonly SimpleMercenaryHireUIView.DungeonViewReferences dungeonView =
         new SimpleMercenaryHireUIView.DungeonViewReferences();
     private RectTransform roadBattlePage;
-    private Text roadBattleRouteText;
-    private Button roadContinueButton;
-    private Button roadRetreatButton;
     private RectTransform dungeonPage;
     private RectTransform marketPage;
     private RectTransform blacksmithPage;
@@ -134,9 +133,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Button hireFacilityButton;
     private Button hiddenIslandRegionButton;
     private Button startBattleButton;
-    private Button roadSpeedButton;
-    private Button roadPauseButton;
-    private Button roadSkipButton;
     private Button startDungeonButton;
     private Button firstDungeonEventButton;
     private Button secondDungeonEventButton;
@@ -163,9 +159,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private readonly SimpleMercenaryHireUIView.ContractChangeReferences
         contractChange =
             new SimpleMercenaryHireUIView.ContractChangeReferences();
-    private RectTransform releaseConfirmationOverlay;
-    private Text releaseConfirmationText;
-    private MercenaryInstance releaseConfirmationMercenary;
     private RectTransform itemDetailOverlay;
     private Image itemDetailImage;
     private Text itemDetailImagePlaceholder;
@@ -174,12 +167,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Text itemDetailTransactionText;
     private Button itemDetailActionButton;
     private System.Action itemDetailAction;
-    private RectTransform promotionPreviewOverlay;
-    private Text promotionPreviewText;
-    private Text promotionPreviewReasonText;
-    private Button promotionPreviewConfirmButton;
-    private MercenaryInstance promotionPreviewMercenary;
-    private MercenaryClass promotionPreviewTarget;
     private RemoteSaleController remoteSaleController;
     private Font uiFont;
     private Font uiBodyFont;
@@ -351,9 +338,9 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
                 {
                     SetButtonLabel(battleView.speedButton, label);
                 }
-                if (roadSpeedButton != null)
+                if (roadBattle.speedButton != null)
                 {
-                    SetButtonLabel(roadSpeedButton, label);
+                    SetButtonLabel(roadBattle.speedButton, label);
                 }
             },
             label =>
@@ -362,9 +349,9 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
                 {
                     SetButtonLabel(battleView.pauseButton, label);
                 }
-                if (roadPauseButton != null)
+                if (roadBattle.pauseButton != null)
                 {
-                    SetButtonLabel(roadPauseButton, label);
+                    SetButtonLabel(roadBattle.pauseButton, label);
                 }
             },
             RefreshUI);
@@ -385,22 +372,22 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             ShowWorldMap,
             message =>
             {
-                travelConfirmationText.text = message;
-                selectedTravelCargo.Clear();
-                selectedTravelCompanions.Clear();
+                travelConfirmation.text.text = message;
+                travelConfirmation.selectedCargo.Clear();
+                travelConfirmation.selectedCompanions.Clear();
                 RefreshTravelCargoSelection();
-                travelConfirmationOverlay.SetAsLastSibling();
-                travelConfirmationOverlay.gameObject.SetActive(true);
+                travelConfirmation.overlay.SetAsLastSibling();
+                travelConfirmation.overlay.gameObject.SetActive(true);
             },
             HideTravelConfirmation,
             ResetBattleLog,
             ShowRoadBattlePage,
             active =>
             {
-                roadContinueButton.gameObject.SetActive(active);
-                roadRetreatButton.gameObject.SetActive(active);
+                roadBattle.continueButton.gameObject.SetActive(active);
+                roadBattle.retreatButton.gameObject.SetActive(active);
             },
-            text => roadBattleRouteText.text = text,
+            text => roadBattle.routeText.text = text,
             () => StartCoroutine(ContinueTownTravelBattleRoutine()),
             dungeonBattleController.OpenNearbyDungeon,
             SyncDungeonUnlocks,

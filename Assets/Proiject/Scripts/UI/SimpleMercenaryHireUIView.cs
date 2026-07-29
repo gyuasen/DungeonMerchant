@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -60,6 +61,92 @@ public sealed class SimpleMercenaryHireUIView : MonoBehaviour
             goldText != null &&
             globalMenuButton != null &&
             statusText != null;
+    }
+
+    /// <summary>
+    /// Groups the road battle page widgets: the route label, the retreat and
+    /// continue actions and the playback controls.
+    /// </summary>
+    [Serializable]
+    public sealed class RoadBattleReferences
+    {
+        public Text routeText;
+        public Button continueButton;
+        public Button retreatButton;
+        public Button speedButton;
+        public Button pauseButton;
+        public Button skipButton;
+        public Button cargoReceiveButton;
+
+        public bool IsValid =>
+            routeText != null &&
+            continueButton != null &&
+            retreatButton != null;
+    }
+
+    /// <summary>
+    /// Groups the travel confirmation overlay together with the cargo and
+    /// companions the player has staged for the trip.
+    /// </summary>
+    [Serializable]
+    public sealed class TravelConfirmationReferences
+    {
+        public RectTransform overlay;
+        public Text text;
+        public Text cargoSummaryText;
+        public RectTransform cargoContent;
+
+        /// <summary>Cargo staged for the trip, keyed by item.</summary>
+        public readonly Dictionary<ItemDataSO, int> selectedCargo =
+            new Dictionary<ItemDataSO, int>();
+
+        /// <summary>Ids of the mercenaries staged to travel along.</summary>
+        public readonly HashSet<string> selectedCompanions =
+            new HashSet<string>();
+
+        public bool IsValid =>
+            overlay != null &&
+            text != null &&
+            cargoContent != null;
+    }
+
+    /// <summary>
+    /// Groups the promotion preview overlay and the pending promotion it
+    /// would apply.
+    /// </summary>
+    [Serializable]
+    public sealed class PromotionPreviewReferences
+    {
+        public RectTransform overlay;
+        public Text text;
+        public Text reasonText;
+        public Button confirmButton;
+
+        /// <summary>Mercenary being promoted.</summary>
+        public MercenaryInstance mercenary;
+
+        /// <summary>Class the promotion would move the mercenary into.</summary>
+        public MercenaryClass target;
+
+        public bool IsValid =>
+            overlay != null &&
+            text != null &&
+            confirmButton != null;
+    }
+
+    /// <summary>
+    /// Groups the release confirmation overlay and the mercenary it targets.
+    /// </summary>
+    [Serializable]
+    public sealed class ReleaseConfirmationReferences
+    {
+        public RectTransform overlay;
+        public Text text;
+
+        /// <summary>Mercenary that would be released on confirmation.</summary>
+        public MercenaryInstance mercenary;
+
+        public bool IsValid => overlay != null && text != null;
     }
 
     /// <summary>
