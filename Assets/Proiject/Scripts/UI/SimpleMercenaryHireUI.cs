@@ -49,41 +49,23 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform overlayRoot;
     private SimpleMercenaryHireUIView activeView;
     private UIPageRouter pageRouter;
-    private RectTransform characterDetailOverlay;
-    private Text characterDetailTitle;
-    private Text characterDetailText;
-    private RectTransform characterStatusPage;
-    private RectTransform characterEquipmentPage;
-    private RectTransform characterSkillList;
-    private Text characterSkillDetailText;
-    private Button characterStatusTabButton;
-    private Button characterEquipmentTabButton;
-    private RectTransform characterEquipmentList;
-    private ScrollRect characterEquipmentScrollRect;
-    private bool showingCharacterStatusPage = true;
-    private RectTransform equipmentDetailOverlay;
-    private RectTransform equipmentSlotSelectionOverlay;
-    private RectTransform equipmentSlotSelectionContent;
-    private Text equipmentSlotSelectionTitle;
-    private EquipmentSlot selectedEquipmentSlot;
-    private int selectedConsumableSlotIndex = -1;
-    private Text equipmentDetailTitle;
-    private Text equipmentDetailText;
-    private Button equipmentEnhanceButton;
-    private Button equipmentSellButton;
-    private Button equipmentLockButton;
+    private readonly SimpleMercenaryHireUIView.CharacterDetailReferences
+        characterDetail =
+            new SimpleMercenaryHireUIView.CharacterDetailReferences();
+    private readonly SimpleMercenaryHireUIView.EquipmentDetailReferences
+        equipmentDetail =
+            new SimpleMercenaryHireUIView.EquipmentDetailReferences();
+    private readonly SimpleMercenaryHireUIView.EquipmentSlotSelectionReferences
+        slotSelection =
+            new SimpleMercenaryHireUIView.EquipmentSlotSelectionReferences();
     private RectTransform questOverlay;
     private RectTransform questList;
     private RectTransform questDetailWindow;
     private RectTransform merchantStatusOverlay;
     private RectTransform merchantSkillList;
-    private RectTransform equipmentCollectionOverlay;
-    private BookPageUI equipmentCodexBook;
-    private EquipmentSpecialCodexPageUI equipmentSpecialCodexPage;
-    private RectTransform equipmentCodexNormalRoot;
-    private RectTransform equipmentCodexSpecialRoot;
-    private Button equipmentCodexNormalTabButton;
-    private Button equipmentCodexSpecialTabButton;
+    private readonly SimpleMercenaryHireUIView.EquipmentCodexReferences
+        equipmentCodex =
+            new SimpleMercenaryHireUIView.EquipmentCodexReferences();
     private RectTransform monsterCollectionOverlay;
     private BookPageUI monsterCodexBook;
     private RectTransform travelConfirmationOverlay;
@@ -91,15 +73,10 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private RectTransform dailyResultOverlay;
     private RectTransform dailyResultContent;
     private Text dailyResultText;
-    private RectTransform tutorialOverlay;
+    private readonly SimpleMercenaryHireUIView.TutorialReferences tutorial =
+        new SimpleMercenaryHireUIView.TutorialReferences();
     private RectTransform remoteSaleOverlay;
     private RectTransform remoteSaleContent;
-    private Text tutorialStepText;
-    private Text tutorialTitleText;
-    private Text tutorialBodyText;
-    private Button tutorialBackButton;
-    private Button tutorialNextButton;
-    private Button tutorialCloseButton;
     private Button globalMenuButton;
     private Text travelConfirmationText;
     private Text travelCargoSummaryText;
@@ -348,12 +325,12 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             message => statusText.text = message,
             (title, body) =>
             {
-                if (characterDetailText == null)
+                if (characterDetail.statusText == null)
                 {
                     return;
                 }
-                characterDetailTitle.text = title;
-                characterDetailText.text = body;
+                characterDetail.title.text = title;
+                characterDetail.statusText.text = body;
             },
             ShowCharacterDetails,
             () => RefreshPage(companyPage),
@@ -456,20 +433,16 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             message => statusText.text = message,
             () =>
             {
-                tutorialOverlay.SetAsLastSibling();
-                tutorialOverlay.gameObject.SetActive(true);
+                tutorial.overlay.SetAsLastSibling();
+                tutorial.overlay.gameObject.SetActive(true);
             },
             HideTutorialOverlay,
-            text => tutorialStepText.text = text,
-            text => tutorialTitleText.text = text,
-            text => tutorialBodyText.text = text,
-            interactable => tutorialBackButton.interactable = interactable,
-            label => SetButtonLabel(tutorialNextButton, label),
-            () => tutorialTitleText != null &&
-                  tutorialBodyText != null &&
-                  tutorialStepText != null &&
-                  tutorialBackButton != null &&
-                  tutorialNextButton != null);
+            text => tutorial.stepText.text = text,
+            text => tutorial.titleText.text = text,
+            text => tutorial.bodyText.text = text,
+            interactable => tutorial.backButton.interactable = interactable,
+            label => SetButtonLabel(tutorial.nextButton, label),
+            () => tutorial.IsValid);
         townTravelController.ApplyTownServiceSettings(true, true);
         PopulateUniqueCandidatesIfNeeded();
         hireAndPartyController.CacheAlreadyHiredCandidates();

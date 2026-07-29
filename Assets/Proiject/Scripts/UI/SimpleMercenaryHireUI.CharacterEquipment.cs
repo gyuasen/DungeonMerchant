@@ -6,59 +6,59 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
 {
     private void BuildEquipmentDetailOverlay()
     {
-        equipmentDetailOverlay = GetOrCreateOverlay(
+        equipmentDetail.overlay = GetOrCreateOverlay(
             SimpleMercenaryHireOverlaySlot.EquipmentDetail,
             "Equipment Detail Overlay");
-        equipmentDetailOverlay.gameObject.SetActive(false);
-        equipmentDetailOverlay.anchorMin = Vector2.zero;
-        equipmentDetailOverlay.anchorMax = Vector2.one;
-        equipmentDetailOverlay.offsetMin = Vector2.zero;
-        equipmentDetailOverlay.offsetMax = Vector2.zero;
-        equipmentDetailOverlay.gameObject.AddComponent<Image>().color =
+        equipmentDetail.overlay.gameObject.SetActive(false);
+        equipmentDetail.overlay.anchorMin = Vector2.zero;
+        equipmentDetail.overlay.anchorMax = Vector2.one;
+        equipmentDetail.overlay.offsetMin = Vector2.zero;
+        equipmentDetail.overlay.offsetMax = Vector2.zero;
+        equipmentDetail.overlay.gameObject.AddComponent<Image>().color =
             new Color(0f, 0f, 0f, 0.78f);
 
-        RectTransform window = CreateUIObject("Equipment Detail Window", equipmentDetailOverlay);
+        RectTransform window = CreateUIObject("Equipment Detail Window", equipmentDetail.overlay);
         window.anchorMin = window.anchorMax = window.pivot = new Vector2(0.5f, 0.5f);
         window.sizeDelta = new Vector2(600f, 470f);
         ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
 
-        equipmentDetailTitle = CreateText(
+        equipmentDetail.title = CreateText(
             window, string.Empty, 26, FontStyle.Bold, TextAnchor.MiddleLeft,
             new Vector2(28f, -66f), new Vector2(-28f, -20f),
             ParchmentTextColor);
-        equipmentDetailText = CreateText(
+        equipmentDetail.bodyText = CreateText(
             window, string.Empty, 17, FontStyle.Normal, TextAnchor.UpperLeft,
             new Vector2(28f, 92f), new Vector2(-28f, -82f),
             ParchmentTextColor);
-        equipmentDetailText.rectTransform.anchorMin = Vector2.zero;
-        equipmentDetailText.rectTransform.anchorMax = Vector2.one;
-        equipmentDetailText.rectTransform.offsetMin = new Vector2(28f, 92f);
-        equipmentDetailText.rectTransform.offsetMax = new Vector2(-28f, -82f);
+        equipmentDetail.bodyText.rectTransform.anchorMin = Vector2.zero;
+        equipmentDetail.bodyText.rectTransform.anchorMax = Vector2.one;
+        equipmentDetail.bodyText.rectTransform.offsetMin = new Vector2(28f, 92f);
+        equipmentDetail.bodyText.rectTransform.offsetMax = new Vector2(-28f, -82f);
 
-        equipmentEnhanceButton = CreateActionButton(
+        equipmentDetail.enhanceButton = CreateActionButton(
             window,
             "強化",
             () => characterEquipmentController.EnhanceSelectedEquipment());
-        RectTransform enhanceRect = equipmentEnhanceButton.GetComponent<RectTransform>();
+        RectTransform enhanceRect = equipmentDetail.enhanceButton.GetComponent<RectTransform>();
         enhanceRect.anchorMin = enhanceRect.anchorMax = new Vector2(1f, 0f);
         enhanceRect.pivot = new Vector2(1f, 0f);
         enhanceRect.anchoredPosition = new Vector2(-174f, 24f);
 
-        equipmentSellButton = CreateActionButton(
+        equipmentDetail.sellButton = CreateActionButton(
             window,
             "売却",
             () => characterEquipmentController.SellSelectedEquipment());
-        equipmentSellButton.targetGraphic.color = ImportantButtonColor;
-        RectTransform sellRect = equipmentSellButton.GetComponent<RectTransform>();
+        equipmentDetail.sellButton.targetGraphic.color = ImportantButtonColor;
+        RectTransform sellRect = equipmentDetail.sellButton.GetComponent<RectTransform>();
         sellRect.anchorMin = sellRect.anchorMax = new Vector2(1f, 0f);
         sellRect.pivot = new Vector2(1f, 0f);
         sellRect.anchoredPosition = new Vector2(-28f, 24f);
 
-        equipmentLockButton = CreateActionButton(
+        equipmentDetail.lockButton = CreateActionButton(
             window,
             "ロック",
             () => characterEquipmentController.ToggleSelectedEquipmentLock());
-        RectTransform lockRect = equipmentLockButton.GetComponent<RectTransform>();
+        RectTransform lockRect = equipmentDetail.lockButton.GetComponent<RectTransform>();
         lockRect.anchorMin = lockRect.anchorMax = new Vector2(0f, 0f);
         lockRect.pivot = new Vector2(0f, 0f);
         lockRect.anchoredPosition = new Vector2(28f, 24f);
@@ -70,25 +70,25 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         closeRect.sizeDelta = new Vector2(100f, 42f);
         closeRect.anchoredPosition = new Vector2(-18f, -18f);
 
-        equipmentDetailOverlay.gameObject.SetActive(false);
+        equipmentDetail.overlay.gameObject.SetActive(false);
     }
 
     private void BuildEquipmentCollectionOverlay()
     {
-        equipmentCollectionOverlay =
+        equipmentCodex.overlay =
             GetOrCreateOverlay(
                 SimpleMercenaryHireOverlaySlot.EquipmentCollection,
                 "Equipment Collection Overlay");
-        equipmentCollectionOverlay.gameObject.SetActive(false);
-        equipmentCollectionOverlay.anchorMin = Vector2.zero;
-        equipmentCollectionOverlay.anchorMax = Vector2.one;
-        equipmentCollectionOverlay.offsetMin = Vector2.zero;
-        equipmentCollectionOverlay.offsetMax = Vector2.zero;
-        equipmentCollectionOverlay.gameObject.AddComponent<Image>().color =
+        equipmentCodex.overlay.gameObject.SetActive(false);
+        equipmentCodex.overlay.anchorMin = Vector2.zero;
+        equipmentCodex.overlay.anchorMax = Vector2.one;
+        equipmentCodex.overlay.offsetMin = Vector2.zero;
+        equipmentCodex.overlay.offsetMax = Vector2.zero;
+        equipmentCodex.overlay.gameObject.AddComponent<Image>().color =
             new Color(0f, 0f, 0f, 0.82f);
 
         RectTransform window =
-            CreateUIObject("Equipment Collection Window", equipmentCollectionOverlay);
+            CreateUIObject("Equipment Collection Window", equipmentCodex.overlay);
         window.anchorMin = window.anchorMax = window.pivot =
             new Vector2(0.5f, 0.5f);
         window.sizeDelta = new Vector2(820f, 600f);
@@ -99,34 +99,34 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             new Vector2(28f, -64f), new Vector2(-120f, -20f),
             ParchmentTextColor);
 
-        equipmentCodexNormalTabButton = CreateActionButton(window, "通常装備", ShowNormalEquipmentCodexTab);
-        RectTransform normalTabRect = equipmentCodexNormalTabButton.GetComponent<RectTransform>();
+        equipmentCodex.normalTabButton = CreateActionButton(window, "通常装備", ShowNormalEquipmentCodexTab);
+        RectTransform normalTabRect = equipmentCodex.normalTabButton.GetComponent<RectTransform>();
         normalTabRect.anchorMin = normalTabRect.anchorMax = new Vector2(0f, 1f);
         normalTabRect.pivot = new Vector2(0f, 1f);
         normalTabRect.anchoredPosition = new Vector2(250f, -20f);
-        equipmentCodexSpecialTabButton = CreateActionButton(window, "特殊装備", ShowSpecialEquipmentCodexTab);
-        RectTransform specialTabRect = equipmentCodexSpecialTabButton.GetComponent<RectTransform>();
+        equipmentCodex.specialTabButton = CreateActionButton(window, "特殊装備", ShowSpecialEquipmentCodexTab);
+        RectTransform specialTabRect = equipmentCodex.specialTabButton.GetComponent<RectTransform>();
         specialTabRect.anchorMin = specialTabRect.anchorMax = new Vector2(0f, 1f);
         specialTabRect.pivot = new Vector2(0f, 1f);
         specialTabRect.anchoredPosition = new Vector2(380f, -20f);
 
-        equipmentCodexNormalRoot = CreateUIObject("Equipment Codex Normal Book", window);
-        equipmentCodexNormalRoot.anchorMin = Vector2.zero;
-        equipmentCodexNormalRoot.anchorMax = Vector2.one;
-        equipmentCodexNormalRoot.offsetMin = new Vector2(34f, 34f);
-        equipmentCodexNormalRoot.offsetMax = new Vector2(-34f, -88f);
-        equipmentCodexBook = equipmentCodexNormalRoot.gameObject.AddComponent<BookPageUI>();
-        equipmentCodexBook.Initialize(string.Empty, uiFont, uiBodyFont);
-        equipmentCodexSpecialRoot = CreateUIObject("Equipment Codex Special Pages", window);
-        equipmentCodexSpecialRoot.anchorMin = Vector2.zero;
-        equipmentCodexSpecialRoot.anchorMax = Vector2.one;
-        equipmentCodexSpecialRoot.offsetMin = new Vector2(34f, 34f);
-        equipmentCodexSpecialRoot.offsetMax = new Vector2(-34f, -88f);
-        equipmentSpecialCodexPage = equipmentCodexSpecialRoot.gameObject.AddComponent<EquipmentSpecialCodexPageUI>();
-        equipmentSpecialCodexPage.Initialize(uiFont, uiBodyFont);
+        equipmentCodex.normalRoot = CreateUIObject("Equipment Codex Normal Book", window);
+        equipmentCodex.normalRoot.anchorMin = Vector2.zero;
+        equipmentCodex.normalRoot.anchorMax = Vector2.one;
+        equipmentCodex.normalRoot.offsetMin = new Vector2(34f, 34f);
+        equipmentCodex.normalRoot.offsetMax = new Vector2(-34f, -88f);
+        equipmentCodex.book = equipmentCodex.normalRoot.gameObject.AddComponent<BookPageUI>();
+        equipmentCodex.book.Initialize(string.Empty, uiFont, uiBodyFont);
+        equipmentCodex.specialRoot = CreateUIObject("Equipment Codex Special Pages", window);
+        equipmentCodex.specialRoot.anchorMin = Vector2.zero;
+        equipmentCodex.specialRoot.anchorMax = Vector2.one;
+        equipmentCodex.specialRoot.offsetMin = new Vector2(34f, 34f);
+        equipmentCodex.specialRoot.offsetMax = new Vector2(-34f, -88f);
+        equipmentCodex.specialPage = equipmentCodex.specialRoot.gameObject.AddComponent<EquipmentSpecialCodexPageUI>();
+        equipmentCodex.specialPage.Initialize(uiFont, uiBodyFont);
 #if UNITY_EDITOR
-        equipmentCodexNormalRoot.offsetMin = new Vector2(34f, 76f);
-        equipmentCodexSpecialRoot.offsetMin = new Vector2(34f, 76f);
+        equipmentCodex.normalRoot.offsetMin = new Vector2(34f, 76f);
+        equipmentCodex.specialRoot.offsetMin = new Vector2(34f, 76f);
         BuildEquipmentCodexDebugButtons(window);
 #endif
         ShowNormalEquipmentCodexTab();
@@ -138,24 +138,24 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         closeRect.pivot = new Vector2(1f, 1f);
         closeRect.sizeDelta = new Vector2(100f, 42f);
         closeRect.anchoredPosition = new Vector2(-18f, -18f);
-        equipmentCollectionOverlay.gameObject.SetActive(false);
+        equipmentCodex.overlay.gameObject.SetActive(false);
     }
 
     private void BuildCharacterDetailOverlay()
     {
-        characterDetailOverlay = GetOrCreateOverlay(
+        characterDetail.overlay = GetOrCreateOverlay(
             SimpleMercenaryHireOverlaySlot.CharacterDetail,
             "Character Detail Overlay");
-        characterDetailOverlay.gameObject.SetActive(false);
-        characterDetailOverlay.anchorMin = Vector2.zero;
-        characterDetailOverlay.anchorMax = Vector2.one;
-        characterDetailOverlay.offsetMin = Vector2.zero;
-        characterDetailOverlay.offsetMax = Vector2.zero;
+        characterDetail.overlay.gameObject.SetActive(false);
+        characterDetail.overlay.anchorMin = Vector2.zero;
+        characterDetail.overlay.anchorMax = Vector2.one;
+        characterDetail.overlay.offsetMin = Vector2.zero;
+        characterDetail.overlay.offsetMax = Vector2.zero;
 
-        Image overlayImage = characterDetailOverlay.gameObject.AddComponent<Image>();
+        Image overlayImage = characterDetail.overlay.gameObject.AddComponent<Image>();
         overlayImage.color = new Color(0f, 0f, 0f, 0.78f);
 
-        RectTransform window = CreateUIObject("Character Detail Window", characterDetailOverlay);
+        RectTransform window = CreateUIObject("Character Detail Window", characterDetail.overlay);
         window.anchorMin = new Vector2(0.5f, 0.5f);
         window.anchorMax = new Vector2(0.5f, 0.5f);
         window.pivot = new Vector2(0.5f, 0.5f);
@@ -164,7 +164,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
 
         Image windowImage = window.gameObject.AddComponent<Image>();
         ApplyParchmentPanel(windowImage);
-        characterDetailTitle = CreateText(
+        characterDetail.title = CreateText(
             window,
             string.Empty,
             26,
@@ -174,34 +174,34 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             new Vector2(-120f, -20f),
             ParchmentTextColor);
 
-        characterStatusTabButton =
+        characterDetail.statusTabButton =
             CreateActionButton(window, "ステータス", ShowCharacterStatusPage);
         RectTransform statusTabRect =
-            characterStatusTabButton.GetComponent<RectTransform>();
+            characterDetail.statusTabButton.GetComponent<RectTransform>();
         statusTabRect.anchorMin = statusTabRect.anchorMax =
             new Vector2(0f, 1f);
         statusTabRect.pivot = new Vector2(0f, 1f);
         statusTabRect.sizeDelta = new Vector2(130f, 38f);
         statusTabRect.anchoredPosition = new Vector2(28f, -76f);
 
-        characterEquipmentTabButton =
+        characterDetail.equipmentTabButton =
             CreateActionButton(window, "装備", ShowCharacterEquipmentPage);
         RectTransform equipmentTabRect =
-            characterEquipmentTabButton.GetComponent<RectTransform>();
+            characterDetail.equipmentTabButton.GetComponent<RectTransform>();
         equipmentTabRect.anchorMin = equipmentTabRect.anchorMax =
             new Vector2(0f, 1f);
         equipmentTabRect.pivot = new Vector2(0f, 1f);
         equipmentTabRect.sizeDelta = new Vector2(130f, 38f);
         equipmentTabRect.anchoredPosition = new Vector2(166f, -76f);
 
-        characterStatusPage = CreateUIObject("Character Status Page", window);
-        characterStatusPage.anchorMin = Vector2.zero;
-        characterStatusPage.anchorMax = Vector2.one;
-        characterStatusPage.offsetMin = new Vector2(28f, 28f);
-        characterStatusPage.offsetMax = new Vector2(-28f, -122f);
+        characterDetail.statusPage = CreateUIObject("Character Status Page", window);
+        characterDetail.statusPage.anchorMin = Vector2.zero;
+        characterDetail.statusPage.anchorMax = Vector2.one;
+        characterDetail.statusPage.offsetMin = new Vector2(28f, 28f);
+        characterDetail.statusPage.offsetMax = new Vector2(-28f, -122f);
 
-        characterDetailText = CreateText(
-            characterStatusPage,
+        characterDetail.statusText = CreateText(
+            characterDetail.statusPage,
             string.Empty,
             16,
             FontStyle.Normal,
@@ -209,13 +209,13 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             new Vector2(0f, 0f),
             new Vector2(-386f, 0f),
             ParchmentTextColor);
-        characterDetailText.rectTransform.anchorMin = Vector2.zero;
-        characterDetailText.rectTransform.anchorMax = Vector2.one;
-        characterDetailText.rectTransform.offsetMin = Vector2.zero;
-        characterDetailText.rectTransform.offsetMax = new Vector2(-386f, 0f);
+        characterDetail.statusText.rectTransform.anchorMin = Vector2.zero;
+        characterDetail.statusText.rectTransform.anchorMax = Vector2.one;
+        characterDetail.statusText.rectTransform.offsetMin = Vector2.zero;
+        characterDetail.statusText.rectTransform.offsetMax = new Vector2(-386f, 0f);
 
         CreateText(
-            characterStatusPage,
+            characterDetail.statusPage,
             "獲得スキル",
             20,
             FontStyle.Bold,
@@ -225,7 +225,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             ParchmentTextColor);
 
         RectTransform skillViewport =
-            CreateUIObject("Skill Viewport", characterStatusPage);
+            CreateUIObject("Skill Viewport", characterDetail.statusPage);
         skillViewport.anchorMin = new Vector2(1f, 1f);
         skillViewport.anchorMax = new Vector2(1f, 1f);
         skillViewport.pivot = new Vector2(1f, 1f);
@@ -236,22 +236,22 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         Mask skillMask = skillViewport.gameObject.AddComponent<Mask>();
         skillMask.showMaskGraphic = false;
 
-        characterSkillList = CreateUIObject("Skill List", skillViewport);
-        characterSkillList.anchorMin = new Vector2(0f, 1f);
-        characterSkillList.anchorMax = new Vector2(1f, 1f);
-        characterSkillList.pivot = new Vector2(0.5f, 1f);
-        characterSkillList.anchoredPosition = Vector2.zero;
+        characterDetail.skillList = CreateUIObject("Skill List", skillViewport);
+        characterDetail.skillList.anchorMin = new Vector2(0f, 1f);
+        characterDetail.skillList.anchorMax = new Vector2(1f, 1f);
+        characterDetail.skillList.pivot = new Vector2(0.5f, 1f);
+        characterDetail.skillList.anchoredPosition = Vector2.zero;
 
         ScrollRect skillScroll = skillViewport.gameObject.AddComponent<ScrollRect>();
-        skillScroll.content = characterSkillList;
+        skillScroll.content = characterDetail.skillList;
         skillScroll.viewport = skillViewport;
         skillScroll.horizontal = false;
         skillScroll.vertical = true;
         skillScroll.movementType = ScrollRect.MovementType.Clamped;
         skillScroll.scrollSensitivity = 24f;
 
-        characterSkillDetailText = CreateText(
-            characterStatusPage,
+        characterDetail.skillDetailText = CreateText(
+            characterDetail.statusPage,
             "スキルを選択すると詳細を表示します。",
             15,
             FontStyle.Normal,
@@ -259,23 +259,23 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             new Vector2(360f, 0f),
             new Vector2(0f, -250f),
             ParchmentMutedColor);
-        characterSkillDetailText.rectTransform.anchorMin =
+        characterDetail.skillDetailText.rectTransform.anchorMin =
             new Vector2(1f, 0f);
-        characterSkillDetailText.rectTransform.anchorMax =
+        characterDetail.skillDetailText.rectTransform.anchorMax =
             new Vector2(1f, 0f);
-        characterSkillDetailText.rectTransform.pivot = new Vector2(1f, 0f);
-        characterSkillDetailText.rectTransform.sizeDelta = new Vector2(336f, 146f);
-        characterSkillDetailText.rectTransform.anchoredPosition = Vector2.zero;
+        characterDetail.skillDetailText.rectTransform.pivot = new Vector2(1f, 0f);
+        characterDetail.skillDetailText.rectTransform.sizeDelta = new Vector2(336f, 146f);
+        characterDetail.skillDetailText.rectTransform.anchoredPosition = Vector2.zero;
 
-        characterEquipmentPage =
+        characterDetail.equipmentPage =
             CreateUIObject("Character Equipment Page", window);
-        characterEquipmentPage.anchorMin = Vector2.zero;
-        characterEquipmentPage.anchorMax = Vector2.one;
-        characterEquipmentPage.offsetMin = new Vector2(28f, 28f);
-        characterEquipmentPage.offsetMax = new Vector2(-28f, -122f);
+        characterDetail.equipmentPage.anchorMin = Vector2.zero;
+        characterDetail.equipmentPage.anchorMax = Vector2.one;
+        characterDetail.equipmentPage.offsetMin = new Vector2(28f, 28f);
+        characterDetail.equipmentPage.offsetMax = new Vector2(-28f, -122f);
 
         CreateText(
-            characterEquipmentPage,
+            characterDetail.equipmentPage,
             "装備変更",
             20,
             FontStyle.Bold,
@@ -285,7 +285,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             ParchmentTextColor);
 
         RectTransform equipmentViewport =
-            CreateUIObject("Equipment Viewport", characterEquipmentPage);
+            CreateUIObject("Equipment Viewport", characterDetail.equipmentPage);
         equipmentViewport.anchorMin = new Vector2(1f, 1f);
         equipmentViewport.anchorMax = new Vector2(1f, 1f);
         equipmentViewport.pivot = new Vector2(1f, 1f);
@@ -299,21 +299,21 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         Mask equipmentMask = equipmentViewport.gameObject.AddComponent<Mask>();
         equipmentMask.showMaskGraphic = false;
 
-        characterEquipmentList =
+        characterDetail.equipmentList =
             CreateUIObject("Equipment Scroll Content", equipmentViewport);
-        characterEquipmentList.anchorMin = new Vector2(0f, 1f);
-        characterEquipmentList.anchorMax = new Vector2(1f, 1f);
-        characterEquipmentList.pivot = new Vector2(0.5f, 1f);
-        characterEquipmentList.anchoredPosition = Vector2.zero;
+        characterDetail.equipmentList.anchorMin = new Vector2(0f, 1f);
+        characterDetail.equipmentList.anchorMax = new Vector2(1f, 1f);
+        characterDetail.equipmentList.pivot = new Vector2(0.5f, 1f);
+        characterDetail.equipmentList.anchoredPosition = Vector2.zero;
 
-        characterEquipmentScrollRect =
+        characterDetail.equipmentScrollRect =
             equipmentViewport.gameObject.AddComponent<ScrollRect>();
-        characterEquipmentScrollRect.content = characterEquipmentList;
-        characterEquipmentScrollRect.viewport = equipmentViewport;
-        characterEquipmentScrollRect.horizontal = false;
-        characterEquipmentScrollRect.vertical = true;
-        characterEquipmentScrollRect.movementType = ScrollRect.MovementType.Clamped;
-        characterEquipmentScrollRect.scrollSensitivity = 30f;
+        characterDetail.equipmentScrollRect.content = characterDetail.equipmentList;
+        characterDetail.equipmentScrollRect.viewport = equipmentViewport;
+        characterDetail.equipmentScrollRect.horizontal = false;
+        characterDetail.equipmentScrollRect.vertical = true;
+        characterDetail.equipmentScrollRect.movementType = ScrollRect.MovementType.Clamped;
+        characterDetail.equipmentScrollRect.scrollSensitivity = 30f;
 
         Button closeButton = CreateActionButton(window, "閉じる", HideCharacterDetails);
         RectTransform closeRect = closeButton.GetComponent<RectTransform>();
@@ -323,65 +323,65 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         closeRect.sizeDelta = new Vector2(100f, 42f);
         closeRect.anchoredPosition = new Vector2(-18f, -18f);
 
-        characterDetailOverlay.gameObject.SetActive(false);
+        characterDetail.overlay.gameObject.SetActive(false);
     }
 
     private void ShowCharacterDetails(MercenaryInstance mercenary)
     {
-        if (mercenary == null || characterDetailOverlay == null)
+        if (mercenary == null || characterDetail.overlay == null)
         {
             return;
         }
 
         bool keepCurrentDetailPage =
-            characterDetailOverlay.gameObject.activeSelf &&
+            characterDetail.overlay.gameObject.activeSelf &&
             ReferenceEquals(
                 characterEquipmentController.SelectedDetailMercenary,
                 mercenary);
         characterEquipmentController.SelectedDetailMercenary = mercenary;
         if (!keepCurrentDetailPage)
         {
-            showingCharacterStatusPage = true;
+            characterDetail.showingStatusPage = true;
         }
         characterEquipmentController.RefreshCharacterDetailText();
         RebuildCharacterSkillList();
         RebuildCharacterEquipmentList();
         ApplyCharacterDetailPageVisibility();
-        characterDetailOverlay.SetAsLastSibling();
-        characterDetailOverlay.gameObject.SetActive(true);
+        characterDetail.overlay.SetAsLastSibling();
+        characterDetail.overlay.gameObject.SetActive(true);
     }
 
     private void ShowCharacterStatusPage()
     {
-        showingCharacterStatusPage = true;
+        characterDetail.showingStatusPage = true;
         ApplyCharacterDetailPageVisibility();
     }
 
     private void ShowCharacterEquipmentPage()
     {
-        showingCharacterStatusPage = false;
+        characterDetail.showingStatusPage = false;
         ApplyCharacterDetailPageVisibility();
     }
 
     private void BuildEquipmentSlotSelectionOverlay()
     {
-        equipmentSlotSelectionOverlay = CreateUIObject(
+        slotSelection.overlay = CreateUIObject(
             "Equipment Slot Selection Overlay",
             overlayRoot);
-        equipmentSlotSelectionOverlay.anchorMin = Vector2.zero;
-        equipmentSlotSelectionOverlay.anchorMax = Vector2.one;
-        equipmentSlotSelectionOverlay.offsetMin = Vector2.zero;
-        equipmentSlotSelectionOverlay.offsetMax = Vector2.zero;
-        equipmentSlotSelectionOverlay.gameObject.AddComponent<Image>().color =
+        slotSelection.overlay.anchorMin = Vector2.zero;
+        slotSelection.overlay.anchorMax = Vector2.one;
+        slotSelection.overlay.offsetMin = Vector2.zero;
+        slotSelection.overlay.offsetMax = Vector2.zero;
+        slotSelection.overlay.gameObject.AddComponent<Image>().color =
             new Color(0f, 0f, 0f, 0.82f);
         RectTransform window = CreateUIObject(
             "Equipment Slot Selection Window",
-            equipmentSlotSelectionOverlay);
+            slotSelection.overlay);
         window.anchorMin = window.anchorMax = window.pivot =
             new Vector2(0.5f, 0.5f);
         window.sizeDelta = new Vector2(760f, 600f);
         ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
-        equipmentSlotSelectionTitle = CreateText(
+        slotSelection.title = CreateText(
             window,
             string.Empty,
             24,
@@ -390,7 +390,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             new Vector2(28f, -66f),
             new Vector2(-28f, -20f),
             ParchmentTextColor);
-        equipmentSlotSelectionContent = CreateScrollableContent(
+        slotSelection.content = CreateScrollableContent(
             window,
             "Equipment Slot Selection Viewport",
             "Equipment Slot Selection Content",
@@ -405,44 +405,44 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             new Vector2(0.5f, 0f);
         closeRect.sizeDelta = new Vector2(180f, 48f);
         closeRect.anchoredPosition = Vector2.zero + new Vector2(0f, 26f);
-        equipmentSlotSelectionOverlay.gameObject.SetActive(false);
+        slotSelection.overlay.gameObject.SetActive(false);
     }
 
     private void ShowEquipmentSlotSelection(EquipmentSlot slot)
     {
-        selectedEquipmentSlot = slot;
-        selectedConsumableSlotIndex = -1;
-        equipmentSlotSelectionTitle.text =
+        slotSelection.selectedSlot = slot;
+        slotSelection.selectedConsumableSlotIndex = -1;
+        slotSelection.title.text =
             JapaneseDisplayText.GetEquipmentSlot(slot) + "を選択";
         RebuildEquipmentSlotSelection();
-        equipmentSlotSelectionOverlay.SetAsLastSibling();
-        equipmentSlotSelectionOverlay.gameObject.SetActive(true);
+        slotSelection.overlay.SetAsLastSibling();
+        slotSelection.overlay.gameObject.SetActive(true);
     }
 
     private void ShowConsumableSlotSelection(int slotIndex)
     {
-        selectedConsumableSlotIndex = slotIndex;
-        equipmentSlotSelectionTitle.text =
+        slotSelection.selectedConsumableSlotIndex = slotIndex;
+        slotSelection.title.text =
             "消耗品スロット " + (slotIndex + 1) + " を選択";
         RebuildEquipmentSlotSelection();
-        equipmentSlotSelectionOverlay.SetAsLastSibling();
-        equipmentSlotSelectionOverlay.gameObject.SetActive(true);
+        slotSelection.overlay.SetAsLastSibling();
+        slotSelection.overlay.gameObject.SetActive(true);
     }
 
     private void RebuildEquipmentSlotSelection()
     {
-        ClearChildren(equipmentSlotSelectionContent);
+        ClearChildren(slotSelection.content);
         MercenaryInstance mercenary = characterEquipmentController.SelectedDetailMercenary;
         if (mercenary == null)
         {
             return;
         }
         float top = 0f;
-        if (selectedConsumableSlotIndex >= 0)
+        if (slotSelection.selectedConsumableSlotIndex >= 0)
         {
             CreateSlotSelectionActionRow("取り外す", "このスロットの消耗品を倉庫へ戻します。", top, () =>
             {
-                characterEquipmentController.UnloadConsumable(selectedConsumableSlotIndex);
+                characterEquipmentController.UnloadConsumable(slotSelection.selectedConsumableSlotIndex);
                 HideEquipmentSlotSelection();
             });
             top -= 76f;
@@ -461,14 +461,14 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         {
             CreateSlotSelectionActionRow("外す", "現在の装備を倉庫へ戻します。", top, () =>
             {
-                characterEquipmentController.UnequipSelectedEquipment(selectedEquipmentSlot);
+                characterEquipmentController.UnequipSelectedEquipment(slotSelection.selectedSlot);
                 HideEquipmentSlotSelection();
             });
             top -= 76f;
             foreach (EquipmentInstance equipment in merchantInventory.EquipmentInstances)
             {
                 if (equipment?.BaseItem == null ||
-                    equipment.BaseItem.equipmentSlot != selectedEquipmentSlot ||
+                    equipment.BaseItem.equipmentSlot != slotSelection.selectedSlot ||
                     !equipment.BaseItem.CanEquip(mercenary.MercenaryClass))
                 {
                     continue;
@@ -479,7 +479,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             foreach (InventoryItemStack stack in merchantInventory.Items)
             {
                 if (stack?.Item == null || stack.Amount <= 0 ||
-                    stack.Item.equipmentSlot != selectedEquipmentSlot ||
+                    stack.Item.equipmentSlot != slotSelection.selectedSlot ||
                     !stack.Item.CanEquip(mercenary.MercenaryClass))
                 {
                     continue;
@@ -488,11 +488,11 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
                 top -= 116f;
             }
         }
-        if (top == (selectedConsumableSlotIndex >= 0 ? -76f : -76f))
+        if (top == (slotSelection.selectedConsumableSlotIndex >= 0 ? -76f : -76f))
         {
-            CreateText(equipmentSlotSelectionContent, "選択できる所持品はありません。", 16, FontStyle.Normal, TextAnchor.UpperLeft, new Vector2(12f, -118f), new Vector2(-12f, -70f), MutedTextColor);
+            CreateText(slotSelection.content, "選択できる所持品はありません。", 16, FontStyle.Normal, TextAnchor.UpperLeft, new Vector2(12f, -118f), new Vector2(-12f, -70f), MutedTextColor);
         }
-        equipmentSlotSelectionContent.sizeDelta =
+        slotSelection.content.sizeDelta =
             new Vector2(0f, Mathf.Max(398f, -top));
     }
 
@@ -512,7 +512,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         CreateText(row, "<b>" + JapaneseDisplayText.GetItemName(stack.Item) + "</b>  所持 " + stack.Amount + "\n" + ItemPresentationService.BuildDetailText(stack.Item), 14, FontStyle.Normal, TextAnchor.UpperLeft, new Vector2(76f, -72f), new Vector2(-112f, -8f), ParchmentTextColor);
         Button button = CreateActionButton(row, "設定", () =>
         {
-            characterEquipmentController.LoadConsumable(selectedConsumableSlotIndex, stack.Item);
+            characterEquipmentController.LoadConsumable(slotSelection.selectedConsumableSlotIndex, stack.Item);
             HideEquipmentSlotSelection();
         });
         button.GetComponent<RectTransform>().sizeDelta = new Vector2(82f, 40f);
@@ -524,7 +524,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         MercenaryInstance mercenary = characterEquipmentController.SelectedDetailMercenary;
         RectTransform row = CreateSlotSelectionRow(stack.Item.itemName, top, 106f);
         CreateSlotSelectionIcon(row, stack.Item);
-        string comparison = CharacterEquipmentController.BuildEquipmentComparisonText(stack.Item, mercenary.GetEquippedItem(selectedEquipmentSlot), mercenary.GetEquippedInstance(selectedEquipmentSlot));
+        string comparison = CharacterEquipmentController.BuildEquipmentComparisonText(stack.Item, mercenary.GetEquippedItem(slotSelection.selectedSlot), mercenary.GetEquippedInstance(slotSelection.selectedSlot));
         CreateText(row, "<b>" + JapaneseDisplayText.GetItemName(stack.Item) + "</b>  R" + stack.Item.equipmentRank + "  所持 " + stack.Amount + "\n" + comparison, 14, FontStyle.Normal, TextAnchor.UpperLeft, new Vector2(76f, -96f), new Vector2(-112f, -8f), ParchmentTextColor);
         Button button = CreateActionButton(row, "装備", () =>
         {
@@ -540,7 +540,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         MercenaryInstance mercenary = characterEquipmentController.SelectedDetailMercenary;
         RectTransform row = CreateSlotSelectionRow(equipment.InstanceId, top, 106f);
         CreateSlotSelectionIcon(row, equipment.BaseItem);
-        string comparison = CharacterEquipmentController.BuildEquipmentInstanceComparisonText(equipment, mercenary.GetEquippedInstance(selectedEquipmentSlot), mercenary.GetEquippedItem(selectedEquipmentSlot));
+        string comparison = CharacterEquipmentController.BuildEquipmentInstanceComparisonText(equipment, mercenary.GetEquippedInstance(slotSelection.selectedSlot), mercenary.GetEquippedItem(slotSelection.selectedSlot));
         CreateText(row, "<b>[" + JapaneseDisplayText.GetEquipmentQuality(equipment.Quality) + "] " + CharacterEquipmentController.GetEquipmentDisplayName(equipment) + "</b>\n" + comparison, 14, FontStyle.Normal, TextAnchor.UpperLeft, new Vector2(76f, -96f), new Vector2(-112f, -8f), CharacterEquipmentController.GetEquipmentQualityColor(equipment.Quality));
         Button button = CreateActionButton(row, "装備", () =>
         {
@@ -553,7 +553,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
 
     private RectTransform CreateSlotSelectionRow(string name, float top, float height)
     {
-        RectTransform row = CreateUIObject(name, equipmentSlotSelectionContent);
+        RectTransform row = CreateUIObject(name, slotSelection.content);
         row.anchorMin = new Vector2(0f, 1f);
         row.anchorMax = new Vector2(1f, 1f);
         row.pivot = new Vector2(0.5f, 1f);
@@ -579,40 +579,40 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
 
     private void HideEquipmentSlotSelection()
     {
-        equipmentSlotSelectionOverlay?.gameObject.SetActive(false);
-        selectedConsumableSlotIndex = -1;
+        slotSelection.overlay?.gameObject.SetActive(false);
+        slotSelection.selectedConsumableSlotIndex = -1;
     }
 
     private void ApplyCharacterDetailPageVisibility()
     {
-        if (characterStatusPage != null)
+        if (characterDetail.statusPage != null)
         {
-            characterStatusPage.gameObject.SetActive(showingCharacterStatusPage);
+            characterDetail.statusPage.gameObject.SetActive(characterDetail.showingStatusPage);
         }
 
-        if (characterEquipmentPage != null)
+        if (characterDetail.equipmentPage != null)
         {
-            characterEquipmentPage.gameObject.SetActive(!showingCharacterStatusPage);
+            characterDetail.equipmentPage.gameObject.SetActive(!characterDetail.showingStatusPage);
         }
 
-        if (characterStatusTabButton != null)
+        if (characterDetail.statusTabButton != null)
         {
-            characterStatusTabButton.targetGraphic.color =
-                showingCharacterStatusPage ? AccentColor : RowColor;
+            characterDetail.statusTabButton.targetGraphic.color =
+                characterDetail.showingStatusPage ? AccentColor : RowColor;
         }
 
-        if (characterEquipmentTabButton != null)
+        if (characterDetail.equipmentTabButton != null)
         {
-            characterEquipmentTabButton.targetGraphic.color =
-                showingCharacterStatusPage ? RowColor : AccentColor;
+            characterDetail.equipmentTabButton.targetGraphic.color =
+                characterDetail.showingStatusPage ? RowColor : AccentColor;
         }
     }
 
     private void HideCharacterDetails()
     {
-        if (characterDetailOverlay != null)
+        if (characterDetail.overlay != null)
         {
-            characterDetailOverlay.gameObject.SetActive(false);
+            characterDetail.overlay.gameObject.SetActive(false);
         }
 
         characterEquipmentController.SelectedDetailMercenary = null;
@@ -620,13 +620,13 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
 
     private void RebuildCharacterSkillList()
     {
-        if (characterSkillList == null ||
+        if (characterDetail.skillList == null ||
             characterEquipmentController.SelectedDetailMercenary == null)
         {
             return;
         }
 
-        ClearChildren(characterSkillList);
+        ClearChildren(characterDetail.skillList);
         List<MercenarySkillInfo> skills =
             CharacterEquipmentController.GetMercenarySkillInfos(
                 characterEquipmentController.SelectedDetailMercenary);
@@ -634,7 +634,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         for (int i = 0; i < skills.Count; i++)
         {
             MercenarySkillInfo skill = skills[i];
-            RectTransform row = CreateRow($"Skill {skill.Name}", characterSkillList, top);
+            RectTransform row = CreateRow($"Skill {skill.Name}", characterDetail.skillList, top);
             CreateText(
                 row,
                 $"{skill.Name}\n{skill.ShortDescription}",
@@ -654,26 +654,26 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             top -= 104f;
         }
 
-        characterSkillList.sizeDelta = new Vector2(0f, Mathf.Max(184f, -top));
+        characterDetail.skillList.sizeDelta = new Vector2(0f, Mathf.Max(184f, -top));
         if (skills.Count > 0)
         {
             ShowMercenarySkillDetail(skills[0]);
         }
-        else if (characterSkillDetailText != null)
+        else if (characterDetail.skillDetailText != null)
         {
-            characterSkillDetailText.text = "獲得済みスキルはありません。";
+            characterDetail.skillDetailText.text = "獲得済みスキルはありません。";
         }
     }
 
     private void ShowMercenarySkillDetail(MercenarySkillInfo skill)
     {
-        if (characterSkillDetailText == null)
+        if (characterDetail.skillDetailText == null)
         {
             return;
         }
 
         string state = skill.Unlocked ? "習得済み" : "未習得";
-        characterSkillDetailText.text =
+        characterDetail.skillDetailText.text =
             $"{skill.Name}  [{state}]\n\n" +
             $"{skill.DetailDescription}";
     }
@@ -682,12 +682,12 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
     {
         MercenaryInstance selectedMercenary =
             characterEquipmentController.SelectedDetailMercenary;
-        if (characterEquipmentList == null || selectedMercenary == null)
+        if (characterDetail.equipmentList == null || selectedMercenary == null)
         {
             return;
         }
 
-        ClearChildren(characterEquipmentList);
+        ClearChildren(characterDetail.equipmentList);
         float top = 0f;
         for (int slotIndex = 0; slotIndex < selectedMercenary.ConsumableSlots.Count; slotIndex++)
         {
@@ -766,7 +766,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         if (top == 0f)
         {
             CreateText(
-                characterEquipmentList,
+                characterDetail.equipmentList,
                 "装備できる武器を所持していません",
                 14,
                 FontStyle.Normal,
@@ -776,13 +776,13 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
                 MutedTextColor);
         }
 
-        characterEquipmentList.sizeDelta =
+        characterDetail.equipmentList.sizeDelta =
             new Vector2(0f, Mathf.Max(398f, -top));
         Canvas.ForceUpdateCanvases();
-        if (characterEquipmentScrollRect != null)
+        if (characterDetail.equipmentScrollRect != null)
         {
-            characterEquipmentScrollRect.StopMovement();
-            characterEquipmentScrollRect.verticalNormalizedPosition = 1f;
+            characterDetail.equipmentScrollRect.StopMovement();
+            characterDetail.equipmentScrollRect.verticalNormalizedPosition = 1f;
         }
     }
 
@@ -792,7 +792,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             characterEquipmentController.SelectedDetailMercenary.ConsumableSlots[slotIndex];
         RectTransform row = CreateUIObject(
             $"Consumable Slot {slotIndex + 1}",
-            characterEquipmentList);
+            characterDetail.equipmentList);
         row.anchorMin = new Vector2(0f, 1f);
         row.anchorMax = new Vector2(1f, 1f);
         row.pivot = new Vector2(0.5f, 1f);
@@ -832,7 +832,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
     {
         RectTransform row = CreateUIObject(
             "Empty " + slot + " Slot",
-            characterEquipmentList);
+            characterDetail.equipmentList);
         row.anchorMin = new Vector2(0f, 1f);
         row.anchorMax = new Vector2(1f, 1f);
         row.pivot = new Vector2(0.5f, 1f);
@@ -871,7 +871,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
 
         RectTransform row = CreateUIObject(
             $"Load {item.itemName} Slot {slotIndex + 1}",
-            characterEquipmentList);
+            characterDetail.equipmentList);
         row.anchorMin = new Vector2(0f, 1f);
         row.anchorMax = new Vector2(1f, 1f);
         row.pivot = new Vector2(0.5f, 1f);
@@ -904,7 +904,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             characterEquipmentController.SelectedDetailMercenary;
         RectTransform row = CreateUIObject(
             isEquipped ? $"Equipped {item.equipmentSlot}" : item.itemName,
-            characterEquipmentList);
+            characterDetail.equipmentList);
         row.anchorMin = new Vector2(0f, 1f);
         row.anchorMax = new Vector2(1f, 1f);
         row.pivot = new Vector2(0.5f, 1f);
@@ -969,7 +969,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             isEquipped
                 ? $"Equipped Quality {item.equipmentSlot}"
                 : equipment.InstanceId,
-            characterEquipmentList);
+            characterDetail.equipmentList);
         row.anchorMin = new Vector2(0f, 1f);
         row.anchorMax = new Vector2(1f, 1f);
         row.pivot = new Vector2(0.5f, 1f);
@@ -1048,7 +1048,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
 
     private void HideEquipmentDetails()
     {
-        equipmentDetailOverlay?.gameObject.SetActive(false);
+        equipmentDetail.overlay?.gameObject.SetActive(false);
         characterEquipmentController.SelectedEquipmentDetail = null;
     }
 
@@ -1105,11 +1105,11 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
             });
         }
 
-        equipmentCodexBook.SetEntries(entries);
-        equipmentSpecialCodexPage.SetPages(EquipmentSpecialPageModelBuilder.Build(codexEntries, IsEquipmentDiscovered));
+        equipmentCodex.book.SetEntries(entries);
+        equipmentCodex.specialPage.SetPages(EquipmentSpecialPageModelBuilder.Build(codexEntries, IsEquipmentDiscovered));
         ShowNormalEquipmentCodexTab();
-        equipmentCollectionOverlay.SetAsLastSibling();
-        equipmentCollectionOverlay.gameObject.SetActive(true);
+        equipmentCodex.overlay.SetAsLastSibling();
+        equipmentCodex.overlay.gameObject.SetActive(true);
     }
 
 #if UNITY_EDITOR
@@ -1207,8 +1207,8 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
 
     private void RefreshEquipmentCollectionAfterEditorDiscoveryChange()
     {
-        bool showSpecial = equipmentCodexSpecialRoot != null &&
-            equipmentCodexSpecialRoot.gameObject.activeSelf;
+        bool showSpecial = equipmentCodex.specialRoot != null &&
+            equipmentCodex.specialRoot.gameObject.activeSelf;
         ShowEquipmentCollection();
         if (showSpecial)
         {
@@ -1251,7 +1251,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
 
     private void HideEquipmentCollection()
     {
-        equipmentCollectionOverlay?.gameObject.SetActive(false);
+        equipmentCodex.overlay?.gameObject.SetActive(false);
     }
 
     private bool IsEquipmentDiscovered(ItemDataSO item)
@@ -1261,66 +1261,66 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
 
     private void ShowNormalEquipmentCodexTab()
     {
-        if (equipmentCodexNormalRoot == null || equipmentCodexSpecialRoot == null)
+        if (equipmentCodex.normalRoot == null || equipmentCodex.specialRoot == null)
         {
             return;
         }
-        equipmentCodexNormalRoot.gameObject.SetActive(true);
-        equipmentCodexSpecialRoot.gameObject.SetActive(false);
-        equipmentCodexNormalTabButton.targetGraphic.color = ImportantButtonColor;
-        equipmentCodexSpecialTabButton.targetGraphic.color = WoodButtonColor;
+        equipmentCodex.normalRoot.gameObject.SetActive(true);
+        equipmentCodex.specialRoot.gameObject.SetActive(false);
+        equipmentCodex.normalTabButton.targetGraphic.color = ImportantButtonColor;
+        equipmentCodex.specialTabButton.targetGraphic.color = WoodButtonColor;
     }
 
     private void ShowSpecialEquipmentCodexTab()
     {
-        if (equipmentCodexNormalRoot == null || equipmentCodexSpecialRoot == null)
+        if (equipmentCodex.normalRoot == null || equipmentCodex.specialRoot == null)
         {
             return;
         }
-        equipmentCodexNormalRoot.gameObject.SetActive(false);
-        equipmentCodexSpecialRoot.gameObject.SetActive(true);
-        equipmentCodexNormalTabButton.targetGraphic.color = WoodButtonColor;
-        equipmentCodexSpecialTabButton.targetGraphic.color = ImportantButtonColor;
+        equipmentCodex.normalRoot.gameObject.SetActive(false);
+        equipmentCodex.specialRoot.gameObject.SetActive(true);
+        equipmentCodex.normalTabButton.targetGraphic.color = WoodButtonColor;
+        equipmentCodex.specialTabButton.targetGraphic.color = ImportantButtonColor;
     }
 
     // --- IEquipmentDetailView (equipment-detail overlay view surface for
     // CharacterEquipmentController; bodies are the former constructor
     // lambdas, moved verbatim in step B-2) ---
 
-    bool IEquipmentDetailView.HasOverlay => equipmentDetailOverlay != null;
+    bool IEquipmentDetailView.HasOverlay => equipmentDetail.overlay != null;
 
     void IEquipmentDetailView.SetTitle(string title, Color color)
     {
-        equipmentDetailTitle.text = title;
-        equipmentDetailTitle.color = color;
+        equipmentDetail.title.text = title;
+        equipmentDetail.title.color = color;
     }
 
     void IEquipmentDetailView.SetDetailText(string text)
     {
-        equipmentDetailText.text = text;
+        equipmentDetail.bodyText.text = text;
     }
 
     void IEquipmentDetailView.SetEnhanceButton(bool interactable, string label)
     {
-        equipmentEnhanceButton.interactable = interactable;
-        equipmentEnhanceButton.GetComponentInChildren<Text>().text = label;
+        equipmentDetail.enhanceButton.interactable = interactable;
+        equipmentDetail.enhanceButton.GetComponentInChildren<Text>().text = label;
     }
 
     void IEquipmentDetailView.SetSellButton(bool interactable, string label)
     {
-        equipmentSellButton.interactable = interactable;
-        equipmentSellButton.GetComponentInChildren<Text>().text = label;
+        equipmentDetail.sellButton.interactable = interactable;
+        equipmentDetail.sellButton.GetComponentInChildren<Text>().text = label;
     }
 
     void IEquipmentDetailView.SetLockButtonLabel(string label)
     {
-        equipmentLockButton.GetComponentInChildren<Text>().text = label;
+        equipmentDetail.lockButton.GetComponentInChildren<Text>().text = label;
     }
 
     void IEquipmentDetailView.ShowOverlay()
     {
-        equipmentDetailOverlay.SetAsLastSibling();
-        equipmentDetailOverlay.gameObject.SetActive(true);
+        equipmentDetail.overlay.SetAsLastSibling();
+        equipmentDetail.overlay.gameObject.SetActive(true);
     }
 
     void IEquipmentDetailView.HideOverlay()

@@ -62,6 +62,133 @@ public sealed class SimpleMercenaryHireUIView : MonoBehaviour
             statusText != null;
     }
 
+    /// <summary>
+    /// Groups the equipment codex overlay: the shared book page plus the
+    /// normal/special tab roots and their tab buttons.
+    /// </summary>
+    [Serializable]
+    public sealed class EquipmentCodexReferences
+    {
+        public RectTransform overlay;
+        public BookPageUI book;
+        public EquipmentSpecialCodexPageUI specialPage;
+        public RectTransform normalRoot;
+        public RectTransform specialRoot;
+        public Button normalTabButton;
+        public Button specialTabButton;
+
+        public bool IsValid =>
+            overlay != null &&
+            normalRoot != null &&
+            specialRoot != null;
+    }
+
+    /// <summary>
+    /// Groups the equipment detail overlay widgets and its action buttons.
+    /// </summary>
+    [Serializable]
+    public sealed class EquipmentDetailReferences
+    {
+        public RectTransform overlay;
+        public Text title;
+        public Text bodyText;
+        public Button enhanceButton;
+        public Button sellButton;
+        public Button lockButton;
+
+        public bool IsValid =>
+            overlay != null &&
+            title != null &&
+            bodyText != null;
+    }
+
+    /// <summary>
+    /// Groups the slot-selection overlay shown when choosing which slot an
+    /// item should occupy, together with the pending selection state.
+    /// </summary>
+    [Serializable]
+    public sealed class EquipmentSlotSelectionReferences
+    {
+        public RectTransform overlay;
+        public RectTransform content;
+        public Text title;
+
+        /// <summary>Equipment slot currently being assigned.</summary>
+        public EquipmentSlot selectedSlot;
+
+        /// <summary>
+        /// Consumable slot index being assigned, or -1 when the pending
+        /// selection targets an equipment slot instead.
+        /// </summary>
+        public int selectedConsumableSlotIndex = -1;
+
+        public bool IsValid =>
+            overlay != null &&
+            content != null &&
+            title != null;
+    }
+
+    /// <summary>
+    /// Groups the character detail overlay widgets, covering both the status
+    /// tab and the equipment tab plus the tab-selection state.
+    /// </summary>
+    [Serializable]
+    public sealed class CharacterDetailReferences
+    {
+        public RectTransform overlay;
+        public Text title;
+        public Text statusText;
+        public RectTransform statusPage;
+        public RectTransform equipmentPage;
+        public RectTransform skillList;
+        public Text skillDetailText;
+        public Button statusTabButton;
+        public Button equipmentTabButton;
+        public RectTransform equipmentList;
+        public ScrollRect equipmentScrollRect;
+
+        /// <summary>
+        /// True while the status tab is showing; false while the equipment tab
+        /// is showing. Kept here so the tab state travels with its widgets.
+        /// </summary>
+        public bool showingStatusPage = true;
+
+        public bool IsValid =>
+            overlay != null &&
+            title != null &&
+            statusText != null &&
+            statusPage != null &&
+            equipmentPage != null &&
+            equipmentList != null;
+    }
+
+    /// <summary>
+    /// Groups the tutorial overlay widgets so the owning UI keeps a single
+    /// field instead of one per widget. Mirrors <see cref="ChromeReferences"/>.
+    /// </summary>
+    [Serializable]
+    public sealed class TutorialReferences
+    {
+        public RectTransform overlay;
+        public Text stepText;
+        public Text titleText;
+        public Text bodyText;
+        public Button backButton;
+        public Button nextButton;
+        public Button closeButton;
+
+        /// <summary>
+        /// The close button is intentionally excluded: it only hides the
+        /// overlay and the tutorial can still render without it.
+        /// </summary>
+        public bool IsValid =>
+            stepText != null &&
+            titleText != null &&
+            bodyText != null &&
+            backButton != null &&
+            nextButton != null;
+    }
+
     [Serializable]
     public sealed class HireCompanyReferences
     {
