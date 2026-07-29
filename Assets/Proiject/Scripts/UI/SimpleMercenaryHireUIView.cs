@@ -63,6 +63,86 @@ public sealed class SimpleMercenaryHireUIView : MonoBehaviour
     }
 
     /// <summary>
+    /// Groups the sell-quantity picker overlay together with the item and
+    /// amount it is currently editing.
+    /// </summary>
+    [Serializable]
+    public sealed class SellQuantityReferences
+    {
+        public RectTransform overlay;
+        public Text titleText;
+        public Image image;
+        public Text imagePlaceholder;
+        public Text detailText;
+
+        /// <summary>Item being sold, or null while the picker is closed.</summary>
+        public ItemDataSO item;
+
+        /// <summary>Quantity currently dialled in by the player.</summary>
+        public int amount;
+
+        public bool IsValid =>
+            overlay != null &&
+            titleText != null &&
+            detailText != null;
+    }
+
+    /// <summary>
+    /// Groups the confirmation overlay shown before bulk-selling every
+    /// sell-only material.
+    /// </summary>
+    [Serializable]
+    public sealed class SellOnlyConfirmationReferences
+    {
+        public RectTransform overlay;
+        public Text text;
+
+        public bool IsValid => overlay != null && text != null;
+    }
+
+    /// <summary>
+    /// Groups the storage capacity label and the upgrade confirmation overlay.
+    /// </summary>
+    [Serializable]
+    public sealed class StorageUpgradeReferences
+    {
+        public Text capacityText;
+        public RectTransform confirmationOverlay;
+        public Text confirmationText;
+        public Text confirmationReasonText;
+        public Button confirmButton;
+
+        public bool IsValid =>
+            confirmationOverlay != null &&
+            confirmationText != null &&
+            confirmButton != null;
+    }
+
+    /// <summary>
+    /// Groups the contract change confirmation overlay and the pending
+    /// mercenary/contract the player is switching to.
+    /// </summary>
+    [Serializable]
+    public sealed class ContractChangeReferences
+    {
+        public RectTransform confirmationOverlay;
+        public RectTransform detailsOverlay;
+        public Text confirmationText;
+        public Button confirmButton;
+
+        /// <summary>Mercenary whose contract is being changed.</summary>
+        public MercenaryInstance mercenary;
+
+        /// <summary>Contract type the confirmation would apply.</summary>
+        public MercenaryContractType target;
+
+        public bool IsValid =>
+            confirmationOverlay != null &&
+            confirmationText != null &&
+            confirmButton != null;
+    }
+
+    /// <summary>
     /// Groups the battle page widgets: the log panel and its scrolling parts
     /// plus the playback controls.
     /// </summary>

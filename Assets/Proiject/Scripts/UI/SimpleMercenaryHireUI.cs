@@ -152,29 +152,20 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Text dayText;
     private Text statusText;
     private Text marketInfoText;
-    private Text storageCapacityText;
-    private RectTransform storageUpgradeConfirmationOverlay;
-    private Text storageUpgradeConfirmationText;
-    private Text storageUpgradeConfirmationReasonText;
-    private Button storageUpgradeConfirmButton;
-    private RectTransform sellOnlyConfirmationOverlay;
-    private Text sellOnlyConfirmationText;
-    private RectTransform sellQuantityOverlay;
-    private Text sellQuantityTitleText;
-    private Image sellQuantityImage;
-    private Text sellQuantityImagePlaceholder;
-    private Text sellQuantityDetailText;
-    private ItemDataSO sellQuantityItem;
-    private int sellQuantityAmount;
+    private readonly SimpleMercenaryHireUIView.SellQuantityReferences
+        sellQuantity = new SimpleMercenaryHireUIView.SellQuantityReferences();
+    private readonly SimpleMercenaryHireUIView.SellOnlyConfirmationReferences
+        sellOnlyConfirmation =
+            new SimpleMercenaryHireUIView.SellOnlyConfirmationReferences();
+    private readonly SimpleMercenaryHireUIView.StorageUpgradeReferences
+        storageUpgrade =
+            new SimpleMercenaryHireUIView.StorageUpgradeReferences();
+    private readonly SimpleMercenaryHireUIView.ContractChangeReferences
+        contractChange =
+            new SimpleMercenaryHireUIView.ContractChangeReferences();
     private RectTransform releaseConfirmationOverlay;
     private Text releaseConfirmationText;
     private MercenaryInstance releaseConfirmationMercenary;
-    private RectTransform contractChangeConfirmationOverlay;
-    private RectTransform contractDetailsOverlay;
-    private Text contractChangeConfirmationText;
-    private Button contractChangeConfirmButton;
-    private MercenaryInstance contractChangeMercenary;
-    private MercenaryContractType contractChangeTarget;
     private RectTransform itemDetailOverlay;
     private Image itemDetailImage;
     private Text itemDetailImagePlaceholder;

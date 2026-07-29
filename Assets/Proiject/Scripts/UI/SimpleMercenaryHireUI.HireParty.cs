@@ -588,18 +588,18 @@ public partial class SimpleMercenaryHireUI
 
     private void BuildContractChangeConfirmationOverlay()
     {
-        contractChangeConfirmationOverlay = CreateUIObject(
+        contractChange.confirmationOverlay = CreateUIObject(
             "Contract Change Confirmation Overlay",
             overlayRoot);
-        contractChangeConfirmationOverlay.anchorMin = Vector2.zero;
-        contractChangeConfirmationOverlay.anchorMax = Vector2.one;
-        contractChangeConfirmationOverlay.offsetMin = Vector2.zero;
-        contractChangeConfirmationOverlay.offsetMax = Vector2.zero;
-        contractChangeConfirmationOverlay.gameObject.AddComponent<Image>().color =
+        contractChange.confirmationOverlay.anchorMin = Vector2.zero;
+        contractChange.confirmationOverlay.anchorMax = Vector2.one;
+        contractChange.confirmationOverlay.offsetMin = Vector2.zero;
+        contractChange.confirmationOverlay.offsetMax = Vector2.zero;
+        contractChange.confirmationOverlay.gameObject.AddComponent<Image>().color =
             new Color(0f, 0f, 0f, 0.82f);
         RectTransform window = CreateUIObject(
             "Contract Change Confirmation Window",
-            contractChangeConfirmationOverlay);
+            contractChange.confirmationOverlay);
         window.anchorMin = window.anchorMax = window.pivot =
             new Vector2(0.5f, 0.5f);
         window.sizeDelta = new Vector2(600f, 390f);
@@ -613,7 +613,7 @@ public partial class SimpleMercenaryHireUI
             new Vector2(28f, -72f),
             new Vector2(-28f, -22f),
             ParchmentTextColor);
-        contractChangeConfirmationText = CreateText(
+        contractChange.confirmationText = CreateText(
             window,
             string.Empty,
             17,
@@ -622,17 +622,17 @@ public partial class SimpleMercenaryHireUI
             new Vector2(36f, -285f),
             new Vector2(-36f, -80f),
             ParchmentTextColor);
-        contractChangeConfirmButton = CreateActionButton(
+        contractChange.confirmButton = CreateActionButton(
             window,
             "契約を変更する",
             ConfirmContractChange);
         RectTransform confirmRect =
-            contractChangeConfirmButton.GetComponent<RectTransform>();
+            contractChange.confirmButton.GetComponent<RectTransform>();
         confirmRect.anchorMin = confirmRect.anchorMax = confirmRect.pivot =
             new Vector2(0.5f, 0f);
         confirmRect.sizeDelta = new Vector2(200f, 48f);
         confirmRect.anchoredPosition = new Vector2(-110f, 26f);
-        contractChangeConfirmButton.targetGraphic.color = ImportantButtonColor;
+        contractChange.confirmButton.targetGraphic.color = ImportantButtonColor;
         Button cancelButton = CreateActionButton(
             window,
             "やめる",
@@ -642,7 +642,7 @@ public partial class SimpleMercenaryHireUI
             new Vector2(0.5f, 0f);
         cancelRect.sizeDelta = new Vector2(180f, 48f);
         cancelRect.anchoredPosition = new Vector2(110f, 26f);
-        contractChangeConfirmationOverlay.gameObject.SetActive(false);
+        contractChange.confirmationOverlay.gameObject.SetActive(false);
     }
 
     private void ShowContractChangeConfirmation(MercenaryInstance mercenary)
@@ -655,9 +655,9 @@ public partial class SimpleMercenaryHireUI
         int cost = hireManager.GetInitialContractCost(mercenary, target);
         MercenaryHireManager.ContractChangeUnavailableReason reason =
             hireManager.GetContractChangeUnavailableReason(mercenary, target);
-        contractChangeMercenary = mercenary;
-        contractChangeTarget = target;
-        contractChangeConfirmationText.text =
+        contractChange.mercenary = mercenary;
+        contractChange.target = target;
+        contractChange.confirmationText.text =
             mercenary.MercenaryName + "\n" +
             JapaneseDisplayText.GetContractType(mercenary.ContractType) + " → " +
             JapaneseDisplayText.GetContractType(target) + "\n" +
@@ -667,10 +667,10 @@ public partial class SimpleMercenaryHireUI
             (reason == MercenaryHireManager.ContractChangeUnavailableReason.None
                 ? string.Empty
                 : "\n" + GetContractChangeUnavailableMessage(reason, cost));
-        contractChangeConfirmButton.interactable =
+        contractChange.confirmButton.interactable =
             reason == MercenaryHireManager.ContractChangeUnavailableReason.None;
-        contractChangeConfirmationOverlay.SetAsLastSibling();
-        contractChangeConfirmationOverlay.gameObject.SetActive(true);
+        contractChange.confirmationOverlay.SetAsLastSibling();
+        contractChange.confirmationOverlay.gameObject.SetActive(true);
     }
 
     private static string GetContractEndText(MercenaryContractType contractType)
@@ -732,8 +732,8 @@ public partial class SimpleMercenaryHireUI
 
     private void ConfirmContractChange()
     {
-        MercenaryInstance mercenary = contractChangeMercenary;
-        MercenaryContractType target = contractChangeTarget;
+        MercenaryInstance mercenary = contractChange.mercenary;
+        MercenaryContractType target = contractChange.target;
         MercenaryHireManager.ContractChangeUnavailableReason reason =
             hireManager.GetContractChangeUnavailableReason(mercenary, target);
         if (reason != MercenaryHireManager.ContractChangeUnavailableReason.None)
@@ -755,8 +755,8 @@ public partial class SimpleMercenaryHireUI
 
     private void HideContractChangeConfirmation()
     {
-        contractChangeConfirmationOverlay?.gameObject.SetActive(false);
-        contractChangeMercenary = null;
+        contractChange.confirmationOverlay?.gameObject.SetActive(false);
+        contractChange.mercenary = null;
     }
 
     private void ShowReleaseConfirmation(MercenaryInstance mercenary)

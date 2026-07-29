@@ -61,9 +61,9 @@ public partial class SimpleMercenaryHireUI
             ApplyContractDetailsColumn(index, columns[index]);
         }
 
-        contractDetailsOverlay.name = "Contract Details Overlay " + mercenaryName;
-        contractDetailsOverlay.SetAsLastSibling();
-        contractDetailsOverlay.gameObject.SetActive(true);
+        contractChange.detailsOverlay.name = "Contract Details Overlay " + mercenaryName;
+        contractChange.detailsOverlay.SetAsLastSibling();
+        contractChange.detailsOverlay.gameObject.SetActive(true);
     }
 
     private void ApplyContractDetailsColumn(
@@ -100,20 +100,20 @@ public partial class SimpleMercenaryHireUI
 
     private void BuildContractDetailsOverlay()
     {
-        if (contractDetailsOverlay != null)
+        if (contractChange.detailsOverlay != null)
         {
             return;
         }
 
-        contractDetailsOverlay = CreateUIObject("Contract Details Overlay", overlayRoot);
-        contractDetailsOverlay.anchorMin = Vector2.zero;
-        contractDetailsOverlay.anchorMax = Vector2.one;
-        contractDetailsOverlay.offsetMin = Vector2.zero;
-        contractDetailsOverlay.offsetMax = Vector2.zero;
-        contractDetailsOverlay.gameObject.AddComponent<Image>().color =
+        contractChange.detailsOverlay = CreateUIObject("Contract Details Overlay", overlayRoot);
+        contractChange.detailsOverlay.anchorMin = Vector2.zero;
+        contractChange.detailsOverlay.anchorMax = Vector2.one;
+        contractChange.detailsOverlay.offsetMin = Vector2.zero;
+        contractChange.detailsOverlay.offsetMax = Vector2.zero;
+        contractChange.detailsOverlay.gameObject.AddComponent<Image>().color =
             new Color(0f, 0f, 0f, 0.82f);
 
-        RectTransform window = CreateUIObject("Contract Details Window", contractDetailsOverlay);
+        RectTransform window = CreateUIObject("Contract Details Window", contractChange.detailsOverlay);
         window.anchorMin = window.anchorMax = window.pivot =
             new Vector2(0.5f, 0.5f);
         window.sizeDelta = new Vector2(980f, 610f);
@@ -167,11 +167,11 @@ public partial class SimpleMercenaryHireUI
             new Vector2(0.5f, 0f);
         closeRect.sizeDelta = new Vector2(180f, 48f);
         closeRect.anchoredPosition = new Vector2(0f, 24f);
-        contractDetailsOverlay.gameObject.SetActive(false);
+        contractChange.detailsOverlay.gameObject.SetActive(false);
     }
 
     private void HideContractDetails()
     {
-        contractDetailsOverlay?.gameObject.SetActive(false);
+        contractChange.detailsOverlay?.gameObject.SetActive(false);
     }
 }
