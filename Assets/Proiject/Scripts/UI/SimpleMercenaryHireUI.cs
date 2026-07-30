@@ -66,9 +66,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private readonly SimpleMercenaryHireUIView.EquipmentCodexReferences
         equipmentCodex =
             new SimpleMercenaryHireUIView.EquipmentCodexReferences();
-    private readonly SimpleMercenaryHireUIView.MonsterCodexReferences
-        monsterCodex =
-            new SimpleMercenaryHireUIView.MonsterCodexReferences();
+    private MonsterCodexManager monsterCodexManager;
+    private MonsterCodexOverlayView monsterCodexOverlayView;
     private RectTransform globalMenuOverlay;
     private readonly SimpleMercenaryHireUIView.DailyResultReferences
         dailyResult =
@@ -465,6 +464,12 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         if (hireManager == null)
         {
             hireManager = GetComponent<MercenaryHireManager>();
+        }
+
+        if (monsterCodexManager == null)
+        {
+            monsterCodexManager = GetComponent<MonsterCodexManager>() ??
+                FindObjectOfType<MonsterCodexManager>();
         }
 
         if (partyManager == null)
