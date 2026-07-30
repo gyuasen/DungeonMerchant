@@ -163,6 +163,10 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         contractDetails =
             new SimpleMercenaryHireUIView.ContractDetailsReferences();
     private ContractDetailsOverlayView contractDetailsOverlayView;
+    private readonly SimpleMercenaryHireUIView.FacilityGreetingReferences
+        facilityGreeting =
+            new SimpleMercenaryHireUIView.FacilityGreetingReferences();
+    private FacilityGreetingOverlayView facilityGreetingOverlayView;
     private RectTransform itemDetailOverlay;
     private Image itemDetailImage;
     private Text itemDetailImagePlaceholder;
@@ -202,10 +206,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private AudioFeedbackService audioFeedbackService;
     private FacilityGreetingController facilityGreetingController;
     public event System.Action<string> FacilityEntered;
-    private RectTransform facilityGreetingOverlay;
-    private Text facilityGreetingTitle;
-    private Text facilityGreetingDialogue;
-    private Image facilityGreetingPortrait;
     private string pendingFacilityKey;
     private System.Action pendingFacilityDestination;
 
@@ -1081,6 +1081,12 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         BuildPromotionPreviewOverlay();
         BuildGlobalMenuOverlay();
         BuildDailyResultOverlay();
+        facilityGreetingOverlayView = new FacilityGreetingOverlayView(
+            uiFactory,
+            facilityGreeting,
+            overlayRoot,
+            EnterFacilityFromGreeting,
+            HideFacilityGreeting);
         BuildFacilityGreetingOverlay();
         BuildRemoteSaleOverlay();
         contractDetailsOverlayView = new ContractDetailsOverlayView(
@@ -1110,6 +1116,59 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private void HideTutorialOverlay()
     {
         tutorialOverlayView?.Hide();
+    }
+
+    private void BuildFacilityGreetingOverlay()
+    {
+        facilityGreetingOverlayView?.Build();
+    }
+
+    private void OpenFacilityWithGreeting(string facilityKey, System.Action destination)
+    {
+        int currentDay = dayManager != null ? dayManager.CurrentDay : 1;
+        int townIndex = townProgressState != null ? townProgressState.CurrentTownIndex : 0;
+        if (!facilityGreetingController.ShouldShowGreeting(currentDay, townIndex, facilityKey))
+        {
+            EnterFacility(facilityKey, destination);
+            return;
+        }
+
+        string townName = townIndex >= 0 && townIndex < WorldMapService.TownNames.Length
+            ? WorldMapService.TownNames[townIndex]
+            : "この町";
+        FacilityGreeting greeting = facilityGreetingController.GetGreeting(
+            currentDay, townIndex, townName, facilityKey);
+        Sprite portrait = Resources.Load<Sprite>("UI/Staff/" + facilityKey);
+        facilityGreetingOverlayView?.SetTitle(greeting.Title);
+        facilityGreetingOverlayView?.SetDialogue(greeting.Dialogue);
+        facilityGreetingOverlayView?.SetPortrait(portrait);
+        pendingFacilityKey = facilityKey;
+        pendingFacilityDestination = destination;
+        facilityGreetingOverlayView?.Show();
+    }
+
+    private void EnterFacilityFromGreeting()
+    {
+        int currentDay = dayManager != null ? dayManager.CurrentDay : 1;
+        int townIndex = townProgressState != null ? townProgressState.CurrentTownIndex : 0;
+        facilityGreetingController.MarkEntered(currentDay, townIndex, pendingFacilityKey);
+        string facilityKey = pendingFacilityKey;
+        System.Action destination = pendingFacilityDestination;
+        HideFacilityGreeting();
+        EnterFacility(facilityKey, destination);
+    }
+
+    private void EnterFacility(string facilityKey, System.Action destination)
+    {
+        destination?.Invoke();
+        FacilityEntered?.Invoke(facilityKey);
+    }
+
+    private void HideFacilityGreeting()
+    {
+        pendingFacilityKey = null;
+        pendingFacilityDestination = null;
+        facilityGreetingOverlayView?.Hide();
     }
 
     private void ShowContractDetails(MercenaryDataSO candidate)

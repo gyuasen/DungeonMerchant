@@ -238,6 +238,24 @@ public sealed class SimpleMercenaryHireUIView : MonoBehaviour
     }
 
     /// <summary>
+    /// Groups the facility greeting overlay widgets.
+    /// </summary>
+    [Serializable]
+    public sealed class FacilityGreetingReferences
+    {
+        public RectTransform overlay;
+        public Text title;
+        public Text dialogue;
+        public Image portrait;
+
+        public bool IsValid =>
+            overlay != null &&
+            title != null &&
+            dialogue != null &&
+            portrait != null;
+    }
+
+    /// <summary>
     /// Groups the battle page widgets: the log panel and its scrolling parts
     /// plus the playback controls.
     /// </summary>
