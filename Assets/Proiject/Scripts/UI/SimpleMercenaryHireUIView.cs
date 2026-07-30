@@ -213,7 +213,6 @@ public sealed class SimpleMercenaryHireUIView : MonoBehaviour
     public sealed class ContractChangeReferences
     {
         public RectTransform confirmationOverlay;
-        public RectTransform detailsOverlay;
         public Text confirmationText;
         public Button confirmButton;
 
@@ -227,6 +226,15 @@ public sealed class SimpleMercenaryHireUIView : MonoBehaviour
             confirmationOverlay != null &&
             confirmationText != null &&
             confirmButton != null;
+    }
+
+    /// <summary>
+    /// Groups the contract details overlay widgets.
+    /// </summary>
+    [Serializable]
+    public sealed class ContractDetailsReferences
+    {
+        public RectTransform overlay;
     }
 
     /// <summary>

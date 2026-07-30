@@ -159,6 +159,10 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private readonly SimpleMercenaryHireUIView.ContractChangeReferences
         contractChange =
             new SimpleMercenaryHireUIView.ContractChangeReferences();
+    private readonly SimpleMercenaryHireUIView.ContractDetailsReferences
+        contractDetails =
+            new SimpleMercenaryHireUIView.ContractDetailsReferences();
+    private ContractDetailsOverlayView contractDetailsOverlayView;
     private RectTransform itemDetailOverlay;
     private Image itemDetailImage;
     private Text itemDetailImagePlaceholder;
@@ -1079,6 +1083,13 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         BuildDailyResultOverlay();
         BuildFacilityGreetingOverlay();
         BuildRemoteSaleOverlay();
+        contractDetailsOverlayView = new ContractDetailsOverlayView(
+            uiFactory,
+            contractDetails,
+            overlayRoot,
+            hireManager,
+            merchantData,
+            HideContractDetails);
         tutorialOverlayView = new TutorialOverlayView(
             uiFactory,
             new SimpleMercenaryHireUIView.TutorialReferences(),
@@ -1099,6 +1110,21 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private void HideTutorialOverlay()
     {
         tutorialOverlayView?.Hide();
+    }
+
+    private void ShowContractDetails(MercenaryDataSO candidate)
+    {
+        contractDetailsOverlayView?.Show(candidate);
+    }
+
+    private void ShowContractDetails(MercenaryInstance candidate)
+    {
+        contractDetailsOverlayView?.Show(candidate);
+    }
+
+    private void HideContractDetails()
+    {
+        contractDetailsOverlayView?.Hide();
     }
 
     private void ShowWorldMap(int worldMapIndex)
