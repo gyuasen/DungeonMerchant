@@ -430,26 +430,13 @@ public sealed class SimpleMercenaryHireUIView : MonoBehaviour
             nextButton != null;
     }
 
-    /// <summary>
-    /// Groups the daily result overlay widgets together with the queue of
-    /// results waiting to be shown, so the pending state travels with the
-    /// widgets that render it.
-    /// </summary>
+    /// <summary>Groups the daily result overlay widgets.</summary>
     [Serializable]
     public sealed class DailyResultReferences
     {
         public RectTransform overlay;
         public RectTransform content;
         public Text text;
-
-        /// <summary>True while at least one day is waiting to be shown.</summary>
-        public bool hasPending;
-
-        /// <summary>
-        /// Result texts queued while several days advance at once; they are
-        /// concatenated into a single overlay when the advance finishes.
-        /// </summary>
-        public readonly Queue<string> pendingTexts = new Queue<string>();
 
         public bool IsValid =>
             overlay != null &&

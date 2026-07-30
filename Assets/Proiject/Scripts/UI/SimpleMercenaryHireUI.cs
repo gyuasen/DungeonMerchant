@@ -72,6 +72,10 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private readonly SimpleMercenaryHireUIView.DailyResultReferences
         dailyResult =
             new SimpleMercenaryHireUIView.DailyResultReferences();
+    private DailyResultOverlayView dailyResultOverlayView;
+    private bool hasPendingDailyResult;
+    private readonly Queue<string> pendingDailyResultTexts =
+        new Queue<string>();
     private TutorialOverlayView tutorialOverlayView;
     private RemoteSaleOverlayView remoteSaleOverlayView;
     private Button globalMenuButton;
@@ -1387,6 +1391,122 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private void HideRemoteSaleOverlay()
     {
         remoteSaleOverlayView?.Hide();
+    }
+
+    private void HandleTrainingCompleted(TrainingReservation reservation)
+    {
+        string line = dailyResultController.RecordTrainingCompleted(reservation);
+        if (!string.IsNullOrEmpty(line) &&
+            dailyResultOverlayView != null &&
+            dailyResultOverlayView.IsShowing)
+        {
+            dailyResultOverlayView.AppendText(line);
+            dailyResultController.ConsumeRecordedTrainingCompletion(line);
+        }
+    }
+
+    private void BuildDailyResultOverlay()
+    {
+        dailyResult.overlay = GetOrCreateOverlay(
+            SimpleMercenaryHireOverlaySlot.DailyResult,
+            "Daily Result Overlay");
+        dailyResultOverlayView = new DailyResultOverlayView(
+            uiFactory, dailyResult, overlayRoot, HideDailyResult);
+        dailyResultOverlayView.Build();
+    }
+
+    private void HideDailyResult()
+    {
+        dailyResultOverlayView?.Hide();
+        ShowPendingDailyResultIfReady();
+    }
+
+    private void HandleDayChanged(int currentDay)
+    {
+        if (!TownServicePolicy.IsHiringAvailable(townProgressState.CurrentTownIndex))
+        {
+            mercenaryGenerator.ClearCandidates();
+        }
+        RefreshPage(marketPage);
+        RefreshPage(inventoryPage);
+        RefreshPage(healPage);
+        RefreshPage(companyPage);
+        RefreshUI();
+        string debtNotice = debtManager != null &&
+                            (currentDay - 1) % DebtManager.DaysPerMonth == 0 &&
+                            currentDay > 1
+            ? debtManager.PaymentArrears > 0
+                ? $" 月次返済後の滞納額：{debtManager.PaymentArrears:N0}Gです。"
+                : $" 月次最低返済を完了しました。"
+            : string.Empty;
+        statusText.text =
+            $"{currentDay}日目になりました。市場価格が更新されました。{debtNotice}";
+    }
+
+    private void HandleDayChangeFinalized(int currentDay)
+    {
+        QueueDailyResult(currentDay);
+    }
+
+    private void HandleDaysAdvanceCompleted(int advancedDays)
+    {
+        ShowPendingDailyResultIfReady();
+    }
+
+    private void ShowPendingDailyResultIfReady()
+    {
+        if (!hasPendingDailyResult ||
+            (dailyResultOverlayView != null &&
+             dailyResultOverlayView.IsShowing))
+        {
+            return;
+        }
+
+        if (battleVisualController != null &&
+            battleVisualController.IsPresentationBusy)
+        {
+            return;
+        }
+
+        StringBuilder combined = new StringBuilder();
+        bool first = true;
+        while (pendingDailyResultTexts.Count > 0)
+        {
+            if (!first)
+            {
+                combined.AppendLine();
+                combined.AppendLine("────────────");
+                combined.AppendLine();
+            }
+
+            combined.Append(pendingDailyResultTexts.Dequeue());
+            first = false;
+        }
+
+        hasPendingDailyResult = false;
+        ShowDailyResult(combined.ToString());
+    }
+
+    private void QueueDailyResult(int currentDay)
+    {
+        string resultText = dailyResultOverlayView == null ||
+                            !dailyResultOverlayView.IsValid
+            ? null
+            : dailyResultController.BuildDailyResultText(currentDay);
+        if (resultText == null)
+        {
+            dailyResultController.CaptureDailySnapshot(currentDay);
+            return;
+        }
+
+        pendingDailyResultTexts.Enqueue(resultText);
+        hasPendingDailyResult = true;
+        dailyResultController.CaptureDailySnapshot(currentDay);
+    }
+
+    private void ShowDailyResult(string resultText)
+    {
+        dailyResultOverlayView?.Show(resultText);
     }
 
     private void RefreshRemoteSaleOverlay()
