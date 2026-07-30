@@ -6,17 +6,17 @@ public partial class SimpleMercenaryHireUI
 {
     private void BuildMonsterCollectionOverlay()
     {
-        monsterCollectionOverlay = GetOrCreateOverlay(
+        monsterCodex.overlay = GetOrCreateOverlay(
             SimpleMercenaryHireOverlaySlot.MonsterCollection,
             "Monster Collection Overlay");
-        monsterCollectionOverlay.gameObject.SetActive(false);
-        monsterCollectionOverlay.anchorMin = Vector2.zero;
-        monsterCollectionOverlay.anchorMax = Vector2.one;
-        monsterCollectionOverlay.offsetMin = Vector2.zero;
-        monsterCollectionOverlay.offsetMax = Vector2.zero;
-        monsterCollectionOverlay.gameObject.AddComponent<Image>().color =
+        monsterCodex.overlay.gameObject.SetActive(false);
+        monsterCodex.overlay.anchorMin = Vector2.zero;
+        monsterCodex.overlay.anchorMax = Vector2.one;
+        monsterCodex.overlay.offsetMin = Vector2.zero;
+        monsterCodex.overlay.offsetMax = Vector2.zero;
+        monsterCodex.overlay.gameObject.AddComponent<Image>().color =
             new Color(0f, 0f, 0f, 0.82f);
-        RectTransform window = CreateUIObject("Monster Collection Window", monsterCollectionOverlay);
+        RectTransform window = CreateUIObject("Monster Collection Window", monsterCodex.overlay);
         window.anchorMin = window.anchorMax = window.pivot = new Vector2(0.5f, 0.5f);
         window.sizeDelta = new Vector2(720f, 560f);
         ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
@@ -25,15 +25,15 @@ public partial class SimpleMercenaryHireUI
         bookRoot.anchorMax = Vector2.one;
         bookRoot.offsetMin = new Vector2(28f, 28f);
         bookRoot.offsetMax = new Vector2(-28f, -82f);
-        monsterCodexBook = bookRoot.gameObject.AddComponent<BookPageUI>();
-        monsterCodexBook.Initialize(string.Empty, uiFont, uiBodyFont);
+        monsterCodex.book = bookRoot.gameObject.AddComponent<BookPageUI>();
+        monsterCodex.book.Initialize(string.Empty, uiFont, uiBodyFont);
         Button closeButton = CreateActionButton(window, "閉じる", HideMonsterCollection);
         RectTransform closeRect = closeButton.GetComponent<RectTransform>();
         closeRect.anchorMin = closeRect.anchorMax = new Vector2(1f, 1f);
         closeRect.pivot = new Vector2(1f, 1f);
         closeRect.sizeDelta = new Vector2(100f, 42f);
         closeRect.anchoredPosition = new Vector2(-18f, -18f);
-        monsterCollectionOverlay.gameObject.SetActive(false);
+        monsterCodex.overlay.gameObject.SetActive(false);
     }
 
     private void ShowMonsterCollection()
@@ -63,9 +63,9 @@ public partial class SimpleMercenaryHireUI
             });
         }
 
-        monsterCodexBook.SetEntries(entries);
-        monsterCollectionOverlay.SetAsLastSibling();
-        monsterCollectionOverlay.gameObject.SetActive(true);
+        monsterCodex.book.SetEntries(entries);
+        monsterCodex.overlay.SetAsLastSibling();
+        monsterCodex.overlay.gameObject.SetActive(true);
     }
 
     private static Sprite GetMonsterSprite(EnemyDataSO enemy)
@@ -107,7 +107,7 @@ public partial class SimpleMercenaryHireUI
 
     private void HideMonsterCollection()
     {
-        monsterCollectionOverlay.gameObject.SetActive(false);
+        monsterCodex.overlay.gameObject.SetActive(false);
     }
 }
 

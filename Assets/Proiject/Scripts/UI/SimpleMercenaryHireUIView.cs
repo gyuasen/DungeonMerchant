@@ -404,6 +404,88 @@ public sealed class SimpleMercenaryHireUIView : MonoBehaviour
             nextButton != null;
     }
 
+    /// <summary>
+    /// Groups the daily result overlay widgets together with the queue of
+    /// results waiting to be shown, so the pending state travels with the
+    /// widgets that render it.
+    /// </summary>
+    [Serializable]
+    public sealed class DailyResultReferences
+    {
+        public RectTransform overlay;
+        public RectTransform content;
+        public Text text;
+
+        /// <summary>True while at least one day is waiting to be shown.</summary>
+        public bool hasPending;
+
+        /// <summary>
+        /// Result texts queued while several days advance at once; they are
+        /// concatenated into a single overlay when the advance finishes.
+        /// </summary>
+        public readonly Queue<string> pendingTexts = new Queue<string>();
+
+        public bool IsValid =>
+            overlay != null &&
+            content != null &&
+            text != null;
+    }
+
+    /// <summary>
+    /// Groups the quest board overlay: the scrolling quest list and the detail
+    /// window opened from it.
+    /// </summary>
+    [Serializable]
+    public sealed class QuestReferences
+    {
+        public RectTransform overlay;
+        public RectTransform list;
+        public RectTransform detailWindow;
+
+        /// <summary>
+        /// The detail window is intentionally excluded: it is created lazily
+        /// the first time a quest is opened.
+        /// </summary>
+        public bool IsValid => overlay != null && list != null;
+    }
+
+    /// <summary>
+    /// Groups the remote sale overlay and its scrolling content root.
+    /// </summary>
+    [Serializable]
+    public sealed class RemoteSaleReferences
+    {
+        public RectTransform overlay;
+        public RectTransform content;
+
+        public bool IsValid => overlay != null && content != null;
+    }
+
+    /// <summary>
+    /// Groups the merchant status overlay and the skill list it renders.
+    /// </summary>
+    [Serializable]
+    public sealed class MerchantStatusReferences
+    {
+        public RectTransform overlay;
+        public RectTransform skillList;
+
+        public bool IsValid => overlay != null && skillList != null;
+    }
+
+    /// <summary>
+    /// Groups the monster codex overlay and the book page that renders its
+    /// entries.
+    /// </summary>
+    [Serializable]
+    public sealed class MonsterCodexReferences
+    {
+        public RectTransform overlay;
+        public BookPageUI book;
+
+        public bool IsValid => overlay != null && book != null;
+    }
+
     [Serializable]
     public sealed class HireCompanyReferences
     {

@@ -9,31 +9,31 @@ public partial class SimpleMercenaryHireUI
     {
         string line = dailyResultController.RecordTrainingCompleted(reservation);
         if (!string.IsNullOrEmpty(line) &&
-            dailyResultOverlay != null &&
-            dailyResultOverlay.gameObject.activeSelf &&
-            dailyResultText != null)
+            dailyResult.overlay != null &&
+            dailyResult.overlay.gameObject.activeSelf &&
+            dailyResult.text != null)
         {
-            dailyResultText.text += "\n" + line;
+            dailyResult.text.text += "\n" + line;
             dailyResultController.ConsumeRecordedTrainingCompletion(line);
         }
     }
 
     private void BuildDailyResultOverlay()
     {
-        dailyResultOverlay =
+        dailyResult.overlay =
             GetOrCreateOverlay(
                 SimpleMercenaryHireOverlaySlot.DailyResult,
                 "Daily Result Overlay");
-        dailyResultOverlay.gameObject.SetActive(false);
-        dailyResultOverlay.anchorMin = Vector2.zero;
-        dailyResultOverlay.anchorMax = Vector2.one;
-        dailyResultOverlay.offsetMin = Vector2.zero;
-        dailyResultOverlay.offsetMax = Vector2.zero;
-        dailyResultOverlay.gameObject.AddComponent<Image>().color =
+        dailyResult.overlay.gameObject.SetActive(false);
+        dailyResult.overlay.anchorMin = Vector2.zero;
+        dailyResult.overlay.anchorMax = Vector2.one;
+        dailyResult.overlay.offsetMin = Vector2.zero;
+        dailyResult.overlay.offsetMax = Vector2.zero;
+        dailyResult.overlay.gameObject.AddComponent<Image>().color =
             new Color(0f, 0f, 0f, 0.84f);
 
         RectTransform window =
-            CreateUIObject("Daily Result Window", dailyResultOverlay);
+            CreateUIObject("Daily Result Window", dailyResult.overlay);
         window.anchorMin = window.anchorMax = window.pivot =
             new Vector2(0.5f, 0.5f);
         window.sizeDelta = new Vector2(760f, 580f);
@@ -60,13 +60,13 @@ public partial class SimpleMercenaryHireUI
         Mask mask = viewport.gameObject.AddComponent<Mask>();
         mask.showMaskGraphic = false;
 
-        dailyResultContent =
+        dailyResult.content =
             CreateUIObject("Daily Result Content", viewport);
-        dailyResultContent.anchorMin = new Vector2(0f, 1f);
-        dailyResultContent.anchorMax = new Vector2(1f, 1f);
-        dailyResultContent.pivot = new Vector2(0.5f, 1f);
-        dailyResultText = CreateText(
-            dailyResultContent,
+        dailyResult.content.anchorMin = new Vector2(0f, 1f);
+        dailyResult.content.anchorMax = new Vector2(1f, 1f);
+        dailyResult.content.pivot = new Vector2(0.5f, 1f);
+        dailyResult.text = CreateText(
+            dailyResult.content,
             string.Empty,
             17,
             FontStyle.Normal,
@@ -74,12 +74,12 @@ public partial class SimpleMercenaryHireUI
             new Vector2(16f, 16f),
             new Vector2(-16f, -16f),
             ParchmentTextColor);
-        dailyResultText.supportRichText = true;
-        dailyResultText.rectTransform.anchorMin = Vector2.zero;
-        dailyResultText.rectTransform.anchorMax = Vector2.one;
+        dailyResult.text.supportRichText = true;
+        dailyResult.text.rectTransform.anchorMin = Vector2.zero;
+        dailyResult.text.rectTransform.anchorMax = Vector2.one;
 
         ScrollRect scroll = viewport.gameObject.AddComponent<ScrollRect>();
-        scroll.content = dailyResultContent;
+        scroll.content = dailyResult.content;
         scroll.viewport = viewport;
         scroll.horizontal = false;
         scroll.vertical = true;
@@ -95,12 +95,12 @@ public partial class SimpleMercenaryHireUI
         closeRect.sizeDelta = new Vector2(180f, 46f);
         closeRect.anchoredPosition = new Vector2(0f, 18f);
 
-        dailyResultOverlay.gameObject.SetActive(false);
+        dailyResult.overlay.gameObject.SetActive(false);
     }
 
     private void HideDailyResult()
     {
-        dailyResultOverlay?.gameObject.SetActive(false);
+        dailyResult.overlay?.gameObject.SetActive(false);
         ShowPendingDailyResultIfReady();
     }
 
@@ -141,9 +141,9 @@ public partial class SimpleMercenaryHireUI
 
     private void ShowPendingDailyResultIfReady()
     {
-        if (!hasPendingDailyResult ||
-            (dailyResultOverlay != null &&
-             dailyResultOverlay.gameObject.activeSelf))
+        if (!dailyResult.hasPending ||
+            (dailyResult.overlay != null &&
+             dailyResult.overlay.gameObject.activeSelf))
         {
             return;
         }
@@ -157,7 +157,7 @@ public partial class SimpleMercenaryHireUI
         // キューに溜まった複数日分を1画面へ連結して表示する。
         System.Text.StringBuilder combined = new System.Text.StringBuilder();
         bool first = true;
-        while (pendingDailyResultTexts.Count > 0)
+        while (dailyResult.pendingTexts.Count > 0)
         {
             if (!first)
             {
@@ -166,18 +166,18 @@ public partial class SimpleMercenaryHireUI
                 combined.AppendLine();
             }
 
-            combined.Append(pendingDailyResultTexts.Dequeue());
+            combined.Append(dailyResult.pendingTexts.Dequeue());
             first = false;
         }
 
-        hasPendingDailyResult = false;
+        dailyResult.hasPending = false;
         ShowDailyResult(combined.ToString());
     }
 
     private void QueueDailyResult(int currentDay)
     {
         string resultText =
-            dailyResultOverlay == null || dailyResultText == null
+            dailyResult.overlay == null || dailyResult.text == null
                 ? null
                 : dailyResultController.BuildDailyResultText(currentDay);
         if (resultText == null)
@@ -186,18 +186,18 @@ public partial class SimpleMercenaryHireUI
             return;
         }
 
-        pendingDailyResultTexts.Enqueue(resultText);
-        hasPendingDailyResult = true;
+        dailyResult.pendingTexts.Enqueue(resultText);
+        dailyResult.hasPending = true;
         dailyResultController.CaptureDailySnapshot(currentDay);
     }
 
     private void ShowDailyResult(string resultText)
     {
-        dailyResultText.text = resultText;
+        dailyResult.text.text = resultText;
         int lineCount = resultText.Split('\n').Length;
-        dailyResultContent.sizeDelta =
+        dailyResult.content.sizeDelta =
             new Vector2(0f, Mathf.Max(420f, 40f + lineCount * 34f));
-        dailyResultOverlay.SetAsLastSibling();
-        dailyResultOverlay.gameObject.SetActive(true);
+        dailyResult.overlay.SetAsLastSibling();
+        dailyResult.overlay.gameObject.SetActive(true);
     }
 }

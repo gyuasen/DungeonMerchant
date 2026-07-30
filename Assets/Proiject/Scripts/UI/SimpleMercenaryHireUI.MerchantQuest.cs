@@ -6,20 +6,20 @@ public partial class SimpleMercenaryHireUI
 {
     private void BuildMerchantStatusOverlay()
     {
-        merchantStatusOverlay =
+        merchantStatus.overlay =
             GetOrCreateOverlay(
                 SimpleMercenaryHireOverlaySlot.MerchantStatus,
                 "Merchant Status Overlay");
-        merchantStatusOverlay.gameObject.SetActive(false);
-        merchantStatusOverlay.anchorMin = Vector2.zero;
-        merchantStatusOverlay.anchorMax = Vector2.one;
-        merchantStatusOverlay.offsetMin = Vector2.zero;
-        merchantStatusOverlay.offsetMax = Vector2.zero;
-        merchantStatusOverlay.gameObject.AddComponent<Image>().color =
+        merchantStatus.overlay.gameObject.SetActive(false);
+        merchantStatus.overlay.anchorMin = Vector2.zero;
+        merchantStatus.overlay.anchorMax = Vector2.one;
+        merchantStatus.overlay.offsetMin = Vector2.zero;
+        merchantStatus.overlay.offsetMax = Vector2.zero;
+        merchantStatus.overlay.gameObject.AddComponent<Image>().color =
             new Color(0f, 0f, 0f, 0.82f);
 
         RectTransform window =
-            CreateUIObject("Merchant Status Window", merchantStatusOverlay);
+            CreateUIObject("Merchant Status Window", merchantStatus.overlay);
         window.anchorMin = window.anchorMax = window.pivot =
             new Vector2(0.5f, 0.5f);
         window.sizeDelta = new Vector2(760f, 580f);
@@ -46,13 +46,13 @@ public partial class SimpleMercenaryHireUI
         Mask mask = viewport.gameObject.AddComponent<Mask>();
         mask.showMaskGraphic = false;
 
-        merchantSkillList = CreateUIObject("Merchant Skill List", viewport);
-        merchantSkillList.anchorMin = new Vector2(0f, 1f);
-        merchantSkillList.anchorMax = new Vector2(1f, 1f);
-        merchantSkillList.pivot = new Vector2(0.5f, 1f);
+        merchantStatus.skillList = CreateUIObject("Merchant Skill List", viewport);
+        merchantStatus.skillList.anchorMin = new Vector2(0f, 1f);
+        merchantStatus.skillList.anchorMax = new Vector2(1f, 1f);
+        merchantStatus.skillList.pivot = new Vector2(0.5f, 1f);
 
         ScrollRect scroll = viewport.gameObject.AddComponent<ScrollRect>();
-        scroll.content = merchantSkillList;
+        scroll.content = merchantStatus.skillList;
         scroll.viewport = viewport;
         scroll.horizontal = false;
         scroll.vertical = true;
@@ -67,23 +67,23 @@ public partial class SimpleMercenaryHireUI
         closeRect.sizeDelta = new Vector2(100f, 42f);
         closeRect.anchoredPosition = new Vector2(-18f, -18f);
 
-        merchantStatusOverlay.gameObject.SetActive(false);
+        merchantStatus.overlay.gameObject.SetActive(false);
     }
 
     private void BuildQuestOverlay()
     {
-        questOverlay = GetOrCreateOverlay(
+        questView.overlay = GetOrCreateOverlay(
             SimpleMercenaryHireOverlaySlot.Quest,
             "Quest Overlay");
-        questOverlay.gameObject.SetActive(false);
-        questOverlay.anchorMin = Vector2.zero;
-        questOverlay.anchorMax = Vector2.one;
-        questOverlay.offsetMin = Vector2.zero;
-        questOverlay.offsetMax = Vector2.zero;
-        questOverlay.gameObject.AddComponent<Image>().color =
+        questView.overlay.gameObject.SetActive(false);
+        questView.overlay.anchorMin = Vector2.zero;
+        questView.overlay.anchorMax = Vector2.one;
+        questView.overlay.offsetMin = Vector2.zero;
+        questView.overlay.offsetMax = Vector2.zero;
+        questView.overlay.gameObject.AddComponent<Image>().color =
             new Color(0f, 0f, 0f, 0.82f);
 
-        RectTransform window = CreateUIObject("Quest Board Window", questOverlay);
+        RectTransform window = CreateUIObject("Quest Board Window", questView.overlay);
         window.anchorMin = window.anchorMax = window.pivot =
             new Vector2(0.5f, 0.5f);
         window.sizeDelta = new Vector2(860f, 620f);
@@ -112,12 +112,12 @@ public partial class SimpleMercenaryHireUI
         viewport.offsetMax = new Vector2(-32f, -82f);
         viewport.gameObject.AddComponent<RectMask2D>();
 
-        questList = CreateUIObject("Quest Board Content", viewport);
-        questList.anchorMin = new Vector2(0f, 1f);
-        questList.anchorMax = new Vector2(1f, 1f);
-        questList.pivot = new Vector2(0.5f, 1f);
+        questView.list = CreateUIObject("Quest Board Content", viewport);
+        questView.list.anchorMin = new Vector2(0f, 1f);
+        questView.list.anchorMax = new Vector2(1f, 1f);
+        questView.list.pivot = new Vector2(0.5f, 1f);
         ScrollRect scroll = viewport.gameObject.AddComponent<ScrollRect>();
-        scroll.content = questList;
+        scroll.content = questView.list;
         scroll.viewport = viewport;
         scroll.horizontal = false;
         scroll.vertical = true;
@@ -131,7 +131,7 @@ public partial class SimpleMercenaryHireUI
         closeRect.sizeDelta = new Vector2(100f, 42f);
         closeRect.anchoredPosition = new Vector2(-18f, -18f);
         BuildQuestDetailWindow();
-        questOverlay.gameObject.SetActive(false);
+        questView.overlay.gameObject.SetActive(false);
     }
 
     private void CreateMerchantSkillRow(
@@ -179,12 +179,12 @@ public partial class SimpleMercenaryHireUI
     {
         RefreshPage(companyPage);
         RefreshPage(inventoryPage);
-        if (merchantStatusOverlay != null &&
-            merchantStatusOverlay.gameObject.activeSelf)
+        if (merchantStatus.overlay != null &&
+            merchantStatus.overlay.gameObject.activeSelf)
         {
             RebuildMerchantStatus();
         }
-        if (questOverlay != null && questOverlay.gameObject.activeSelf)
+        if (questView.overlay != null && questView.overlay.gameObject.activeSelf)
         {
             RebuildQuestList();
         }
@@ -194,40 +194,40 @@ public partial class SimpleMercenaryHireUI
     private void ShowQuestOverlay()
     {
         RebuildQuestList();
-        questOverlay.SetAsLastSibling();
-        questOverlay.gameObject.SetActive(true);
+        questView.overlay.SetAsLastSibling();
+        questView.overlay.gameObject.SetActive(true);
     }
 
     private void HideQuestOverlay()
     {
         HideQuestDetailWindow();
-        questOverlay?.gameObject.SetActive(false);
+        questView.overlay?.gameObject.SetActive(false);
     }
 
     private void ShowMerchantStatusOverlay()
     {
         RebuildMerchantStatus();
-        merchantStatusOverlay.SetAsLastSibling();
-        merchantStatusOverlay.gameObject.SetActive(true);
+        merchantStatus.overlay.SetAsLastSibling();
+        merchantStatus.overlay.gameObject.SetActive(true);
     }
 
     private void HideMerchantStatusOverlay()
     {
-        merchantStatusOverlay?.gameObject.SetActive(false);
+        merchantStatus.overlay?.gameObject.SetActive(false);
     }
 
     private void RebuildMerchantStatus()
     {
-        if (merchantSkillList == null || merchantData == null)
+        if (merchantStatus.skillList == null || merchantData == null)
         {
             return;
         }
 
-        ClearChildren(merchantSkillList);
+        ClearChildren(merchantStatus.skillList);
         float top = 0f;
 
         RectTransform summaryRow =
-            CreateRow("Merchant Summary", merchantSkillList, top);
+            CreateRow("Merchant Summary", merchantStatus.skillList, top);
         CreateText(
             summaryRow,
             merchantStatusAndQuestController.BuildMerchantSummaryText(),
@@ -244,31 +244,31 @@ public partial class SimpleMercenaryHireUI
         top -= 136f;
 
         CreateMerchantSkillRow(
-            merchantSkillList,
+            merchantStatus.skillList,
             MerchantSkillType.Negotiation,
             "交渉",
             top);
         top -= 112f;
         CreateMerchantSkillRow(
-            merchantSkillList,
+            merchantStatus.skillList,
             MerchantSkillType.Leadership,
             "統率",
             top);
         top -= 112f;
         CreateMerchantSkillRow(
-            merchantSkillList,
+            merchantStatus.skillList,
             MerchantSkillType.Appraisal,
             "鑑定",
             top);
         top -= 112f;
         CreateMerchantSkillRow(
-            merchantSkillList,
+            merchantStatus.skillList,
             MerchantSkillType.Logistics,
             "兵站",
             top);
         top -= 112f;
 
-        merchantSkillList.sizeDelta =
+        merchantStatus.skillList.sizeDelta =
             new Vector2(0f, Mathf.Max(470f, -top));
     }
 
@@ -366,15 +366,15 @@ public partial class SimpleMercenaryHireUI
 
     private void RebuildQuestList()
     {
-        if (questList == null || progressionManager == null)
+        if (questView.list == null || progressionManager == null)
         {
             return;
         }
 
         HideQuestDetailWindow();
-        ClearChildren(questList);
+        ClearChildren(questView.list);
         CreateText(
-            questList,
+            questView.list,
             merchantStatusAndQuestController.BuildLongTermGoalText(),
             14,
             FontStyle.Normal,
@@ -383,7 +383,7 @@ public partial class SimpleMercenaryHireUI
             new Vector2(-16f, -8f),
             new Color(1f, 0.9f, 0.68f, 1f));
 
-        RectTransform board = CreateUIObject("Quest Papers Board", questList);
+        RectTransform board = CreateUIObject("Quest Papers Board", questView.list);
         board.anchorMin = new Vector2(0f, 1f);
         board.anchorMax = new Vector2(1f, 1f);
         board.pivot = new Vector2(0.5f, 1f);
@@ -446,17 +446,17 @@ public partial class SimpleMercenaryHireUI
                 new Vector2(-12f, -70f),
                 ParchmentTextColor);
         }
-        questList.sizeDelta = new Vector2(0f, Mathf.Max(500f, 88f + boardHeight));
+        questView.list.sizeDelta = new Vector2(0f, Mathf.Max(500f, 88f + boardHeight));
     }
 
     private void BuildQuestDetailWindow()
     {
-        questDetailWindow = CreateUIObject("Quest Detail Window", questOverlay);
-        questDetailWindow.anchorMin = questDetailWindow.anchorMax =
-            questDetailWindow.pivot = new Vector2(0.5f, 0.5f);
-        questDetailWindow.sizeDelta = new Vector2(560f, 430f);
-        ApplyParchmentPanel(questDetailWindow.gameObject.AddComponent<Image>());
-        questDetailWindow.gameObject.SetActive(false);
+        questView.detailWindow = CreateUIObject("Quest Detail Window", questView.overlay);
+        questView.detailWindow.anchorMin = questView.detailWindow.anchorMax =
+            questView.detailWindow.pivot = new Vector2(0.5f, 0.5f);
+        questView.detailWindow.sizeDelta = new Vector2(560f, 430f);
+        ApplyParchmentPanel(questView.detailWindow.gameObject.AddComponent<Image>());
+        questView.detailWindow.gameObject.SetActive(false);
     }
 
     private void ShowQuestDetailWindow(QuestRecord quest)
@@ -466,9 +466,9 @@ public partial class SimpleMercenaryHireUI
             return;
         }
 
-        ClearChildren(questDetailWindow);
+        ClearChildren(questView.detailWindow);
         CreateText(
-            questDetailWindow,
+            questView.detailWindow,
             merchantStatusAndQuestController.BuildQuestTitle(quest),
             23,
             FontStyle.Bold,
@@ -477,7 +477,7 @@ public partial class SimpleMercenaryHireUI
             new Vector2(-28f, -20f),
             ParchmentTextColor);
         CreateText(
-            questDetailWindow,
+            questView.detailWindow,
             quest.title + "\n\n" +
             merchantStatusAndQuestController.BuildQuestDetail(quest) + "\n\n" +
             $"報酬: {progressionManager.GetQuestGoldReward(quest):N0}G\n" +
@@ -490,7 +490,7 @@ public partial class SimpleMercenaryHireUI
             new Vector2(-42f, -92f),
             ParchmentTextColor);
         Button actionButton = CreateActionButton(
-            questDetailWindow,
+            questView.detailWindow,
             merchantStatusAndQuestController.GetQuestButtonLabel(quest),
             () =>
             {
@@ -504,7 +504,7 @@ public partial class SimpleMercenaryHireUI
         actionRect.sizeDelta = new Vector2(150f, 42f);
         actionRect.anchoredPosition = new Vector2(-88f, 24f);
         Button closeButton = CreateActionButton(
-            questDetailWindow,
+            questView.detailWindow,
             "閉じる",
             HideQuestDetailWindow);
         RectTransform closeRect = closeButton.GetComponent<RectTransform>();
@@ -512,15 +512,15 @@ public partial class SimpleMercenaryHireUI
             new Vector2(0.5f, 0f);
         closeRect.sizeDelta = new Vector2(150f, 42f);
         closeRect.anchoredPosition = new Vector2(88f, 24f);
-        questDetailWindow.SetAsLastSibling();
-        questDetailWindow.gameObject.SetActive(true);
+        questView.detailWindow.SetAsLastSibling();
+        questView.detailWindow.gameObject.SetActive(true);
     }
 
     private void HideQuestDetailWindow()
     {
-        if (questDetailWindow != null)
+        if (questView.detailWindow != null)
         {
-            questDetailWindow.gameObject.SetActive(false);
+            questView.detailWindow.gameObject.SetActive(false);
         }
     }
 

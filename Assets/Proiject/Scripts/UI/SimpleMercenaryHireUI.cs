@@ -58,24 +58,25 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private readonly SimpleMercenaryHireUIView.EquipmentSlotSelectionReferences
         slotSelection =
             new SimpleMercenaryHireUIView.EquipmentSlotSelectionReferences();
-    private RectTransform questOverlay;
-    private RectTransform questList;
-    private RectTransform questDetailWindow;
-    private RectTransform merchantStatusOverlay;
-    private RectTransform merchantSkillList;
+    private readonly SimpleMercenaryHireUIView.QuestReferences questView =
+        new SimpleMercenaryHireUIView.QuestReferences();
+    private readonly SimpleMercenaryHireUIView.MerchantStatusReferences
+        merchantStatus =
+            new SimpleMercenaryHireUIView.MerchantStatusReferences();
     private readonly SimpleMercenaryHireUIView.EquipmentCodexReferences
         equipmentCodex =
             new SimpleMercenaryHireUIView.EquipmentCodexReferences();
-    private RectTransform monsterCollectionOverlay;
-    private BookPageUI monsterCodexBook;
+    private readonly SimpleMercenaryHireUIView.MonsterCodexReferences
+        monsterCodex =
+            new SimpleMercenaryHireUIView.MonsterCodexReferences();
     private RectTransform globalMenuOverlay;
-    private RectTransform dailyResultOverlay;
-    private RectTransform dailyResultContent;
-    private Text dailyResultText;
+    private readonly SimpleMercenaryHireUIView.DailyResultReferences
+        dailyResult =
+            new SimpleMercenaryHireUIView.DailyResultReferences();
     private readonly SimpleMercenaryHireUIView.TutorialReferences tutorial =
         new SimpleMercenaryHireUIView.TutorialReferences();
-    private RectTransform remoteSaleOverlay;
-    private RectTransform remoteSaleContent;
+    private readonly SimpleMercenaryHireUIView.RemoteSaleReferences remoteSale =
+        new SimpleMercenaryHireUIView.RemoteSaleReferences();
     private Button globalMenuButton;
     private readonly SimpleMercenaryHireUIView.RoadBattleReferences roadBattle =
         new SimpleMercenaryHireUIView.RoadBattleReferences();
@@ -186,9 +187,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         (battleManager != null && battleManager.IsBattling) ||
         (battleVisualController != null && battleVisualController.IsPresentationBusy) ||
         hasPendingRoadBattleOutcome;
-    private bool hasPendingDailyResult;
-    private readonly Queue<string> pendingDailyResultTexts =
-        new Queue<string>();
     private DailyResultController dailyResultController;
     private HireAndPartyController hireAndPartyController;
     private EconomyController economyController;

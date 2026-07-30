@@ -42,21 +42,25 @@ public sealed class RuntimeUIPlayModeTests
 
         RectTransform battlePage =
             GetPrivateField<RectTransform>(ui, "battlePage");
-        RectTransform dungeonEventPanel =
-            GetPrivateField<RectTransform>(ui, "dungeonEventPanel");
+        // ウィジェット参照は機能ごとの References クラスに束ねられているため、
+        // グループフィールドを経由して読む。
+        SimpleMercenaryHireUIView.DungeonViewReferences dungeonView =
+            GetPrivateField<SimpleMercenaryHireUIView.DungeonViewReferences>(
+                ui, "dungeonView");
+        RectTransform dungeonEventPanel = dungeonView.eventPanel;
         Assert.That(dungeonEventPanel, Is.Not.Null);
         Assert.That(dungeonEventPanel.parent, Is.EqualTo(battlePage));
         Assert.That(dungeonEventPanel.gameObject.activeSelf, Is.False);
 
         Assert.That(
-            GetPrivateField<Button>(ui, "battlePauseButton"),
+            GetPrivateField<SimpleMercenaryHireUIView.BattleViewReferences>(
+                ui, "battleView").pauseButton,
             Is.Not.Null);
         Assert.That(
-            GetPrivateField<Button>(ui, "roadPauseButton"),
+            GetPrivateField<SimpleMercenaryHireUIView.RoadBattleReferences>(
+                ui, "roadBattle").pauseButton,
             Is.Not.Null);
-        Assert.That(
-            GetPrivateField<Text>(ui, "dungeonEventPreviewText"),
-            Is.Not.Null);
+        Assert.That(dungeonView.eventPreviewText, Is.Not.Null);
         Button firstEventChoice =
             GetPrivateField<Button>(ui, "firstDungeonEventButton");
         Assert.That(firstEventChoice.targetGraphic, Is.TypeOf<Image>());
