@@ -476,18 +476,6 @@ public sealed class SimpleMercenaryHireUIView : MonoBehaviour
     }
 
     /// <summary>
-    /// Groups the remote sale overlay and its scrolling content root.
-    /// </summary>
-    [Serializable]
-    public sealed class RemoteSaleReferences
-    {
-        public RectTransform overlay;
-        public RectTransform content;
-
-        public bool IsValid => overlay != null && content != null;
-    }
-
-    /// <summary>
     /// Groups the merchant status overlay and the skill list it renders.
     /// </summary>
     [Serializable]

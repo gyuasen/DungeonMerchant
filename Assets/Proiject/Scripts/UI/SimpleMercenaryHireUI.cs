@@ -73,8 +73,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         dailyResult =
             new SimpleMercenaryHireUIView.DailyResultReferences();
     private TutorialOverlayView tutorialOverlayView;
-    private readonly SimpleMercenaryHireUIView.RemoteSaleReferences remoteSale =
-        new SimpleMercenaryHireUIView.RemoteSaleReferences();
+    private RemoteSaleOverlayView remoteSaleOverlayView;
     private Button globalMenuButton;
     private readonly SimpleMercenaryHireUIView.RoadBattleReferences roadBattle =
         new SimpleMercenaryHireUIView.RoadBattleReferences();
@@ -1285,6 +1284,48 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private void HideContractDetails()
     {
         contractDetailsOverlayView?.Hide();
+    }
+
+    private void BuildRemoteSaleOverlay()
+    {
+        remoteSaleOverlayView = new RemoteSaleOverlayView(
+            uiFactory,
+            overlayRoot,
+            remoteSaleController,
+            remoteSaleManager,
+            merchantInventory,
+            HideRemoteSaleOverlay);
+        remoteSaleOverlayView.Build();
+    }
+
+    private void ShowRemoteSaleOverlay()
+    {
+        remoteSaleOverlayView?.Show();
+    }
+
+    private void HideRemoteSaleOverlay()
+    {
+        remoteSaleOverlayView?.Hide();
+    }
+
+    private void RefreshRemoteSaleOverlay()
+    {
+        remoteSaleOverlayView?.Refresh();
+    }
+
+    private void HandleRemoteSaleChanged()
+    {
+        RefreshPage(companyPage);
+        if (remoteSaleOverlayView != null && remoteSaleOverlayView.IsShowing)
+        {
+            RefreshRemoteSaleOverlay();
+        }
+    }
+
+    private void HandleRemoteSaleEvent(RemoteSaleEvent remoteSaleEvent)
+    {
+        dailyResultController.RecordRemoteSaleEvent(remoteSaleEvent);
+        HandleRemoteSaleChanged();
     }
 
     private void ShowWorldMap(int worldMapIndex)
