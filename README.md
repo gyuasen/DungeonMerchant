@@ -64,7 +64,7 @@ Windowsは Win+Shift+S で範囲キャプチャ、Unityのゲームビューを�
 ## コードの見どころ
 
 - **UIの責務分離（Controllerパターン抽出）**: 巨大UIクラスからロジックを段階的に抽出しています。`Assets/Proiject/Scripts/UI/EconomyController.cs` が入口としておすすめです
-- **純粋ロジック＋テスト**: `Assets/Proiject/Scripts/Core/WorldMapService.cs` などUnity非依存のロジック層に対し、`Assets/Proiject/Tests/EditMode/` に559件のEditModeテストを整備しています（リファクタリング前後の等価性を810通りの組み合わせで検証するパリティテストを含みます）。PlayModeテスト8件と合わせて計567件が自動実行され、現時点で失敗0件です（[TEST_BASELINE.md](TEST_BASELINE.md)）
+- **純粋ロジック＋テスト**: `Assets/Proiject/Scripts/Core/WorldMapService.cs` などUnity非依存のロジック層に対し、`Assets/Proiject/Tests/EditMode/` に793件のEditModeテストを整備しています（リファクタリング前後の等価性を810通りの組み合わせで検証するパリティテストを含みます）。PlayModeテスト8件と合わせて計801件が自動実行され、現時点で失敗0件です（[TEST_BASELINE.md](TEST_BASELINE.md)）
 - **セーブ・マイグレーション**: 永続IDによる参照解決と、旧形式セーブデータを移行する `SaveDataMigrator` を実装しています
 - **AI支援リファクタリングの記録**: `handoff/CLAUDE_WORK_LOG.md` に、AIエージェントと協働した設計判断・リファクタリングの経緯を全て記録しています
 
@@ -222,13 +222,13 @@ Build Settings には `Title.unity` → `SampleScene.unity` の順でシーン�
 
 # テスト状況
 
-2026-07-22 時点の自動テスト実行結果です。Unity バッチモードで実行しています。
+2026-07-31 時点の自動テスト実行結果です。Unity バッチモードで実行しています。
 
 |プラットフォーム|総数|成功|失敗|スキップ|
 |---|---:|---:|---:|---:|
-|EditMode|559|557|0|2|
+|EditMode|793|791|0|2|
 |PlayMode|8|8|0|0|
-|**合計**|**567**|**565**|**0**|**2**|
+|**合計**|**801**|**799**|**0**|**2**|
 
 スキップされた2件は `Explicit` 属性を付与した手動実行専用のアセット検証テストであり、不具合ではありません。詳細な内訳・分類・再実行手順は [TEST_BASELINE.md](TEST_BASELINE.md) に記録しています。
 
