@@ -2,7 +2,8 @@
   "name": "DungeonMerchant.EditModeTests",
   "rootNamespace": "",
   "references": [
-    "DungeonMerchant.Runtime"
+    "DungeonMerchant.Runtime",
+    "DungeonMerchant.Domain"
   ],
   "includePlatforms": [
     "Editor"
