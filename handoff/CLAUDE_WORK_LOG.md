@@ -568,3 +568,38 @@
 ### 検証
 - build 警告0・エラー0。EditMode全緑（ユーザー確認済み）。
 - 今後 `InitialDebt`(や大金額)×割合・×100 は必ず `(long)` キャスト（テストヘルパー含む）。
+
+---
+
+## 2026-07-30〜31 UI層リファクタリング（Fable 5統括 + Codex Sol/Terra + Opus subagent）
+
+**再開する場合は `handoff/UI_REFACTOR_HANDOFF.md` を読むこと。** 変換パターン・残作業・テスト実行手順を集約してある。
+
+### 実施内容
+
+1. **構造評価の作成**（`docs/ARCHITECTURE_ASSESSMENT.md`）: 良い点と問題点を同じ密度で実測評価。UI層D・依存管理Cが弱点と判明。
+2. **共有フィールドのグルーピング**: 317→153個。機能ごとの `*References` クラス17個へ集約。`equipment` 接頭辞17個は3機能の混在だったため名前でなく責務で3分割した。
+3. **`FindObjectOfType` 削減**: 134→101箇所。`??` によるfake-null素通り解決を6ファイルで全廃し `Resolve<T>(ref T)` へ統一。
+4. **テスト拡充**: 713→794件。`CharacterEquipmentControllerTests`(28)/`TownTravelControllerTests`(30)/`EconomyControllerTests`(+22)。
+5. **アセンブリ分割の最小実証**: `DungeonMerchant.Domain`(`noEngineReferences: true`)へ `HealingCostService`/`TrainingCostService` を分離。
+6. **partial → 独立クラス変換 9本**: 19本→12本。Tutorial/ContractDetails/FacilityGreeting/MonsterCodex/Onboarding/TrainingGround/RemoteSale/Story/DailyResult。
+
+### 発見した技術的注意点
+
+- **Editorのみで発生するテスト汚染**: `OnboardingGuideControllerTests` が依存をrootに揃えずに `SaveManager.InitializeAndLoad()` を呼び、`FindObjectOfType` フォールバックがEditorシーン上の外部オブジェクトを購読。TearDown後もゾンビ購読が残り後続テストで `MissingReferenceException`。バッチはクリーンプロセスのため再現しない。**Editorだけで落ちる場合はテスト間汚染をまず疑う**。回帰テスト `SaveManagerSubscriptionLifetimeTests` を追加済み。
+- **`SaveManager.ResolveReferences` にガードが無く保存のたびに18回シーン全走査していた**。`SaveGame()` は装備変更・雇用・町移動・物語節目のたびに走る。
+- **NUnit 3.5 にコレクション用 `Does.Not.Contain(object)` が無い**。`Has.No.Member` を使う。
+- **ローカル変数がフィールドを遮蔽してコンパイルエラー**: `quest.detailWindow` が `ShowQuestDetailWindow(QuestRecord quest)` の引数に遮蔽された。グループ名を `questView` に改名して回避。
+- **PlayModeテストがリフレクションで private フィールド名を参照している**。グルーピングで `RuntimeUIPlayModeTests` が壊れた。**EditModeだけでは検出できない**ため両方実行すること。
+- **partialは同一クラスなので `private` が機能しない**。グルーピングは見通しを作るがカプセル化には独立クラス化が必要。
+- **`StartCoroutine` と MonoBehaviour ライフサイクルは本体に残す**。非MonoBehaviourのViewからは呼べない（Story変換で対処）。
+
+### 教訓
+
+- **「何箇所あるか」ではなく「実行頻度」で優先順位を決める。** `FindObjectOfType` 削減計画は箇所数最多の `SimpleMercenaryHireUI`(20箇所)を最優先としていたが、実測すると起動時1回しか走らず実害が無かった。真の問題はガードの無い `SaveManager`。**計画自体も計測で検証すべき**。
+- **Codexサブエージェントは Unity を実行できない**ため、コンパイル・テスト検証は必ず依頼元がクローン環境で行う。実際に「存在しないAPIの推測」「NUnit APIの誤用」「フィールド遮蔽」を検証段階で3件検出した。
+
+### 検証
+
+- EditMode **794件**（passed 792 / failed 0 / skipped 2）、PlayMode **8件**（failed 0）。
+- 9本の変換すべてでEditMode+PlayModeを実行し、失敗0を維持したままコミットした。

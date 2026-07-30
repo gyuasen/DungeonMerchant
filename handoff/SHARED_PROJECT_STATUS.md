@@ -9,6 +9,23 @@
 - 内容が食い違う場合は家側の内容を優先する。
 - 細かい作業履歴は `SCHOOL_WORK_LOG.md` や `FROM_HOME_CHAT.md` に書き、このファイルには全体状況を短くまとめる。
 
+## 2026-07-31 UI層リファクタリング進行中（別環境で再開する場合は必読）
+
+UI層の構造改善を進行中。**再開手順・残作業・変換パターン・テスト実行方法は
+[UI_REFACTOR_HANDOFF.md](UI_REFACTOR_HANDOFF.md) にまとめてある。**
+
+現在の到達点:
+
+- EditMode **794件** / PlayMode **8件**、いずれも失敗0。
+- `SimpleMercenaryHireUI` の partial を19本から **12本** へ削減（9機能を独立クラスへ変換）。
+- `DungeonMerchant.Domain`（`noEngineReferences: true`）を新設し、Unity非依存を
+  コンパイラ強制にする最小実証を完了。
+- 構造評価は UI層 D→**B−〜B**、依存関係管理 C→**B−**、パフォーマンス B→**B+**。
+  評価根拠は `docs/ARCHITECTURE_ASSESSMENT.md`。
+
+次に着手するなら `SimpleMercenaryHireUI.MerchantQuest.cs`(527行) か
+`.Expedition.cs`(389行)。中規模で結合が比較的浅い。
+
 ## 現在の全体状況
 
 - プロジェクト名: `DungeonMerchant`
