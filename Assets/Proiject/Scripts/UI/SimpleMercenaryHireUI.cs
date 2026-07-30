@@ -202,6 +202,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private DungeonBattleController dungeonBattleController;
     private TutorialController tutorialController;
     private OnboardingGuideController onboardingGuideController;
+    private OnboardingGuideBannerView onboardingGuideBannerView;
     private AudioFeedbackService audioFeedbackService;
     private FacilityGreetingController facilityGreetingController;
     public event System.Action<string> FacilityEntered;
@@ -1113,6 +1114,35 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         BuildOnboardingGuideBanner();
     }
 
+    private void BuildMonsterCollectionOverlay()
+    {
+        RectTransform prefabOverlay = activeView != null
+            ? activeView.GetOverlay(SimpleMercenaryHireOverlaySlot.MonsterCollection)
+            : null;
+        monsterCodexOverlayView = new MonsterCodexOverlayView(
+            uiFactory,
+            new SimpleMercenaryHireUIView.MonsterCodexReferences
+            {
+                overlay = prefabOverlay
+            },
+            overlayRoot,
+            uiFont,
+            uiBodyFont,
+            monsterCodexManager,
+            HideMonsterCollection);
+        monsterCodexOverlayView.Build();
+    }
+
+    private void ShowMonsterCollection()
+    {
+        monsterCodexOverlayView?.Show();
+    }
+
+    private void HideMonsterCollection()
+    {
+        monsterCodexOverlayView?.Hide();
+    }
+
     private void ShowTutorialOverlay()
     {
         tutorialController.ShowTutorial();
@@ -1121,6 +1151,32 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private void HideTutorialOverlay()
     {
         tutorialOverlayView?.Hide();
+    }
+
+    private void BuildOnboardingGuideBanner()
+    {
+        if (onboardingGuideBannerView == null)
+        {
+            onboardingGuideBannerView = new OnboardingGuideBannerView(
+                uiFactory,
+                activeView != null ? activeView.Chrome : null,
+                guildPanel,
+                overlayRoot,
+                () => onboardingGuideController != null &&
+                    onboardingGuideController.IsEnabled &&
+                    !onboardingGuideController.IsComplete,
+                () => onboardingGuideController != null
+                    ? onboardingGuideController.CurrentObjectiveText
+                    : string.Empty,
+                () => onboardingGuideController?.Skip());
+        }
+
+        onboardingGuideBannerView.Build();
+    }
+
+    private void HandleOnboardingGuideStateChanged(OnboardingGuideStep step)
+    {
+        onboardingGuideBannerView?.Refresh();
     }
 
     private void BuildFacilityGreetingOverlay()
