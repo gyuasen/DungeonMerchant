@@ -501,18 +501,36 @@ public sealed class RoadCargoSession : MonoBehaviour
                 cargo.itemAssetName);
     }
 
+    /// <summary>
+    /// 参照を一度だけ解決する。判定に ?? を使わないのは、Unity の未設定
+    /// SerializeField や破棄済みコンポーネントが C# 参照としては "fake null"
+    /// になり得るため。?? では未解決のまま素通りし、呼ばれるたびに
+    /// FindObjectOfType でシーン全体を走査し続けることになる。
+    /// </summary>
     private void ResolveReferences()
     {
-        merchantData = merchantData ?? GetComponent<MerchantData>() ??
-            FindObjectOfType<MerchantData>();
-        inventory = inventory ?? GetComponent<MerchantInventory>() ??
-            FindObjectOfType<MerchantInventory>();
-        hireManager = hireManager ?? GetComponent<MercenaryHireManager>() ??
-            FindObjectOfType<MercenaryHireManager>();
-        partyManager = partyManager ?? GetComponent<MercenaryPartyManager>() ??
-            FindObjectOfType<MercenaryPartyManager>();
-        trainingGroundManager = trainingGroundManager ??
-            GetComponent<TrainingGroundManager>() ??
-            FindObjectOfType<TrainingGroundManager>();
+        Resolve(ref merchantData);
+        Resolve(ref inventory);
+        Resolve(ref hireManager);
+        Resolve(ref partyManager);
+        Resolve(ref trainingGroundManager);
+    }
+
+    /// <summary>
+    /// 既に解決済みなら何もしない。未解決のときだけ、同一 GameObject →
+    /// シーン全体の順に探す。
+    /// </summary>
+    private void Resolve<T>(ref T reference) where T : Component
+    {
+        if (reference != null)
+        {
+            return;
+        }
+
+        reference = GetComponent<T>();
+        if (reference == null)
+        {
+            reference = FindObjectOfType<T>();
+        }
     }
 }

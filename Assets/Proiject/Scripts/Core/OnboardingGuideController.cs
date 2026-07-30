@@ -241,23 +241,39 @@ public sealed class OnboardingGuideController : MonoBehaviour
             : OnboardingGuideStep.Completed;
     }
 
+    /// <summary>
+    /// 参照を一度だけ解決する。判定に ?? を使わないのは、Unity の未設定
+    /// SerializeField や破棄済みコンポーネントが C# 参照としては "fake null"
+    /// になり得るため。?? では未解決のまま素通りし、呼ばれるたびに
+    /// FindObjectOfType でシーン全体を走査し続けることになる。
+    /// </summary>
     private void ResolveReferences()
     {
-        hireManager = hireManager ?? GetComponent<MercenaryHireManager>() ??
-            FindObjectOfType<MercenaryHireManager>();
-        partyManager = partyManager ?? GetComponent<MercenaryPartyManager>() ??
-            FindObjectOfType<MercenaryPartyManager>();
-        dungeonRunManager = dungeonRunManager ?? GetComponent<DungeonRunManager>() ??
-            FindObjectOfType<DungeonRunManager>();
-        merchantInventory = merchantInventory ?? GetComponent<MerchantInventory>() ??
-            FindObjectOfType<MerchantInventory>();
-        townProgressState = townProgressState ?? GetComponent<TownProgressState>() ??
-            FindObjectOfType<TownProgressState>();
-        gameUI = gameUI ?? GetComponent<SimpleMercenaryHireUI>() ??
-            FindObjectOfType<SimpleMercenaryHireUI>();
-        storyProgressManager = storyProgressManager ??
-            GetComponent<StoryProgressManager>() ??
-            FindObjectOfType<StoryProgressManager>();
+        Resolve(ref hireManager);
+        Resolve(ref partyManager);
+        Resolve(ref dungeonRunManager);
+        Resolve(ref merchantInventory);
+        Resolve(ref townProgressState);
+        Resolve(ref gameUI);
+        Resolve(ref storyProgressManager);
+    }
+
+    /// <summary>
+    /// 既に解決済みなら何もしない。未解決のときだけ、同一 GameObject →
+    /// シーン全体の順に探す。
+    /// </summary>
+    private void Resolve<T>(ref T reference) where T : Component
+    {
+        if (reference != null)
+        {
+            return;
+        }
+
+        reference = GetComponent<T>();
+        if (reference == null)
+        {
+            reference = FindObjectOfType<T>();
+        }
     }
 
     private void Subscribe()
