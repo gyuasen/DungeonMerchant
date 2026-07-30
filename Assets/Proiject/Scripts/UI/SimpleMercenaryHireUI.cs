@@ -177,6 +177,10 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private Font uiFont;
     private Font uiBodyFont;
     private SimpleMercenaryHireUIFactory uiFactory;
+    private const string EndingSceneName = "Ending";
+    private StoryOverlayView storyOverlayView;
+    private Coroutine storyEntryCoroutine;
+    private StoryPresentation activeStoryPresentation;
     private Coroutine battleLogScrollCoroutine;
     private BattleVisualController battleVisualController;
     private bool hasPendingDungeonCompletion;
@@ -223,6 +227,83 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private static readonly Color MutedTextColor = UITheme.MutedTextColor;
     private static readonly Color ParchmentTextColor = UITheme.ParchmentTextColor;
     private static readonly Color ParchmentMutedColor = UITheme.ParchmentMutedColor;
+
+    private void OnEnable()
+    {
+        if (storyEntryCoroutine == null)
+        {
+            storyEntryCoroutine = StartCoroutine(ShowInitialStoryWhenReady());
+        }
+    }
+
+    private IEnumerator ShowInitialStoryWhenReady()
+    {
+        yield return null;
+        while (overlayRoot == null || uiFactory == null)
+        {
+            yield return null;
+        }
+
+        ShowNextPendingStory();
+        storyEntryCoroutine = null;
+    }
+
+    private void HandleStoryPresentationQueued()
+    {
+        if (storyOverlayView == null || !storyOverlayView.IsShowing)
+        {
+            ShowNextPendingStory();
+        }
+    }
+
+    private void ShowNextPendingStory()
+    {
+        BuildStoryOverlay();
+        if (storyProgressManager == null ||
+            !storyProgressManager.TryDequeuePresentation(
+                out StoryPresentation presentation))
+        {
+            return;
+        }
+
+        if (presentation.IsEnding)
+        {
+            // DebtCleared is queued only by TryComplete, never during restore.
+            // Save again here so return from the ending always restores this state.
+            saveManager?.SaveGame();
+            UnityEngine.SceneManagement.SceneManager.LoadScene(EndingSceneName);
+            return;
+        }
+
+        activeStoryPresentation = presentation;
+        storyOverlayView.Show(presentation);
+    }
+
+    private void BuildStoryOverlay()
+    {
+        if (storyOverlayView == null)
+        {
+            storyOverlayView = new StoryOverlayView(
+                uiFactory,
+                overlayRoot,
+                ParchmentTextColor,
+                CloseStoryOverlay);
+        }
+
+        storyOverlayView.Build();
+    }
+
+    private void CloseStoryOverlay()
+    {
+        storyOverlayView.Hide();
+        if (activeStoryPresentation.Milestone == StoryMilestone.OpeningDebtNotice)
+        {
+            onboardingGuideController?.TryComplete(OnboardingGuideStep.Opening);
+        }
+        activeStoryPresentation.OnClosed?.Invoke();
+        activeStoryPresentation = default;
+        ShowNextPendingStory();
+    }
 
     private void HandleTrainingGroundChanged()
     {
