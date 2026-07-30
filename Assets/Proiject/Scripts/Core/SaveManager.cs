@@ -1095,6 +1095,13 @@ public class SaveManager : MonoBehaviour
 
     private void RequestAutoSave()
     {
+        // 破棄済みインスタンスへのゾンビ購読から呼ばれても例外にしない。
+        // Unity の == null は破棄済みオブジェクトを検出する。
+        if (this == null)
+        {
+            return;
+        }
+
         if (isLoading || suppressAutoSaveAfterDelete ||
             pendingAutoSaveCoroutine != null)
         {

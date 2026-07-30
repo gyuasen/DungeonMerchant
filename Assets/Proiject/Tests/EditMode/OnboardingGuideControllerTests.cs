@@ -101,6 +101,7 @@ public sealed class OnboardingGuideControllerTests
                 onboardingEnabled = true,
                 onboardingStep = OnboardingGuideStep.HireMercenary
             }));
+        AddSaveManagerDependenciesTo(root);
         SaveManager saveManager = root.AddComponent<SaveManager>();
         typeof(SaveManager)
             .GetField(
@@ -126,6 +127,7 @@ public sealed class OnboardingGuideControllerTests
                 onboardingEnabled = true,
                 onboardingStep = OnboardingGuideStep.Opening
             }));
+        AddSaveManagerDependenciesTo(root);
         SaveManager saveManager = root.AddComponent<SaveManager>();
         typeof(SaveManager)
             .GetField(
@@ -159,6 +161,37 @@ public sealed class OnboardingGuideControllerTests
         Assert.That(
             controller.CurrentStep,
             Is.EqualTo(OnboardingGuideStep.FormParty));
+    }
+
+    private static void AddSaveManagerDependenciesTo(GameObject target)
+    {
+        AddComponentIfMissing<MerchantData>(target);
+        AddComponentIfMissing<DayManager>(target);
+        AddComponentIfMissing<MerchantInventory>(target);
+        AddComponentIfMissing<MercenaryHireManager>(target);
+        AddComponentIfMissing<MercenaryPartyManager>(target);
+        AddComponentIfMissing<HealingManager>(target);
+        AddComponentIfMissing<TrainingGroundManager>(target);
+        AddComponentIfMissing<BattleManager>(target);
+        AddComponentIfMissing<DungeonRunManager>(target);
+        AddComponentIfMissing<DungeonExpeditionManager>(target);
+        AddComponentIfMissing<ProgressionManager>(target);
+        AddComponentIfMissing<DebtManager>(target);
+        AddComponentIfMissing<TownProgressState>(target);
+        AddComponentIfMissing<StoryProgressManager>(target);
+        AddComponentIfMissing<RoadCargoSession>(target);
+        AddComponentIfMissing<RemoteSaleManager>(target);
+        AddComponentIfMissing<MonsterCodexManager>(target);
+        AddComponentIfMissing<OnboardingGuideController>(target);
+    }
+
+    private static void AddComponentIfMissing<T>(GameObject target)
+        where T : Component
+    {
+        if (target.GetComponent<T>() == null)
+        {
+            target.AddComponent<T>();
+        }
     }
 
     [Test]
