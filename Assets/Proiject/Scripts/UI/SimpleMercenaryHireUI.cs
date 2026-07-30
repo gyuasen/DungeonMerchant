@@ -73,8 +73,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private readonly SimpleMercenaryHireUIView.DailyResultReferences
         dailyResult =
             new SimpleMercenaryHireUIView.DailyResultReferences();
-    private readonly SimpleMercenaryHireUIView.TutorialReferences tutorial =
-        new SimpleMercenaryHireUIView.TutorialReferences();
+    private TutorialOverlayView tutorialOverlayView;
     private readonly SimpleMercenaryHireUIView.RemoteSaleReferences remoteSale =
         new SimpleMercenaryHireUIView.RemoteSaleReferences();
     private Button globalMenuButton;
@@ -392,18 +391,14 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             RefreshTownMapButtons);
         tutorialController = new TutorialController(
             message => statusText.text = message,
-            () =>
-            {
-                tutorial.overlay.SetAsLastSibling();
-                tutorial.overlay.gameObject.SetActive(true);
-            },
-            HideTutorialOverlay,
-            text => tutorial.stepText.text = text,
-            text => tutorial.titleText.text = text,
-            text => tutorial.bodyText.text = text,
-            interactable => tutorial.backButton.interactable = interactable,
-            label => SetButtonLabel(tutorial.nextButton, label),
-            () => tutorial.IsValid);
+            () => tutorialOverlayView?.Show(),
+            () => tutorialOverlayView?.Hide(),
+            text => tutorialOverlayView?.SetStepText(text),
+            text => tutorialOverlayView?.SetTitleText(text),
+            text => tutorialOverlayView?.SetBodyText(text),
+            value => tutorialOverlayView?.SetBackInteractable(value),
+            label => tutorialOverlayView?.SetNextButtonLabel(label),
+            () => tutorialOverlayView != null && tutorialOverlayView.IsValid);
         townTravelController.ApplyTownServiceSettings(true, true);
         PopulateUniqueCandidatesIfNeeded();
         hireAndPartyController.CacheAlreadyHiredCandidates();
@@ -1084,8 +1079,26 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         BuildDailyResultOverlay();
         BuildFacilityGreetingOverlay();
         BuildRemoteSaleOverlay();
-        BuildTutorialOverlay();
+        tutorialOverlayView = new TutorialOverlayView(
+            uiFactory,
+            new SimpleMercenaryHireUIView.TutorialReferences(),
+            overlayRoot,
+            () => tutorialController.ShowPreviousStep(),
+            () => tutorialController.ShowNextStep(),
+            HideTutorialOverlay);
+        tutorialOverlayView.Build();
+        tutorialController.Refresh();
         BuildOnboardingGuideBanner();
+    }
+
+    private void ShowTutorialOverlay()
+    {
+        tutorialController.ShowTutorial();
+    }
+
+    private void HideTutorialOverlay()
+    {
+        tutorialOverlayView?.Hide();
     }
 
     private void ShowWorldMap(int worldMapIndex)
