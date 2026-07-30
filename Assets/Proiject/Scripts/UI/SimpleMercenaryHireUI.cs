@@ -203,6 +203,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private TutorialController tutorialController;
     private OnboardingGuideController onboardingGuideController;
     private OnboardingGuideBannerView onboardingGuideBannerView;
+    private TrainingGroundPagePresenter trainingGroundPagePresenter;
     private AudioFeedbackService audioFeedbackService;
     private FacilityGreetingController facilityGreetingController;
     public event System.Action<string> FacilityEntered;
@@ -223,6 +224,45 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private static readonly Color MutedTextColor = UITheme.MutedTextColor;
     private static readonly Color ParchmentTextColor = UITheme.ParchmentTextColor;
     private static readonly Color ParchmentMutedColor = UITheme.ParchmentMutedColor;
+
+    private void HandleTrainingGroundChanged()
+    {
+        trainingGroundPagePresenter?.HandleTrainingGroundChanged();
+    }
+
+    private void BuildTrainingGroundPage()
+    {
+        TrainingGroundPageUI pageUI =
+            trainingGroundPage.GetComponent<TrainingGroundPageUI>() ??
+            trainingGroundPage.gameObject.AddComponent<TrainingGroundPageUI>();
+        trainingGroundPagePresenter = new TrainingGroundPagePresenter(
+            uiFactory,
+            trainingGroundPage,
+            pageUI,
+            uiBodyFont,
+            ParchmentTextColor,
+            MutedTextColor,
+            ButtonTextColor,
+            RowColor,
+            WoodButtonColor,
+            FrameColor,
+            hireManager,
+            trainingGroundManager,
+            merchantData,
+            dayManager,
+            townProgressState,
+            pageRouter.Register,
+            targetPage => SwitchToPage(targetPage),
+            RefreshPage,
+            message => statusText.text = message,
+            RefreshUI);
+        trainingGroundPagePresenter.Build();
+    }
+
+    private void ShowTrainingGroundPage()
+    {
+        trainingGroundPagePresenter?.Show();
+    }
 
     private void Start()
     {
