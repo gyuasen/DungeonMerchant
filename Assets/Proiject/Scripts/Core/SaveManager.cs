@@ -1177,47 +1177,53 @@ public class SaveManager : MonoBehaviour
             assetName);
     }
 
+    /// <summary>
+    /// 参照を一度だけ解決する。SaveGame / LoadGame から毎回呼ばれるため、
+    /// 解決済みの参照は再解決しない。未解決のものだけ GetComponent を試し、
+    /// それでも見つからなければシーン全体を走査する。
+    ///
+    /// Unity の未設定 SerializeField や破棄済みコンポーネントは C# 参照と
+    /// しては "fake null" になり得るため、?? ではなく Unity の == null 判定
+    /// で解決する。?? だと破棄済み参照が残り、以降の解決が行われない。
+    /// </summary>
     private void ResolveReferences()
     {
-        merchantData = GetComponent<MerchantData>() ?? FindObjectOfType<MerchantData>();
-        dayManager = GetComponent<DayManager>() ?? FindObjectOfType<DayManager>();
-        merchantInventory =
-            GetComponent<MerchantInventory>() ?? FindObjectOfType<MerchantInventory>();
-        hireManager =
-            GetComponent<MercenaryHireManager>() ?? FindObjectOfType<MercenaryHireManager>();
-        partyManager =
-            GetComponent<MercenaryPartyManager>() ?? FindObjectOfType<MercenaryPartyManager>();
-        healingManager =
-            GetComponent<HealingManager>() ?? FindObjectOfType<HealingManager>();
-        trainingGroundManager =
-            GetComponent<TrainingGroundManager>() ??
-            FindObjectOfType<TrainingGroundManager>();
-        battleManager = GetComponent<BattleManager>() ?? FindObjectOfType<BattleManager>();
-        dungeonRunManager =
-            GetComponent<DungeonRunManager>() ?? FindObjectOfType<DungeonRunManager>();
-        dungeonExpeditionManager =
-            GetComponent<DungeonExpeditionManager>() ??
-            FindObjectOfType<DungeonExpeditionManager>();
-        progressionManager =
-            GetComponent<ProgressionManager>() ?? FindObjectOfType<ProgressionManager>();
-        debtManager =
-            GetComponent<DebtManager>() ?? FindObjectOfType<DebtManager>();
-        townProgressState =
-            GetComponent<TownProgressState>() ??
-            FindObjectOfType<TownProgressState>();
-        storyProgressManager =
-            GetComponent<StoryProgressManager>() ??
-            FindObjectOfType<StoryProgressManager>();
-        roadCargoSession = GetComponent<RoadCargoSession>() ??
-            FindObjectOfType<RoadCargoSession>();
-        remoteSaleManager =
-            GetComponent<RemoteSaleManager>() ??
-            FindObjectOfType<RemoteSaleManager>();
-        monsterCodexManager =
-            GetComponent<MonsterCodexManager>() ??
-            FindObjectOfType<MonsterCodexManager>();
-        onboardingGuideController =
-            GetComponent<OnboardingGuideController>() ??
-            FindObjectOfType<OnboardingGuideController>();
+        Resolve(ref merchantData);
+        Resolve(ref dayManager);
+        Resolve(ref merchantInventory);
+        Resolve(ref hireManager);
+        Resolve(ref partyManager);
+        Resolve(ref healingManager);
+        Resolve(ref trainingGroundManager);
+        Resolve(ref battleManager);
+        Resolve(ref dungeonRunManager);
+        Resolve(ref dungeonExpeditionManager);
+        Resolve(ref progressionManager);
+        Resolve(ref debtManager);
+        Resolve(ref townProgressState);
+        Resolve(ref storyProgressManager);
+        Resolve(ref roadCargoSession);
+        Resolve(ref remoteSaleManager);
+        Resolve(ref monsterCodexManager);
+        Resolve(ref onboardingGuideController);
+    }
+
+    /// <summary>
+    /// 既に解決済みなら何もしない。未解決のときだけ、同一 GameObject →
+    /// シーン全体の順に探す。FindObjectOfType はシーン全体を走査するため、
+    /// 保存のたびに呼ばれないようこのガードを挟む。
+    /// </summary>
+    private void Resolve<T>(ref T reference) where T : Component
+    {
+        if (reference != null)
+        {
+            return;
+        }
+
+        reference = GetComponent<T>();
+        if (reference == null)
+        {
+            reference = FindObjectOfType<T>();
+        }
     }
 }
