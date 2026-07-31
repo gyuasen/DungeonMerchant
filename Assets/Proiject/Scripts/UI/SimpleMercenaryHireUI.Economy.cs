@@ -395,6 +395,7 @@ public partial class SimpleMercenaryHireUI
         storageUpgrade.confirmationOverlay = CreateUIObject(
             "Storage Upgrade Confirmation Overlay",
             overlayRoot);
+        storageUpgrade.confirmationOverlay.gameObject.SetActive(false);
         storageUpgrade.confirmationOverlay.anchorMin = Vector2.zero;
         storageUpgrade.confirmationOverlay.anchorMax = Vector2.one;
         storageUpgrade.confirmationOverlay.offsetMin = Vector2.zero;
@@ -461,7 +462,6 @@ public partial class SimpleMercenaryHireUI
         cancelRect.sizeDelta = new Vector2(180f, 48f);
         cancelRect.anchoredPosition = new Vector2(105f, 26f);
 
-        storageUpgrade.confirmationOverlay.gameObject.SetActive(false);
     }
 
     private void CreateInventorySidebar()
@@ -620,6 +620,7 @@ public partial class SimpleMercenaryHireUI
     private void BuildSellOnlyConfirmationOverlay()
     {
         sellOnlyConfirmation.overlay = CreateUIObject("Sell Only Confirmation Overlay", overlayRoot);
+        sellOnlyConfirmation.overlay.gameObject.SetActive(false);
         sellOnlyConfirmation.overlay.anchorMin = Vector2.zero;
         sellOnlyConfirmation.overlay.anchorMax = Vector2.one;
         sellOnlyConfirmation.overlay.offsetMin = Vector2.zero;
@@ -629,7 +630,7 @@ public partial class SimpleMercenaryHireUI
         window.anchorMin = window.anchorMax = window.pivot = new Vector2(0.5f, 0.5f);
         window.sizeDelta = new Vector2(560f, 340f);
         ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
-        CreateText(window, "売却用素材を一括売却しますか？", 24, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(28f, -72f), new Vector2(-28f, -22f), ParchmentTextColor);
+        CreateText(window, "売却用・環境素材を一括売却しますか？", 24, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(28f, -72f), new Vector2(-28f, -22f), ParchmentTextColor);
         sellOnlyConfirmation.text = CreateText(window, string.Empty, 18, FontStyle.Normal, TextAnchor.MiddleCenter, new Vector2(36f, -194f), new Vector2(-36f, -82f), ParchmentTextColor);
         Button confirm = CreateActionButton(window, "すべて売却", ConfirmSellOnlyMaterials);
         RectTransform confirmRect = confirm.GetComponent<RectTransform>();
@@ -655,7 +656,7 @@ public partial class SimpleMercenaryHireUI
         }
         sellOnlyConfirmation.text.text = itemCount > 0
             ? $"売却対象: {stacks.Count}種類 / {itemCount}個\n合計獲得: {economyController.GetSellOnlyTotalGold():N0}G\n制作素材は対象に含まれません。"
-            : "売却できる売却用素材はありません。\n制作素材は対象に含まれません。";
+            : "売却できる売却用・環境素材はありません。\n制作素材は対象に含まれません。";
         sellOnlyConfirmation.overlay.SetAsLastSibling();
         sellOnlyConfirmation.overlay.gameObject.SetActive(true);
     }
@@ -667,8 +668,8 @@ public partial class SimpleMercenaryHireUI
         statusText.text = stoppedEarly
             ? $"{soldCount}個を売却し、{earnedGold:N0}Gを獲得しました。残りは売却していません。"
             : soldCount > 0
-            ? $"売却用素材を{soldCount}個まとめて売却し、{earnedGold:N0}Gを獲得しました。"
-            : "売却できる売却用素材はありません。";
+            ? $"売却用・環境素材を{soldCount}個まとめて売却し、{earnedGold:N0}Gを獲得しました。"
+            : "売却できる売却用・環境素材はありません。";
     }
 
     private void HideSellOnlyConfirmation()

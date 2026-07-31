@@ -68,6 +68,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             new SimpleMercenaryHireUIView.EquipmentCodexReferences();
     private MonsterCodexManager monsterCodexManager;
     private MonsterCodexOverlayView monsterCodexOverlayView;
+    private ItemCodexOverlayView itemCodexOverlayView;
     private RectTransform globalMenuOverlay;
     private readonly SimpleMercenaryHireUIView.DailyResultReferences
         dailyResult =
@@ -582,6 +583,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         dailyResultController.CaptureDailySnapshot(dayManager.CurrentDay);
         ShowGlobalMap();
         RefreshUI();
+        if (saveManager != null &&
+            !saveManager.HasExistingSaveAtInitialization)
+        {
+            tutorialController.ShowTutorialIfNeeded();
+        }
     }
 
     private void ResolveReferences()
@@ -1199,6 +1205,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         BuildEquipmentSlotSelectionOverlay();
         BuildEquipmentCollectionOverlay();
         BuildMonsterCollectionOverlay();
+        BuildItemCollectionOverlay();
         BuildQuestOverlay();
         BuildMerchantStatusOverlay();
         BuildTravelConfirmationOverlay();
@@ -1265,6 +1272,35 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private void HideMonsterCollection()
     {
         monsterCodexOverlayView?.Hide();
+    }
+
+    private void BuildItemCollectionOverlay()
+    {
+        RectTransform prefabOverlay = activeView != null
+            ? activeView.GetOverlay(SimpleMercenaryHireOverlaySlot.ItemCollection)
+            : null;
+        itemCodexOverlayView = new ItemCodexOverlayView(
+            uiFactory,
+            new SimpleMercenaryHireUIView.ItemCodexReferences
+            {
+                overlay = prefabOverlay
+            },
+            overlayRoot,
+            uiFont,
+            uiBodyFont,
+            merchantInventory,
+            HideItemCollection);
+        itemCodexOverlayView.Build();
+    }
+
+    private void ShowItemCollection()
+    {
+        itemCodexOverlayView?.Show();
+    }
+
+    private void HideItemCollection()
+    {
+        itemCodexOverlayView?.Hide();
     }
 
     private void ShowTutorialOverlay()

@@ -79,24 +79,25 @@ TownTravelController（+30）などUI層のテストを拡充し、793 件とな
 
 ---
 
-## 6. セーブデータ整合性の監査結果（2026-07-22）
+## 6. セーブデータ整合性の監査結果（2026-07-31 再確認）
 
-新装備・特殊能力の追加に伴うセーブデータ破損リスクを別途監査した結果:
+新装備・特殊能力の追加に伴うセーブデータ破損リスクを別途監査した結果（数値は 2026-07-31 に再確認した実値。初回監査時の 2026-07-22 の値は同期前の古いスナップショットで、`ItemDataSO` 226件・`CurrentVersion` 28 と記録していたが下表へ更新）:
 
 | 監査項目 | 結果 |
 |---|---|
-| `ItemDataSO` の `persistentId` 未設定 | **0 件**（226件すべて設定済み） |
+| `ItemDataSO` の `persistentId` 未設定 | **0 件**（217件すべて設定済み） |
 | `ItemDataSO` の `persistentId` 重複 | **なし** |
 | 特殊能力の永続化方式 | `ItemDataSO.equipmentEffects`（マスタ側）に存在。`EquipmentInstance` へ複製保存されないため、セーブDTOの変更は不要 |
-| `GameSaveData.CurrentVersion` | 28 |
-| `SaveDataMigrator` 最新ステップ | version 28 対象。`CurrentVersion` と**整合** |
+| `GameSaveData.CurrentVersion` | 37 |
+| `SaveDataMigrator` 最新ステップ | version 37 対象。`CurrentVersion` と**整合** |
+| セーブ書き込み方式 | 一時ファイル（`.tmp`）へ書込み→`File.Replace`（既存を `.bak` 退避）または `File.Move` による**原子的置換**（`SaveManager.cs:118-141`）。初回監査時点の「直接上書き」は解消済み |
 | **セーブ→再起動→ロードで新装備・特殊能力が消失するリスク** | **なし（NO）** |
 
 `SavedEquipmentInstance` が保存する項目: `townIndex` / `instanceId` / `baseItemAssetName` / `baseItemPersistentId` / `quality` / `enhancementLevel` / `isLocked` / `modifiers`（`type`, `value`）
 
 ### 検出された潜在リスク（提出は妨げない）
 
-- **`EnemyDataSO` 54件で `persistentId` が未設定**。現在は実行時にアセット名へフォールバックするため動作に影響はなく、実効IDの重複もない。ただし将来アセット名を変更すると参照復元が壊れる可能性がある。
+- **`EnemyDataSO` 53件で `persistentId` が未設定**（総数99件、2026-07-31 実測）。現在は実行時にアセット名へフォールバックするため動作に影響はなく、実効IDの重複もない。ただし将来アセット名を変更すると参照復元が壊れる可能性がある。
   - 暫定対応: **ID付与が完了するまで対象アセットの名前を変更しない**
   - 恒久対応: 各アセットへ不変の一意ID（例 `enemy.grade10.blue_slime`）を付与し、「対象アセットの `persistentId` が非空かつ一意」を検証する EditMode テストを追加する
 
@@ -135,7 +136,7 @@ Unity Editor でプロジェクトを開いている状態ではバッチモー�
 - 実機での主要ゲームサイクル一周
 - 新装備の入手→装備→特殊能力発動→保存→再起動→復元の一連確認
 - Unity Console の例外・警告の目視確認
-- 旧バージョン（version 28 未満）セーブデータからの実マイグレーション確認
+- 旧バージョン（version 37 未満）セーブデータからの実マイグレーション確認
 
 ---
 

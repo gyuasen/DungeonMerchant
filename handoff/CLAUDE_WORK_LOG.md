@@ -453,6 +453,46 @@
 - **セーブ波及の可能性**: #11（装備の保管枠分離→`ProgressionManager`/`MerchantInventory`の容量判定）、#15（初回訪問フラグの永続化）。着手前に`CurrentVersion=28`からの更新要否を判定すること。#13は「ゲーム起動時に一回」＝セッション単位の抑制であり永続化不要と読める。
 - **優先順位**: 提出前検証（ビルド・手動確認・スクリーンショット/動画）が先。本バックログは提出後または余力がある場合に着手する。
 
+### 2026-07-31 重要訂正: 本セッションの前半成果物は「同期前の古いスナップショット」基準だった
+
+- **日付誤記**: 本セッションで作成した `TEST_BASELINE.md` / `MANUAL_TEST_CHECKLIST.md` / `README.md`追記 / 各handoff追記の日付を「2026-07-22」と誤記していた。**正しくは 2026-07-31**。
+- **状態の食い違い判明**: セッション前半にクローンで測ったEditModeは**559件**、Sol初期監査は`SimpleMercenaryHireUI`を巨大クラス（分割すべき）と評価していた。しかし現在の作業コピーを再検証したところ、`handoff/UI_REFACTOR_HANDOFF.md`（最終更新2026-07-31）が正で、**EditMode 794件・`SimpleMercenaryHireUI` 12 partial化・View/Presenter 9クラス抽出済み・`DungeonMerchant.Domain.asmdef`存在**を確認。作業コピーはセッション途中で最新のUIリファクタ作業へ同期されていた（家/学校/教室間の同期）。
+- **陳腐化した成果物**: (1)`TEST_BASELINE.md`の559件は古い（現在≒794件、要再計測）。(2)`IMPROVEMENT_PROPOSALS.md`の最上位項目「`SimpleMercenaryHireUI`分割」は**既に大幅に実施済み**（UI層評価 D→B−〜B）。(3)UX改善バックログの「全件未着手」も誤り。
+- **教訓**: セッション開始時に `handoff/UI_REFACTOR_HANDOFF.md` と関連docsを先に読むべきだった。他環境から同期される可能性があるプロジェクトでは、作業前に最新のhandoff群を確認して現状を確定すること。
+- **未対応（要判断）**: `TEST_BASELINE.md`の再計測と`IMPROVEMENT_PROPOSALS.md`のUI項目の更新。ユーザー判断待ち。
+
+### 2026-07-31 UX改善バックログの実コード棚卸し（Sol監査）
+
+- 17件を実コードで棚卸し。結果: **実装済み14 / 部分実装2（#1新規ゲーム時の施設説明自動表示=`ShowTutorialIfNeeded()`空実装、#5全アイテム一括売却=現状は「売却用」分類のみ）/ 未着手1（#16非装備アイテム図鑑）**。根拠行は `handoff/UX_IMPROVEMENT_BACKLOG.md` の一覧表に記載。
+- セッション前半に「安全な6件を実装」としてSolへ委任した#8/#7/#2/#3/#6/#4のうち、実際に新規実装が必要だったのは実質#8（日次リザルト色分け、UITheme集約）とオーバーレイ安全化・空表示整備のみ。他5件は既存実装だった（同期済みの最新状態）。Runtimeビルド警告0・エラー0、luna裏取りで6件YES確認済み。
+
+### 2026-07-31 陳腐化した提出物ドキュメントの是正
+
+セッション前半に同期前スナップショット基準で作成/記述した提出物の陳腐化を、luna再確認の実値で是正した。
+- **luna再確認の実値**: fail-open `CanStore()` は**依然有効**(`ProgressionManager.cs:99-104`)／非原子的セーブは**解消済み**(`.tmp`+`.bak`+`File.Replace`, `SaveManager.cs:118-141`)／`EnemyDataSO` 未設定**53件**(総99)／`ItemDataSO` **217件**(空0/重複0)／`SimpleMercenaryHireUI` **10 partial・本体1,459行・合計7,839行**／`CurrentVersion` **37**。
+- **README.md**: テスト状況セクションは同期で既に更新済み(793/8/07-31)。「既知の問題」の陳腐化を是正 — EnemyDataSO 54→53、非原子的セーブ行を削除(解消済みへ)、UI巨大クラス行を「リファクタ済み」記述へ、ItemDataSO 226→217・v28→v37。
+- **TEST_BASELINE.md**: ヘッダ/サマリは同期で更新済み(793/801/07-31)。セクション6のセーブ監査を是正 — ItemDataSO 226→217、v28→v37、セーブ書込みを原子的置換へ、EnemyDataSO 54→53、「version 28未満」→「37未満」。
+- **IMPROVEMENT_PROPOSALS.md**(未同期・全体陳腐化): 冒頭に「状態の訂正(2026-07-31)」バナー(状態表)を追加。UI分割・原子的セーブの2項目にインライン注記、着手順トップ5を現状(fail-open と Bootstrap のみ残)へ訂正。中・低優先項目は未再確認と明記。
+- 是正はメインが直接実施(自作成果物のため。実値はluna再確認済み)。
+
+### 2026-07-31 UX改善バックログ残3件を実装（Sol実装 / メイン監査 / luna裏取り）
+
+棚卸しで残った#1（部分）・#5（部分）・#16（未着手）を実装。ユーザー決定: #5=売却用＋環境素材（制作材料は除く）、#16=発見管理あり・入手済のみ表示。
+
+- **#1 新規ゲーム時チュートリアル自動表示**: `TutorialController.ShowTutorialIfNeeded()`の空実装を埋め、新規ゲーム（セーブ無し）初期化時のみ6ページを自動表示。既存セーブロード時は非表示。**セーブ変更なし**（永続フラグは追加せず新規初期化時トリガー方式）。`FacilityGreetingController`（施設入場時発火）とは契機が別で二重表示なし。変更: `TutorialController.cs` / `SimpleMercenaryHireUI.cs` / `TutorialControllerTests.cs`。
+- **#5 一括売却の拡張**: 対象を「SellOnly分類」＋環境素材6種（鉄鉱石/銀鉱石/薬草/毒消し草/堅木材/霊木材）へ拡張。環境素材は正規persistentIdで明示識別（全CraftingMaterialを巻き込まない）。消耗品・装備・他の制作材料は対象外。確認ダイアログと実売却で同一の対象取得処理。変更: `EconomyController.cs` / `SimpleMercenaryHireUI.Economy.cs` / `EconomyControllerTests.cs`。
+- **#16 非装備アイテム図鑑**: メニューに「アイテム図鑑」追加。装備を除く全ItemDataSOを掲載、入手済のみ名称/画像/分類/価格/説明を表示、未発見は既存BookPageUIの「？？？」。**`BookPageUI`非改変**、`MonsterCodexOverlayView`+`MonsterCodexPresenter`と同型のView/Presenterで新規追加（`ItemCodexOverlayView`+`ItemCodexPresenter`、グローバル名前空間・public sealed・非MonoBehaviour）。
+  - **セーブ変更**: 実コードの`CurrentVersion`は既に**36**だった（旧認識のv28は同期前の古い値）。安全に**36→37**へ昇格。`GameSaveData`へ`discoveredItemPersistentIds`追加（装備発見/魔物遭遇集合とは別フィールド）。`SaveDataMigrator`に`sourceVersion < 37`の空初期化ステップ（既存集合は破壊しない）＋末尾で`data.version = CurrentVersion`。`SaveManager`にCapture/Restore両方追加。`MerchantInventory`の倉庫追加成功時に非装備アイテムをpersistentIdで発見登録（nameフォールバック空を回避）。`SaveDataMigratorTests`にv36→v37移行テスト追加。
+  - 変更: `GameSaveData.cs` / `SaveDataMigrator.cs` / `SaveManager.cs` / `MerchantInventory.cs` / `SimpleMercenaryHireUIView.cs` / `SimpleMercenaryHireUI.UIFactory.cs` / `UITheme.cs` / `MonsterCodexOverlayView.cs` / `SaveDataMigratorTests.cs` / `DungeonMerchant.Runtime.csproj`。新規: `ItemCodexOverlayView.cs` / `ItemCodexPresenter.cs`（+.meta）。
+
+**検証（メイン監査）**:
+- `dotnet build DungeonMerchant.Runtime.csproj`（独立実行）警告0・エラー0。
+- `dotnet build DungeonMerchant.EditModeTests.csproj`（restoreあり）警告0・エラー0。追加テスト含めコンパイル可（Solの当初のCLI失敗は`--no-restore`起因）。
+- luna裏取り7項目すべてYES: (1)CurrentVersion=37・別フィールド (2)移行は空初期化のみ・既存集合不破壊・version更新 (3)Capture/Restore両方 (4)倉庫追加時にpersistentIdで非装備のみ登録 (5)#5は6種persistentId明示・他材料非対象 (6)reflection参照privateフィールド(globalMapPage等)不変・魔物図鑑挙動維持 (7)#1は新規時のみ・セーブ非変更。
+- **未実施（要ユーザー）**: Unity Test Runnerでの全件実行（特にv36→v37移行テストと追加テストのPASS確認）と実機での見た目/挙動確認。
+
+**教訓**: 実コードの`CurrentVersion`が想定(v28)と異なり実際はv36だった。セーブ変更時は必ず実ファイルで現行バージョンを確認してから昇格すること（Solは正しく実値36を読んで37へ昇格した）。
+
 ### 2026-07-22 追記: UX改善バックログへ2件追加（#16/#17）
 
 - ユーザー追加提案: **#16 装備以外のアイテムの図鑑をメニューに追加**、**#17 タイトル画面に戻るボタンをメニューに追加**。`handoff/UX_IMPROVEMENT_BACKLOG.md` の「F. 図鑑・メニュー」節へ記録。バックログは計17件。

@@ -22,7 +22,7 @@ public partial class SimpleMercenaryHireUI
             CreateUIObject("Global Menu Window", globalMenuOverlay);
         window.anchorMin = window.anchorMax = window.pivot =
             new Vector2(0.5f, 0.5f);
-        window.sizeDelta = new Vector2(570f, 620f);
+        window.sizeDelta = new Vector2(570f, 685f);
         ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
 
         CreateText(
@@ -66,7 +66,10 @@ public partial class SimpleMercenaryHireUI
             window, "セーブしてタイトルへ", new Vector2(135f, -105f),
             SaveAndReturnToTitle);
         CreateGlobalMenuButton(
-            window, "閉じる", new Vector2(0f, -170f),
+            window, "アイテム図鑑", new Vector2(0f, -170f),
+            () => OpenGlobalMenuDestination(ShowItemCollection));
+        CreateGlobalMenuButton(
+            window, "閉じる", new Vector2(0f, -235f),
             HideGlobalMenu);
 
         globalMenuOverlay.gameObject.SetActive(false);

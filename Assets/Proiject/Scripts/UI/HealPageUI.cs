@@ -46,7 +46,7 @@ public sealed class HealPageUI : ListPageUIBase
             mercenaryProvider.Invoke(),
             112f,
             430f,
-            "治療できる傭兵はいません。",
+            "治療が必要な傭兵はいません。",
             mercenary => mercenary != null && needsHealingProvider?.Invoke(mercenary) == true,
             (_, mercenary, rowTop) => CreateHealRow(mercenary, rowTop),
             (_, message) => CreateEmptyMessage(message));

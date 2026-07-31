@@ -238,12 +238,13 @@ Build Settings には `Title.unity` → `SampleScene.unity` の順でシーン�
 
 |内容|影響|状態|
 |---|---|---|
-|`EnemyDataSO` 54件で `persistentId` が未設定|実行時はアセット名へフォールバックするため現在の動作に影響なし。実効IDの重複もない。将来アセット名を変更した場合に参照復元が壊れる可能性がある|既知。ID付与が完了するまで対象アセット名を変更しない運用で回避|
+|`EnemyDataSO` 53件で `persistentId` が未設定|実行時はアセット名へフォールバックするため現在の動作に影響なし。実効IDの重複もない。将来アセット名を変更した場合に参照復元が壊れる可能性がある|既知。ID付与が完了するまで対象アセット名を変更しない運用で回避|
 |`BalanceExpansionDefinitionTests` の2件が自動実行から除外|Editorツールによるアセット生成が前提のため `Explicit` 指定。バッチ実行では検証されない|仕様。Test Runner から手動実行で確認可能|
-|`SimpleMercenaryHireUI`（1,129行）、`SaveManager`（1,002行）への責務集中|動作上の不具合ではないが、今後の機能追加で変更影響範囲が広がりやすい|課題として特定済み。段階的改善計画を策定|
-|セーブがファイルへ直接書き込まれ、一時ファイル経由の原子的置換とバックアップを行っていない|書き込み中の異常終了時にセーブデータが破損する可能性がある|課題として特定済み。改善計画に記載|
+|倉庫容量判定 `ProgressionManager.CanStore()` が依存 null 時に `true` を返す（fail-open）|参照解決に失敗した構成で容量制限が無効化されうる|課題として特定済み（`ProgressionManager.cs:99-104`）。改善計画に記載|
 
-なお、新規追加したドロップ装備と装備特殊能力については、セーブデータ整合性の監査を実施済みです。`ItemDataSO` 226件すべてに `persistentId` が設定され重複がないこと、特殊能力がマスタ側（`ItemDataSO.equipmentEffects`）に保持されるため個体データの保存形式変更を伴わないこと、`GameSaveData.CurrentVersion = 28` と `SaveDataMigrator` の整合が取れていることを確認しており、**セーブ・再起動・ロードによる装備や特殊能力の消失リスクはありません**。
+UI層の責務集中は段階的リファクタリングで改善済みです。`SimpleMercenaryHireUI` は 19→10 partial・合計約7,800行（本体1,459行）まで縮小し、View/Presenter を10クラス抽出しました（詳細は [handoff/UI_REFACTOR_HANDOFF.md](handoff/UI_REFACTOR_HANDOFF.md)）。セーブ書き込みも一時ファイル経由の原子的置換（`.tmp`→`File.Replace`、既存は `.bak` 退避）へ改善済みです。
+
+なお、ドロップ装備と装備特殊能力については、セーブデータ整合性の監査を実施済みです。`ItemDataSO` 217件すべてに `persistentId` が設定され重複がないこと、特殊能力がマスタ側（`ItemDataSO.equipmentEffects`）に保持されるため個体データの保存形式変更を伴わないこと、`GameSaveData.CurrentVersion = 37` と `SaveDataMigrator` の整合が取れていることを確認しており、**セーブ・再起動・ロードによる装備や特殊能力の消失リスクはありません**。
 
 ---
 

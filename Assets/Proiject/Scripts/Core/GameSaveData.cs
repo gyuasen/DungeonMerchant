@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public class GameSaveData
 {
-    public const int CurrentVersion = 36;
+    public const int CurrentVersion = 37;
 
     public int version = CurrentVersion;
     public int gold = 500;
@@ -44,6 +44,7 @@ public class GameSaveData
     public List<string> discoveredEquipmentAssetNames = new List<string>();
     public List<string> discoveredEquipmentPersistentIds =
         new List<string>();
+    public List<string> discoveredItemPersistentIds = new List<string>();
     public List<string> encounteredEnemyIds = new List<string>();
     public List<StoryMilestone> completedStoryMilestones =
         new List<StoryMilestone>();

@@ -11,6 +11,17 @@ using UnityEngine.UI;
 /// </summary>
 public sealed class EconomyController
 {
+    private static readonly HashSet<string> EnvironmentMaterialPersistentIds =
+        new HashSet<string>
+        {
+            "item.material.iron_ore",
+            "item.material.silver_ore",
+            "item.material.medicinal_herb",
+            "item.material.antidote_herb",
+            "item.material.hardwood",
+            "item.material.spiritwood"
+        };
+
     private readonly MerchantInventory merchantInventory;
     private readonly MarketStockManager marketStockManager;
     private readonly BlacksmithManager blacksmithManager;
@@ -214,12 +225,18 @@ public sealed class EconomyController
         foreach (InventoryItemStack stack in merchantInventory.Items)
         {
             if (stack?.Item != null && stack.Amount > 0 &&
-                stack.Item.materialClassification == MaterialClassification.SellOnly)
+                IsBulkSaleTarget(stack.Item))
             {
                 stacks.Add(stack);
             }
         }
         return stacks;
+    }
+
+    private static bool IsBulkSaleTarget(ItemDataSO item)
+    {
+        return item.materialClassification == MaterialClassification.SellOnly ||
+               EnvironmentMaterialPersistentIds.Contains(item.PersistentId);
     }
 
     public int GetSellOnlyTotalGold()

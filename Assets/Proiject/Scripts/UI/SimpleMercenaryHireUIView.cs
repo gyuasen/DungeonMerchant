@@ -32,7 +32,8 @@ public enum SimpleMercenaryHireOverlaySlot
     Quest,
     TravelConfirmation,
     GlobalMenu,
-    DailyResult
+    DailyResult,
+    ItemCollection
 }
 
 public sealed class SimpleMercenaryHireUIView : MonoBehaviour
@@ -480,6 +481,15 @@ public sealed class SimpleMercenaryHireUIView : MonoBehaviour
     /// </summary>
     [Serializable]
     public sealed class MonsterCodexReferences
+    {
+        public RectTransform overlay;
+        public BookPageUI book;
+
+        public bool IsValid => overlay != null && book != null;
+    }
+
+    [Serializable]
+    public sealed class ItemCodexReferences
     {
         public RectTransform overlay;
         public BookPageUI book;

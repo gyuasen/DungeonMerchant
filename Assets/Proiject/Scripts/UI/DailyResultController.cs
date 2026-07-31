@@ -11,11 +11,6 @@ using System.Text;
 /// </summary>
 public sealed class DailyResultController
 {
-    private const string PositiveColor = "#65D88A";
-    private const string NegativeColor = "#FF7474";
-    private const string NeutralColor = "#AEB6BE";
-    private const string HeadingColor = "#5A3B24";
-    private const string AccentColor = "#B86B2B";
     private readonly MerchantData merchantData;
     private readonly MercenaryHireManager hireManager;
     private readonly MercenaryPartyManager partyManager;
@@ -201,7 +196,8 @@ public sealed class DailyResultController
         result.AppendLine(Neutral($"空き容量 {storageRemaining}"));
         if (storageCapacity > 0 && storageRemaining == 0)
         {
-            result.AppendLine(Negative("！倉庫が満杯です。売却または倉庫拡張を行ってください。"));
+            result.AppendLine(Warning(
+                "！倉庫が満杯です。売却または倉庫拡張を行ってください。"));
         }
 
         result.AppendLine();
@@ -979,11 +975,35 @@ public sealed class DailyResultController
         return $"<color={color}>{text}</color>";
     }
 
-    private static string Positive(string text) { return Color(text, PositiveColor); }
-    private static string Negative(string text) { return Color(text, NegativeColor); }
-    private static string Neutral(string text) { return Color(text, NeutralColor); }
-    private static string Heading(string text) { return Color(text, HeadingColor); }
-    private static string Emphasis(string text) { return $"<b><color={AccentColor}>{text}</color></b>"; }
+    private static string Positive(string text)
+    {
+        return Color(text, UITheme.PositiveTextHex);
+    }
+
+    private static string Negative(string text)
+    {
+        return Color(text, UITheme.NegativeTextHex);
+    }
+
+    private static string Warning(string text)
+    {
+        return Color(text, UITheme.WarningTextHex);
+    }
+
+    private static string Neutral(string text)
+    {
+        return Color(text, UITheme.NeutralTextHex);
+    }
+
+    private static string Heading(string text)
+    {
+        return Color(text, UITheme.ResultHeadingTextHex);
+    }
+
+    private static string Emphasis(string text)
+    {
+        return $"<b><color={UITheme.ResultAccentTextHex}>{text}</color></b>";
+    }
 
     private static string FormatSignedValue(int value)
     {

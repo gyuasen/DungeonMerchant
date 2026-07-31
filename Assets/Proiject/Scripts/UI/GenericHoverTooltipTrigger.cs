@@ -67,10 +67,11 @@ public sealed class GenericHoverTooltipTrigger : MonoBehaviour,
         }
 
         GameObject root = new GameObject("Item Hover Tooltip", typeof(RectTransform), typeof(Image));
+        root.SetActive(false);
         tooltip = root.GetComponent<RectTransform>();
         tooltip.SetParent(parent, false);
         Image background = root.GetComponent<Image>();
-        background.color = new Color(0.075f, 0.045f, 0.025f, 0.96f);
+        background.color = UITheme.TooltipBackgroundColor;
         background.raycastTarget = false;
         GameObject label = new GameObject("Content", typeof(RectTransform), typeof(Text));
         RectTransform labelRect = label.GetComponent<RectTransform>();
@@ -83,9 +84,8 @@ public sealed class GenericHoverTooltipTrigger : MonoBehaviour,
         text.font = font ?? Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         text.fontSize = 13;
         text.alignment = TextAnchor.UpperLeft;
-        text.color = new Color(0.97f, 0.9f, 0.74f);
+        text.color = UITheme.TooltipTextColor;
         text.raycastTarget = false;
-        root.SetActive(false);
     }
 
     private void Hide()

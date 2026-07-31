@@ -89,6 +89,7 @@ public sealed class TutorialController
 
     public void ShowTutorialIfNeeded()
     {
+        ShowTutorial();
     }
 
     public void ShowTutorial()

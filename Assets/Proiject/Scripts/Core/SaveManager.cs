@@ -358,6 +358,8 @@ public class SaveManager : MonoBehaviour
         {
             data.discoveredEquipmentPersistentIds.AddRange(
                 merchantInventory.DiscoveredEquipmentPersistentIds);
+            data.discoveredItemPersistentIds.AddRange(
+                merchantInventory.DiscoveredItemPersistentIds);
             for (int townIndex = 0;
                  townIndex < WorldMapService.TownNames.Length;
                  townIndex++)
@@ -641,6 +643,8 @@ public class SaveManager : MonoBehaviour
         merchantInventory?.RestoreDiscoveredEquipment(
             data.discoveredEquipmentPersistentIds,
             data.discoveredEquipmentAssetNames);
+        merchantInventory?.RestoreDiscoveredItems(
+            data.discoveredItemPersistentIds);
         monsterCodexManager?.RestoreEncounteredEnemies(data.encounteredEnemyIds);
 
         List<MercenaryInstance> restoredMercenaries = new List<MercenaryInstance>();

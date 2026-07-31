@@ -84,12 +84,13 @@ public sealed class UIHoverTooltipTrigger : MonoBehaviour,
             typeof(RectTransform),
             typeof(Image),
             typeof(Outline));
+        tooltip.SetActive(false);
         tooltipRect = tooltip.GetComponent<RectTransform>();
         tooltipRect.SetParent(tooltipParent, false);
         tooltipRect.sizeDelta = new Vector2(TooltipWidth, 198f);
 
         Image background = tooltip.GetComponent<Image>();
-        background.color = new Color(0.075f, 0.045f, 0.025f, 0.96f);
+        background.color = UITheme.TooltipBackgroundColor;
         background.raycastTarget = false;
         Outline outline = tooltip.GetComponent<Outline>();
         outline.effectColor = new Color(0.88f, 0.64f, 0.22f, 0.9f);
@@ -115,7 +116,7 @@ public sealed class UIHoverTooltipTrigger : MonoBehaviour,
         tooltipText.alignment = TextAnchor.UpperLeft;
         tooltipText.horizontalOverflow = HorizontalWrapMode.Wrap;
         tooltipText.verticalOverflow = VerticalWrapMode.Overflow;
-        tooltipText.color = new Color(0.97f, 0.9f, 0.74f);
+        tooltipText.color = UITheme.TooltipTextColor;
         tooltipText.raycastTarget = false;
     }
 

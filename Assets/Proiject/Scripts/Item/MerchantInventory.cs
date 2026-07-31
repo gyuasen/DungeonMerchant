@@ -50,12 +50,16 @@ public class MerchantInventory : MonoBehaviour
     [FormerlySerializedAs("discoveredEquipmentAssetNames")]
     [SerializeField] private List<string> discoveredEquipmentPersistentIds =
         new List<string>();
+    [SerializeField] private List<string> discoveredItemPersistentIds =
+        new List<string>();
 
     public IReadOnlyList<InventoryItemStack> Items => CurrentBucket.items;
     public IReadOnlyList<EquipmentInstance> EquipmentInstances =>
         CurrentBucket.equipmentInstances;
     public IReadOnlyList<string> DiscoveredEquipmentPersistentIds =>
         discoveredEquipmentPersistentIds;
+    public IReadOnlyList<string> DiscoveredItemPersistentIds =>
+        discoveredItemPersistentIds;
 
     public event Action InventoryChanged;
     public event Action<MerchantInventorySale> ItemSold;
@@ -124,6 +128,7 @@ public class MerchantInventory : MonoBehaviour
 
         Debug.Log($"Added item: {item.itemName} x{amount}");
         RegisterEquipmentDiscovery(item);
+        RegisterItemDiscovery(item);
         InventoryChanged?.Invoke();
         return true;
     }
@@ -429,6 +434,31 @@ public class MerchantInventory : MonoBehaviour
         }
     }
 
+    public void RestoreDiscoveredItems(IEnumerable<string> persistentIds)
+    {
+        discoveredItemPersistentIds.Clear();
+        if (persistentIds == null)
+        {
+            return;
+        }
+
+        foreach (string persistentId in persistentIds)
+        {
+            if (!string.IsNullOrWhiteSpace(persistentId) &&
+                !discoveredItemPersistentIds.Contains(persistentId))
+            {
+                discoveredItemPersistentIds.Add(persistentId);
+            }
+        }
+    }
+
+    public bool HasDiscoveredItem(ItemDataSO item)
+    {
+        return item != null &&
+               !item.IsEquipment &&
+               discoveredItemPersistentIds.Contains(item.PersistentId);
+    }
+
     private void AddDiscoveredEquipmentIdentifiers(
         IEnumerable<string> identifiers,
         bool resolveLegacyName)
@@ -538,6 +568,7 @@ public class MerchantInventory : MonoBehaviour
         }
 
         RegisterEquipmentDiscovery(item);
+        RegisterItemDiscovery(item);
         InventoryChanged?.Invoke();
         return true;
     }
@@ -750,6 +781,19 @@ public class MerchantInventory : MonoBehaviour
         }
 
         discoveredEquipmentPersistentIds.Add(item.PersistentId);
+    }
+
+    public void RegisterItemDiscovery(ItemDataSO item)
+    {
+        if (item == null ||
+            item.IsEquipment ||
+            string.IsNullOrWhiteSpace(item.PersistentId) ||
+            HasDiscoveredItem(item))
+        {
+            return;
+        }
+
+        discoveredItemPersistentIds.Add(item.PersistentId);
     }
 
 #if UNITY_EDITOR

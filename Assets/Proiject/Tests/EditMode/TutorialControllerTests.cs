@@ -76,6 +76,28 @@ public sealed class TutorialControllerTests
     }
 
     [Test]
+    public void ShowTutorialIfNeeded_ShowsFirstPage()
+    {
+        bool shown = false;
+        string title = null;
+        TutorialController controller = new TutorialController(
+            _ => { },
+            () => shown = true,
+            () => { },
+            _ => { },
+            value => title = value,
+            _ => { },
+            _ => { },
+            _ => { },
+            () => true);
+
+        controller.ShowTutorialIfNeeded();
+
+        Assert.That(shown, Is.True);
+        Assert.That(title, Is.EqualTo("商会を再建する理由"));
+    }
+
+    [Test]
     public void Tutorial_UsesCurrentDebtAndMerchantRebuildingPremise()
     {
         List<string> bodies = new List<string>();

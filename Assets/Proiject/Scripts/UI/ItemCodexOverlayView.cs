@@ -3,25 +3,25 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-public sealed class MonsterCodexOverlayView
+public sealed class ItemCodexOverlayView
 {
     private static readonly Color OverlayColor = UITheme.ModalOverlayColor;
 
     private readonly SimpleMercenaryHireUIFactory factory;
-    private readonly SimpleMercenaryHireUIView.MonsterCodexReferences references;
+    private readonly SimpleMercenaryHireUIView.ItemCodexReferences references;
     private readonly Transform parent;
     private readonly Font titleFont;
     private readonly Font bodyFont;
-    private readonly MonsterCodexPresenter presenter;
+    private readonly ItemCodexPresenter presenter;
     private readonly UnityAction onClose;
 
-    public MonsterCodexOverlayView(
+    public ItemCodexOverlayView(
         SimpleMercenaryHireUIFactory factory,
-        SimpleMercenaryHireUIView.MonsterCodexReferences references,
+        SimpleMercenaryHireUIView.ItemCodexReferences references,
         Transform parent,
         Font titleFont,
         Font bodyFont,
-        MonsterCodexManager monsterCodexManager,
+        MerchantInventory merchantInventory,
         UnityAction onClose)
     {
         this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
@@ -29,7 +29,7 @@ public sealed class MonsterCodexOverlayView
         this.parent = parent ?? throw new ArgumentNullException(nameof(parent));
         this.titleFont = titleFont;
         this.bodyFont = bodyFont;
-        presenter = new MonsterCodexPresenter(monsterCodexManager);
+        presenter = new ItemCodexPresenter(merchantInventory);
         this.onClose = onClose;
     }
 
@@ -38,7 +38,7 @@ public sealed class MonsterCodexOverlayView
         if (references.overlay == null)
         {
             references.overlay = SimpleMercenaryHireUIFactory.CreateUIObject(
-                "Monster Collection Overlay", parent);
+                "Item Collection Overlay", parent);
         }
 
         references.overlay.gameObject.SetActive(false);
@@ -48,13 +48,14 @@ public sealed class MonsterCodexOverlayView
         references.overlay.offsetMax = Vector2.zero;
         references.overlay.gameObject.AddComponent<Image>().color = OverlayColor;
         RectTransform window = SimpleMercenaryHireUIFactory.CreateUIObject(
-            "Monster Collection Window", references.overlay);
-        window.anchorMin = window.anchorMax = window.pivot = new Vector2(0.5f, 0.5f);
+            "Item Collection Window", references.overlay);
+        window.anchorMin = window.anchorMax = window.pivot =
+            new Vector2(0.5f, 0.5f);
         window.sizeDelta = new Vector2(720f, 560f);
         SimpleMercenaryHireUIFactory.ApplyParchmentPanel(
             window.gameObject.AddComponent<Image>());
         RectTransform bookRoot = SimpleMercenaryHireUIFactory.CreateUIObject(
-            "Monster Codex Book", window);
+            "Item Codex Book", window);
         bookRoot.anchorMin = Vector2.zero;
         bookRoot.anchorMax = Vector2.one;
         bookRoot.offsetMin = new Vector2(28f, 28f);

@@ -389,6 +389,7 @@ public partial class SimpleMercenaryHireUI
     private void BuildPromotionPreviewOverlay()
     {
         promotionPreview.overlay = CreateUIObject("Promotion Preview Overlay", overlayRoot);
+        promotionPreview.overlay.gameObject.SetActive(false);
         promotionPreview.overlay.anchorMin = Vector2.zero;
         promotionPreview.overlay.anchorMax = Vector2.one;
         promotionPreview.overlay.offsetMin = Vector2.zero;
@@ -414,7 +415,6 @@ public partial class SimpleMercenaryHireUI
         cancelRect.anchorMin = cancelRect.anchorMax = cancelRect.pivot = new Vector2(0.5f, 0f);
         cancelRect.sizeDelta = new Vector2(180f, 48f);
         cancelRect.anchoredPosition = new Vector2(105f, 25f);
-        promotionPreview.overlay.gameObject.SetActive(false);
     }
 
     private void ShowPromotionPreview(MercenaryInstance mercenary, MercenaryClass target)

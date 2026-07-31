@@ -29,6 +29,7 @@ public static class SaveDataMigrator
         PopulatePersistentIds(data);
         MigrateStoryProgress(data, sourceVersion);
         MigrateOnboardingGuide(data, sourceVersion);
+        MigrateItemDiscovery(data, sourceVersion);
         data.version = GameSaveData.CurrentVersion;
         return data;
     }
@@ -152,6 +153,16 @@ public static class SaveDataMigrator
         if (sourceVersion < 31 || data.onboardingShownCards == null)
         {
             data.onboardingShownCards = new List<OnboardingGuideCard>();
+        }
+    }
+
+    private static void MigrateItemDiscovery(
+        GameSaveData data,
+        int sourceVersion)
+    {
+        if (sourceVersion < 37 || data.discoveredItemPersistentIds == null)
+        {
+            data.discoveredItemPersistentIds = new List<string>();
         }
     }
 
@@ -369,6 +380,7 @@ public static class SaveDataMigrator
         }
         if (data.discoveredEquipmentAssetNames == null) data.discoveredEquipmentAssetNames = new List<string>();
         if (data.discoveredEquipmentPersistentIds == null) data.discoveredEquipmentPersistentIds = new List<string>();
+        if (data.discoveredItemPersistentIds == null) data.discoveredItemPersistentIds = new List<string>();
         if (data.encounteredEnemyIds == null) data.encounteredEnemyIds = new List<string>();
         if (data.completedStoryMilestones == null) data.completedStoryMilestones = new List<StoryMilestone>();
         if (data.progression == null) data.progression = new ProgressionSaveData();

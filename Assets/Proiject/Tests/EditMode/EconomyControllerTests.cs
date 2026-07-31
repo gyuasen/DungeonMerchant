@@ -191,6 +191,24 @@ public sealed class EconomyControllerTests
     }
 
     [Test]
+    public void GetSellOnlyStacks_IncludesEnvironmentMaterialByPersistentId()
+    {
+        ItemDataSO environmentMaterial =
+            CreateCraftingMaterial("Iron Ore", 50);
+        environmentMaterial.name = "item.material.iron_ore";
+        ItemDataSO otherCraftingMaterial =
+            CreateCraftingMaterial("Golem Core", 80);
+        otherCraftingMaterial.name = "item.material.golem_core";
+        inventory.AddItem(environmentMaterial, 2);
+        inventory.AddItem(otherCraftingMaterial, 3);
+
+        List<InventoryItemStack> stacks = economyController.GetSellOnlyStacks();
+
+        Assert.That(stacks.Count, Is.EqualTo(1));
+        Assert.That(stacks[0].Item, Is.SameAs(environmentMaterial));
+    }
+
+    [Test]
     public void CycleInventoryFilter_AdvancesThroughEveryFilterAndWrapsAround()
     {
         List<string> labels = new List<string>();

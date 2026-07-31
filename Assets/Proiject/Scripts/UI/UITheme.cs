@@ -9,6 +9,13 @@ using UnityEngine.UI;
 /// </summary>
 public static class UITheme
 {
+    public const string PositiveTextHex = "#65D88A";
+    public const string NegativeTextHex = "#FF7474";
+    public const string WarningTextHex = "#F2B84B";
+    public const string NeutralTextHex = "#AEB6BE";
+    public const string ResultHeadingTextHex = "#5A3B24";
+    public const string ResultAccentTextHex = "#B86B2B";
+
     public static readonly Color BackgroundColor = new Color(0.07f, 0.08f, 0.1f, 1f);
     public static readonly Color PanelColor = new Color(0.13f, 0.15f, 0.18f, 1f);
     public static readonly Color RowColor =
@@ -31,6 +38,12 @@ public static class UITheme
         Color.black;
     public static readonly Color ParchmentMutedColor =
         Color.black;
+    public static readonly Color TooltipBackgroundColor =
+        new Color(0.075f, 0.045f, 0.025f, 0.96f);
+    public static readonly Color TooltipTextColor =
+        new Color(0.97f, 0.9f, 0.74f, 1f);
+    public static readonly Color ModalOverlayColor =
+        new Color(0f, 0f, 0f, 0.82f);
 
     /// <summary>
     /// Applies the shared button transition ColorBlock. Identical values

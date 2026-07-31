@@ -114,6 +114,36 @@ public sealed class SaveDataMigratorTests
     }
 
     [Test]
+    public void Migrate_Version36_InitializesEmptyItemDiscovery()
+    {
+        GameSaveData data = new GameSaveData
+        {
+            version = 36,
+            discoveredItemPersistentIds = null,
+            discoveredEquipmentPersistentIds =
+                new System.Collections.Generic.List<string>
+                {
+                    "item.equipment.test"
+                },
+            encounteredEnemyIds =
+                new System.Collections.Generic.List<string>
+                {
+                    "enemy.test"
+                }
+        };
+
+        SaveDataMigrator.Migrate(data);
+
+        Assert.That(data.version, Is.EqualTo(GameSaveData.CurrentVersion));
+        Assert.That(data.discoveredItemPersistentIds, Is.Not.Null);
+        Assert.That(data.discoveredItemPersistentIds, Is.Empty);
+        CollectionAssert.Contains(
+            data.discoveredEquipmentPersistentIds,
+            "item.equipment.test");
+        CollectionAssert.Contains(data.encounteredEnemyIds, "enemy.test");
+    }
+
+    [Test]
     public void Migrate_PreStorySave_InfersCompletedMilestones()
     {
         DungeonDataSO dungeon = FirstAsset<DungeonDataSO>();
