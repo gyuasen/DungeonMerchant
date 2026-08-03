@@ -168,6 +168,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private EconomyController economyController;
     private EconomyPresenter economyPresenter;
     private HirePartyPresenter hirePartyPresenter;
+    private BattleDungeonPresenter battleDungeonPresenter;
     private CharacterEquipmentController characterEquipmentController;
     private CharacterEquipmentOverlayPresenter characterEquipmentOverlayPresenter;
     private MerchantStatusAndQuestController merchantStatusAndQuestController;
@@ -442,6 +443,24 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private bool HasExpedition(DungeonDataSO dungeon) =>
         expeditionOverlayPresenter != null &&
         expeditionOverlayPresenter.HasExpedition(dungeon);
+
+    private void BuildBattlePage() => battleDungeonPresenter.BuildBattlePage();
+
+    private void BuildRoadBattlePage() => battleDungeonPresenter.BuildRoadBattlePage();
+
+    private void BuildDungeonPage() => battleDungeonPresenter.BuildDungeonPage();
+
+    private void BindBattleVisualController(BattleVisualController controller)
+    {
+        battleVisualController = controller;
+        battleVisualController.Configure(
+            battleManager,
+            uiBodyFont != null ? uiBodyFont : uiFont);
+        battleVisualController.PresentationLog += HandlePresentationLog;
+        battleVisualController.PresentationSound += HandlePresentationSound;
+        battleVisualController.PresentationCompleted +=
+            HandleBattleVisualPresentationCompleted;
+    }
 
     private void ShowExpeditionForDungeon(DungeonDataSO dungeon) =>
         expeditionOverlayPresenter?.ShowForDungeon(dungeon);
@@ -1348,6 +1367,27 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
             (targetPage, activeTab) => SwitchToPage(targetPage, activeTab),
             ShowTownMap, ShowExpeditionManagementOverlay, RefreshUI,
             () => TryUnlockHiddenIsland());
+
+        battleDungeonPresenter = new BattleDungeonPresenter(
+            uiFactory, activeView, pageRouter, battlePage, roadBattlePage,
+            dungeonPage, uiFont, uiBodyFont, battleManager, dungeonRunManager,
+            partyManager, townProgressState, progressionManager,
+            dungeonBattleController, townTravelController,
+            battleView, roadBattle, dungeonView, () => statusText,
+            () => startBattleButton, () => startDungeonButton,
+            () => firstDungeonEventButton, () => secondDungeonEventButton,
+            () => thirdDungeonEventButton, () => battleVisualController,
+            () => battleTabButton, () => dungeonTabButton,
+            button => startBattleButton = button,
+            button => startDungeonButton = button,
+            button => firstDungeonEventButton = button,
+            button => secondDungeonEventButton = button,
+            button => thirdDungeonEventButton = button,
+            BindBattleVisualController, BuildDungeonEventOverlay,
+            RefreshBattlePage, RefreshRoadBattlePage, RefreshDungeonPage,
+            UpdateDungeonEventUI, ContinueToNextDungeonFloor,
+            ReturnToTownAfterDungeon, CanShowExpeditionAction, HasExpedition,
+            ShowExpeditionForDungeon, RefreshPage);
 
         economyPresenter = new EconomyPresenter(
             uiFactory,
