@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public partial class SimpleMercenaryHireUI : MonoBehaviour
+public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
 {
     [Header("References")]
     [SerializeField] private MerchantData merchantData;
@@ -204,6 +204,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private HireAndPartyController hireAndPartyController;
     private EconomyController economyController;
     private CharacterEquipmentController characterEquipmentController;
+    private CharacterEquipmentOverlayPresenter characterEquipmentOverlayPresenter;
     private MerchantStatusAndQuestController merchantStatusAndQuestController;
     private TownTravelController townTravelController;
     private DungeonBattleController dungeonBattleController;
@@ -231,6 +232,65 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private static readonly Color MutedTextColor = UITheme.MutedTextColor;
     private static readonly Color ParchmentTextColor = UITheme.ParchmentTextColor;
     private static readonly Color ParchmentMutedColor = UITheme.ParchmentMutedColor;
+
+    private void BuildCharacterDetailOverlay() =>
+        characterEquipmentOverlayPresenter.BuildCharacterDetailOverlay();
+
+    private void BuildEquipmentDetailOverlay() =>
+        characterEquipmentOverlayPresenter.BuildEquipmentDetailOverlay();
+
+    private void BuildEquipmentSlotSelectionOverlay() =>
+        characterEquipmentOverlayPresenter.BuildEquipmentSlotSelectionOverlay();
+
+    private void BuildEquipmentCollectionOverlay() =>
+        characterEquipmentOverlayPresenter.BuildEquipmentCollectionOverlay();
+
+    private void ShowCharacterDetails(MercenaryInstance mercenary) =>
+        characterEquipmentOverlayPresenter.ShowCharacterDetails(mercenary);
+
+    private void ShowEquipmentCollection() =>
+        characterEquipmentOverlayPresenter.ShowEquipmentCollection();
+
+    private void SaveEquipmentChanges()
+    {
+        if (saveManager == null)
+        {
+            saveManager = GetComponent<SaveManager>() ??
+                          FindObjectOfType<SaveManager>();
+        }
+
+        if (saveManager == null)
+        {
+            Debug.LogWarning("装備変更を保存するSaveManagerが見つかりません。", this);
+            return;
+        }
+
+        saveManager.SaveGame();
+    }
+
+    bool IEquipmentDetailView.HasOverlay =>
+        characterEquipmentOverlayPresenter.HasEquipmentDetailOverlay;
+
+    void IEquipmentDetailView.SetTitle(string title, Color color) =>
+        characterEquipmentOverlayPresenter.SetEquipmentDetailTitle(title, color);
+
+    void IEquipmentDetailView.SetDetailText(string text) =>
+        characterEquipmentOverlayPresenter.SetEquipmentDetailText(text);
+
+    void IEquipmentDetailView.SetEnhanceButton(bool interactable, string label) =>
+        characterEquipmentOverlayPresenter.SetEnhanceButton(interactable, label);
+
+    void IEquipmentDetailView.SetSellButton(bool interactable, string label) =>
+        characterEquipmentOverlayPresenter.SetSellButton(interactable, label);
+
+    void IEquipmentDetailView.SetLockButtonLabel(string label) =>
+        characterEquipmentOverlayPresenter.SetLockButtonLabel(label);
+
+    void IEquipmentDetailView.ShowOverlay() =>
+        characterEquipmentOverlayPresenter.ShowEquipmentDetailOverlay();
+
+    void IEquipmentDetailView.HideOverlay() =>
+        characterEquipmentOverlayPresenter.HideEquipmentDetailOverlay();
 
     private void OnEnable()
     {
@@ -481,6 +541,21 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             RefreshUI,
             SaveEquipmentChanges,
             () => saveManager?.SaveGame());
+        // overlayRoot は BuildUI() で初めて確定するため、ここでは値ではなく
+        // 解決用のデリゲートを渡す。生成時点では未設定である。
+        characterEquipmentOverlayPresenter =
+            new CharacterEquipmentOverlayPresenter(
+                uiFactory,
+                characterDetail,
+                equipmentDetail,
+                slotSelection,
+                equipmentCodex,
+                () => overlayRoot,
+                merchantInventory,
+                characterEquipmentController,
+                uiFont,
+                uiBodyFont,
+                GetOrCreateOverlay);
         merchantStatusAndQuestController = new MerchantStatusAndQuestController(
             merchantData,
             progressionManager,

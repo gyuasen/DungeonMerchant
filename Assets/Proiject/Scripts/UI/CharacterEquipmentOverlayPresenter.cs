@@ -1,12 +1,139 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public partial class SimpleMercenaryHireUI : IEquipmentDetailView
+public sealed class CharacterEquipmentOverlayPresenter
 {
-    private void BuildEquipmentDetailOverlay()
+    private static readonly Color RowColor = UITheme.RowColor;
+    private static readonly Color AccentColor = UITheme.AccentColor;
+    private static readonly Color WoodButtonColor = UITheme.WoodButtonColor;
+    private static readonly Color ImportantButtonColor = UITheme.ImportantButtonColor;
+    private static readonly Color MutedTextColor = UITheme.MutedTextColor;
+    private static readonly Color ParchmentTextColor = UITheme.ParchmentTextColor;
+    private static readonly Color ParchmentMutedColor = UITheme.ParchmentMutedColor;
+
+    private readonly SimpleMercenaryHireUIFactory factory;
+    private readonly SimpleMercenaryHireUIView.CharacterDetailReferences characterDetail;
+    private readonly SimpleMercenaryHireUIView.EquipmentDetailReferences equipmentDetail;
+    private readonly SimpleMercenaryHireUIView.EquipmentSlotSelectionReferences slotSelection;
+    private readonly SimpleMercenaryHireUIView.EquipmentCodexReferences equipmentCodex;
+    /// <summary>
+    /// overlayRoot は BuildUI() で確定するため、本Presenterの生成時点では
+    /// まだ null である。値ではなく解決用のデリゲートを保持し、実際に
+    /// オーバーレイを作る時点で解決する。
+    /// </summary>
+    private readonly Func<Transform> overlayRootProvider;
+    private readonly MerchantInventory merchantInventory;
+    private readonly CharacterEquipmentController characterEquipmentController;
+    private readonly Font uiFont;
+    private readonly Font uiBodyFont;
+    private readonly Func<SimpleMercenaryHireOverlaySlot, string, RectTransform>
+        getOrCreateOverlay;
+
+    public CharacterEquipmentOverlayPresenter(
+        SimpleMercenaryHireUIFactory factory,
+        SimpleMercenaryHireUIView.CharacterDetailReferences characterDetail,
+        SimpleMercenaryHireUIView.EquipmentDetailReferences equipmentDetail,
+        SimpleMercenaryHireUIView.EquipmentSlotSelectionReferences slotSelection,
+        SimpleMercenaryHireUIView.EquipmentCodexReferences equipmentCodex,
+        Func<Transform> overlayRootProvider,
+        MerchantInventory merchantInventory,
+        CharacterEquipmentController characterEquipmentController,
+        Font uiFont,
+        Font uiBodyFont,
+        Func<SimpleMercenaryHireOverlaySlot, string, RectTransform>
+            getOrCreateOverlay)
     {
-        equipmentDetail.overlay = GetOrCreateOverlay(
+        this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
+        this.characterDetail = characterDetail ??
+            throw new ArgumentNullException(nameof(characterDetail));
+        this.equipmentDetail = equipmentDetail ??
+            throw new ArgumentNullException(nameof(equipmentDetail));
+        this.slotSelection = slotSelection ??
+            throw new ArgumentNullException(nameof(slotSelection));
+        this.equipmentCodex = equipmentCodex ??
+            throw new ArgumentNullException(nameof(equipmentCodex));
+        this.overlayRootProvider = overlayRootProvider ??
+            throw new ArgumentNullException(nameof(overlayRootProvider));
+        this.merchantInventory = merchantInventory;
+        this.characterEquipmentController = characterEquipmentController;
+        this.uiFont = uiFont;
+        this.uiBodyFont = uiBodyFont;
+        this.getOrCreateOverlay = getOrCreateOverlay ??
+            throw new ArgumentNullException(nameof(getOrCreateOverlay));
+    }
+
+    private Text CreateText(
+        RectTransform parent,
+        string content,
+        int fontSize,
+        FontStyle fontStyle,
+        TextAnchor alignment,
+        Vector2 offsetMin,
+        Vector2 offsetMax,
+        Color color) =>
+        factory.CreateText(
+            parent, content, fontSize, fontStyle, alignment, offsetMin,
+            offsetMax, color);
+
+    private RectTransform CreateRow(string rowName, RectTransform parent, float top) =>
+        factory.CreateRow(rowName, parent, top);
+
+    private Button CreateActionButton(
+        RectTransform parent,
+        string label,
+        UnityEngine.Events.UnityAction action) =>
+        factory.CreateActionButton(parent, label, action);
+
+    private static RectTransform CreateUIObject(string objectName, Transform parent) =>
+        SimpleMercenaryHireUIFactory.CreateUIObject(objectName, parent);
+
+    private static void ApplyParchmentPanel(Image target) =>
+        SimpleMercenaryHireUIFactory.ApplyParchmentPanel(target);
+
+    private static void ClearChildren(RectTransform parent)
+    {
+        for (int i = parent.childCount - 1; i >= 0; i--)
+        {
+            Transform child = parent.GetChild(i);
+            UnityEngine.Object.Destroy(child.gameObject);
+            child = null;
+        }
+    }
+
+    private static RectTransform CreateScrollableContent(
+        RectTransform parent,
+        string viewportName,
+        string contentName,
+        Vector2 offsetMin,
+        Vector2 offsetMax)
+    {
+        RectTransform viewport = CreateUIObject(viewportName, parent);
+        viewport.anchorMin = Vector2.zero;
+        viewport.anchorMax = Vector2.one;
+        viewport.offsetMin = offsetMin;
+        viewport.offsetMax = offsetMax;
+        viewport.gameObject.AddComponent<Image>().color =
+            new Color(0f, 0f, 0f, 0.1f);
+        Mask mask = viewport.gameObject.AddComponent<Mask>();
+        mask.showMaskGraphic = false;
+        RectTransform content = CreateUIObject(contentName, viewport);
+        content.anchorMin = new Vector2(0f, 1f);
+        content.anchorMax = new Vector2(1f, 1f);
+        content.pivot = new Vector2(0.5f, 1f);
+        ScrollRect scroll = viewport.gameObject.AddComponent<ScrollRect>();
+        scroll.content = content;
+        scroll.viewport = viewport;
+        scroll.horizontal = false;
+        scroll.vertical = true;
+        scroll.movementType = ScrollRect.MovementType.Clamped;
+        scroll.scrollSensitivity = 28f;
+        return content;
+    }
+    public void BuildEquipmentDetailOverlay()
+    {
+        equipmentDetail.overlay = getOrCreateOverlay(
             SimpleMercenaryHireOverlaySlot.EquipmentDetail,
             "Equipment Detail Overlay");
         equipmentDetail.overlay.gameObject.SetActive(false);
@@ -73,10 +200,10 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         equipmentDetail.overlay.gameObject.SetActive(false);
     }
 
-    private void BuildEquipmentCollectionOverlay()
+    public void BuildEquipmentCollectionOverlay()
     {
         equipmentCodex.overlay =
-            GetOrCreateOverlay(
+            getOrCreateOverlay(
                 SimpleMercenaryHireOverlaySlot.EquipmentCollection,
                 "Equipment Collection Overlay");
         equipmentCodex.overlay.gameObject.SetActive(false);
@@ -141,9 +268,9 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         equipmentCodex.overlay.gameObject.SetActive(false);
     }
 
-    private void BuildCharacterDetailOverlay()
+    public void BuildCharacterDetailOverlay()
     {
-        characterDetail.overlay = GetOrCreateOverlay(
+        characterDetail.overlay = getOrCreateOverlay(
             SimpleMercenaryHireOverlaySlot.CharacterDetail,
             "Character Detail Overlay");
         characterDetail.overlay.gameObject.SetActive(false);
@@ -326,7 +453,7 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         characterDetail.overlay.gameObject.SetActive(false);
     }
 
-    private void ShowCharacterDetails(MercenaryInstance mercenary)
+    public void ShowCharacterDetails(MercenaryInstance mercenary)
     {
         if (mercenary == null || characterDetail.overlay == null)
         {
@@ -363,11 +490,11 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         ApplyCharacterDetailPageVisibility();
     }
 
-    private void BuildEquipmentSlotSelectionOverlay()
+    public void BuildEquipmentSlotSelectionOverlay()
     {
         slotSelection.overlay = CreateUIObject(
             "Equipment Slot Selection Overlay",
-            overlayRoot);
+            overlayRootProvider());
         slotSelection.overlay.anchorMin = Vector2.zero;
         slotSelection.overlay.anchorMax = Vector2.one;
         slotSelection.overlay.offsetMin = Vector2.zero;
@@ -1029,30 +1156,13 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         }
     }
 
-    private void SaveEquipmentChanges()
-    {
-        if (saveManager == null)
-        {
-            saveManager = GetComponent<SaveManager>() ??
-                          FindObjectOfType<SaveManager>();
-        }
-
-        if (saveManager == null)
-        {
-            Debug.LogWarning("装備変更を保存するSaveManagerが見つかりません。", this);
-            return;
-        }
-
-        saveManager.SaveGame();
-    }
-
     private void HideEquipmentDetails()
     {
         equipmentDetail.overlay?.gameObject.SetActive(false);
         characterEquipmentController.SelectedEquipmentDetail = null;
     }
 
-    private void ShowEquipmentCollection()
+    public void ShowEquipmentCollection()
     {
         List<ItemDataSO> equipmentItems = new List<ItemDataSO>();
         List<BookPageUI.Entry> entries = new List<BookPageUI.Entry>();
@@ -1283,47 +1393,43 @@ public partial class SimpleMercenaryHireUI : IEquipmentDetailView
         equipmentCodex.specialTabButton.targetGraphic.color = ImportantButtonColor;
     }
 
-    // --- IEquipmentDetailView (equipment-detail overlay view surface for
-    // CharacterEquipmentController; bodies are the former constructor
-    // lambdas, moved verbatim in step B-2) ---
+    public bool HasEquipmentDetailOverlay => equipmentDetail.overlay != null;
 
-    bool IEquipmentDetailView.HasOverlay => equipmentDetail.overlay != null;
-
-    void IEquipmentDetailView.SetTitle(string title, Color color)
+    public void SetEquipmentDetailTitle(string title, Color color)
     {
         equipmentDetail.title.text = title;
         equipmentDetail.title.color = color;
     }
 
-    void IEquipmentDetailView.SetDetailText(string text)
+    public void SetEquipmentDetailText(string text)
     {
         equipmentDetail.bodyText.text = text;
     }
 
-    void IEquipmentDetailView.SetEnhanceButton(bool interactable, string label)
+    public void SetEnhanceButton(bool interactable, string label)
     {
         equipmentDetail.enhanceButton.interactable = interactable;
         equipmentDetail.enhanceButton.GetComponentInChildren<Text>().text = label;
     }
 
-    void IEquipmentDetailView.SetSellButton(bool interactable, string label)
+    public void SetSellButton(bool interactable, string label)
     {
         equipmentDetail.sellButton.interactable = interactable;
         equipmentDetail.sellButton.GetComponentInChildren<Text>().text = label;
     }
 
-    void IEquipmentDetailView.SetLockButtonLabel(string label)
+    public void SetLockButtonLabel(string label)
     {
         equipmentDetail.lockButton.GetComponentInChildren<Text>().text = label;
     }
 
-    void IEquipmentDetailView.ShowOverlay()
+    public void ShowEquipmentDetailOverlay()
     {
         equipmentDetail.overlay.SetAsLastSibling();
         equipmentDetail.overlay.gameObject.SetActive(true);
     }
 
-    void IEquipmentDetailView.HideOverlay()
+    public void HideEquipmentDetailOverlay()
     {
         HideEquipmentDetails();
     }
