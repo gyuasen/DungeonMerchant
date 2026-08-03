@@ -61,11 +61,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     private readonly SimpleMercenaryHireUIView.EquipmentSlotSelectionReferences
         slotSelection =
             new SimpleMercenaryHireUIView.EquipmentSlotSelectionReferences();
-    private readonly SimpleMercenaryHireUIView.QuestReferences questView =
-        new SimpleMercenaryHireUIView.QuestReferences();
-    private readonly SimpleMercenaryHireUIView.MerchantStatusReferences
-        merchantStatus =
-            new SimpleMercenaryHireUIView.MerchantStatusReferences();
+    private MerchantQuestOverlayPresenter merchantQuestOverlayPresenter;
     private readonly SimpleMercenaryHireUIView.EquipmentCodexReferences
         equipmentCodex =
             new SimpleMercenaryHireUIView.EquipmentCodexReferences();
@@ -365,6 +361,46 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
 
     private void ShowExpeditionManagementOverlay() =>
         expeditionOverlayPresenter?.ShowManagement();
+
+    private void BuildQuestOverlay()
+    {
+        merchantQuestOverlayPresenter.BuildQuestOverlay(
+            GetOrCreateOverlay(
+                SimpleMercenaryHireOverlaySlot.Quest,
+                "Quest Overlay"));
+    }
+
+    private void BuildMerchantStatusOverlay()
+    {
+        merchantQuestOverlayPresenter.BuildMerchantStatusOverlay(
+            GetOrCreateOverlay(
+                SimpleMercenaryHireOverlaySlot.MerchantStatus,
+                "Merchant Status Overlay"));
+    }
+
+    private void HandleGoldChanged(int currentGold) =>
+        merchantQuestOverlayPresenter.HandleGoldChanged(currentGold);
+
+    private void HandleProgressionChanged() =>
+        merchantQuestOverlayPresenter.HandleProgressionChanged();
+
+    private void ShowQuestOverlay() =>
+        merchantQuestOverlayPresenter.ShowQuestOverlay();
+
+    private void HideQuestOverlay() =>
+        merchantQuestOverlayPresenter.HideQuestOverlay();
+
+    private void ShowMerchantStatusOverlay() =>
+        merchantQuestOverlayPresenter.ShowMerchantStatusOverlay();
+
+    private void HideMerchantStatusOverlay() =>
+        merchantQuestOverlayPresenter.HideMerchantStatusOverlay();
+
+    private void RebuildMerchantStatus() =>
+        merchantQuestOverlayPresenter.RebuildMerchantStatus();
+
+    private void RebuildQuestList() =>
+        merchantQuestOverlayPresenter.RebuildQuestList();
 
     private void Start()
     {
@@ -1195,6 +1231,18 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
             uiFactory, expeditionView, overlayRoot,
             hireManager, dungeonRunManager, dungeonExpeditionManager,
             () => dungeonPage.GetComponent<DungeonPageUI>()?.RefreshSelection());
+        merchantQuestOverlayPresenter = new MerchantQuestOverlayPresenter(
+            uiFactory,
+            new SimpleMercenaryHireUIView.QuestReferences(),
+            new SimpleMercenaryHireUIView.MerchantStatusReferences(),
+            merchantData,
+            progressionManager,
+            merchantStatusAndQuestController,
+            () => RefreshPage(healPage),
+            () => RefreshPage(blacksmithPage),
+            () => RefreshPage(companyPage),
+            () => RefreshPage(inventoryPage),
+            RefreshUI);
 
         BuildHirePage();
         BuildGlobalMapPage();

@@ -1,22 +1,76 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public partial class SimpleMercenaryHireUI
+public sealed class MerchantQuestOverlayPresenter
 {
-    private void BuildMerchantStatusOverlay()
+    private static readonly Color ModalOverlayColor = UITheme.ModalOverlayColor;
+    private static readonly Color MutedTextColor = UITheme.MutedTextColor;
+    private static readonly Color ParchmentTextColor = UITheme.ParchmentTextColor;
+    private static readonly Color WhiteColor = Color.white;
+    private static readonly Color LongTermGoalTextColor =
+        new Color(1f, 0.9f, 0.68f, 1f);
+    private static readonly Color SpecialQuestPaperColor =
+        new Color(1f, 0.9f, 0.57f, 1f);
+    private static readonly Color QuestPaperColor =
+        new Color(1f, 0.96f, 0.82f, 1f);
+    private static readonly Color MerchantStatusViewportColor =
+        new Color(0f, 0f, 0f, 0.12f);
+    private static readonly Color QuestBoardFallbackColor =
+        new Color(0.24f, 0.12f, 0.055f, 1f);
+
+    private readonly SimpleMercenaryHireUIFactory factory;
+    private readonly SimpleMercenaryHireUIView.QuestReferences questView;
+    private readonly SimpleMercenaryHireUIView.MerchantStatusReferences
+        merchantStatus;
+    private readonly MerchantData merchantData;
+    private readonly ProgressionManager progressionManager;
+    private readonly MerchantStatusAndQuestController
+        merchantStatusAndQuestController;
+    private readonly Action refreshHealPage;
+    private readonly Action refreshBlacksmithPage;
+    private readonly Action refreshCompanyPage;
+    private readonly Action refreshInventoryPage;
+    private readonly Action refreshUI;
+
+    public MerchantQuestOverlayPresenter(
+        SimpleMercenaryHireUIFactory factory,
+        SimpleMercenaryHireUIView.QuestReferences questView,
+        SimpleMercenaryHireUIView.MerchantStatusReferences merchantStatus,
+        MerchantData merchantData,
+        ProgressionManager progressionManager,
+        MerchantStatusAndQuestController merchantStatusAndQuestController,
+        Action refreshHealPage,
+        Action refreshBlacksmithPage,
+        Action refreshCompanyPage,
+        Action refreshInventoryPage,
+        Action refreshUI)
     {
-        merchantStatus.overlay =
-            GetOrCreateOverlay(
-                SimpleMercenaryHireOverlaySlot.MerchantStatus,
-                "Merchant Status Overlay");
+        this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
+        this.questView = questView ?? throw new ArgumentNullException(nameof(questView));
+        this.merchantStatus = merchantStatus ??
+            throw new ArgumentNullException(nameof(merchantStatus));
+        this.merchantData = merchantData;
+        this.progressionManager = progressionManager;
+        this.merchantStatusAndQuestController = merchantStatusAndQuestController;
+        this.refreshHealPage = refreshHealPage;
+        this.refreshBlacksmithPage = refreshBlacksmithPage;
+        this.refreshCompanyPage = refreshCompanyPage;
+        this.refreshInventoryPage = refreshInventoryPage;
+        this.refreshUI = refreshUI;
+    }
+
+    public void BuildMerchantStatusOverlay(RectTransform overlay)
+    {
+        merchantStatus.overlay = overlay;
         merchantStatus.overlay.gameObject.SetActive(false);
         merchantStatus.overlay.anchorMin = Vector2.zero;
         merchantStatus.overlay.anchorMax = Vector2.one;
         merchantStatus.overlay.offsetMin = Vector2.zero;
         merchantStatus.overlay.offsetMax = Vector2.zero;
         merchantStatus.overlay.gameObject.AddComponent<Image>().color =
-            new Color(0f, 0f, 0f, 0.82f);
+            ModalOverlayColor;
 
         RectTransform window =
             CreateUIObject("Merchant Status Window", merchantStatus.overlay);
@@ -42,7 +96,7 @@ public partial class SimpleMercenaryHireUI
         viewport.offsetMin = new Vector2(28f, 28f);
         viewport.offsetMax = new Vector2(-28f, -82f);
         viewport.gameObject.AddComponent<Image>().color =
-            new Color(0f, 0f, 0f, 0.12f);
+            MerchantStatusViewportColor;
         Mask mask = viewport.gameObject.AddComponent<Mask>();
         mask.showMaskGraphic = false;
 
@@ -70,18 +124,16 @@ public partial class SimpleMercenaryHireUI
         merchantStatus.overlay.gameObject.SetActive(false);
     }
 
-    private void BuildQuestOverlay()
+    public void BuildQuestOverlay(RectTransform overlay)
     {
-        questView.overlay = GetOrCreateOverlay(
-            SimpleMercenaryHireOverlaySlot.Quest,
-            "Quest Overlay");
+        questView.overlay = overlay;
         questView.overlay.gameObject.SetActive(false);
         questView.overlay.anchorMin = Vector2.zero;
         questView.overlay.anchorMax = Vector2.one;
         questView.overlay.offsetMin = Vector2.zero;
         questView.overlay.offsetMax = Vector2.zero;
         questView.overlay.gameObject.AddComponent<Image>().color =
-            new Color(0f, 0f, 0f, 0.82f);
+            ModalOverlayColor;
 
         RectTransform window = CreateUIObject("Quest Board Window", questView.overlay);
         window.anchorMin = window.anchorMax = window.pivot =
@@ -93,11 +145,11 @@ public partial class SimpleMercenaryHireUI
         {
             windowImage.sprite = questBoardSprite;
             windowImage.type = Image.Type.Sliced;
-            windowImage.color = Color.white;
+            windowImage.color = WhiteColor;
         }
         else
         {
-            windowImage.color = new Color(0.24f, 0.12f, 0.055f, 1f);
+            windowImage.color = QuestBoardFallbackColor;
             AddFantasyFrame(windowImage, 3f);
         }
         CreateText(
@@ -149,7 +201,7 @@ public partial class SimpleMercenaryHireUI
             TextAnchor.MiddleLeft,
             new Vector2(16f, -45f),
             new Vector2(-160f, -10f),
-            Color.white);
+            WhiteColor);
         CreateText(
             row,
             merchantStatusAndQuestController.BuildSkillDescription(skill),
@@ -168,17 +220,17 @@ public partial class SimpleMercenaryHireUI
             merchantStatusAndQuestController.CanIncreaseSkill(skill);
     }
 
-    private void HandleGoldChanged(int currentGold)
+    public void HandleGoldChanged(int currentGold)
     {
-        RefreshPage(healPage);
-        RefreshPage(blacksmithPage);
-        RefreshUI();
+        refreshHealPage?.Invoke();
+        refreshBlacksmithPage?.Invoke();
+        refreshUI?.Invoke();
     }
 
-    private void HandleProgressionChanged()
+    public void HandleProgressionChanged()
     {
-        RefreshPage(companyPage);
-        RefreshPage(inventoryPage);
+        refreshCompanyPage?.Invoke();
+        refreshInventoryPage?.Invoke();
         if (merchantStatus.overlay != null &&
             merchantStatus.overlay.gameObject.activeSelf)
         {
@@ -188,35 +240,35 @@ public partial class SimpleMercenaryHireUI
         {
             RebuildQuestList();
         }
-        RefreshUI();
+        refreshUI?.Invoke();
     }
 
-    private void ShowQuestOverlay()
+    public void ShowQuestOverlay()
     {
         RebuildQuestList();
         questView.overlay.SetAsLastSibling();
         questView.overlay.gameObject.SetActive(true);
     }
 
-    private void HideQuestOverlay()
+    public void HideQuestOverlay()
     {
         HideQuestDetailWindow();
         questView.overlay?.gameObject.SetActive(false);
     }
 
-    private void ShowMerchantStatusOverlay()
+    public void ShowMerchantStatusOverlay()
     {
         RebuildMerchantStatus();
         merchantStatus.overlay.SetAsLastSibling();
         merchantStatus.overlay.gameObject.SetActive(true);
     }
 
-    private void HideMerchantStatusOverlay()
+    public void HideMerchantStatusOverlay()
     {
         merchantStatus.overlay?.gameObject.SetActive(false);
     }
 
-    private void RebuildMerchantStatus()
+    public void RebuildMerchantStatus()
     {
         if (merchantStatus.skillList == null || merchantData == null)
         {
@@ -236,7 +288,7 @@ public partial class SimpleMercenaryHireUI
             TextAnchor.MiddleLeft,
             new Vector2(16f, -100f),
             new Vector2(-250f, -10f),
-            Color.white);
+            WhiteColor);
         if (merchantStatusAndQuestController.ShouldShowRepayButtons())
         {
             BuildRepayStepper(summaryRow);
@@ -364,7 +416,7 @@ public partial class SimpleMercenaryHireUI
         Refresh();
     }
 
-    private void RebuildQuestList()
+    public void RebuildQuestList()
     {
         if (questView.list == null || progressionManager == null)
         {
@@ -381,7 +433,7 @@ public partial class SimpleMercenaryHireUI
             TextAnchor.UpperLeft,
             new Vector2(16f, -78f),
             new Vector2(-16f, -8f),
-            new Color(1f, 0.9f, 0.68f, 1f));
+            LongTermGoalTextColor);
 
         RectTransform board = CreateUIObject("Quest Papers Board", questView.list);
         board.anchorMin = new Vector2(0f, 1f);
@@ -404,6 +456,7 @@ public partial class SimpleMercenaryHireUI
         for (int i = 0; i < visibleQuests.Count; i++)
         {
             QuestRecord quest = visibleQuests[i];
+            QuestRecord questForDetail = quest;
             RectTransform paper = CreateUIObject($"Quest Paper {i}", board);
             int column = i % columns;
             int row = i / columns;
@@ -421,11 +474,12 @@ public partial class SimpleMercenaryHireUI
             Image paperImage = paper.gameObject.AddComponent<Image>();
             ApplyParchmentPanel(paperImage);
             paperImage.color = quest.isSpecial
-                ? new Color(1f, 0.9f, 0.57f, 1f)
-                : new Color(1f, 0.96f, 0.82f, 1f);
+                ? SpecialQuestPaperColor
+                : QuestPaperColor;
             Button paperButton = paper.gameObject.AddComponent<Button>();
             paperButton.targetGraphic = paperImage;
-            paperButton.onClick.AddListener(() => ShowQuestDetailWindow(quest));
+            paperButton.onClick.AddListener(
+                () => ShowQuestDetailWindow(questForDetail));
             ApplyButtonTransitions(paperButton);
             CreateText(
                 paper,
@@ -521,6 +575,53 @@ public partial class SimpleMercenaryHireUI
         if (questView.detailWindow != null)
         {
             questView.detailWindow.gameObject.SetActive(false);
+        }
+    }
+
+    private RectTransform CreateUIObject(string objectName, Transform parent) =>
+        SimpleMercenaryHireUIFactory.CreateUIObject(objectName, parent);
+
+    private Text CreateText(
+        RectTransform parent,
+        string content,
+        int fontSize,
+        FontStyle fontStyle,
+        TextAnchor alignment,
+        Vector2 offsetMin,
+        Vector2 offsetMax,
+        Color color) =>
+        factory.CreateText(
+            parent, content, fontSize, fontStyle, alignment, offsetMin,
+            offsetMax, color);
+
+    private RectTransform CreateRow(
+        string rowName,
+        RectTransform parent,
+        float top) =>
+        factory.CreateRow(rowName, parent, top);
+
+    private Button CreateActionButton(
+        RectTransform parent,
+        string label,
+        UnityEngine.Events.UnityAction action) =>
+        factory.CreateActionButton(parent, label, action);
+
+    private static void ApplyParchmentPanel(Image target) =>
+        SimpleMercenaryHireUIFactory.ApplyParchmentPanel(target);
+
+    private static void AddFantasyFrame(Image image, float thickness) =>
+        SimpleMercenaryHireUIFactory.AddFantasyFrame(image, thickness);
+
+    private static void ApplyButtonTransitions(Button button) =>
+        SimpleMercenaryHireUIFactory.ApplyButtonTransitions(button);
+
+    private static void ClearChildren(RectTransform parent)
+    {
+        for (int i = parent.childCount - 1; i >= 0; i--)
+        {
+            Transform child = parent.GetChild(i);
+            UnityEngine.Object.Destroy(child.gameObject);
+            child = null;
         }
     }
 
