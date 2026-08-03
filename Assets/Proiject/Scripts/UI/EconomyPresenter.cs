@@ -31,11 +31,18 @@ public sealed class EconomyPresenter
     private readonly Font uiBodyFont;
     private readonly MarketPriceManager marketPriceManager;
     private readonly TownProgressState townProgressState;
-    private readonly Action advanceDay;
+    private readonly DayManager dayManager;
+    private readonly ProgressionManager progressionManager;
+    private readonly MerchantStatusAndQuestController merchantStatusAndQuestController;
+    private readonly DailyResultController dailyResultController;
+    private readonly Func<Button> inventoryTabButtonProvider;
+    private readonly Func<Button> marketTabButtonProvider;
+    private readonly Func<Button> blacksmithTabButtonProvider;
+    private readonly Action<RectTransform, Button> switchToPage;
+    private readonly Action<RectTransform> refreshPage;
+    private readonly Action refreshUI;
+    private readonly Action tryUnlockHiddenIsland;
     private readonly Action showEquipmentCollection;
-    private readonly Action showStorageUpgradeConfirmation;
-    private readonly Action updateStorageCapacityText;
-    private readonly Action<Text> setStorageCapacityText;
     private readonly Action<ItemDataSO> useConsumable;
     private readonly Action<EquipmentInstance> showEquipmentDetails;
     private readonly Action<RectTransform> registerPage;
@@ -62,6 +69,8 @@ public sealed class EconomyPresenter
     private Text itemDetailTransactionText;
     private Button itemDetailActionButton;
     private Action itemDetailAction;
+    private readonly SimpleMercenaryHireUIView.StorageUpgradeReferences storageUpgrade =
+        new SimpleMercenaryHireUIView.StorageUpgradeReferences();
 
     public EconomyPresenter(
         SimpleMercenaryHireUIFactory factory,
@@ -77,11 +86,18 @@ public sealed class EconomyPresenter
         Font uiBodyFont,
         MarketPriceManager marketPriceManager,
         TownProgressState townProgressState,
-        Action advanceDay,
+        DayManager dayManager,
+        ProgressionManager progressionManager,
+        MerchantStatusAndQuestController merchantStatusAndQuestController,
+        DailyResultController dailyResultController,
+        Func<Button> inventoryTabButtonProvider,
+        Func<Button> marketTabButtonProvider,
+        Func<Button> blacksmithTabButtonProvider,
+        Action<RectTransform, Button> switchToPage,
+        Action<RectTransform> refreshPage,
+        Action refreshUI,
+        Action tryUnlockHiddenIsland,
         Action showEquipmentCollection,
-        Action showStorageUpgradeConfirmation,
-        Action<Text> setStorageCapacityText,
-        Action updateStorageCapacityText,
         Action<ItemDataSO> useConsumable,
         Action<EquipmentInstance> showEquipmentDetails,
         Action<RectTransform> registerPage,
@@ -101,6 +117,12 @@ public sealed class EconomyPresenter
         if (uiBodyFont == null) throw new ArgumentNullException(nameof(uiBodyFont));
         if (marketPriceManager == null) throw new ArgumentNullException(nameof(marketPriceManager));
         if (townProgressState == null) throw new ArgumentNullException(nameof(townProgressState));
+        if (dayManager == null) throw new ArgumentNullException(nameof(dayManager));
+        if (merchantStatusAndQuestController == null) throw new ArgumentNullException(nameof(merchantStatusAndQuestController));
+        if (dailyResultController == null) throw new ArgumentNullException(nameof(dailyResultController));
+        if (inventoryTabButtonProvider == null) throw new ArgumentNullException(nameof(inventoryTabButtonProvider));
+        if (marketTabButtonProvider == null) throw new ArgumentNullException(nameof(marketTabButtonProvider));
+        if (blacksmithTabButtonProvider == null) throw new ArgumentNullException(nameof(blacksmithTabButtonProvider));
         this.overlayRoot = overlayRoot;
         this.merchantInventory = merchantInventory;
         this.merchantData = merchantData;
@@ -112,11 +134,18 @@ public sealed class EconomyPresenter
         this.uiBodyFont = uiBodyFont;
         this.marketPriceManager = marketPriceManager;
         this.townProgressState = townProgressState;
-        this.advanceDay = advanceDay ?? throw new ArgumentNullException(nameof(advanceDay));
+        this.dayManager = dayManager;
+        this.progressionManager = progressionManager;
+        this.merchantStatusAndQuestController = merchantStatusAndQuestController;
+        this.dailyResultController = dailyResultController;
+        this.inventoryTabButtonProvider = inventoryTabButtonProvider;
+        this.marketTabButtonProvider = marketTabButtonProvider;
+        this.blacksmithTabButtonProvider = blacksmithTabButtonProvider;
+        this.switchToPage = switchToPage ?? throw new ArgumentNullException(nameof(switchToPage));
+        this.refreshPage = refreshPage ?? throw new ArgumentNullException(nameof(refreshPage));
+        this.refreshUI = refreshUI ?? throw new ArgumentNullException(nameof(refreshUI));
+        this.tryUnlockHiddenIsland = tryUnlockHiddenIsland ?? throw new ArgumentNullException(nameof(tryUnlockHiddenIsland));
         this.showEquipmentCollection = showEquipmentCollection ?? throw new ArgumentNullException(nameof(showEquipmentCollection));
-        this.showStorageUpgradeConfirmation = showStorageUpgradeConfirmation ?? throw new ArgumentNullException(nameof(showStorageUpgradeConfirmation));
-        this.setStorageCapacityText = setStorageCapacityText ?? throw new ArgumentNullException(nameof(setStorageCapacityText));
-        this.updateStorageCapacityText = updateStorageCapacityText ?? throw new ArgumentNullException(nameof(updateStorageCapacityText));
         this.useConsumable = useConsumable ?? throw new ArgumentNullException(nameof(useConsumable));
         this.showEquipmentDetails = showEquipmentDetails ?? throw new ArgumentNullException(nameof(showEquipmentDetails));
         this.registerPage = registerPage ?? throw new ArgumentNullException(nameof(registerPage));
@@ -166,9 +195,9 @@ public sealed class EconomyPresenter
     {
         Text title = CreateText(inventoryPage, "商人在庫", 15, FontStyle.Normal, TextAnchor.MiddleLeft, new Vector2(0f, -30f), new Vector2(0f, 0f), ParchmentMutedColor);
         Text capacityText = CreateText(inventoryPage, string.Empty, 16, FontStyle.Bold, TextAnchor.MiddleRight, new Vector2(180f, -30f), new Vector2(-150f, 0f), ParchmentTextColor);
-        setStorageCapacityText(capacityText);
+        storageUpgrade.capacityText = capacityText;
         marketInfoText = CreateText(inventoryPage, string.Empty, 16, FontStyle.Bold, TextAnchor.MiddleLeft, new Vector2(0f, -70f), new Vector2(-160f, -38f), ParchmentTextColor);
-        nextDayButton = CreateActionButton(inventoryPage, "翌日へ", () => advanceDay());
+        nextDayButton = CreateActionButton(inventoryPage, "翌日へ", () => AdvanceDay());
         RectTransform nextDayRect = nextDayButton.GetComponent<RectTransform>(); nextDayRect.anchorMin = nextDayRect.anchorMax = new Vector2(1f, 1f); nextDayRect.pivot = new Vector2(1f, 1f); nextDayRect.anchoredPosition = new Vector2(0f, -34f);
         const float topRowY = -78f; const float bottomRowY = -120f;
         inventoryFilterButton = CreateActionButton(inventoryPage, "絞込: 全て", economyController.CycleInventoryFilter); inventoryFilterButton.name = "Inventory Filter Button";
@@ -177,7 +206,7 @@ public sealed class EconomyPresenter
         RectTransform sortRect = equipmentSortButton.GetComponent<RectTransform>(); sortRect.anchorMin = sortRect.anchorMax = new Vector2(0f, 1f); sortRect.pivot = new Vector2(0f, 1f); sortRect.sizeDelta = new Vector2(150f, 38f); sortRect.anchoredPosition = new Vector2(308f, topRowY);
         Button collectionButton = CreateActionButton(inventoryPage, "装備図鑑", () => showEquipmentCollection());
         RectTransform collectionRect = collectionButton.GetComponent<RectTransform>(); collectionRect.anchorMin = collectionRect.anchorMax = new Vector2(0f, 1f); collectionRect.pivot = new Vector2(0f, 1f); collectionRect.sizeDelta = new Vector2(150f, 38f); collectionRect.anchoredPosition = new Vector2(142f, bottomRowY);
-        Button storageButton = CreateActionButton(inventoryPage, "倉庫拡張", () => showStorageUpgradeConfirmation());
+        Button storageButton = CreateActionButton(inventoryPage, "倉庫拡張", () => ShowStorageUpgradeConfirmation());
         RectTransform storageRect = storageButton.GetComponent<RectTransform>(); storageRect.anchorMin = storageRect.anchorMax = new Vector2(0f, 1f); storageRect.pivot = new Vector2(0f, 1f); storageRect.sizeDelta = new Vector2(150f, 38f); storageRect.anchoredPosition = new Vector2(308f, bottomRowY);
         Button sellOnlyButton = CreateActionButton(inventoryPage, "売却用素材を一括売却", ShowSellOnlyConfirmation);
         RectTransform sellOnlyRect = sellOnlyButton.GetComponent<RectTransform>(); sellOnlyRect.anchorMin = sellOnlyRect.anchorMax = new Vector2(0f, 1f); sellOnlyRect.pivot = new Vector2(0f, 1f); sellOnlyRect.sizeDelta = new Vector2(210f, 38f); sellOnlyRect.anchoredPosition = new Vector2(474f, bottomRowY);
@@ -188,7 +217,7 @@ public sealed class EconomyPresenter
         InventoryPageUI pageUI = inventoryPage.GetComponent<InventoryPageUI>() ?? inventoryPage.gameObject.AddComponent<InventoryPageUI>();
         pageUI.Initialize(title, null, inventoryList);
         pageUI.ConfigureInventory(uiBodyFont, ParchmentMutedColor, MutedTextColor, ButtonTextColor, RowColor, WoodButtonColor, FrameColor, () => merchantInventory.Items, economyController.GetSortedInventoryEquipment, economyController.ShouldShowInventoryItem, economyController.ShouldShowInventoryEquipment, item => merchantInventory.GetSellPrice(item), item => marketPriceManager.GetEffectiveSellMultiplier(item), item => WorldMapService.GetTownDemandMultiplier(townProgressState.CurrentTownIndex, item), CharacterEquipmentController.GetEquipmentDisplayName, CharacterEquipmentController.GetEquipmentQualityColor, ShowSellQuantityOverlay, useConsumable, showEquipmentDetails);
-        registerPage(inventoryPage); updateStorageCapacityText();
+        registerPage(inventoryPage); UpdateStorageCapacityText();
     }
 
     public void BuildMarketPage()
@@ -223,6 +252,215 @@ public sealed class EconomyPresenter
     public void SetInventoryFilterLabel(string label) { if (inventoryFilterButton != null) inventoryFilterButton.GetComponentInChildren<Text>().text = label; }
     public void SetEquipmentSortLabel(string label) { if (equipmentSortButton != null) equipmentSortButton.GetComponentInChildren<Text>().text = label; }
     public void SetMarketInfoText(string text) { if (marketInfoText != null) marketInfoText.text = text; }
+
+    public void HandleInventoryChanged()
+    {
+        dailyResultController.RecordDailyInventoryGains();
+        tryUnlockHiddenIsland();
+        refreshPage(inventoryPage);
+        refreshPage(blacksmithPage);
+        refreshUI();
+    }
+
+    public void HandleMarketStockChanged()
+    {
+        refreshPage(marketPage);
+        refreshUI();
+    }
+
+    public void HandleCraftingChanged()
+    {
+        refreshPage(inventoryPage);
+        refreshPage(blacksmithPage);
+        refreshUI();
+    }
+
+    public void HandlePricesChanged()
+    {
+        refreshPage(inventoryPage);
+        refreshUI();
+    }
+
+    public void ShowMarketPage()
+    {
+        switchToPage(marketPage, marketTabButtonProvider());
+        setStatusText(
+            $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}市場  |  " +
+            $"仕入れ商品: {marketStockManager.Stock.Count}種類 / " +
+            marketPriceManager.GetMarketSummary());
+    }
+
+    public void ShowBlacksmithPage()
+    {
+        switchToPage(blacksmithPage, blacksmithTabButtonProvider());
+        setStatusText(
+            $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}鍛冶屋  |  " +
+            $"レシピ: {blacksmithManager.Recipes.Count}種類");
+        refreshUI();
+    }
+
+    public void ShowInventoryPage()
+    {
+        UpdateStorageCapacityText();
+        switchToPage(inventoryPage, inventoryTabButtonProvider());
+        setStatusText(
+            $"倉庫 {merchantInventory.GetUsedStorageSlots()}/" +
+            $"{(progressionManager != null ? progressionManager.StorageCapacity : 0)}  |  " +
+            $"{marketPriceManager.GetMarketSummary()}  |  " +
+            $"維持費 {(progressionManager != null ? progressionManager.StorageMaintenanceCost : 0)}G/日");
+    }
+
+    public void UpdateStorageCapacityText()
+    {
+        if (storageUpgrade.capacityText == null)
+        {
+            return;
+        }
+
+        int used = merchantInventory != null
+            ? merchantInventory.GetUsedStorageSlots()
+            : 0;
+        int capacity = progressionManager != null
+            ? progressionManager.StorageCapacity
+            : 0;
+        int remaining = Mathf.Max(0, capacity - used);
+        string expansion = progressionManager == null
+            ? string.Empty
+            : progressionManager.IsStorageAtMaximumTier
+                ? "最大拡張済み"
+                : $"次回 {progressionManager.NextStorageCapacity}枠 / " +
+                  $"{progressionManager.StorageUpgradeCost:N0}G / " +
+                  $"商人Lv{progressionManager.NextStorageRequiredMerchantLevel}";
+
+        storageUpgrade.capacityText.text =
+            $"倉庫 {used}/{capacity}（空き {remaining}）  |  {expansion}";
+        storageUpgrade.capacityText.color = capacity > 0 && remaining == 0
+            ? new Color(0.65f, 0.08f, 0.04f)
+            : remaining <= Mathf.Max(3, Mathf.CeilToInt(capacity * 0.1f))
+                ? new Color(0.72f, 0.35f, 0.04f)
+                : ParchmentTextColor;
+    }
+
+    public void BuildStorageUpgradeConfirmationOverlay()
+    {
+        storageUpgrade.confirmationOverlay = CreateUIObject(
+            "Storage Upgrade Confirmation Overlay", overlayRoot);
+        storageUpgrade.confirmationOverlay.gameObject.SetActive(false);
+        storageUpgrade.confirmationOverlay.anchorMin = Vector2.zero;
+        storageUpgrade.confirmationOverlay.anchorMax = Vector2.one;
+        storageUpgrade.confirmationOverlay.offsetMin = Vector2.zero;
+        storageUpgrade.confirmationOverlay.offsetMax = Vector2.zero;
+        storageUpgrade.confirmationOverlay.gameObject.AddComponent<Image>().color =
+            new Color(0f, 0f, 0f, 0.82f);
+
+        RectTransform window = CreateUIObject(
+            "Storage Upgrade Confirmation Window", storageUpgrade.confirmationOverlay);
+        window.anchorMin = window.anchorMax = window.pivot =
+            new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(560f, 340f);
+        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
+        CreateText(window, "倉庫を拡張しますか？", 26, FontStyle.Bold,
+            TextAnchor.MiddleCenter, new Vector2(28f, -72f),
+            new Vector2(-28f, -22f), ParchmentTextColor);
+        storageUpgrade.confirmationText = CreateText(window, string.Empty, 18,
+            FontStyle.Normal, TextAnchor.MiddleCenter, new Vector2(36f, -190f),
+            new Vector2(-36f, -82f), ParchmentTextColor);
+        storageUpgrade.confirmationReasonText = CreateText(window, string.Empty, 15,
+            FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(36f, -238f),
+            new Vector2(-36f, -190f), MutedTextColor);
+        storageUpgrade.confirmButton = CreateActionButton(
+            window, "拡張する", ConfirmStorageUpgrade);
+        RectTransform confirmRect =
+            storageUpgrade.confirmButton.GetComponent<RectTransform>();
+        confirmRect.anchorMin = confirmRect.anchorMax = confirmRect.pivot =
+            new Vector2(0.5f, 0f);
+        confirmRect.sizeDelta = new Vector2(180f, 48f);
+        confirmRect.anchoredPosition = new Vector2(-105f, 26f);
+        storageUpgrade.confirmButton.targetGraphic.color = AccentColor;
+        Button cancelButton = CreateActionButton(
+            window, "キャンセル", HideStorageUpgradeConfirmation);
+        RectTransform cancelRect = cancelButton.GetComponent<RectTransform>();
+        cancelRect.anchorMin = cancelRect.anchorMax = cancelRect.pivot =
+            new Vector2(0.5f, 0f);
+        cancelRect.sizeDelta = new Vector2(180f, 48f);
+        cancelRect.anchoredPosition = new Vector2(105f, 26f);
+    }
+
+    private void AdvanceDay() => dayManager.AdvanceDay();
+
+    private void ShowStorageUpgradeConfirmation()
+    {
+        RefreshStorageUpgradeConfirmation();
+        storageUpgrade.confirmationOverlay.SetAsLastSibling();
+        storageUpgrade.confirmationOverlay.gameObject.SetActive(true);
+    }
+
+    private void HideStorageUpgradeConfirmation() =>
+        storageUpgrade.confirmationOverlay?.gameObject.SetActive(false);
+
+    private void ConfirmStorageUpgrade()
+    {
+        if (merchantStatusAndQuestController.TryUpgradeStorage())
+        {
+            HideStorageUpgradeConfirmation();
+            return;
+        }
+
+        RefreshStorageUpgradeConfirmation();
+    }
+
+    private void RefreshStorageUpgradeConfirmation()
+    {
+        if (storageUpgrade.confirmationText == null ||
+            storageUpgrade.confirmationReasonText == null ||
+            storageUpgrade.confirmButton == null)
+        {
+            return;
+        }
+
+        if (progressionManager == null || merchantData == null)
+        {
+            storageUpgrade.confirmationText.text = "倉庫情報を取得できません。";
+            storageUpgrade.confirmationReasonText.text = string.Empty;
+            storageUpgrade.confirmButton.interactable = false;
+            return;
+        }
+
+        if (progressionManager.IsStorageAtMaximumTier)
+        {
+            storageUpgrade.confirmationText.text =
+                $"現在の容量: {progressionManager.StorageCapacity}枠\n倉庫は最大まで拡張済みです。";
+            storageUpgrade.confirmationReasonText.text = "これ以上拡張できません。";
+            storageUpgrade.confirmButton.interactable = false;
+            return;
+        }
+
+        int cost = progressionManager.StorageUpgradeCost;
+        int requiredLevel = progressionManager.NextStorageRequiredMerchantLevel;
+        int missingGold = Mathf.Max(0, cost - merchantData.Gold);
+        storageUpgrade.confirmationText.text =
+            $"容量: {progressionManager.StorageCapacity}枠 → " +
+            $"{progressionManager.NextStorageCapacity}枠\n" +
+            $"必要金額: {cost:N0}G  |  所持金: {merchantData.Gold:N0}G\n" +
+            $"必要商人レベル: Lv{requiredLevel}（現在 Lv{merchantData.MerchantLevel}）";
+        if (merchantData.MerchantLevel < requiredLevel)
+        {
+            storageUpgrade.confirmationReasonText.text =
+                $"商人レベルが不足しています。（あと {requiredLevel - merchantData.MerchantLevel}）";
+        }
+        else if (missingGold > 0)
+        {
+            storageUpgrade.confirmationReasonText.text =
+                $"資金が不足しています。（あと {missingGold:N0}G）";
+        }
+        else
+        {
+            storageUpgrade.confirmationReasonText.text = "拡張できます。";
+        }
+
+        storageUpgrade.confirmButton.interactable =
+            progressionManager.CanUpgradeStorage();
+    }
 
     private void CreateInventorySidebar()
     {

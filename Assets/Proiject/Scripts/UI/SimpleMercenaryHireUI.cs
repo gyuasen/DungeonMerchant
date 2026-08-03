@@ -140,9 +140,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private Text goldText;
     private Text dayText;
     private Text statusText;
-    private readonly SimpleMercenaryHireUIView.StorageUpgradeReferences
-        storageUpgrade =
-            new SimpleMercenaryHireUIView.StorageUpgradeReferences();
     private readonly SimpleMercenaryHireUIView.ContractChangeReferences
         contractChange =
             new SimpleMercenaryHireUIView.ContractChangeReferences();
@@ -227,6 +224,25 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private void BuildMarketPage() => economyPresenter.BuildMarketPage();
 
     private void BuildBlacksmithPage() => economyPresenter.BuildBlacksmithPage();
+
+    private void HandleInventoryChanged() => economyPresenter.HandleInventoryChanged();
+
+    private void HandleMarketStockChanged() => economyPresenter.HandleMarketStockChanged();
+
+    private void HandleCraftingChanged() => economyPresenter.HandleCraftingChanged();
+
+    private void HandlePricesChanged() => economyPresenter.HandlePricesChanged();
+
+    private void ShowMarketPage() => economyPresenter.ShowMarketPage();
+
+    private void ShowBlacksmithPage() => economyPresenter.ShowBlacksmithPage();
+
+    private void ShowInventoryPage() => economyPresenter.ShowInventoryPage();
+
+    private void UpdateStorageCapacityText() => economyPresenter?.UpdateStorageCapacityText();
+
+    private void BuildStorageUpgradeConfirmationOverlay() =>
+        economyPresenter.BuildStorageUpgradeConfirmationOverlay();
 
     private void ShowSellQuantityOverlay(ItemDataSO item) =>
         economyPresenter.ShowSellQuantityOverlay(item);
@@ -1320,11 +1336,21 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
             uiBodyFont,
             marketPriceManager,
             townProgressState,
-            AdvanceDay,
+            dayManager,
+            progressionManager,
+            merchantStatusAndQuestController,
+            dailyResultController,
+            // タブボタンは本Presenterの生成後に作られるため遅延解決する。
+            () => inventoryTabButton,
+            () => marketTabButton,
+            () => blacksmithTabButton,
+            (targetPage, activeTab) => SwitchToPage(targetPage, activeTab),
+            RefreshPage,
+            RefreshUI,
+            // TryUnlockHiddenIsland は bool を返すため Action へ直接渡せない。
+            // 戻り値は既存経路でも使っていないので破棄する。
+            () => TryUnlockHiddenIsland(),
             ShowEquipmentCollection,
-            ShowStorageUpgradeConfirmation,
-            text => storageUpgrade.capacityText = text,
-            UpdateStorageCapacityText,
             characterEquipmentController.UseConsumable,
             characterEquipmentController.ShowEquipmentDetails,
             pageRouter.Register,
