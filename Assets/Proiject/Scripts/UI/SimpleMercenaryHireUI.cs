@@ -1383,11 +1383,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
             button => firstDungeonEventButton = button,
             button => secondDungeonEventButton = button,
             button => thirdDungeonEventButton = button,
-            BindBattleVisualController, BuildDungeonEventOverlay,
+            BindBattleVisualController,
             RefreshBattlePage, RefreshRoadBattlePage, RefreshDungeonPage,
-            UpdateDungeonEventUI, ContinueToNextDungeonFloor,
+            ContinueToNextDungeonFloor,
             ReturnToTownAfterDungeon, CanShowExpeditionAction, HasExpedition,
-            ShowExpeditionForDungeon, RefreshPage);
+            ShowExpeditionForDungeon, RefreshPage, () => audioFeedbackService);
 
         economyPresenter = new EconomyPresenter(
             uiFactory,
@@ -1884,6 +1884,40 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private void ShowJobChangePage() => hirePartyPresenter.ShowJobChangePage();
     private void ShowTransportOverlay() => hirePartyPresenter.ShowTransportOverlay();
     private void ShowExpeditionOverlay() => hirePartyPresenter.ShowExpeditionOverlay();
+
+    private void ResetBattleLog()
+    {
+        dungeonBattleController.ClearBattleLog();
+        if (battleLogScrollCoroutine != null)
+        {
+            StopCoroutine(battleLogScrollCoroutine);
+            battleLogScrollCoroutine = null;
+        }
+        battleDungeonPresenter.ResetBattleLogView();
+    }
+
+    private void AppendBattleMessage(string message, BattleLogType logType)
+    {
+        string text = dungeonBattleController.AppendBattleMessage(message, logType);
+        battleDungeonPresenter.SetBattleLogText(text);
+        UpdateBattleLogContentHeight();
+        ScrollBattleLogToLatest();
+    }
+
+    private void UpdateBattleLogContentHeight()
+    {
+        battleDungeonPresenter.UpdateBattleLogContentHeight();
+    }
+
+    private void UpdateDungeonEventUI()
+    {
+        battleDungeonPresenter.UpdateDungeonEventUI();
+    }
+
+    private static void SetButtonLabel(Button button, string label)
+    {
+        BattleDungeonPresenter.SetButtonLabel(button, label);
+    }
 
 }
 
