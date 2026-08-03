@@ -178,6 +178,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private HireAndPartyController hireAndPartyController;
     private EconomyController economyController;
     private EconomyPresenter economyPresenter;
+    private HirePartyPresenter hirePartyPresenter;
     private CharacterEquipmentController characterEquipmentController;
     private CharacterEquipmentOverlayPresenter characterEquipmentOverlayPresenter;
     private MerchantStatusAndQuestController merchantStatusAndQuestController;
@@ -1321,6 +1322,18 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
         }
 
         BindPageLayout(view, panel);
+
+        hirePartyPresenter = new HirePartyPresenter(
+            uiFactory, activeView, pageRouter, hireAndPartyController, hireManager,
+            partyManager, mercenaryGenerator, merchantStatusAndQuestController,
+            hirePage, companyPage, partyPage, uiFont, uiBodyFont,
+            () => statusText, () => hireTabButton, () => companyTabButton,
+            () => partyTabButton, () => healTabButton, () => startBattleButton,
+            ShowContractDetails, ShowContractDetails, ShowCharacterDetails,
+            ShowQuestOverlay, ShowTransportOverlay, ShowExpeditionOverlay,
+            ShowRemoteSaleOverlay, ShowContractChangeConfirmation,
+            CanOpenContractChangeConfirmation, ShowReleaseConfirmation,
+            button => contractSelectButton = button, RefreshPage);
 
         economyPresenter = new EconomyPresenter(
             uiFactory,
