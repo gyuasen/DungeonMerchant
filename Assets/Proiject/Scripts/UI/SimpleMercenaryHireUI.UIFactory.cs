@@ -268,10 +268,10 @@ public partial class SimpleMercenaryHireUI
 
         economyController.UpdateEconomyButtonInteractability();
 
-        if (marketInfoText != null)
+        if (economyPresenter != null)
         {
-            marketInfoText.text =
-                $"{marketPriceManager.GetMarketSummary()}  |  売却価格は日ごとに更新";
+            economyPresenter.SetMarketInfoText(
+                $"{marketPriceManager.GetMarketSummary()}  |  売却価格は日ごとに更新");
         }
 
         if (startDungeonButton != null)

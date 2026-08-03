@@ -9,6 +9,12 @@ public sealed class EconomyPresenter
     private static readonly Color ImportantButtonColor = UITheme.ImportantButtonColor;
     private static readonly Color MutedTextColor = UITheme.MutedTextColor;
     private static readonly Color ParchmentTextColor = UITheme.ParchmentTextColor;
+    private static readonly Color ParchmentMutedColor = UITheme.ParchmentMutedColor;
+    private static readonly Color ButtonTextColor = UITheme.ButtonTextColor;
+    private static readonly Color RowColor = UITheme.RowColor;
+    private static readonly Color WoodButtonColor = UITheme.WoodButtonColor;
+    private static readonly Color FrameColor = UITheme.FrameColor;
+    private static readonly Color AccentColor = UITheme.AccentColor;
     private static readonly Color WhiteColor = Color.white;
 
     private readonly SimpleMercenaryHireUIFactory factory;
@@ -19,6 +25,30 @@ public sealed class EconomyPresenter
     private readonly MarketStockManager marketStockManager;
     private readonly BlacksmithManager blacksmithManager;
     private readonly Action<string> setStatusText;
+    private readonly RectTransform inventoryPage;
+    private readonly RectTransform marketPage;
+    private readonly RectTransform blacksmithPage;
+    private readonly Font uiBodyFont;
+    private readonly MarketPriceManager marketPriceManager;
+    private readonly TownProgressState townProgressState;
+    private readonly Action advanceDay;
+    private readonly Action showEquipmentCollection;
+    private readonly Action showStorageUpgradeConfirmation;
+    private readonly Action updateStorageCapacityText;
+    private readonly Action<Text> setStorageCapacityText;
+    private readonly Action<ItemDataSO> useConsumable;
+    private readonly Action<EquipmentInstance> showEquipmentDetails;
+    private readonly Action<RectTransform> registerPage;
+    private RectTransform inventoryList;
+    private RectTransform marketList;
+    private RectTransform blacksmithList;
+    private Button nextDayButton;
+    private Button inventoryFilterButton;
+    private Button equipmentSortButton;
+    private readonly List<Button> inventorySidebarButtons = new List<Button>();
+    private readonly List<Button> marketSidebarButtons = new List<Button>();
+    private readonly List<Button> blacksmithSidebarButtons = new List<Button>();
+    private Text marketInfoText;
     private readonly SimpleMercenaryHireUIView.SellQuantityReferences sellQuantity =
         new SimpleMercenaryHireUIView.SellQuantityReferences();
     private readonly SimpleMercenaryHireUIView.SellOnlyConfirmationReferences
@@ -41,6 +71,20 @@ public sealed class EconomyPresenter
         MerchantData merchantData,
         MarketStockManager marketStockManager,
         BlacksmithManager blacksmithManager,
+        RectTransform inventoryPage,
+        RectTransform marketPage,
+        RectTransform blacksmithPage,
+        Font uiBodyFont,
+        MarketPriceManager marketPriceManager,
+        TownProgressState townProgressState,
+        Action advanceDay,
+        Action showEquipmentCollection,
+        Action showStorageUpgradeConfirmation,
+        Action<Text> setStorageCapacityText,
+        Action updateStorageCapacityText,
+        Action<ItemDataSO> useConsumable,
+        Action<EquipmentInstance> showEquipmentDetails,
+        Action<RectTransform> registerPage,
         Action<string> setStatusText)
     {
         this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
@@ -51,11 +95,31 @@ public sealed class EconomyPresenter
         if (merchantData == null) throw new ArgumentNullException(nameof(merchantData));
         if (marketStockManager == null) throw new ArgumentNullException(nameof(marketStockManager));
         if (blacksmithManager == null) throw new ArgumentNullException(nameof(blacksmithManager));
+        if (inventoryPage == null) throw new ArgumentNullException(nameof(inventoryPage));
+        if (marketPage == null) throw new ArgumentNullException(nameof(marketPage));
+        if (blacksmithPage == null) throw new ArgumentNullException(nameof(blacksmithPage));
+        if (uiBodyFont == null) throw new ArgumentNullException(nameof(uiBodyFont));
+        if (marketPriceManager == null) throw new ArgumentNullException(nameof(marketPriceManager));
+        if (townProgressState == null) throw new ArgumentNullException(nameof(townProgressState));
         this.overlayRoot = overlayRoot;
         this.merchantInventory = merchantInventory;
         this.merchantData = merchantData;
         this.marketStockManager = marketStockManager;
         this.blacksmithManager = blacksmithManager;
+        this.inventoryPage = inventoryPage;
+        this.marketPage = marketPage;
+        this.blacksmithPage = blacksmithPage;
+        this.uiBodyFont = uiBodyFont;
+        this.marketPriceManager = marketPriceManager;
+        this.townProgressState = townProgressState;
+        this.advanceDay = advanceDay ?? throw new ArgumentNullException(nameof(advanceDay));
+        this.showEquipmentCollection = showEquipmentCollection ?? throw new ArgumentNullException(nameof(showEquipmentCollection));
+        this.showStorageUpgradeConfirmation = showStorageUpgradeConfirmation ?? throw new ArgumentNullException(nameof(showStorageUpgradeConfirmation));
+        this.setStorageCapacityText = setStorageCapacityText ?? throw new ArgumentNullException(nameof(setStorageCapacityText));
+        this.updateStorageCapacityText = updateStorageCapacityText ?? throw new ArgumentNullException(nameof(updateStorageCapacityText));
+        this.useConsumable = useConsumable ?? throw new ArgumentNullException(nameof(useConsumable));
+        this.showEquipmentDetails = showEquipmentDetails ?? throw new ArgumentNullException(nameof(showEquipmentDetails));
+        this.registerPage = registerPage ?? throw new ArgumentNullException(nameof(registerPage));
         this.setStatusText = setStatusText ?? throw new ArgumentNullException(nameof(setStatusText));
     }
 
@@ -97,6 +161,128 @@ public sealed class EconomyPresenter
         closeRect.anchoredPosition = new Vector2(105f, 26f);
         itemDetailOverlay.gameObject.SetActive(false);
     }
+
+    public void BuildInventoryPage()
+    {
+        Text title = CreateText(inventoryPage, "商人在庫", 15, FontStyle.Normal, TextAnchor.MiddleLeft, new Vector2(0f, -30f), new Vector2(0f, 0f), ParchmentMutedColor);
+        Text capacityText = CreateText(inventoryPage, string.Empty, 16, FontStyle.Bold, TextAnchor.MiddleRight, new Vector2(180f, -30f), new Vector2(-150f, 0f), ParchmentTextColor);
+        setStorageCapacityText(capacityText);
+        marketInfoText = CreateText(inventoryPage, string.Empty, 16, FontStyle.Bold, TextAnchor.MiddleLeft, new Vector2(0f, -70f), new Vector2(-160f, -38f), ParchmentTextColor);
+        nextDayButton = CreateActionButton(inventoryPage, "翌日へ", () => advanceDay());
+        RectTransform nextDayRect = nextDayButton.GetComponent<RectTransform>(); nextDayRect.anchorMin = nextDayRect.anchorMax = new Vector2(1f, 1f); nextDayRect.pivot = new Vector2(1f, 1f); nextDayRect.anchoredPosition = new Vector2(0f, -34f);
+        const float topRowY = -78f; const float bottomRowY = -120f;
+        inventoryFilterButton = CreateActionButton(inventoryPage, "絞込: 全て", economyController.CycleInventoryFilter); inventoryFilterButton.name = "Inventory Filter Button";
+        RectTransform filterRect = inventoryFilterButton.GetComponent<RectTransform>(); filterRect.anchorMin = filterRect.anchorMax = new Vector2(0f, 1f); filterRect.pivot = new Vector2(0f, 1f); filterRect.sizeDelta = new Vector2(150f, 38f); filterRect.anchoredPosition = new Vector2(142f, topRowY);
+        equipmentSortButton = CreateActionButton(inventoryPage, "並替: 名前", economyController.CycleEquipmentSort); equipmentSortButton.name = "Equipment Sort Button";
+        RectTransform sortRect = equipmentSortButton.GetComponent<RectTransform>(); sortRect.anchorMin = sortRect.anchorMax = new Vector2(0f, 1f); sortRect.pivot = new Vector2(0f, 1f); sortRect.sizeDelta = new Vector2(150f, 38f); sortRect.anchoredPosition = new Vector2(308f, topRowY);
+        Button collectionButton = CreateActionButton(inventoryPage, "装備図鑑", () => showEquipmentCollection());
+        RectTransform collectionRect = collectionButton.GetComponent<RectTransform>(); collectionRect.anchorMin = collectionRect.anchorMax = new Vector2(0f, 1f); collectionRect.pivot = new Vector2(0f, 1f); collectionRect.sizeDelta = new Vector2(150f, 38f); collectionRect.anchoredPosition = new Vector2(142f, bottomRowY);
+        Button storageButton = CreateActionButton(inventoryPage, "倉庫拡張", () => showStorageUpgradeConfirmation());
+        RectTransform storageRect = storageButton.GetComponent<RectTransform>(); storageRect.anchorMin = storageRect.anchorMax = new Vector2(0f, 1f); storageRect.pivot = new Vector2(0f, 1f); storageRect.sizeDelta = new Vector2(150f, 38f); storageRect.anchoredPosition = new Vector2(308f, bottomRowY);
+        Button sellOnlyButton = CreateActionButton(inventoryPage, "売却用素材を一括売却", ShowSellOnlyConfirmation);
+        RectTransform sellOnlyRect = sellOnlyButton.GetComponent<RectTransform>(); sellOnlyRect.anchorMin = sellOnlyRect.anchorMax = new Vector2(0f, 1f); sellOnlyRect.pivot = new Vector2(0f, 1f); sellOnlyRect.sizeDelta = new Vector2(210f, 38f); sellOnlyRect.anchoredPosition = new Vector2(474f, bottomRowY);
+        CreateInventorySidebar();
+        RectTransform viewport = CreateViewport("Inventory Viewport", inventoryPage, new Vector2(142f, 0f), new Vector2(0f, -166f));
+        inventoryList = CreateList("Inventory List", viewport);
+        ConfigureScrollRect(viewport, inventoryList);
+        InventoryPageUI pageUI = inventoryPage.GetComponent<InventoryPageUI>() ?? inventoryPage.gameObject.AddComponent<InventoryPageUI>();
+        pageUI.Initialize(title, null, inventoryList);
+        pageUI.ConfigureInventory(uiBodyFont, ParchmentMutedColor, MutedTextColor, ButtonTextColor, RowColor, WoodButtonColor, FrameColor, () => merchantInventory.Items, economyController.GetSortedInventoryEquipment, economyController.ShouldShowInventoryItem, economyController.ShouldShowInventoryEquipment, item => merchantInventory.GetSellPrice(item), item => marketPriceManager.GetEffectiveSellMultiplier(item), item => WorldMapService.GetTownDemandMultiplier(townProgressState.CurrentTownIndex, item), CharacterEquipmentController.GetEquipmentDisplayName, CharacterEquipmentController.GetEquipmentQualityColor, ShowSellQuantityOverlay, useConsumable, showEquipmentDetails);
+        registerPage(inventoryPage); updateStorageCapacityText();
+    }
+
+    public void BuildMarketPage()
+    {
+        Text title = CreateText(marketPage, "本日の仕入れ商品", 15, FontStyle.Normal, TextAnchor.MiddleLeft, new Vector2(0f, -30f), new Vector2(0f, 0f), ParchmentMutedColor);
+        Text demandSummary = CreateText(marketPage, string.Empty, 15, FontStyle.Normal, TextAnchor.MiddleLeft, new Vector2(0f, -70f), new Vector2(0f, -38f), ParchmentMutedColor);
+        CreateMarketSidebar(); RectTransform viewport = CreateViewport("Market Viewport", marketPage, new Vector2(142f, 0f), new Vector2(0f, -84f));
+        marketList = CreateList("Market List", viewport); ConfigureScrollRect(viewport, marketList);
+        MarketPageUI pageUI = marketPage.GetComponent<MarketPageUI>() ?? marketPage.gameObject.AddComponent<MarketPageUI>();
+        pageUI.Initialize(title, demandSummary, marketList);
+        pageUI.ConfigureMarket(uiBodyFont, ParchmentMutedColor, MutedTextColor, ButtonTextColor, RowColor, WoodButtonColor, FrameColor, economyController.GetMarketRows, economyController.ShouldShowMarketEntryForSidebar, entry => marketStockManager.CanBuy(entry), economyController.BuyMarketItem, economyController.RegisterMarketBuyButton, demandSummary, GetCurrentTownDemandSummary, ShowMarketItemDetail);
+        registerPage(marketPage);
+    }
+
+    public void BuildBlacksmithPage()
+    {
+        Text title = CreateText(blacksmithPage, "鍛冶屋", 15, FontStyle.Normal, TextAnchor.MiddleLeft, new Vector2(0f, -30f), new Vector2(0f, 0f), ParchmentMutedColor);
+        Text description = CreateText(blacksmithPage, "モンスター素材とゴールドを使い、市場では買えない武器を制作します。", 15, FontStyle.Normal, TextAnchor.MiddleLeft, new Vector2(0f, -70f), new Vector2(0f, -38f), ParchmentMutedColor);
+        CreateBlacksmithSidebar();
+        Button craftableButton = CreateActionButton(blacksmithPage, "製作可能のみ: OFF", ToggleBlacksmithCraftableOnly);
+        RectTransform craftableRect = craftableButton.GetComponent<RectTransform>(); craftableRect.anchorMin = craftableRect.anchorMax = new Vector2(1f, 1f); craftableRect.pivot = new Vector2(1f, 1f); craftableRect.sizeDelta = new Vector2(150f, 32f); craftableRect.anchoredPosition = new Vector2(0f, -34f);
+        Button rankSortButton = CreateActionButton(blacksmithPage, "ランク順: 昇順", ToggleBlacksmithRankSort);
+        RectTransform rankSortRect = rankSortButton.GetComponent<RectTransform>(); rankSortRect.anchorMin = rankSortRect.anchorMax = new Vector2(1f, 1f); rankSortRect.pivot = new Vector2(1f, 1f); rankSortRect.sizeDelta = new Vector2(150f, 32f); rankSortRect.anchoredPosition = new Vector2(-160f, -34f);
+        RectTransform viewport = CreateViewport("Blacksmith Viewport", blacksmithPage, new Vector2(142f, 0f), new Vector2(0f, -84f));
+        blacksmithList = CreateList("Blacksmith List", viewport); ConfigureScrollRect(viewport, blacksmithList);
+        BlacksmithPageUI pageUI = blacksmithPage.GetComponent<BlacksmithPageUI>() ?? blacksmithPage.gameObject.AddComponent<BlacksmithPageUI>();
+        pageUI.Initialize(title, description, blacksmithList);
+        pageUI.ConfigureBlacksmith(uiBodyFont, ParchmentMutedColor, MutedTextColor, ButtonTextColor, RowColor, WoodButtonColor, FrameColor, economyController.GetSortedBlacksmithRows, economyController.ShouldShowBlacksmithRecipeForSidebar, item => merchantInventory.GetItemAmount(item), recipe => blacksmithManager.CanCraft(recipe), economyController.CraftEquipment, economyController.RegisterBlacksmithCraftButton, ShowBlacksmithRecipeDetail);
+        registerPage(blacksmithPage);
+    }
+
+    public void SetInventoryFilterLabel(string label) { if (inventoryFilterButton != null) inventoryFilterButton.GetComponentInChildren<Text>().text = label; }
+    public void SetEquipmentSortLabel(string label) { if (equipmentSortButton != null) equipmentSortButton.GetComponentInChildren<Text>().text = label; }
+    public void SetMarketInfoText(string text) { if (marketInfoText != null) marketInfoText.text = text; }
+
+    private void CreateInventorySidebar()
+    {
+        inventorySidebarButtons.Clear();
+        CreateSidebarButton(inventoryPage, inventorySidebarButtons, "全て", 0, () => economyController.SetInventorySidebarCategory(InventorySidebarCategory.All));
+        CreateSidebarButton(inventoryPage, inventorySidebarButtons, "素材", 1, () => economyController.SetInventorySidebarCategory(InventorySidebarCategory.Material));
+        CreateSidebarButton(inventoryPage, inventorySidebarButtons, "消耗品", 2, () => economyController.SetInventorySidebarCategory(InventorySidebarCategory.Consumable));
+        CreateSidebarButton(inventoryPage, inventorySidebarButtons, "装備", 3, () => economyController.SetInventorySidebarCategory(InventorySidebarCategory.Equipment));
+        CreateSidebarButton(inventoryPage, inventorySidebarButtons, "売却用", 4, () => economyController.SetInventorySidebarCategory(InventorySidebarCategory.SellOnly)); SetSidebarSelection(inventorySidebarButtons, 0);
+    }
+
+    private void CreateMarketSidebar()
+    {
+        marketSidebarButtons.Clear();
+        CreateSidebarButton(marketPage, marketSidebarButtons, "全て", 0, () => economyController.SetMarketSidebarCategory(MarketSidebarCategory.All));
+        CreateSidebarButton(marketPage, marketSidebarButtons, "装備", 1, () => economyController.SetMarketSidebarCategory(MarketSidebarCategory.Equipment));
+        CreateSidebarButton(marketPage, marketSidebarButtons, "消耗品", 2, () => economyController.SetMarketSidebarCategory(MarketSidebarCategory.Consumable));
+        CreateSidebarButton(marketPage, marketSidebarButtons, "素材", 3, () => economyController.SetMarketSidebarCategory(MarketSidebarCategory.Material)); SetSidebarSelection(marketSidebarButtons, 0);
+    }
+
+    private void CreateBlacksmithSidebar()
+    {
+        blacksmithSidebarButtons.Clear();
+        CreateSidebarButton(blacksmithPage, blacksmithSidebarButtons, "全職種", 0, () => economyController.SetBlacksmithSidebarCategory(BlacksmithSidebarCategory.All));
+        CreateSidebarButton(blacksmithPage, blacksmithSidebarButtons, "戦士", 1, () => economyController.SetBlacksmithSidebarCategory(BlacksmithSidebarCategory.Warrior));
+        CreateSidebarButton(blacksmithPage, blacksmithSidebarButtons, "弓使い", 2, () => economyController.SetBlacksmithSidebarCategory(BlacksmithSidebarCategory.Archer));
+        CreateSidebarButton(blacksmithPage, blacksmithSidebarButtons, "魔術師", 3, () => economyController.SetBlacksmithSidebarCategory(BlacksmithSidebarCategory.Mage));
+        CreateSidebarButton(blacksmithPage, blacksmithSidebarButtons, "僧侶", 4, () => economyController.SetBlacksmithSidebarCategory(BlacksmithSidebarCategory.Priest));
+        CreateSidebarButton(blacksmithPage, blacksmithSidebarButtons, "盗賊", 5, () => economyController.SetBlacksmithSidebarCategory(BlacksmithSidebarCategory.Rogue));
+        CreateSidebarButton(blacksmithPage, blacksmithSidebarButtons, "槍使い", 6, () => economyController.SetBlacksmithSidebarCategory(BlacksmithSidebarCategory.Lancer)); SetSidebarSelection(blacksmithSidebarButtons, 0);
+    }
+
+    private void CreateSidebarButton(RectTransform page, List<Button> buttons, string label, int index, Action action)
+    {
+        Button button = CreateActionButton(page, label, () => { action(); SetSidebarSelection(buttons, index); });
+        RectTransform rect = button.GetComponent<RectTransform>(); rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f); rect.pivot = new Vector2(0f, 1f); rect.sizeDelta = new Vector2(126f, 36f); rect.anchoredPosition = new Vector2(0f, -94f - index * 42f); buttons.Add(button);
+    }
+
+    private static void SetSidebarSelection(List<Button> buttons, int selectedIndex)
+    {
+        for (int i = 0; i < buttons.Count; i++) { Image image = buttons[i].targetGraphic as Image; if (image != null) image.color = i == selectedIndex ? AccentColor : WoodButtonColor; }
+    }
+
+    private void ToggleBlacksmithCraftableOnly() { economyController.ToggleBlacksmithCraftableOnly(); RefreshBlacksmithFilterLabels(); }
+    private void ToggleBlacksmithRankSort() { economyController.ToggleBlacksmithRankSort(); RefreshBlacksmithFilterLabels(); }
+    private void RefreshBlacksmithFilterLabels()
+    {
+        foreach (Button button in blacksmithPage.GetComponentsInChildren<Button>())
+        {
+            Text label = button.GetComponentInChildren<Text>(); if (label == null) continue;
+            if (label.text.StartsWith("製作可能のみ:")) label.text = "製作可能のみ: " + (economyController.IsBlacksmithCraftableOnly ? "ON" : "OFF");
+            else if (label.text.StartsWith("ランク順:")) label.text = "ランク順: " + (economyController.IsBlacksmithRankAscending ? "昇順" : "降順");
+        }
+    }
+
+    private string GetCurrentTownDemandSummary() => $"この町の需要:  素材{GetDemandMarker(townProgressState.CurrentTownIndex, ItemType.Material)}  装備{GetDemandMarker(townProgressState.CurrentTownIndex, ItemType.Equipment)}  消耗品{GetDemandMarker(townProgressState.CurrentTownIndex, ItemType.Consumable)}";
+    private static string GetDemandMarker(int townIndex, ItemType itemType) { float multiplier = WorldMapService.GetTownDemandMultiplier(townIndex, itemType); return multiplier > 1.05f ? "▲" : multiplier < 0.95f ? "▼" : "─"; }
+    private static RectTransform CreateViewport(string name, RectTransform page, Vector2 offsetMin, Vector2 offsetMax) { RectTransform viewport = CreateUIObject(name, page); viewport.anchorMin = Vector2.zero; viewport.anchorMax = Vector2.one; viewport.offsetMin = offsetMin; viewport.offsetMax = offsetMax; Image image = viewport.gameObject.AddComponent<Image>(); image.color = new Color(0f, 0f, 0f, 0.01f); Mask mask = viewport.gameObject.AddComponent<Mask>(); mask.showMaskGraphic = false; return viewport; }
+    private static RectTransform CreateList(string name, RectTransform viewport) { RectTransform list = CreateUIObject(name, viewport); list.anchorMin = new Vector2(0f, 1f); list.anchorMax = new Vector2(1f, 1f); list.pivot = new Vector2(0.5f, 1f); list.anchoredPosition = Vector2.zero; return list; }
+    private static void ConfigureScrollRect(RectTransform viewport, RectTransform content) { ScrollRect scrollRect = viewport.gameObject.AddComponent<ScrollRect>(); scrollRect.content = content; scrollRect.viewport = viewport; scrollRect.horizontal = false; scrollRect.vertical = true; scrollRect.movementType = ScrollRect.MovementType.Clamped; scrollRect.scrollSensitivity = 28f; }
 
     public void BuildSellOnlyConfirmationOverlay()
     {

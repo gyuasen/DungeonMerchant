@@ -118,9 +118,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private RectTransform companyList;
     private RectTransform partyList;
     private RectTransform healList;
-    private RectTransform inventoryList;
-    private RectTransform marketList;
-    private RectTransform blacksmithList;
     private Button hireTabButton = null;
     private Button mapButton;
     private Button townMapButton;
@@ -139,17 +136,10 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private Button firstDungeonEventButton;
     private Button secondDungeonEventButton;
     private Button thirdDungeonEventButton;
-    private Button nextDayButton;
     private Button contractSelectButton;
-    private Button inventoryFilterButton;
-    private Button equipmentSortButton;
-    private readonly List<Button> inventorySidebarButtons = new List<Button>();
-    private readonly List<Button> marketSidebarButtons = new List<Button>();
-    private readonly List<Button> blacksmithSidebarButtons = new List<Button>();
     private Text goldText;
     private Text dayText;
     private Text statusText;
-    private Text marketInfoText;
     private readonly SimpleMercenaryHireUIView.StorageUpgradeReferences
         storageUpgrade =
             new SimpleMercenaryHireUIView.StorageUpgradeReferences();
@@ -231,6 +221,12 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
 
     private void BuildSellQuantityOverlay() =>
         economyPresenter.BuildSellQuantityOverlay();
+
+    private void BuildInventoryPage() => economyPresenter.BuildInventoryPage();
+
+    private void BuildMarketPage() => economyPresenter.BuildMarketPage();
+
+    private void BuildBlacksmithPage() => economyPresenter.BuildBlacksmithPage();
 
     private void ShowSellQuantityOverlay(ItemDataSO item) =>
         economyPresenter.ShowSellQuantityOverlay(item);
@@ -516,8 +512,8 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
             () => RefreshPage(marketPage),
             () => RefreshPage(blacksmithPage),
             RefreshUI,
-            label => inventoryFilterButton.GetComponentInChildren<Text>().text = label,
-            label => equipmentSortButton.GetComponentInChildren<Text>().text = label);
+            label => economyPresenter?.SetInventoryFilterLabel(label),
+            label => economyPresenter?.SetEquipmentSortLabel(label));
         remoteSaleController = new RemoteSaleController(
             remoteSaleManager,
             merchantInventory,
@@ -1318,6 +1314,20 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
             merchantData,
             marketStockManager,
             blacksmithManager,
+            inventoryPage,
+            marketPage,
+            blacksmithPage,
+            uiBodyFont,
+            marketPriceManager,
+            townProgressState,
+            AdvanceDay,
+            ShowEquipmentCollection,
+            ShowStorageUpgradeConfirmation,
+            text => storageUpgrade.capacityText = text,
+            UpdateStorageCapacityText,
+            characterEquipmentController.UseConsumable,
+            characterEquipmentController.ShowEquipmentDetails,
+            pageRouter.Register,
             message => statusText.text = message);
 
         expeditionOverlayPresenter = new ExpeditionOverlayPresenter(
