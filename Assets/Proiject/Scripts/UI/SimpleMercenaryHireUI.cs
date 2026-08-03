@@ -150,11 +150,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private Text dayText;
     private Text statusText;
     private Text marketInfoText;
-    private readonly SimpleMercenaryHireUIView.SellQuantityReferences
-        sellQuantity = new SimpleMercenaryHireUIView.SellQuantityReferences();
-    private readonly SimpleMercenaryHireUIView.SellOnlyConfirmationReferences
-        sellOnlyConfirmation =
-            new SimpleMercenaryHireUIView.SellOnlyConfirmationReferences();
     private readonly SimpleMercenaryHireUIView.StorageUpgradeReferences
         storageUpgrade =
             new SimpleMercenaryHireUIView.StorageUpgradeReferences();
@@ -169,14 +164,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
         facilityGreeting =
             new SimpleMercenaryHireUIView.FacilityGreetingReferences();
     private FacilityGreetingOverlayView facilityGreetingOverlayView;
-    private RectTransform itemDetailOverlay;
-    private Image itemDetailImage;
-    private Text itemDetailImagePlaceholder;
-    private Text itemDetailTitle;
-    private Text itemDetailText;
-    private Text itemDetailTransactionText;
-    private Button itemDetailActionButton;
-    private System.Action itemDetailAction;
     private RemoteSaleController remoteSaleController;
     private Font uiFont;
     private Font uiBodyFont;
@@ -203,6 +190,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private DailyResultController dailyResultController;
     private HireAndPartyController hireAndPartyController;
     private EconomyController economyController;
+    private EconomyPresenter economyPresenter;
     private CharacterEquipmentController characterEquipmentController;
     private CharacterEquipmentOverlayPresenter characterEquipmentOverlayPresenter;
     private MerchantStatusAndQuestController merchantStatusAndQuestController;
@@ -235,6 +223,26 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
 
     private void BuildCharacterDetailOverlay() =>
         characterEquipmentOverlayPresenter.BuildCharacterDetailOverlay();
+
+    private void BuildItemDetailOverlay() => economyPresenter.BuildItemDetailOverlay();
+
+    private void BuildSellOnlyConfirmationOverlay() =>
+        economyPresenter.BuildSellOnlyConfirmationOverlay();
+
+    private void BuildSellQuantityOverlay() =>
+        economyPresenter.BuildSellQuantityOverlay();
+
+    private void ShowSellQuantityOverlay(ItemDataSO item) =>
+        economyPresenter.ShowSellQuantityOverlay(item);
+
+    private void ShowSellOnlyConfirmation() =>
+        economyPresenter.ShowSellOnlyConfirmation();
+
+    private void ShowBlacksmithRecipeDetail(EquipmentRecipeSO recipe) =>
+        economyPresenter.ShowBlacksmithRecipeDetail(recipe);
+
+    private void ShowMarketItemDetail(MarketStockEntry entry) =>
+        economyPresenter.ShowMarketItemDetail(entry);
 
     private void BuildEquipmentDetailOverlay() =>
         characterEquipmentOverlayPresenter.BuildEquipmentDetailOverlay();
@@ -1301,6 +1309,16 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
         }
 
         BindPageLayout(view, panel);
+
+        economyPresenter = new EconomyPresenter(
+            uiFactory,
+            overlayRoot,
+            economyController,
+            merchantInventory,
+            merchantData,
+            marketStockManager,
+            blacksmithManager,
+            message => statusText.text = message);
 
         expeditionOverlayPresenter = new ExpeditionOverlayPresenter(
             uiFactory, expeditionView, overlayRoot,
