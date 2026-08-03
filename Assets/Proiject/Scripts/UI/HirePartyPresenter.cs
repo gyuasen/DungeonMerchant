@@ -22,16 +22,23 @@ public sealed class HirePartyPresenter
     private readonly MercenaryPartyManager partyManager;
     private readonly MercenaryGenerator mercenaryGenerator;
     private readonly HealingManager healingManager;
+    private readonly MerchantInventory merchantInventory;
     private readonly MerchantData merchantData;
     private readonly MerchantStatusAndQuestController merchantStatusAndQuestController;
     private readonly RectTransform hirePage;
     private readonly RectTransform companyPage;
     private readonly RectTransform partyPage;
     private readonly RectTransform healPage;
+    private readonly RectTransform jobChangePage;
     private readonly RectTransform overlayRoot;
     private readonly Font uiFont;
     private readonly Font uiBodyFont;
     private readonly Func<Text> statusTextProvider;
+    private readonly Func<Button> hireTabButtonProvider;
+    private readonly Func<Button> companyTabButtonProvider;
+    private readonly Func<Button> partyTabButtonProvider;
+    private readonly Func<Button> healTabButtonProvider;
+    private readonly Func<Button> startBattleButtonProvider;
     private readonly Action<MercenaryDataSO> showFixedContractDetails;
     private readonly Action<MercenaryInstance> showGeneratedContractDetails;
     private readonly Action<MercenaryInstance> showCharacterDetails;
@@ -46,6 +53,15 @@ public sealed class HirePartyPresenter
     private readonly SimpleMercenaryHireUIView.ContractChangeReferences contractChange;
     private readonly Action<Button> setContractSelectButton;
     private readonly Action<RectTransform> refreshPage;
+    private readonly TownProgressState townProgressState;
+    private readonly DailyResultController dailyResultController;
+    private readonly BattleManager battleManager;
+    private readonly SimpleMercenaryHireUIView.PromotionPreviewReferences promotionPreview;
+    private readonly Action<RectTransform, Button> switchToPage;
+    private readonly Action showTownMap;
+    private readonly Action showExpeditionManagementOverlay;
+    private readonly Action refreshUI;
+    private readonly Action tryUnlockHiddenIsland;
 
     public HirePartyPresenter(
         SimpleMercenaryHireUIFactory factory,
@@ -56,12 +72,14 @@ public sealed class HirePartyPresenter
         MercenaryPartyManager partyManager,
         MercenaryGenerator mercenaryGenerator,
         HealingManager healingManager,
+        MerchantInventory merchantInventory,
         MerchantData merchantData,
         MerchantStatusAndQuestController merchantStatusAndQuestController,
         RectTransform hirePage,
         RectTransform companyPage,
         RectTransform partyPage,
         RectTransform healPage,
+        RectTransform jobChangePage,
         RectTransform overlayRoot,
         Font uiFont,
         Font uiBodyFont,
@@ -84,7 +102,16 @@ public sealed class HirePartyPresenter
         SimpleMercenaryHireUIView.ReleaseConfirmationReferences releaseConfirmation,
         SimpleMercenaryHireUIView.ContractChangeReferences contractChange,
         Action<Button> setContractSelectButton,
-        Action<RectTransform> refreshPage)
+        Action<RectTransform> refreshPage,
+        TownProgressState townProgressState,
+        DailyResultController dailyResultController,
+        BattleManager battleManager,
+        SimpleMercenaryHireUIView.PromotionPreviewReferences promotionPreview,
+        Action<RectTransform, Button> switchToPage,
+        Action showTownMap,
+        Action showExpeditionManagementOverlay,
+        Action refreshUI,
+        Action tryUnlockHiddenIsland)
     {
         this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
         if (activeView == null) throw new ArgumentNullException(nameof(activeView));
@@ -94,12 +121,14 @@ public sealed class HirePartyPresenter
         if (partyManager == null) throw new ArgumentNullException(nameof(partyManager));
         if (mercenaryGenerator == null) throw new ArgumentNullException(nameof(mercenaryGenerator));
         if (healingManager == null) throw new ArgumentNullException(nameof(healingManager));
+        if (merchantInventory == null) throw new ArgumentNullException(nameof(merchantInventory));
         if (merchantData == null) throw new ArgumentNullException(nameof(merchantData));
         this.merchantStatusAndQuestController = merchantStatusAndQuestController ?? throw new ArgumentNullException(nameof(merchantStatusAndQuestController));
         if (hirePage == null) throw new ArgumentNullException(nameof(hirePage));
         if (companyPage == null) throw new ArgumentNullException(nameof(companyPage));
         if (partyPage == null) throw new ArgumentNullException(nameof(partyPage));
         if (healPage == null) throw new ArgumentNullException(nameof(healPage));
+        if (jobChangePage == null) throw new ArgumentNullException(nameof(jobChangePage));
         if (overlayRoot == null) throw new ArgumentNullException(nameof(overlayRoot));
         if (uiFont == null) throw new ArgumentNullException(nameof(uiFont));
         if (uiBodyFont == null) throw new ArgumentNullException(nameof(uiBodyFont));
@@ -117,15 +146,22 @@ public sealed class HirePartyPresenter
         this.partyManager = partyManager;
         this.mercenaryGenerator = mercenaryGenerator;
         this.healingManager = healingManager;
+        this.merchantInventory = merchantInventory;
         this.merchantData = merchantData;
         this.hirePage = hirePage;
         this.companyPage = companyPage;
         this.partyPage = partyPage;
         this.healPage = healPage;
+        this.jobChangePage = jobChangePage;
         this.overlayRoot = overlayRoot;
         this.uiFont = uiFont;
         this.uiBodyFont = uiBodyFont;
         this.statusTextProvider = statusTextProvider;
+        this.hireTabButtonProvider = hireTabButtonProvider;
+        this.companyTabButtonProvider = companyTabButtonProvider;
+        this.partyTabButtonProvider = partyTabButtonProvider;
+        this.healTabButtonProvider = healTabButtonProvider;
+        this.startBattleButtonProvider = startBattleButtonProvider;
         this.showFixedContractDetails = showFixedContractDetails ?? throw new ArgumentNullException(nameof(showFixedContractDetails));
         this.showGeneratedContractDetails = showGeneratedContractDetails ?? throw new ArgumentNullException(nameof(showGeneratedContractDetails));
         this.showCharacterDetails = showCharacterDetails ?? throw new ArgumentNullException(nameof(showCharacterDetails));
@@ -140,6 +176,18 @@ public sealed class HirePartyPresenter
         this.contractChange = contractChange ?? throw new ArgumentNullException(nameof(contractChange));
         this.setContractSelectButton = setContractSelectButton ?? throw new ArgumentNullException(nameof(setContractSelectButton));
         this.refreshPage = refreshPage ?? throw new ArgumentNullException(nameof(refreshPage));
+        if (townProgressState == null) throw new ArgumentNullException(nameof(townProgressState));
+        if (dailyResultController == null) throw new ArgumentNullException(nameof(dailyResultController));
+        if (battleManager == null) throw new ArgumentNullException(nameof(battleManager));
+        this.townProgressState = townProgressState;
+        this.dailyResultController = dailyResultController;
+        this.battleManager = battleManager;
+        this.promotionPreview = promotionPreview ?? throw new ArgumentNullException(nameof(promotionPreview));
+        this.switchToPage = switchToPage ?? throw new ArgumentNullException(nameof(switchToPage));
+        this.showTownMap = showTownMap ?? throw new ArgumentNullException(nameof(showTownMap));
+        this.showExpeditionManagementOverlay = showExpeditionManagementOverlay ?? throw new ArgumentNullException(nameof(showExpeditionManagementOverlay));
+        this.refreshUI = refreshUI ?? throw new ArgumentNullException(nameof(refreshUI));
+        this.tryUnlockHiddenIsland = tryUnlockHiddenIsland ?? throw new ArgumentNullException(nameof(tryUnlockHiddenIsland));
     }
 
     public void BuildHirePage()
@@ -303,6 +351,80 @@ public sealed class HirePartyPresenter
     private static RectTransform CreateViewport(string name, RectTransform page, Vector2 offsetMax) { RectTransform viewport = CreateUIObject(name, page); viewport.anchorMin = Vector2.zero; viewport.anchorMax = Vector2.one; viewport.offsetMin = Vector2.zero; viewport.offsetMax = offsetMax; Image image = viewport.gameObject.AddComponent<Image>(); image.color = new Color(0f, 0f, 0f, 0.01f); Mask mask = viewport.gameObject.AddComponent<Mask>(); mask.showMaskGraphic = false; return viewport; }
     private static RectTransform CreateList(string name, RectTransform viewport) { RectTransform list = CreateUIObject(name, viewport); list.anchorMin = new Vector2(0f, 1f); list.anchorMax = new Vector2(1f, 1f); list.pivot = new Vector2(0.5f, 1f); list.anchoredPosition = Vector2.zero; return list; }
     private static ScrollRect ConfigureScrollRect(RectTransform viewport, RectTransform content) { ScrollRect scrollRect = viewport.gameObject.AddComponent<ScrollRect>(); scrollRect.content = content; scrollRect.viewport = viewport; scrollRect.horizontal = false; scrollRect.vertical = true; scrollRect.movementType = ScrollRect.MovementType.Clamped; scrollRect.scrollSensitivity = 28f; return scrollRect; }
+    public void BuildJobChangePage()
+    {
+        Text title = CreateText(jobChangePage, $"転職神殿（転職可能 Lv{MercenaryClassProgression.PromotionLevel}）", 17, FontStyle.Bold, TextAnchor.MiddleLeft, new Vector2(0f, -34f), Vector2.zero, ParchmentTextColor);
+        RectTransform viewport = CreateUIObject("Job Change Viewport", jobChangePage);
+        viewport.anchorMin = Vector2.zero; viewport.anchorMax = Vector2.one; viewport.offsetMin = Vector2.zero; viewport.offsetMax = new Vector2(0f, -48f);
+        viewport.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.01f);
+        Mask mask = viewport.gameObject.AddComponent<Mask>(); mask.showMaskGraphic = false;
+        RectTransform jobChangeList = CreateUIObject("Job Change List", viewport);
+        jobChangeList.anchorMin = new Vector2(0f, 1f); jobChangeList.anchorMax = new Vector2(1f, 1f); jobChangeList.pivot = new Vector2(0.5f, 1f);
+        ScrollRect scroll = viewport.gameObject.AddComponent<ScrollRect>();
+        scroll.content = jobChangeList; scroll.viewport = viewport; scroll.horizontal = false; scroll.vertical = true; scroll.movementType = ScrollRect.MovementType.Clamped; scroll.scrollSensitivity = 28f;
+        JobChangePageUI pageUI = jobChangePage.GetComponent<JobChangePageUI>() ?? jobChangePage.gameObject.AddComponent<JobChangePageUI>();
+        pageUI.Initialize(title, scroll, jobChangeList);
+        pageUI.Configure(uiFont, ParchmentTextColor, MutedTextColor, ButtonTextColor, RowColor, WoodButtonColor, FrameColor, null, 17);
+        pageUI.ConfigureJobChangeList(hireAndPartyController.GetPromotionCandidates, hireAndPartyController.ShouldShowSpecialPromotion, hireAndPartyController.PromoteMercenary, ShowPromotionPreview);
+        pageRouter.Register(jobChangePage);
+    }
+
+    public void BuildPromotionPreviewOverlay()
+    {
+        promotionPreview.overlay = CreateUIObject("Promotion Preview Overlay", overlayRoot);
+        promotionPreview.overlay.gameObject.SetActive(false); promotionPreview.overlay.anchorMin = Vector2.zero; promotionPreview.overlay.anchorMax = Vector2.one; promotionPreview.overlay.offsetMin = Vector2.zero; promotionPreview.overlay.offsetMax = Vector2.zero;
+        promotionPreview.overlay.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.82f);
+        RectTransform window = CreateUIObject("Promotion Preview Window", promotionPreview.overlay);
+        window.anchorMin = window.anchorMax = window.pivot = new Vector2(0.5f, 0.5f); window.sizeDelta = new Vector2(700f, 520f);
+        SimpleMercenaryHireUIFactory.ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
+        CreateText(window, "転職確認", 26, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(28f, -68f), new Vector2(-28f, -18f), ParchmentTextColor);
+        promotionPreview.text = CreateText(window, string.Empty, 15, FontStyle.Normal, TextAnchor.UpperLeft, new Vector2(34f, -360f), new Vector2(-34f, -82f), ParchmentTextColor);
+        promotionPreview.reasonText = CreateText(window, string.Empty, 14, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(34f, -414f), new Vector2(-34f, -362f), MutedTextColor);
+        promotionPreview.confirmButton = CreateActionButton(window, "転職する", ConfirmPromotionPreview);
+        RectTransform confirmRect = promotionPreview.confirmButton.GetComponent<RectTransform>(); confirmRect.anchorMin = confirmRect.anchorMax = confirmRect.pivot = new Vector2(0.5f, 0f); confirmRect.sizeDelta = new Vector2(180f, 48f); confirmRect.anchoredPosition = new Vector2(-105f, 25f);
+        Button cancel = CreateActionButton(window, "キャンセル", HidePromotionPreview);
+        RectTransform cancelRect = cancel.GetComponent<RectTransform>(); cancelRect.anchorMin = cancelRect.anchorMax = cancelRect.pivot = new Vector2(0.5f, 0f); cancelRect.sizeDelta = new Vector2(180f, 48f); cancelRect.anchoredPosition = new Vector2(105f, 25f);
+    }
+
+    private void ShowPromotionPreview(MercenaryInstance mercenary, MercenaryClass target)
+    {
+        promotionPreview.mercenary = mercenary; promotionPreview.target = target;
+        PromotionPreview preview = new PromotionPreview(mercenary, target);
+        bool special = target == MercenaryClassProgression.GetSpecialClass(mercenary.MercenaryClass);
+        ItemDataSO certificate = special && !mercenary.IsUnique ? hireAndPartyController.GetSpecialJobCertificate() : null;
+        int certificateCount = certificate != null ? merchantInventory.GetItemAmount(certificate) : 0;
+        bool canPromote = mercenary.CanPromote && (!special || mercenary.IsUnique || certificateCount > 0);
+        promotionPreview.text.text = BuildPromotionPreviewText(mercenary, preview, certificate, certificateCount);
+        promotionPreview.reasonText.text = canPromote ? string.Empty : certificate != null ? "転職証が不足しています。" : "転職条件を満たしていません。";
+        promotionPreview.confirmButton.interactable = canPromote; promotionPreview.overlay.SetAsLastSibling(); promotionPreview.overlay.gameObject.SetActive(true);
+    }
+
+    private string BuildPromotionPreviewText(MercenaryInstance mercenary, PromotionPreview preview, ItemDataSO certificate, int certificateCount)
+    {
+        string equipmentWarning = BuildPromotionEquipmentWarning(mercenary, preview.TargetClass);
+        string certificateText = certificate == null ? "消費する証: なし" : $"消費する証: {JapaneseDisplayText.GetItemName(certificate)} {certificateCount}/1";
+        System.Collections.Generic.List<MercenarySkillDefinition> skills = MercenaryClassProgression.GetCombatSkills(preview.TargetClass);
+        string skillText = "解禁予定スキル: " + string.Join("、", skills.ConvertAll(skill => skill.Name));
+        return $"{JapaneseDisplayText.GetMercenaryClass(mercenary.MercenaryClass)} → {JapaneseDisplayText.GetMercenaryClass(preview.TargetClass)}\n" + $"HP {mercenary.MaxHP} → {preview.MaxHP} ({preview.MaxHP - mercenary.MaxHP:+#;-#;0})\n" + $"攻撃 {mercenary.Attack} → {preview.Attack} ({preview.Attack - mercenary.Attack:+#;-#;0})\n" + $"防御 {mercenary.Defense} → {preview.Defense} ({preview.Defense - mercenary.Defense:+#;-#;0})\n" + $"魔力 {mercenary.MaxMagicPower} → {preview.MaxMagicPower} ({preview.MaxMagicPower - mercenary.MaxMagicPower:+#;-#;0})\n" + $"速度 {mercenary.AttackSpeed:0.00} → {preview.AttackSpeed:0.00} ({preview.AttackSpeed - mercenary.AttackSpeed:+0.00;-0.00;0})\n" + $"レベル上限: {preview.LevelCap}  |  クリティカル {preview.CriticalRate * 100f:0}%  |  回避 {preview.EvasionRate * 100f:0}%\n" + certificateText + "\n" + skillText + "\n" + equipmentWarning;
+    }
+
+    private static string BuildPromotionEquipmentWarning(MercenaryInstance mercenary, MercenaryClass target) { System.Collections.Generic.List<string> names = new System.Collections.Generic.List<string>(); foreach (EquipmentSlot slot in new[] { EquipmentSlot.Weapon, EquipmentSlot.Armor, EquipmentSlot.Accessory }) { ItemDataSO item = mercenary.GetEquippedItem(slot); if (item != null && !item.CanEquip(target)) names.Add(JapaneseDisplayText.GetItemName(item)); } return names.Count == 0 ? "装備適合: 問題なし" : "装備不可になる装備: " + string.Join("、", names); }
+    private void ConfirmPromotionPreview() { if (promotionPreview.mercenary == null || !promotionPreview.mercenary.CanPromote || MercenaryClassProgression.GetBaseClass(promotionPreview.target) != promotionPreview.mercenary.OriginalClass || MercenaryClassProgression.IsBaseClass(promotionPreview.target)) { HidePromotionPreview(); return; } hireAndPartyController.PromoteMercenary(promotionPreview.mercenary, promotionPreview.target); HidePromotionPreview(); }
+    private void HidePromotionPreview() { if (promotionPreview.overlay != null) promotionPreview.overlay.gameObject.SetActive(false); promotionPreview.mercenary = null; }
+
+    public void HandleMercenaryHired(MercenaryInstance mercenary) { dailyResultController.RecordMercenaryHired(mercenary); dailyResultController.CaptureMercenarySnapshot(mercenary); tryUnlockHiddenIsland(); refreshPage(companyPage); }
+    public void HandleMercenaryDismissed(MercenaryInstance mercenary) { refreshPage(companyPage); refreshPage(partyPage); refreshPage(healPage); refreshPage(jobChangePage); }
+    public void HandlePartyChanged() { dailyResultController.RememberDailyPartyMembers(); refreshPage(companyPage); refreshPage(partyPage); Button startBattleButton = startBattleButtonProvider(); if (startBattleButton != null && !battleManager.IsBattling) startBattleButton.interactable = partyManager.Members.Count > 0; SetStatus($"パーティー人数: {partyManager.Members.Count}/{partyManager.MaxPartySize}"); }
+    public void HandleCandidatesChanged() { refreshPage(hirePage); refreshUI(); }
+    public void HandleHealingChanged() { refreshPage(companyPage); refreshPage(partyPage); refreshPage(healPage); refreshUI(); }
+
+    public void ShowHirePage() { if (!TownServicePolicy.IsHiringAvailable(townProgressState.CurrentTownIndex)) { showTownMap(); SetStatus($"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}には傭兵を雇用できる酒場がありません。"); return; } switchToPage(hirePage, hireTabButtonProvider()); SetStatus($"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}の雇用候補  |  Lv{mercenaryGenerator.CurrentMinimumLevel}～Lv{mercenaryGenerator.CurrentMaximumLevel}  |  雇用する傭兵を選択してください。"); }
+    public void ShowCompanyPage() { switchToPage(companyPage, companyTabButtonProvider()); SetStatus($"商人Lv{merchantData.MerchantLevel} 獲得G進行 {merchantData.MerchantExperience:N0}/{merchantData.ExperienceToNextLevel:N0}  |  技能ポイント {merchantData.MerchantSkillPoints}  |  傭兵 {hireManager.HiredMercenaries.Count}人  |  雇用成功率 {merchantData.GetHireSuccessRate() * 100f:0}%"); }
+    public void ShowTransportOverlay() { }
+    public void ShowExpeditionOverlay() { showExpeditionManagementOverlay(); }
+    public void ShowPartyPage() { switchToPage(partyPage, partyTabButtonProvider()); SetStatus($"パーティー人数: {partyManager.Members.Count}/{partyManager.MaxPartySize}"); }
+    public void ShowHealPage() { switchToPage(healPage, healTabButtonProvider()); SetStatus($"治療費: 失ったHP 1につき {healingManager.HealCostPerHP} G"); }
+    public void ShowJobChangePage() { if (!TownServicePolicy.IsJobChangeAvailable(townProgressState.CurrentTownIndex)) { SetStatus("転職神殿はエルド交易都市以降の町で利用できます。"); return; } switchToPage(jobChangePage, null); SetStatus($"Lv{MercenaryClassProgression.PromotionLevel}以上の基本職が転職できます。"); }
     private Text CreateText(RectTransform parent, string content, int size, FontStyle style, TextAnchor alignment, Vector2 min, Vector2 max, Color color) => factory.CreateText(parent, content, size, style, alignment, min, max, color);
     private Button CreateActionButton(RectTransform parent, string label, UnityAction action) => factory.CreateActionButton(parent, label, action);
     private static RectTransform CreateUIObject(string name, Transform parent) => SimpleMercenaryHireUIFactory.CreateUIObject(name, parent);

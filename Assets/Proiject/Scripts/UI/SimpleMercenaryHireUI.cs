@@ -84,9 +84,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private readonly SimpleMercenaryHireUIView.TravelConfirmationReferences
         travelConfirmation =
             new SimpleMercenaryHireUIView.TravelConfirmationReferences();
-    private readonly SimpleMercenaryHireUIView.PromotionPreviewReferences
-        promotionPreview =
-            new SimpleMercenaryHireUIView.PromotionPreviewReferences();
     private RectTransform hirePage;
     private RectTransform globalMapPage;
     private RectTransform worldMapPage;
@@ -108,7 +105,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private RectTransform inventoryPage;
     private RectTransform jobChangePage;
     private RectTransform trainingGroundPage;
-    private RectTransform jobChangeList;
     private Button jobFacilityButton;
     private Button trainingGroundFacilityButton;
     private RectTransform companyScrollContent;
@@ -1335,9 +1331,9 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
 
         hirePartyPresenter = new HirePartyPresenter(
             uiFactory, activeView, pageRouter, hireAndPartyController, hireManager,
-            partyManager, mercenaryGenerator, healingManager, merchantData,
+            partyManager, mercenaryGenerator, healingManager, merchantInventory, merchantData,
             merchantStatusAndQuestController, hirePage, companyPage, partyPage,
-            healPage, overlayRoot, uiFont, uiBodyFont,
+            healPage, jobChangePage, overlayRoot, uiFont, uiBodyFont,
             () => statusText, () => hireTabButton, () => companyTabButton,
             () => partyTabButton, () => healTabButton, () => startBattleButton,
             ShowContractDetails, ShowContractDetails, ShowCharacterDetails,
@@ -1346,7 +1342,12 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
             CanOpenContractChangeConfirmation, ShowReleaseConfirmation,
             new SimpleMercenaryHireUIView.ReleaseConfirmationReferences(),
             new SimpleMercenaryHireUIView.ContractChangeReferences(),
-            button => contractSelectButton = button, RefreshPage);
+            button => contractSelectButton = button, RefreshPage,
+            townProgressState, dailyResultController, battleManager,
+            new SimpleMercenaryHireUIView.PromotionPreviewReferences(),
+            (targetPage, activeTab) => SwitchToPage(targetPage, activeTab),
+            ShowTownMap, ShowExpeditionManagementOverlay, RefreshUI,
+            () => TryUnlockHiddenIsland());
 
         economyPresenter = new EconomyPresenter(
             uiFactory,
@@ -1822,6 +1823,27 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
             $"現在地: {WorldMapService.TownNames[townProgressState.CurrentTownIndex]}  |  " +
             $"{WorldMapService.WorldRegionNames[worldMapIndex]}";
     }
+
+    private void BuildHirePage() => hirePartyPresenter.BuildHirePage();
+    private void BuildCompanyPage() => hirePartyPresenter.BuildCompanyPage();
+    private void BuildPartyPage() => hirePartyPresenter.BuildPartyPage();
+    private void BuildJobChangePage() => hirePartyPresenter.BuildJobChangePage();
+    private void BuildPromotionPreviewOverlay() => hirePartyPresenter.BuildPromotionPreviewOverlay();
+
+    // These lifecycle callback method groups intentionally remain on the MonoBehaviour.
+    private void HandleMercenaryHired(MercenaryInstance mercenary) => hirePartyPresenter.HandleMercenaryHired(mercenary);
+    private void HandleMercenaryDismissed(MercenaryInstance mercenary) => hirePartyPresenter.HandleMercenaryDismissed(mercenary);
+    private void HandlePartyChanged() => hirePartyPresenter.HandlePartyChanged();
+    private void HandleCandidatesChanged() => hirePartyPresenter.HandleCandidatesChanged();
+    private void HandleHealingChanged() => hirePartyPresenter.HandleHealingChanged();
+
+    private void ShowHirePage() => hirePartyPresenter.ShowHirePage();
+    private void ShowCompanyPage() => hirePartyPresenter.ShowCompanyPage();
+    private void ShowPartyPage() => hirePartyPresenter.ShowPartyPage();
+    private void ShowHealPage() => hirePartyPresenter.ShowHealPage();
+    private void ShowJobChangePage() => hirePartyPresenter.ShowJobChangePage();
+    private void ShowTransportOverlay() => hirePartyPresenter.ShowTransportOverlay();
+    private void ShowExpeditionOverlay() => hirePartyPresenter.ShowExpeditionOverlay();
 
 }
 
