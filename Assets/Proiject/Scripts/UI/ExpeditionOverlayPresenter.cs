@@ -1,26 +1,58 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 
-public partial class SimpleMercenaryHireUI
+public sealed class ExpeditionOverlayPresenter
 {
-    private RectTransform expeditionOverlay;
-    private DungeonDataSO expeditionDungeon;
-    private readonly List<MercenaryInstance> selectedExpeditionMembers =
-        new List<MercenaryInstance>();
-    private DungeonExpedition expeditionPendingRecall;
-    private ExpeditionLootPolicy selectedExpeditionLootPolicy = ExpeditionLootPolicy.Store;
+    private static readonly Color RowColor = UITheme.RowColor;
+    private static readonly Color ParchmentTextColor = UITheme.ParchmentTextColor;
+    private static readonly Color ParchmentMutedColor = UITheme.ParchmentMutedColor;
+    private static readonly Color OverlayColor = new Color(0f, 0f, 0f, 0.78f);
 
-    private bool CanShowExpeditionAction(DungeonDataSO dungeon)
+    private readonly SimpleMercenaryHireUIFactory factory;
+    private readonly SimpleMercenaryHireUIView.ExpeditionReferences references;
+    private readonly Transform parent;
+    private readonly MercenaryHireManager hireManager;
+    private readonly DungeonRunManager dungeonRunManager;
+    private readonly DungeonExpeditionManager dungeonExpeditionManager;
+    private readonly Action refreshDungeonSelection;
+
+    public ExpeditionOverlayPresenter(
+        SimpleMercenaryHireUIFactory factory,
+        SimpleMercenaryHireUIView.ExpeditionReferences references,
+        Transform parent,
+        MercenaryHireManager hireManager,
+        DungeonRunManager dungeonRunManager,
+        DungeonExpeditionManager dungeonExpeditionManager,
+        Action refreshDungeonSelection)
     {
-        return dungeon != null &&
+        this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
+        this.references = references ?? throw new ArgumentNullException(nameof(references));
+        this.parent = parent ?? throw new ArgumentNullException(nameof(parent));
+        this.hireManager = hireManager;
+        this.dungeonRunManager = dungeonRunManager;
+        this.dungeonExpeditionManager = dungeonExpeditionManager;
+        this.refreshDungeonSelection = refreshDungeonSelection;
+    }
+
+    private DungeonDataSO selectedDungeon;
+    private readonly List<MercenaryInstance> selectedMembers =
+        new List<MercenaryInstance>();
+    private DungeonExpedition pendingRecall;
+    private ExpeditionLootPolicy selectedLootPolicy = ExpeditionLootPolicy.Store;
+
+    public bool CanShowAction(DungeonDataSO dungeon)
+    {
+        return dungeonRunManager != null &&
+               dungeon != null &&
                dungeon.nearbyTownIndex != WorldMapService.HiddenIslandTownIndex &&
                dungeonRunManager.GetClearedFloors(dungeon) >=
                Mathf.Max(1, dungeon.totalFloors);
     }
 
-    private bool HasExpedition(DungeonDataSO dungeon)
+    public bool HasExpedition(DungeonDataSO dungeon)
     {
         if (dungeonExpeditionManager == null || dungeon == null)
         {
@@ -36,28 +68,28 @@ public partial class SimpleMercenaryHireUI
         return false;
     }
 
-    private void ShowExpeditionForDungeon(DungeonDataSO dungeon)
+    public void ShowForDungeon(DungeonDataSO dungeon)
     {
         if (HasExpedition(dungeon))
         {
-            ShowExpeditionManagementOverlay();
+            ShowManagement();
             return;
         }
-        if (!CanShowExpeditionAction(dungeon))
+        if (!CanShowAction(dungeon))
         {
             return;
         }
-        expeditionDungeon = dungeon;
-        selectedExpeditionMembers.Clear();
-        selectedExpeditionLootPolicy = ExpeditionLootPolicy.Store;
+        selectedDungeon = dungeon;
+        selectedMembers.Clear();
+        selectedLootPolicy = ExpeditionLootPolicy.Store;
         RebuildExpeditionFormationOverlay();
     }
 
     private void RebuildExpeditionFormationOverlay()
     {
-        DestroyExpeditionOverlay();
-        expeditionOverlay = CreateOverlayWindow("別動隊を送る", out RectTransform window);
-        Text description = CreateText(
+        Hide();
+        references.overlay = CreateOverlayWindow("別動隊を送る", out RectTransform window);
+        Text description = factory.CreateText(
             window,
             BuildExpeditionFormationSummary(),
             16,
@@ -68,7 +100,7 @@ public partial class SimpleMercenaryHireUI
             ParchmentTextColor);
         description.supportRichText = true;
 
-        RectTransform list = CreateUIObject("Mercenary Candidates", window);
+        RectTransform list = SimpleMercenaryHireUIFactory.CreateUIObject("Mercenary Candidates", window);
         list.anchorMin = new Vector2(0f, 0f);
         list.anchorMax = new Vector2(1f, 0f);
         list.pivot = new Vector2(.5f, 0f);
@@ -84,7 +116,7 @@ public partial class SimpleMercenaryHireUI
             }
         }
 
-        Button confirm = CreateActionButton(
+        Button confirm = factory.CreateActionButton(
             window,
             "この編成で毎日周回する",
             ConfirmExpeditionFormation);
@@ -93,31 +125,31 @@ public partial class SimpleMercenaryHireUI
         confirmRect.pivot = new Vector2(.5f, 0f);
         confirmRect.sizeDelta = new Vector2(250f, 44f);
         confirmRect.anchoredPosition = new Vector2(-132f, 20f);
-        confirm.interactable = selectedExpeditionMembers.Count >= 1 &&
-                              selectedExpeditionMembers.Count <= 3;
-        CreateLootPolicyButton(window, selectedExpeditionLootPolicy, CycleFormationLootPolicy);
-        Button cancel = CreateActionButton(window, "キャンセル", DestroyExpeditionOverlay);
+        confirm.interactable = selectedMembers.Count >= 1 &&
+                              selectedMembers.Count <= 3;
+        CreateLootPolicyButton(window, selectedLootPolicy, CycleFormationLootPolicy);
+        Button cancel = factory.CreateActionButton(window, "キャンセル", Hide);
         RectTransform cancelRect = cancel.GetComponent<RectTransform>();
         cancelRect.anchorMin = cancelRect.anchorMax = new Vector2(.5f, 0f);
         cancelRect.pivot = new Vector2(.5f, 0f);
         cancelRect.sizeDelta = new Vector2(130f, 44f);
         cancelRect.anchoredPosition = new Vector2(150f, 20f);
-        expeditionOverlay.SetAsLastSibling();
+        references.overlay.SetAsLastSibling();
     }
 
     private string BuildExpeditionFormationSummary()
     {
-        int strength = CombatPowerCalculator.Calculate(selectedExpeditionMembers);
-        int required = dungeonExpeditionManager.GetRequiredStrength(expeditionDungeon);
+        int strength = CombatPowerCalculator.Calculate(selectedMembers);
+        int required = dungeonExpeditionManager.GetRequiredStrength(selectedDungeon);
         bool stable = strength >= required;
         string state = stable
             ? "<color=#65D88A>安定周回</color>"
             : "<color=#FF7474>戦力不足：報酬なし・HP減少</color>";
-        return expeditionDungeon.dungeonName + "\n" +
-               "最寄り町: " + WorldMapService.GetTownName(expeditionDungeon.nearbyTownIndex) + "\n" +
+        return selectedDungeon.dungeonName + "\n" +
+               "最寄り町: " + WorldMapService.GetTownName(selectedDungeon.nearbyTownIndex) + "\n" +
                "毎日1回、自動で周回。呼び戻すまで継続します。\n" +
                "Gold・素材・経験値・低確率の限定装備を最寄り町の倉庫へ格納。\n" +
-               "隊員 " + selectedExpeditionMembers.Count + "/3  |  戦力 " + strength + "/" + required + "  " + state + "\n" +
+               "隊員 " + selectedMembers.Count + "/3  |  戦力 " + strength + "/" + required + "  " + state + "\n" +
                "派遣中の傭兵は他の用途に使えません。";
     }
 
@@ -127,18 +159,18 @@ public partial class SimpleMercenaryHireUI
         {
             return;
         }
-        RectTransform row = CreateUIObject("Candidate " + mercenary.InstanceId, list);
+        RectTransform row = SimpleMercenaryHireUIFactory.CreateUIObject("Candidate " + mercenary.InstanceId, list);
         row.anchorMin = new Vector2(0f, 1f);
         row.anchorMax = new Vector2(1f, 1f);
         row.pivot = new Vector2(.5f, 1f);
         row.offsetMin = new Vector2(0f, top - 38f);
         row.offsetMax = new Vector2(0f, top);
         row.gameObject.AddComponent<Image>().color = RowColor;
-        bool selected = selectedExpeditionMembers.Contains(mercenary);
+        bool selected = selectedMembers.Contains(mercenary);
         string unavailableReason = GetExpeditionUnavailableReason(mercenary);
         bool selectable = selected || string.IsNullOrEmpty(unavailableReason);
         string label = selected ? "選択中" : selectable ? "選ぶ" : unavailableReason;
-        CreateText(
+        factory.CreateText(
             row,
             mercenary.MercenaryName + "  HP " + mercenary.CurrentHP + "/" + mercenary.MaxHP +
             "  戦力 " + CombatPowerCalculator.Calculate(new[] { mercenary }),
@@ -148,7 +180,7 @@ public partial class SimpleMercenaryHireUI
             new Vector2(10f, -36f),
             new Vector2(-170f, -2f),
             selectable ? ParchmentTextColor : ParchmentMutedColor);
-        Button button = CreateActionButton(row, label, () => ToggleExpeditionMember(mercenary));
+        Button button = factory.CreateActionButton(row, label, () => ToggleExpeditionMember(mercenary));
         RectTransform buttonRect = button.GetComponent<RectTransform>();
         buttonRect.anchorMin = new Vector2(1f, .5f);
         buttonRect.anchorMax = new Vector2(1f, .5f);
@@ -160,11 +192,11 @@ public partial class SimpleMercenaryHireUI
 
     private string GetExpeditionUnavailableReason(MercenaryInstance mercenary)
     {
-        if (selectedExpeditionMembers.Contains(mercenary))
+        if (selectedMembers.Contains(mercenary))
         {
             return string.Empty;
         }
-        if (mercenary.CurrentTownIndex != expeditionDungeon.nearbyTownIndex)
+        if (mercenary.CurrentTownIndex != selectedDungeon.nearbyTownIndex)
         {
             return "別の町にいる";
         }
@@ -180,15 +212,15 @@ public partial class SimpleMercenaryHireUI
 
     private void ToggleExpeditionMember(MercenaryInstance mercenary)
     {
-        if (selectedExpeditionMembers.Remove(mercenary))
+        if (selectedMembers.Remove(mercenary))
         {
             RebuildExpeditionFormationOverlay();
             return;
         }
-        if (selectedExpeditionMembers.Count < 3 &&
+        if (selectedMembers.Count < 3 &&
             string.IsNullOrEmpty(GetExpeditionUnavailableReason(mercenary)))
         {
-            selectedExpeditionMembers.Add(mercenary);
+            selectedMembers.Add(mercenary);
         }
         RebuildExpeditionFormationOverlay();
     }
@@ -196,24 +228,29 @@ public partial class SimpleMercenaryHireUI
     private void ConfirmExpeditionFormation()
     {
         ExpeditionFormationResult result = dungeonExpeditionManager.TryFormExpedition(
-            expeditionDungeon,
-            selectedExpeditionMembers,
-            selectedExpeditionLootPolicy);
+            selectedDungeon,
+            selectedMembers,
+            selectedLootPolicy);
         if (result == ExpeditionFormationResult.Succeeded)
         {
-            DestroyExpeditionOverlay();
-            dungeonPage.GetComponent<DungeonPageUI>()?.RefreshSelection();
-            ShowExpeditionManagementOverlay();
+            Hide();
+            refreshDungeonSelection?.Invoke();
+            ShowManagement();
             return;
         }
         RebuildExpeditionFormationOverlay();
     }
 
-    private void ShowExpeditionManagementOverlay()
+    public void ShowManagement()
     {
-        DestroyExpeditionOverlay();
-        expeditionOverlay = CreateOverlayWindow("別動隊管理", out RectTransform window);
-        RectTransform list = CreateUIObject("Active Expeditions", window);
+        if (dungeonExpeditionManager == null || hireManager == null)
+        {
+            return;
+        }
+
+        Hide();
+        references.overlay = CreateOverlayWindow("別動隊管理", out RectTransform window);
+        RectTransform list = SimpleMercenaryHireUIFactory.CreateUIObject("Active Expeditions", window);
         list.anchorMin = new Vector2(0f, 0f);
         list.anchorMax = new Vector2(1f, 1f);
         list.offsetMin = new Vector2(28f, 72f);
@@ -226,15 +263,15 @@ public partial class SimpleMercenaryHireUI
         }
         if (dungeonExpeditionManager.ActiveExpeditions.Count == 0)
         {
-            CreateText(list, "稼働中の別動隊はいません。", 17, FontStyle.Normal, TextAnchor.MiddleCenter, new Vector2(0f, -80f), new Vector2(0f, -30f), ParchmentMutedColor);
+            factory.CreateText(list, "稼働中の別動隊はいません。", 17, FontStyle.Normal, TextAnchor.MiddleCenter, new Vector2(0f, -80f), new Vector2(0f, -30f), ParchmentMutedColor);
         }
-        Button close = CreateActionButton(window, "閉じる", DestroyExpeditionOverlay);
+        Button close = factory.CreateActionButton(window, "閉じる", Hide);
         RectTransform closeRect = close.GetComponent<RectTransform>();
         closeRect.anchorMin = closeRect.anchorMax = new Vector2(.5f, 0f);
         closeRect.pivot = new Vector2(.5f, 0f);
         closeRect.sizeDelta = new Vector2(160f, 44f);
         closeRect.anchoredPosition = new Vector2(0f, 20f);
-        expeditionOverlay.SetAsLastSibling();
+        references.overlay.SetAsLastSibling();
     }
 
     private void CreateExpeditionManagementCard(RectTransform list, DungeonExpedition expedition, float top)
@@ -243,7 +280,7 @@ public partial class SimpleMercenaryHireUI
         {
             return;
         }
-        RectTransform card = CreateUIObject("Expedition " + expedition.dungeon.name, list);
+        RectTransform card = SimpleMercenaryHireUIFactory.CreateUIObject("Expedition " + expedition.dungeon.name, list);
         card.anchorMin = new Vector2(0f, 1f);
         card.anchorMax = new Vector2(1f, 1f);
         card.pivot = new Vector2(.5f, 1f);
@@ -270,8 +307,8 @@ public partial class SimpleMercenaryHireUI
             names.Append(member.MercenaryName).Append(" HP ").Append(member.CurrentHP).Append("/").Append(member.MaxHP);
         }
         string state = strength >= required ? "安定周回" : "戦力不足（報酬なし・HP減少）";
-        CreateText(card, expedition.dungeon.dungeonName + "\n" + names + "\n戦力 " + strength + "/" + required + "  " + state + "\n報酬は最寄り町の倉庫へ", 15, FontStyle.Normal, TextAnchor.UpperLeft, new Vector2(12f, -102f), new Vector2(-170f, -8f), ParchmentTextColor);
-        Button recall = CreateActionButton(card, "呼び戻す", () => ShowRecallConfirmation(expedition));
+        factory.CreateText(card, expedition.dungeon.dungeonName + "\n" + names + "\n戦力 " + strength + "/" + required + "  " + state + "\n報酬は最寄り町の倉庫へ", 15, FontStyle.Normal, TextAnchor.UpperLeft, new Vector2(12f, -102f), new Vector2(-170f, -8f), ParchmentTextColor);
+        Button recall = factory.CreateActionButton(card, "呼び戻す", () => ShowRecallConfirmation(expedition));
         RectTransform recallRect = recall.GetComponent<RectTransform>();
         recallRect.anchorMin = recallRect.anchorMax = new Vector2(1f, .5f);
         recallRect.pivot = new Vector2(1f, .5f);
@@ -288,7 +325,7 @@ public partial class SimpleMercenaryHireUI
         ExpeditionLootPolicy policy,
         UnityEngine.Events.UnityAction onClick)
     {
-        Button button = CreateActionButton(parent, GetLootPolicyLabel(policy), onClick);
+        Button button = factory.CreateActionButton(parent, GetLootPolicyLabel(policy), onClick);
         RectTransform buttonRect = button.GetComponent<RectTransform>();
         buttonRect.anchorMin = buttonRect.anchorMax = new Vector2(.5f, 0f);
         buttonRect.pivot = new Vector2(.5f, 0f);
@@ -298,7 +335,7 @@ public partial class SimpleMercenaryHireUI
 
     private void CycleFormationLootPolicy()
     {
-        selectedExpeditionLootPolicy = GetNextLootPolicy(selectedExpeditionLootPolicy);
+        selectedLootPolicy = GetNextLootPolicy(selectedLootPolicy);
         RebuildExpeditionFormationOverlay();
     }
 
@@ -307,7 +344,7 @@ public partial class SimpleMercenaryHireUI
         dungeonExpeditionManager.SetExpeditionLootPolicy(
             expedition,
             GetNextLootPolicy(expedition.lootPolicy));
-        ShowExpeditionManagementOverlay();
+        ShowManagement();
     }
 
     private static ExpeditionLootPolicy GetNextLootPolicy(ExpeditionLootPolicy policy)
@@ -332,58 +369,59 @@ public partial class SimpleMercenaryHireUI
 
     private void ShowRecallConfirmation(DungeonExpedition expedition)
     {
-        DestroyExpeditionOverlay();
-        expeditionPendingRecall = expedition;
-        expeditionOverlay = CreateOverlayWindow("別動隊を呼び戻す", out RectTransform window);
-        CreateText(window, "呼び戻すと別動隊の毎日周回は停止します。\n傭兵は最寄り町に留まり、再び他の任務に参加できます。", 17, FontStyle.Normal, TextAnchor.MiddleCenter, new Vector2(40f, -280f), new Vector2(-40f, -90f), ParchmentTextColor);
-        Button confirm = CreateActionButton(window, "呼び戻す", ConfirmRecallExpedition);
+        Hide();
+        pendingRecall = expedition;
+        references.overlay = CreateOverlayWindow("別動隊を呼び戻す", out RectTransform window);
+        factory.CreateText(window, "呼び戻すと別動隊の毎日周回は停止します。\n傭兵は最寄り町に留まり、再び他の任務に参加できます。", 17, FontStyle.Normal, TextAnchor.MiddleCenter, new Vector2(40f, -280f), new Vector2(-40f, -90f), ParchmentTextColor);
+        Button confirm = factory.CreateActionButton(window, "呼び戻す", ConfirmRecallExpedition);
         RectTransform confirmRect = confirm.GetComponent<RectTransform>();
         confirmRect.anchorMin = confirmRect.anchorMax = new Vector2(.5f, 0f);
         confirmRect.pivot = new Vector2(.5f, 0f);
         confirmRect.sizeDelta = new Vector2(160f, 44f);
         confirmRect.anchoredPosition = new Vector2(-95f, 22f);
-        Button cancel = CreateActionButton(window, "キャンセル", ShowExpeditionManagementOverlay);
+        Button cancel = factory.CreateActionButton(window, "キャンセル", ShowManagement);
         RectTransform cancelRect = cancel.GetComponent<RectTransform>();
         cancelRect.anchorMin = cancelRect.anchorMax = new Vector2(.5f, 0f);
         cancelRect.pivot = new Vector2(.5f, 0f);
         cancelRect.sizeDelta = new Vector2(160f, 44f);
         cancelRect.anchoredPosition = new Vector2(95f, 22f);
-        expeditionOverlay.SetAsLastSibling();
+        references.overlay.SetAsLastSibling();
     }
 
     private void ConfirmRecallExpedition()
     {
-        if (expeditionPendingRecall != null)
+        if (pendingRecall != null)
         {
-            dungeonExpeditionManager.RecallExpedition(expeditionPendingRecall);
+            dungeonExpeditionManager.RecallExpedition(pendingRecall);
         }
-        expeditionPendingRecall = null;
-        dungeonPage.GetComponent<DungeonPageUI>()?.RefreshSelection();
-        ShowExpeditionManagementOverlay();
+        pendingRecall = null;
+        refreshDungeonSelection?.Invoke();
+        ShowManagement();
     }
 
     private RectTransform CreateOverlayWindow(string title, out RectTransform window)
     {
-        RectTransform overlay = CreateUIObject("Expedition Overlay", overlayRoot);
+        RectTransform overlay = SimpleMercenaryHireUIFactory.CreateUIObject("Expedition Overlay", parent);
         overlay.anchorMin = Vector2.zero;
         overlay.anchorMax = Vector2.one;
         overlay.offsetMin = Vector2.zero;
         overlay.offsetMax = Vector2.zero;
-        overlay.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, .78f);
-        window = CreateUIObject("Window", overlay);
+        overlay.gameObject.AddComponent<Image>().color = OverlayColor;
+        window = SimpleMercenaryHireUIFactory.CreateUIObject("Window", overlay);
         window.anchorMin = window.anchorMax = window.pivot = new Vector2(.5f, .5f);
         window.sizeDelta = new Vector2(760f, 600f);
-        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
-        CreateText(window, title, 25, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(24f, -56f), new Vector2(-24f, -16f), ParchmentTextColor);
+        SimpleMercenaryHireUIFactory.ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
+        factory.CreateText(window, title, 25, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(24f, -56f), new Vector2(-24f, -16f), ParchmentTextColor);
         return overlay;
     }
 
-    private void DestroyExpeditionOverlay()
+    public void Hide()
     {
-        if (expeditionOverlay != null)
+        if (references.overlay != null)
         {
-            Destroy(expeditionOverlay.gameObject);
-            expeditionOverlay = null;
+            UnityEngine.Object.Destroy(references.overlay.gameObject);
         }
+
+        references.overlay = null;
     }
 }

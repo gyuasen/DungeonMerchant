@@ -39,6 +39,13 @@ public enum SimpleMercenaryHireOverlaySlot
 public sealed class SimpleMercenaryHireUIView : MonoBehaviour
 {
     [Serializable]
+    public sealed class ExpeditionReferences
+    {
+        public RectTransform overlay;
+        public bool IsValid => overlay != null;
+    }
+
+    [Serializable]
     public sealed class ChromeReferences
     {
         public Text titleText;

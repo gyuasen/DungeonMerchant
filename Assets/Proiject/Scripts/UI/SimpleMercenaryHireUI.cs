@@ -47,6 +47,9 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
 
     private RectTransform guildPanel;
     private RectTransform overlayRoot;
+    private readonly SimpleMercenaryHireUIView.ExpeditionReferences expeditionView =
+        new SimpleMercenaryHireUIView.ExpeditionReferences();
+    private ExpeditionOverlayPresenter expeditionOverlayPresenter;
     private SimpleMercenaryHireUIView activeView;
     private UIPageRouter pageRouter;
     private readonly SimpleMercenaryHireUIView.CharacterDetailReferences
@@ -348,6 +351,20 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
     {
         trainingGroundPagePresenter?.Show();
     }
+
+    private bool CanShowExpeditionAction(DungeonDataSO dungeon) =>
+        expeditionOverlayPresenter != null &&
+        expeditionOverlayPresenter.CanShowAction(dungeon);
+
+    private bool HasExpedition(DungeonDataSO dungeon) =>
+        expeditionOverlayPresenter != null &&
+        expeditionOverlayPresenter.HasExpedition(dungeon);
+
+    private void ShowExpeditionForDungeon(DungeonDataSO dungeon) =>
+        expeditionOverlayPresenter?.ShowForDungeon(dungeon);
+
+    private void ShowExpeditionManagementOverlay() =>
+        expeditionOverlayPresenter?.ShowManagement();
 
     private void Start()
     {
@@ -1173,6 +1190,11 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour
         }
 
         BindPageLayout(view, panel);
+
+        expeditionOverlayPresenter = new ExpeditionOverlayPresenter(
+            uiFactory, expeditionView, overlayRoot,
+            hireManager, dungeonRunManager, dungeonExpeditionManager,
+            () => dungeonPage.GetComponent<DungeonPageUI>()?.RefreshSelection());
 
         BuildHirePage();
         BuildGlobalMapPage();
