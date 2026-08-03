@@ -5,8 +5,10 @@ using UnityEngine;
 /// Bundles the fine-grained UI setters that CharacterEquipmentController
 /// previously received as individual delegates (step B-2), so the
 /// controller depends on one view surface instead of eight lambdas.
-/// Implemented by SimpleMercenaryHireUI
-/// (SimpleMercenaryHireUI.CharacterEquipment.cs).
+/// Implemented by SimpleMercenaryHireUI itself, which forwards every member
+/// to CharacterEquipmentOverlayPresenter. The implementation stays on the
+/// composition root so the controller keeps depending on this interface
+/// rather than on the presenter type.
 /// </summary>
 public interface IEquipmentDetailView
 {

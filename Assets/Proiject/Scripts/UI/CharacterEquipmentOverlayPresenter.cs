@@ -56,12 +56,40 @@ public sealed class CharacterEquipmentOverlayPresenter
             throw new ArgumentNullException(nameof(equipmentCodex));
         this.overlayRootProvider = overlayRootProvider ??
             throw new ArgumentNullException(nameof(overlayRootProvider));
+        // この2つは以降で無条件に参照するため必須依存として扱う。
+        // Font は未設定でも Unity 既定にフォールバックするので許容する。
+        // MerchantInventory は MonoBehaviour で、未設定・破棄済みの参照は
+        // C# 上は非 null な "fake null" になり得る。?? では素通りするため
+        // Unity の == null 判定で検査する。
+        if (merchantInventory == null)
+        {
+            throw new ArgumentNullException(nameof(merchantInventory));
+        }
+
         this.merchantInventory = merchantInventory;
-        this.characterEquipmentController = characterEquipmentController;
+        this.characterEquipmentController = characterEquipmentController ??
+            throw new ArgumentNullException(nameof(characterEquipmentController));
         this.uiFont = uiFont;
         this.uiBodyFont = uiBodyFont;
         this.getOrCreateOverlay = getOrCreateOverlay ??
             throw new ArgumentNullException(nameof(getOrCreateOverlay));
+    }
+
+    /// <summary>
+    /// オーバーレイの親を解決する。overlayRoot は BuildUI() の完了まで
+    /// 確定しないため、未確定のまま使うと null を親にした UI をシーン直下へ
+    /// 作ってしまう。原因の分かる例外にして早期に気付けるようにする。
+    /// </summary>
+    private Transform ResolveOverlayRoot()
+    {
+        Transform root = overlayRootProvider();
+        if (root == null)
+        {
+            throw new InvalidOperationException(
+                "装備オーバーレイの生成には BuildUI() の完了が必要です。");
+        }
+
+        return root;
     }
 
     private Text CreateText(
@@ -494,7 +522,7 @@ public sealed class CharacterEquipmentOverlayPresenter
     {
         slotSelection.overlay = CreateUIObject(
             "Equipment Slot Selection Overlay",
-            overlayRootProvider());
+            ResolveOverlayRoot());
         slotSelection.overlay.anchorMin = Vector2.zero;
         slotSelection.overlay.anchorMax = Vector2.one;
         slotSelection.overlay.offsetMin = Vector2.zero;
