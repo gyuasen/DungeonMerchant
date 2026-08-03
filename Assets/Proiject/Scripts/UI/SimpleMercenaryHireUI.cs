@@ -157,8 +157,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private bool hasPendingRoadBattleOutcome;
     private bool pendingRoadBattleVictory;
     private Coroutine pendingRoadBattleOutcomeCoroutine;
-    private int displayedRoadOriginTownIndex = -1;
-    private int displayedRoadDestinationTownIndex = -1;
     private bool IsProgressionLocked =>
         (battleManager != null && battleManager.IsBattling) ||
         (battleVisualController != null && battleVisualController.IsPresentationBusy) ||
@@ -449,6 +447,25 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private void BuildRoadBattlePage() => battleDungeonPresenter.BuildRoadBattlePage();
 
     private void BuildDungeonPage() => battleDungeonPresenter.BuildDungeonPage();
+
+    private void ShowBattlePage() => battleDungeonPresenter.ShowBattlePage();
+
+    private void RefreshBattlePage() => battleDungeonPresenter.RefreshBattlePage();
+
+    private void ShowRoadBattlePage(int originTownIndex, int destinationTownIndex) =>
+        battleDungeonPresenter.ShowRoadBattlePage(originTownIndex, destinationTownIndex);
+
+    private void RefreshRoadBattlePage() => battleDungeonPresenter.RefreshRoadBattlePage();
+
+    private void ShowDungeonPage() => battleDungeonPresenter.ShowDungeonPage();
+
+    private void RefreshDungeonPage() => battleDungeonPresenter.RefreshDungeonPage();
+
+    private void ShowDungeonCompletionResult(bool cleared) =>
+        battleDungeonPresenter.ShowDungeonCompletionResult(
+            cleared, TryUnlockHiddenIsland(),
+            progressionManager != null ? progressionManager.LastExplorationResult : string.Empty,
+            dungeonRunManager.IsSelectedDungeonFullyCleared);
 
     private void BindBattleVisualController(BattleVisualController controller)
     {
@@ -1385,9 +1402,16 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
             button => thirdDungeonEventButton = button,
             BindBattleVisualController,
             RefreshBattlePage, RefreshRoadBattlePage, RefreshDungeonPage,
-            ContinueToNextDungeonFloor,
-            ReturnToTownAfterDungeon, CanShowExpeditionAction, HasExpedition,
-            ShowExpeditionForDungeon, RefreshPage, () => audioFeedbackService);
+            // この2つはPresenter自身の公開メソッド。ctor引数として自分を
+            // 参照するため、生成完了後に解決されるようラムダで包む。
+            () => battleDungeonPresenter.ContinueToNextDungeonFloor(),
+            () => battleDungeonPresenter.ReturnToTownAfterDungeon(),
+            CanShowExpeditionAction, HasExpedition,
+            ShowExpeditionForDungeon, RefreshPage, () => audioFeedbackService,
+            (targetPage, activeTab) => SwitchToPage(targetPage, activeTab),
+            ShowTownMap, RefreshUI, () => IsProgressionLocked,
+            () => hasPendingRoadBattleOutcome, () => mapButton,
+            () => townMapButton);
 
         economyPresenter = new EconomyPresenter(
             uiFactory,

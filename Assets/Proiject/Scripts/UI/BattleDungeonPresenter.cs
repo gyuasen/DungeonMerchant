@@ -24,6 +24,8 @@ public sealed class BattleDungeonPresenter
     private readonly Font uiFont;
     private readonly Font uiBodyFont;
     private readonly DungeonRunManager dungeonRunManager;
+    private readonly BattleManager battleManager;
+    private readonly MercenaryPartyManager partyManager;
     private readonly TownProgressState townProgressState;
     private readonly DungeonBattleController dungeonBattleController;
     private readonly TownTravelController townTravelController;
@@ -55,6 +57,15 @@ public sealed class BattleDungeonPresenter
     private readonly Action<DungeonDataSO> showExpeditionForDungeon;
     private readonly Action<RectTransform> refreshPage;
     private readonly Func<AudioFeedbackService> audioFeedbackServiceProvider;
+    private readonly Action<RectTransform, Button> switchToPage;
+    private readonly Action showTownMap;
+    private readonly Action refreshUI;
+    private readonly Func<bool> isProgressionLocked;
+    private readonly Func<bool> hasPendingRoadBattleOutcome;
+    private readonly Func<Button> mapButtonProvider;
+    private readonly Func<Button> townMapButtonProvider;
+    private int displayedRoadOriginTownIndex = -1;
+    private int displayedRoadDestinationTownIndex = -1;
 
     public BattleDungeonPresenter(
         SimpleMercenaryHireUIFactory factory,
@@ -99,7 +110,14 @@ public sealed class BattleDungeonPresenter
         Func<DungeonDataSO, bool> hasExpedition,
         Action<DungeonDataSO> showExpeditionForDungeon,
         Action<RectTransform> refreshPage,
-        Func<AudioFeedbackService> audioFeedbackServiceProvider)
+        Func<AudioFeedbackService> audioFeedbackServiceProvider,
+        Action<RectTransform, Button> switchToPage,
+        Action showTownMap,
+        Action refreshUI,
+        Func<bool> isProgressionLocked,
+        Func<bool> hasPendingRoadBattleOutcome,
+        Func<Button> mapButtonProvider,
+        Func<Button> townMapButtonProvider)
     {
         this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
         if (activeView == null) throw new ArgumentNullException(nameof(activeView));
@@ -135,6 +153,8 @@ public sealed class BattleDungeonPresenter
         this.uiFont = uiFont;
         this.uiBodyFont = uiBodyFont;
         this.dungeonRunManager = dungeonRunManager;
+        this.battleManager = battleManager;
+        this.partyManager = partyManager;
         this.townProgressState = townProgressState;
         this.dungeonBattleController = dungeonBattleController;
         this.townTravelController = townTravelController;
@@ -164,6 +184,13 @@ public sealed class BattleDungeonPresenter
         this.refreshPage = refreshPage ?? throw new ArgumentNullException(nameof(refreshPage));
         if (audioFeedbackServiceProvider == null) throw new ArgumentNullException(nameof(audioFeedbackServiceProvider));
         this.audioFeedbackServiceProvider = audioFeedbackServiceProvider;
+        this.switchToPage = switchToPage ?? throw new ArgumentNullException(nameof(switchToPage));
+        this.showTownMap = showTownMap ?? throw new ArgumentNullException(nameof(showTownMap));
+        this.refreshUI = refreshUI ?? throw new ArgumentNullException(nameof(refreshUI));
+        this.isProgressionLocked = isProgressionLocked ?? throw new ArgumentNullException(nameof(isProgressionLocked));
+        this.hasPendingRoadBattleOutcome = hasPendingRoadBattleOutcome ?? throw new ArgumentNullException(nameof(hasPendingRoadBattleOutcome));
+        this.mapButtonProvider = mapButtonProvider ?? throw new ArgumentNullException(nameof(mapButtonProvider));
+        this.townMapButtonProvider = townMapButtonProvider ?? throw new ArgumentNullException(nameof(townMapButtonProvider));
     }
 
     public void BuildBattlePage()
@@ -325,6 +352,151 @@ public sealed class BattleDungeonPresenter
         UISoundCue uiSoundCue;
         switch (soundCue) { case BattleSoundCue.Attack: case BattleSoundCue.Impact: case BattleSoundCue.Evade: case BattleSoundCue.Defeat: uiSoundCue = UISoundCue.BattleAttack; break; case BattleSoundCue.Heal: case BattleSoundCue.Skill: case BattleSoundCue.Victory: uiSoundCue = UISoundCue.Confirm; break; case BattleSoundCue.Loss: uiSoundCue = UISoundCue.Warning; break; case BattleSoundCue.Reward: uiSoundCue = UISoundCue.Reward; break; default: return; }
         audioFeedbackServiceProvider()?.Play(uiSoundCue);
+    }
+
+    public void ShowDungeonCompletionResult(
+        bool cleared,
+        bool hiddenIslandUnlocked,
+        string explorationResult,
+        bool fullyCleared)
+    {
+        Text statusText = statusTextProvider();
+        statusText.text = cleared
+            ? fullyCleared
+                ? "ダンジョンを完全攻略しました。"
+                : $"フロアを攻略しました。次回は第{dungeonRunManager.CurrentFloor}フロアです。"
+            : "ダンジョン探索を終了しました。";
+        if (!string.IsNullOrEmpty(explorationResult))
+        {
+            statusText.text += $" {explorationResult}";
+        }
+        if (hiddenIslandUnlocked)
+        {
+            statusText.text =
+                "全条件を達成しました。全体マップ中央に新たな島が出現しました。";
+        }
+
+        ShowDungeonPage();
+        dungeonView.resultText.text = cleared
+            ? fullyCleared
+                ? $"{dungeonRunManager.DungeonName}\n完全攻略！\n\n" +
+                  "すべてのフロアを攻略しました。"
+                : "フロア攻略完了\n\n" +
+                  $"次は第{dungeonRunManager.CurrentFloor}フロアです。"
+            : "探索終了\n\n町へ戻って態勢を整えましょう。";
+        dungeonView.nextFloorButton.gameObject.SetActive(cleared && !fullyCleared);
+        dungeonView.resultPanel.SetAsLastSibling();
+        dungeonView.resultPanel.gameObject.SetActive(true);
+        UpdateDungeonEventUI();
+        dungeonPage.GetComponent<DungeonPageUI>()?.RefreshSelection();
+        refreshUI();
+    }
+
+    public void ShowBattlePage()
+    {
+        MoveBattleLogTo(battlePage);
+        switchToPage(battlePage, battleTabButtonProvider());
+    }
+
+    public void RefreshBattlePage()
+    {
+        UpdateDungeonEventUI();
+        Button startBattleButton = startBattleButtonProvider();
+        startBattleButton.interactable = partyManager.Members.Count > 0 && !isProgressionLocked();
+        startBattleButton.gameObject.SetActive(false);
+        battleView.skipButton.interactable = battleManager.IsBattling && !battleManager.IsSkippingToBattleEnd;
+        battleView.pauseButton.interactable = battleManager.IsBattling && !battleManager.IsSkippingToBattleEnd;
+        SetButtonLabel(battleView.pauseButton, battleManager.IsPaused ? "再開" : "一時停止");
+        statusTextProvider().text = $"戦闘参加: 傭兵{partyManager.Members.Count}人";
+    }
+
+    public void ShowRoadBattlePage(int originTownIndex, int destinationTownIndex)
+    {
+        if (townTravelController == null || !townTravelController.RoadTravelState.IsActive ||
+            string.IsNullOrEmpty(WorldMapService.GetTownName(originTownIndex)) ||
+            string.IsNullOrEmpty(WorldMapService.GetTownName(destinationTownIndex)))
+        {
+            return;
+        }
+
+        displayedRoadOriginTownIndex = originTownIndex;
+        displayedRoadDestinationTownIndex = destinationTownIndex;
+        MoveBattleLogTo(roadBattlePage);
+        switchToPage(roadBattlePage, null);
+    }
+
+    public void RefreshRoadBattlePage()
+    {
+        RoadTravelState roadTravelState = townTravelController.RoadTravelState;
+        bool isActive = roadTravelState != null && roadTravelState.IsActive &&
+                        !string.IsNullOrEmpty(WorldMapService.GetTownName(roadTravelState.DestinationTownIndex)) &&
+                        !string.IsNullOrEmpty(WorldMapService.GetTownName(displayedRoadOriginTownIndex)) &&
+                        !string.IsNullOrEmpty(WorldMapService.GetTownName(displayedRoadDestinationTownIndex));
+        mapButtonProvider()?.gameObject.SetActive(false);
+        townMapButtonProvider()?.gameObject.SetActive(false);
+        roadBattle.continueButton.gameObject.SetActive(isActive && roadTravelState.IsAwaitingChoice && !hasPendingRoadBattleOutcome());
+        roadBattle.retreatButton.gameObject.SetActive(isActive && roadTravelState.IsAwaitingChoice && !hasPendingRoadBattleOutcome());
+        roadBattle.skipButton.interactable = battleManager.IsBattling && !battleManager.IsSkippingToBattleEnd;
+        roadBattle.pauseButton.interactable = battleManager.IsBattling && !battleManager.IsSkippingToBattleEnd;
+        SetButtonLabel(roadBattle.pauseButton, battleManager.IsPaused ? "再開" : "一時停止");
+        string originTownName = WorldMapService.GetTownName(displayedRoadOriginTownIndex);
+        string destinationTownName = WorldMapService.GetTownName(displayedRoadDestinationTownIndex);
+        if (!isActive || string.IsNullOrEmpty(originTownName) || string.IsNullOrEmpty(destinationTownName))
+        {
+            roadBattle.routeText.text = "街道移動は終了しました。";
+            return;
+        }
+
+        roadBattle.routeText.text =
+            $"{originTownName} → {destinationTownName}\n" +
+            $"接敵 {roadTravelState.EncounterIndex}/{roadTravelState.EncounterCount}  |  " +
+            (roadTravelState.ContainsRareEncounter ? "幻獣の気配を確認！" : "両地域の通常モンスターが街道を塞いでいます。");
+    }
+
+    public void MoveBattleLogTo(RectTransform destinationPage)
+    {
+        if (battleView.logPanel == null || destinationPage == null) return;
+        battleView.logPanel.SetParent(destinationPage, false);
+        battleView.logPanel.anchorMin = Vector2.zero;
+        battleView.logPanel.anchorMax = new Vector2(1f, 0.24f);
+        battleView.logPanel.offsetMin = Vector2.zero;
+        battleView.logPanel.offsetMax = Vector2.zero;
+        battleVisualControllerProvider()?.MoveTo(destinationPage);
+    }
+
+    public void ShowDungeonPage() => switchToPage(dungeonPage, dungeonTabButtonProvider());
+
+    public void RefreshDungeonPage()
+    {
+        dungeonView.resultPanel?.gameObject.SetActive(false);
+        dungeonBattleController.EnsureNearbyDungeonSelected();
+        if (dungeonRunManager.IsAwaitingEventChoice)
+        {
+            dungeonView.statusText.text = $"遭遇 {dungeonRunManager.CurrentEncounter}/{dungeonRunManager.EncounterCount} を突破。次の行動を選んでください。";
+        }
+        else
+        {
+            dungeonView.statusText.text = dungeonRunManager.IsRunning
+                ? $"第{dungeonRunManager.CurrentFloor}/{dungeonRunManager.TotalFloors}フロア探索中: {dungeonRunManager.CurrentEncounter}/{dungeonRunManager.EncounterCount}"
+                : $"{dungeonRunManager.DungeonName}  |  第{dungeonRunManager.CurrentFloor}/{dungeonRunManager.TotalFloors}フロア  |  遭遇{dungeonRunManager.EncounterCount}回\nフロア報酬 {Mathf.Max(0, dungeonRunManager.SelectedDungeon != null ? dungeonRunManager.SelectedDungeon.floorClearGoldReward : 0)} G  |  完全攻略報酬 {dungeonRunManager.ClearGoldReward} G\n" + DungeonBattleController.BuildDungeonRewardPreview(dungeonRunManager.SelectedDungeon);
+        }
+        UpdateDungeonEventUI();
+        dungeonPage.GetComponent<DungeonPageUI>()?.RefreshSelection();
+        statusTextProvider().text = $"探索パーティー: 傭兵{partyManager.Members.Count}人";
+        refreshUI();
+    }
+
+    public void ContinueToNextDungeonFloor()
+    {
+        dungeonView.resultPanel?.gameObject.SetActive(false);
+        dungeonBattleController.StartDungeonRun();
+    }
+
+    public void ReturnToTownAfterDungeon()
+    {
+        dungeonView.resultPanel?.gameObject.SetActive(false);
+        showTownMap();
+        statusTextProvider().text = $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}へ戻りました。";
     }
     public static void SetButtonLabel(Button button, string label) { Text buttonText = button.GetComponentInChildren<Text>(); if (buttonText != null) buttonText.text = label; }
 
