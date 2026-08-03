@@ -87,9 +87,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private readonly SimpleMercenaryHireUIView.PromotionPreviewReferences
         promotionPreview =
             new SimpleMercenaryHireUIView.PromotionPreviewReferences();
-    private readonly SimpleMercenaryHireUIView.ReleaseConfirmationReferences
-        releaseConfirmation =
-            new SimpleMercenaryHireUIView.ReleaseConfirmationReferences();
     private RectTransform hirePage;
     private RectTransform globalMapPage;
     private RectTransform worldMapPage;
@@ -117,7 +114,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private RectTransform companyScrollContent;
     private RectTransform companyList;
     private RectTransform partyList;
-    private RectTransform healList;
     private Button hireTabButton = null;
     private Button mapButton;
     private Button townMapButton;
@@ -140,9 +136,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private Text goldText;
     private Text dayText;
     private Text statusText;
-    private readonly SimpleMercenaryHireUIView.ContractChangeReferences
-        contractChange =
-            new SimpleMercenaryHireUIView.ContractChangeReferences();
     private readonly SimpleMercenaryHireUIView.ContractDetailsReferences
         contractDetails =
             new SimpleMercenaryHireUIView.ContractDetailsReferences();
@@ -208,6 +201,23 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private static readonly Color MutedTextColor = UITheme.MutedTextColor;
     private static readonly Color ParchmentTextColor = UITheme.ParchmentTextColor;
     private static readonly Color ParchmentMutedColor = UITheme.ParchmentMutedColor;
+
+    private void BuildHealPage() => hirePartyPresenter.BuildHealPage();
+
+    private void BuildReleaseConfirmationOverlay() =>
+        hirePartyPresenter.BuildReleaseConfirmationOverlay();
+
+    private void BuildContractChangeConfirmationOverlay() =>
+        hirePartyPresenter.BuildContractChangeConfirmationOverlay();
+
+    private void ShowContractChangeConfirmation(MercenaryInstance mercenary) =>
+        hirePartyPresenter.ShowContractChangeConfirmation(mercenary);
+
+    private bool CanOpenContractChangeConfirmation(MercenaryInstance mercenary) =>
+        hirePartyPresenter.CanOpenContractChangeConfirmation(mercenary);
+
+    private void ShowReleaseConfirmation(MercenaryInstance mercenary) =>
+        hirePartyPresenter.ShowReleaseConfirmation(mercenary);
 
     private void BuildCharacterDetailOverlay() =>
         characterEquipmentOverlayPresenter.BuildCharacterDetailOverlay();
@@ -1325,14 +1335,17 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
 
         hirePartyPresenter = new HirePartyPresenter(
             uiFactory, activeView, pageRouter, hireAndPartyController, hireManager,
-            partyManager, mercenaryGenerator, merchantStatusAndQuestController,
-            hirePage, companyPage, partyPage, uiFont, uiBodyFont,
+            partyManager, mercenaryGenerator, healingManager, merchantData,
+            merchantStatusAndQuestController, hirePage, companyPage, partyPage,
+            healPage, overlayRoot, uiFont, uiBodyFont,
             () => statusText, () => hireTabButton, () => companyTabButton,
             () => partyTabButton, () => healTabButton, () => startBattleButton,
             ShowContractDetails, ShowContractDetails, ShowCharacterDetails,
             ShowQuestOverlay, ShowTransportOverlay, ShowExpeditionOverlay,
             ShowRemoteSaleOverlay, ShowContractChangeConfirmation,
             CanOpenContractChangeConfirmation, ShowReleaseConfirmation,
+            new SimpleMercenaryHireUIView.ReleaseConfirmationReferences(),
+            new SimpleMercenaryHireUIView.ContractChangeReferences(),
             button => contractSelectButton = button, RefreshPage);
 
         economyPresenter = new EconomyPresenter(

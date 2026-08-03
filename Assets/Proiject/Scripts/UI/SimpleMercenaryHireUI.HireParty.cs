@@ -10,66 +10,7 @@ public partial class SimpleMercenaryHireUI
 
     private void BuildPartyPage() => hirePartyPresenter.BuildPartyPage();
 
-    private void BuildHealPage()
-    {
-        Text title = CreateText(healPage, "治療所", 15, FontStyle.Normal,
-            TextAnchor.MiddleLeft, new Vector2(0f, -30f), new Vector2(0f, 0f),
-            ParchmentMutedColor);
 
-        Text description = CreateText(
-            healPage,
-            $"全回復費用: 失ったHP 1につき {healingManager.HealCostPerHP} G。" +
-            $"戦闘不能の再活性治療は{healingManager.IncapacitatedCostMultiplier}倍+" +
-            $"{healingManager.RevivalBaseCost} G。日送りで毎日 " +
-            $"{healingManager.NaturalHealPerDay} HP回復します。",
-            15,
-            FontStyle.Normal,
-            TextAnchor.MiddleLeft,
-            new Vector2(0f, -72f),
-            new Vector2(0f, -42f),
-            ParchmentMutedColor);
-
-        RectTransform viewport = CreateUIObject("Heal Viewport", healPage);
-        viewport.anchorMin = new Vector2(0f, 0f);
-        viewport.anchorMax = new Vector2(1f, 1f);
-        viewport.offsetMin = Vector2.zero;
-        viewport.offsetMax = new Vector2(0f, -86f);
-
-        Image viewportImage = viewport.gameObject.AddComponent<Image>();
-        viewportImage.color = new Color(0f, 0f, 0f, 0.01f);
-        Mask mask = viewport.gameObject.AddComponent<Mask>();
-        mask.showMaskGraphic = false;
-
-        healList = CreateUIObject("Heal List", viewport);
-        healList.anchorMin = new Vector2(0f, 1f);
-        healList.anchorMax = new Vector2(1f, 1f);
-        healList.pivot = new Vector2(0.5f, 1f);
-        healList.anchoredPosition = Vector2.zero;
-
-        ScrollRect scrollRect = viewport.gameObject.AddComponent<ScrollRect>();
-        scrollRect.content = healList;
-        scrollRect.viewport = viewport;
-        scrollRect.horizontal = false;
-        scrollRect.vertical = true;
-        scrollRect.movementType = ScrollRect.MovementType.Clamped;
-        scrollRect.scrollSensitivity = 28f;
-
-        HealPageUI pageUI =
-            healPage.GetComponent<HealPageUI>() ??
-            healPage.gameObject.AddComponent<HealPageUI>();
-        pageUI.Initialize(title, description, healList);
-        pageUI.Configure(
-            uiBodyFont,
-            ParchmentMutedColor,
-            MutedTextColor,
-            ButtonTextColor,
-            RowColor,
-            WoodButtonColor,
-            FrameColor,
-            null);
-        ConfigureHealListPage(pageUI);
-        pageRouter.Register(healPage);
-    }
 
     private void BuildJobChangePage()
     {
@@ -226,337 +167,37 @@ public partial class SimpleMercenaryHireUI
         promotionPreview.mercenary = null;
     }
 
-    private void BuildReleaseConfirmationOverlay()
-    {
-        releaseConfirmation.overlay = CreateUIObject(
-            "Release Confirmation Overlay",
-            overlayRoot);
-        releaseConfirmation.overlay.anchorMin = Vector2.zero;
-        releaseConfirmation.overlay.anchorMax = Vector2.one;
-        releaseConfirmation.overlay.offsetMin = Vector2.zero;
-        releaseConfirmation.overlay.offsetMax = Vector2.zero;
-        releaseConfirmation.overlay.gameObject.AddComponent<Image>().color =
-            new Color(0f, 0f, 0f, 0.82f);
 
-        RectTransform window = CreateUIObject(
-            "Release Confirmation Window",
-            releaseConfirmation.overlay);
-        window.anchorMin = window.anchorMax = window.pivot =
-            new Vector2(0.5f, 0.5f);
-        window.sizeDelta = new Vector2(600f, 390f);
-        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
-        CreateText(
-            window,
-            "契約を解除しますか？",
-            26,
-            FontStyle.Bold,
-            TextAnchor.MiddleCenter,
-            new Vector2(28f, -72f),
-            new Vector2(-28f, -22f),
-            ParchmentTextColor);
-        releaseConfirmation.text = CreateText(
-            window,
-            string.Empty,
-            17,
-            FontStyle.Normal,
-            TextAnchor.MiddleCenter,
-            new Vector2(36f, -285f),
-            new Vector2(-36f, -80f),
-            ParchmentTextColor);
-        Button confirmButton = CreateActionButton(
-            window,
-            "契約を解除する",
-            ConfirmRelease);
-        RectTransform confirmRect = confirmButton.GetComponent<RectTransform>();
-        confirmRect.anchorMin = confirmRect.anchorMax = confirmRect.pivot =
-            new Vector2(0.5f, 0f);
-        confirmRect.sizeDelta = new Vector2(200f, 48f);
-        confirmRect.anchoredPosition = new Vector2(-110f, 26f);
-        confirmButton.targetGraphic.color = ImportantButtonColor;
-        Button cancelButton = CreateActionButton(
-            window,
-            "やめる",
-            HideReleaseConfirmation);
-        RectTransform cancelRect = cancelButton.GetComponent<RectTransform>();
-        cancelRect.anchorMin = cancelRect.anchorMax = cancelRect.pivot =
-            new Vector2(0.5f, 0f);
-        cancelRect.sizeDelta = new Vector2(180f, 48f);
-        cancelRect.anchoredPosition = new Vector2(110f, 26f);
-        releaseConfirmation.overlay.gameObject.SetActive(false);
-    }
 
-    private void BuildContractChangeConfirmationOverlay()
-    {
-        contractChange.confirmationOverlay = CreateUIObject(
-            "Contract Change Confirmation Overlay",
-            overlayRoot);
-        contractChange.confirmationOverlay.anchorMin = Vector2.zero;
-        contractChange.confirmationOverlay.anchorMax = Vector2.one;
-        contractChange.confirmationOverlay.offsetMin = Vector2.zero;
-        contractChange.confirmationOverlay.offsetMax = Vector2.zero;
-        contractChange.confirmationOverlay.gameObject.AddComponent<Image>().color =
-            new Color(0f, 0f, 0f, 0.82f);
-        RectTransform window = CreateUIObject(
-            "Contract Change Confirmation Window",
-            contractChange.confirmationOverlay);
-        window.anchorMin = window.anchorMax = window.pivot =
-            new Vector2(0.5f, 0.5f);
-        window.sizeDelta = new Vector2(600f, 390f);
-        ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
-        CreateText(
-            window,
-            "契約を変更しますか？",
-            26,
-            FontStyle.Bold,
-            TextAnchor.MiddleCenter,
-            new Vector2(28f, -72f),
-            new Vector2(-28f, -22f),
-            ParchmentTextColor);
-        contractChange.confirmationText = CreateText(
-            window,
-            string.Empty,
-            17,
-            FontStyle.Normal,
-            TextAnchor.MiddleCenter,
-            new Vector2(36f, -285f),
-            new Vector2(-36f, -80f),
-            ParchmentTextColor);
-        contractChange.confirmButton = CreateActionButton(
-            window,
-            "契約を変更する",
-            ConfirmContractChange);
-        RectTransform confirmRect =
-            contractChange.confirmButton.GetComponent<RectTransform>();
-        confirmRect.anchorMin = confirmRect.anchorMax = confirmRect.pivot =
-            new Vector2(0.5f, 0f);
-        confirmRect.sizeDelta = new Vector2(200f, 48f);
-        confirmRect.anchoredPosition = new Vector2(-110f, 26f);
-        contractChange.confirmButton.targetGraphic.color = ImportantButtonColor;
-        Button cancelButton = CreateActionButton(
-            window,
-            "やめる",
-            HideContractChangeConfirmation);
-        RectTransform cancelRect = cancelButton.GetComponent<RectTransform>();
-        cancelRect.anchorMin = cancelRect.anchorMax = cancelRect.pivot =
-            new Vector2(0.5f, 0f);
-        cancelRect.sizeDelta = new Vector2(180f, 48f);
-        cancelRect.anchoredPosition = new Vector2(110f, 26f);
-        contractChange.confirmationOverlay.gameObject.SetActive(false);
-    }
 
-    private void ShowContractChangeConfirmation(MercenaryInstance mercenary)
-    {
-        if (!TryGetNextContractChangeTarget(mercenary, out MercenaryContractType target))
-        {
-            statusText.text = "専属契約は最上位です。";
-            return;
-        }
-        int cost = hireManager.GetInitialContractCost(mercenary, target);
-        MercenaryHireManager.ContractChangeUnavailableReason reason =
-            hireManager.GetContractChangeUnavailableReason(mercenary, target);
-        contractChange.mercenary = mercenary;
-        contractChange.target = target;
-        contractChange.confirmationText.text =
-            mercenary.MercenaryName + "\n" +
-            JapaneseDisplayText.GetContractType(mercenary.ContractType) + " → " +
-            JapaneseDisplayText.GetContractType(target) + "\n" +
-            "新しい期限: " + GetContractEndText(target) + "\n" +
-            "必要費用: " + cost + "G\n" +
-            "新契約金を全額支払います。" +
-            (reason == MercenaryHireManager.ContractChangeUnavailableReason.None
-                ? string.Empty
-                : "\n" + GetContractChangeUnavailableMessage(reason, cost));
-        contractChange.confirmButton.interactable =
-            reason == MercenaryHireManager.ContractChangeUnavailableReason.None;
-        contractChange.confirmationOverlay.SetAsLastSibling();
-        contractChange.confirmationOverlay.gameObject.SetActive(true);
-    }
 
-    private static string GetContractEndText(MercenaryContractType contractType)
-    {
-        switch (contractType)
-        {
-            case MercenaryContractType.Local: return "当日";
-            case MercenaryContractType.Temporary: return "7日間";
-            default: return "無期限";
-        }
-    }
 
-    private bool CanOpenContractChangeConfirmation(MercenaryInstance mercenary)
-    {
-        if (!TryGetNextContractChangeTarget(mercenary, out MercenaryContractType target))
-        {
-            return false;
-        }
-        return hireManager.GetContractChangeUnavailableReason(mercenary, target) ==
-            MercenaryHireManager.ContractChangeUnavailableReason.None;
-    }
 
-    private static bool TryGetNextContractChangeTarget(
-        MercenaryInstance mercenary,
-        out MercenaryContractType target)
-    {
-        target = MercenaryContractType.Local;
-        if (mercenary == null ||
-            mercenary.ContractType == MercenaryContractType.Exclusive)
-        {
-            return false;
-        }
-        target = mercenary.ContractType == MercenaryContractType.Local
-            ? MercenaryContractType.Temporary
-            : MercenaryContractType.Exclusive;
-        return true;
-    }
 
-    private static string GetContractChangeUnavailableMessage(
-        MercenaryHireManager.ContractChangeUnavailableReason reason,
-        int cost)
-    {
-        switch (reason)
-        {
-            case MercenaryHireManager.ContractChangeUnavailableReason.ContractLocked:
-                return "変更先の契約が未解放です。";
-            case MercenaryHireManager.ContractChangeUnavailableReason.InTraining:
-                return "修練中の傭兵は契約を変更できません。";
-            case MercenaryHireManager.ContractChangeUnavailableReason.InTransit:
-                return "街道移動中の傭兵は契約を変更できません。";
-            case MercenaryHireManager.ContractChangeUnavailableReason.OnExpedition:
-                return "別動隊中の傭兵は契約を変更できません。";
-            case MercenaryHireManager.ContractChangeUnavailableReason.InsufficientGold:
-                return "資金不足: " + cost + "G必要です。";
-            default:
-                return "現在、この契約へ変更できません。";
-        }
-    }
 
-    private void ConfirmContractChange()
-    {
-        MercenaryInstance mercenary = contractChange.mercenary;
-        MercenaryContractType target = contractChange.target;
-        MercenaryHireManager.ContractChangeUnavailableReason reason =
-            hireManager.GetContractChangeUnavailableReason(mercenary, target);
-        if (reason != MercenaryHireManager.ContractChangeUnavailableReason.None)
-        {
-            statusText.text = GetContractChangeUnavailableMessage(
-                reason,
-                hireManager.GetInitialContractCost(mercenary, target));
-            return;
-        }
-        HideContractChangeConfirmation();
-        if (hireManager.TryChangeContract(mercenary, target))
-        {
-            statusText.text = mercenary.MercenaryName + "の契約を変更しました。";
-            RefreshPage(companyPage);
-            return;
-        }
-        statusText.text = "契約を変更できませんでした。";
-    }
 
-    private void HideContractChangeConfirmation()
-    {
-        contractChange.confirmationOverlay?.gameObject.SetActive(false);
-        contractChange.mercenary = null;
-    }
 
-    private void ShowReleaseConfirmation(MercenaryInstance mercenary)
-    {
-        string unavailableReason = GetReleaseUnavailableReason(mercenary);
-        if (!string.IsNullOrEmpty(unavailableReason))
-        {
-            statusText.text = unavailableReason;
-            return;
-        }
 
-        releaseConfirmation.mercenary = mercenary;
-        releaseConfirmation.text.text = BuildReleaseConfirmationText(mercenary);
-        releaseConfirmation.overlay.SetAsLastSibling();
-        releaseConfirmation.overlay.gameObject.SetActive(true);
-    }
 
-    private string GetReleaseUnavailableReason(MercenaryInstance mercenary)
-    {
-        if (mercenary == null)
-        {
-            return "契約を解除できる傭兵が選択されていません";
-        }
 
-        MercenaryDuty duty = MercenaryDutyService.GetDuty(mercenary.InstanceId);
-        if (duty == MercenaryDuty.Training)
-        {
-            return "修練中の傭兵は契約を解除できません";
-        }
 
-        if (duty == MercenaryDuty.RoadTransit)
-        {
-            return "街道移動中の傭兵は契約を解除できません";
-        }
 
-        if (duty == MercenaryDuty.Expedition)
-        {
-            return "別動隊中の傭兵は契約を解除できません";
-        }
 
-        return string.Empty;
-    }
 
-    private static string BuildReleaseConfirmationText(MercenaryInstance mercenary)
-    {
-        bool hasEquipment =
-            mercenary.GetEquippedItem(EquipmentSlot.Weapon) != null ||
-            mercenary.GetEquippedItem(EquipmentSlot.Armor) != null ||
-            mercenary.GetEquippedItem(EquipmentSlot.Accessory) != null;
-        string equipmentWarning = hasEquipment
-            ? "\n装備していた武具は傭兵の所在町の倉庫へ戻ります。"
-            : string.Empty;
-        return
-            mercenary.MercenaryName + "\n" +
-            "レベル " + mercenary.Level + "  |  " +
-            JapaneseDisplayText.GetMercenaryClass(mercenary.MercenaryClass) +
-            equipmentWarning +
-            "\n契約を解除すると元に戻せません。";
-    }
 
-    private void ConfirmRelease()
-    {
-        MercenaryInstance mercenary = releaseConfirmation.mercenary;
-        HideReleaseConfirmation();
-        if (string.IsNullOrEmpty(GetReleaseUnavailableReason(mercenary)))
-        {
-            hireAndPartyController.ReleaseMercenary(mercenary);
-        }
-        else
-        {
-            statusText.text = GetReleaseUnavailableReason(mercenary);
-        }
-    }
 
-    private void HideReleaseConfirmation()
-    {
-        releaseConfirmation.overlay?.gameObject.SetActive(false);
-        releaseConfirmation.mercenary = null;
-    }
 
-    private void ConfigureHealListPage(HealPageUI pageUI)
-    {
-        pageUI.ConfigureHealList(
-            () => healingManager.GetMercenariesAtCurrentTown(),
-            mercenary => healingManager.GetMissingHP(mercenary),
-            mercenary => healingManager.GetFullHealCost(mercenary),
-            mercenary => healingManager.CanHeal(mercenary),
-            hireAndPartyController.HealMercenary,
-            ShowCharacterDetails,
-            mercenary => healingManager.GetMissingHP(mercenary) > 0 ||
-                         mercenary.IsIncapacitated,
-            GetHealingUnavailableReason);
-    }
 
-    private string GetHealingUnavailableReason(MercenaryInstance mercenary)
-    {
-        int cost = healingManager.GetFullHealCost(mercenary);
-        return merchantData.Gold >= cost
-            ? string.Empty
-            : $"資金不足: あと {cost - merchantData.Gold}G";
-    }
+
+
+
+
+
+
+
+
+
+
 
     private void HandleMercenaryHired(MercenaryInstance mercenary)
     {
