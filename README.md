@@ -242,7 +242,7 @@ Build Settings には `Title.unity` → `SampleScene.unity` の順でシーン�
 |`BalanceExpansionDefinitionTests` の2件が自動実行から除外|Editorツールによるアセット生成が前提のため `Explicit` 指定。バッチ実行では検証されない|仕様。Test Runner から手動実行で確認可能|
 |倉庫容量判定 `ProgressionManager.CanStore()` が依存 null 時に `true` を返す（fail-open）|参照解決に失敗した構成で容量制限が無効化されうる|課題として特定済み（`ProgressionManager.cs:99-104`）。改善計画に記載|
 
-UI層の責務集中は段階的リファクタリングで**解消済み**です。`SimpleMercenaryHireUI` は **19本・8,627行から5本・2,985行（65%減）**まで縮小し、**19のView/Presenterクラス**を抽出しました。抽出クラスは元クラスへの参照・`FindObjectOfType` を持たず、依存はコンストラクタ注入のみです。主要Presenterのコンストラクタも責務別の依存束へ再編し、最大53引数から**3〜5引数**に整理しています（詳細は [handoff/UI_REFACTOR_HANDOFF.md](handoff/UI_REFACTOR_HANDOFF.md)）。セーブ書き込みも一時ファイル経由の原子的置換（`.tmp`→`File.Replace`、既存は `.bak` 退避）へ改善済みです。
+UI層の責務集中は段階的リファクタリングで**解消済み**です。`SimpleMercenaryHireUI` は **19本・8,627行から5本・2,991行（65%減）**まで縮小し、**19のView/Presenterクラス**を抽出しました。抽出クラスは元クラスへの参照・`FindObjectOfType` を持たず、依存はコンストラクタ注入のみです。主要Presenterのコンストラクタも責務別の依存束へ再編し、最大53引数から**3〜5引数**に整理しています（詳細は [handoff/UI_REFACTOR_HANDOFF.md](handoff/UI_REFACTOR_HANDOFF.md)）。セーブ書き込みも一時ファイル経由の原子的置換（`.tmp`→`File.Replace`、既存は `.bak` 退避）へ改善済みです。
 
 なお、ドロップ装備と装備特殊能力については、セーブデータ整合性の監査を実施済みです。`ItemDataSO` 217件すべてに `persistentId` が設定され重複がないこと、特殊能力がマスタ側（`ItemDataSO.equipmentEffects`）に保持されるため個体データの保存形式変更を伴わないこと、`GameSaveData.CurrentVersion = 37` と `SaveDataMigrator` の整合が取れていることを確認しており、**セーブ・再起動・ロードによる装備や特殊能力の消失リスクはありません**。
 
@@ -254,7 +254,7 @@ UI層の責務集中は段階的リファクタリングで**解消済み**で�
 
 完了済み:
 
-- ~~`SimpleMercenaryHireUI` の Presenter/View 分割~~ → **完了**（19本8,627行 → 5本2,985行、19クラス抽出）
+- ~~`SimpleMercenaryHireUI` の Presenter/View 分割~~ → **完了**（19本8,627行 → 5本2,991行、19クラス抽出）
 - ~~セーブの原子的書き込み~~ → **完了**（`.tmp`→`File.Replace`、`.bak` 退避）
 - `FindObjectOfType` の削減 → **一部完了**（134→101箇所。保存経路の全走査を除去し、`??` によるfake-null素通りを全廃）
 

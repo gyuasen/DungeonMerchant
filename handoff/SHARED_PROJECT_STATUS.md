@@ -17,7 +17,7 @@ UI層の構造改善を進行中。**再開手順・残作業・変換パター�
 **2026-08-04 時点で、このリファクタリング系列は完了した。**
 
 - EditMode **797件** / PlayMode **8件**、いずれも失敗0。
-- `SimpleMercenaryHireUI` の partial を19本・**8,627行から5本・2,985行**へ削減（65%減）。
+- `SimpleMercenaryHireUI` の partial を19本・**8,627行から5本・2,991行**へ削減（65%減）。
   16機能を **19のView/Presenterクラス**へ分離。
 - 主要Presenterのコンストラクタを責務別の依存束へ再編（最大53引数→**3〜5引数**）。
 - `DungeonMerchant.Domain`（`noEngineReferences: true`）を新設し、Unity非依存を
