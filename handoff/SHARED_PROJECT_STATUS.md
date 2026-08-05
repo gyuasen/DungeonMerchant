@@ -14,17 +14,21 @@
 UI層の構造改善を進行中。**再開手順・残作業・変換パターン・テスト実行方法は
 [UI_REFACTOR_HANDOFF.md](UI_REFACTOR_HANDOFF.md) にまとめてある。**
 
-現在の到達点:
+**2026-08-04 時点で、このリファクタリング系列は完了した。**
 
-- EditMode **794件** / PlayMode **8件**、いずれも失敗0。
-- `SimpleMercenaryHireUI` の partial を19本から **12本** へ削減（9機能を独立クラスへ変換）。
+- EditMode **797件** / PlayMode **8件**、いずれも失敗0。
+- `SimpleMercenaryHireUI` の partial を19本・**8,627行から5本・2,985行**へ削減（65%減）。
+  16機能を **19のView/Presenterクラス**へ分離。
+- 主要Presenterのコンストラクタを責務別の依存束へ再編（最大53引数→**3〜5引数**）。
 - `DungeonMerchant.Domain`（`noEngineReferences: true`）を新設し、Unity非依存を
   コンパイラ強制にする最小実証を完了。
-- 構造評価は UI層 D→**B−〜B**、依存関係管理 C→**B−**、パフォーマンス B→**B+**。
-  評価根拠は `docs/ARCHITECTURE_ASSESSMENT.md`。
+- 構造評価は **UI層 D→A−**、依存関係管理 C→**B−**、パフォーマンス B→**B+**。
+  総合は「純粋な構造品質A− / ポートフォリオとして強いA−」。
+  第三者監査（Codex Sol）による5回の独立判定。根拠は `docs/ARCHITECTURE_ASSESSMENT.md`。
 
-次に着手するなら `SimpleMercenaryHireUI.MerchantQuest.cs`(527行) か
-`.Expedition.cs`(389行)。中規模で結合が比較的浅い。
+**追加のUI解体は不要。** 残る `BattleDungeon.cs`(313行) と `Map.cs`(52行) は
+コルーチンとイベント調停であり、非MonoBehaviourへ移せない意図した境界。
+機能追加で自然に必要になった場合のみ再検討する。
 
 ## 現在の全体状況
 

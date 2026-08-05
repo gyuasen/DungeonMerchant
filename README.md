@@ -64,7 +64,7 @@ Windowsは Win+Shift+S で範囲キャプチャ、Unityのゲームビューを�
 ## コードの見どころ
 
 - **UIの責務分離（Controllerパターン抽出）**: 巨大UIクラスからロジックを段階的に抽出しています。`Assets/Proiject/Scripts/UI/EconomyController.cs` が入口としておすすめです
-- **純粋ロジック＋テスト**: `Assets/Proiject/Scripts/Core/WorldMapService.cs` などUnity非依存のロジック層に対し、`Assets/Proiject/Tests/EditMode/` に793件のEditModeテストを整備しています（リファクタリング前後の等価性を810通りの組み合わせで検証するパリティテストを含みます）。PlayModeテスト8件と合わせて計801件が自動実行され、現時点で失敗0件です（[TEST_BASELINE.md](TEST_BASELINE.md)）
+- **純粋ロジック＋テスト**: `Assets/Proiject/Scripts/Core/WorldMapService.cs` などUnity非依存のロジック層に対し、`Assets/Proiject/Tests/EditMode/` に797件のEditModeテストを整備しています（リファクタリング前後の等価性を810通りの組み合わせで検証するパリティテストを含みます）。PlayModeテスト8件と合わせて計805件が自動実行され、現時点で失敗0件です（[TEST_BASELINE.md](TEST_BASELINE.md)）
 - **セーブ・マイグレーション**: 永続IDによる参照解決と、旧形式セーブデータを移行する `SaveDataMigrator` を実装しています
 - **AI支援リファクタリングの記録**: `handoff/CLAUDE_WORK_LOG.md` に、AIエージェントと協働した設計判断・リファクタリングの経緯を全て記録しています
 
@@ -222,13 +222,13 @@ Build Settings には `Title.unity` → `SampleScene.unity` の順でシーン�
 
 # テスト状況
 
-2026-07-31 時点の自動テスト実行結果です。Unity バッチモードで実行しています。
+2026-08-04 時点の自動テスト実行結果です。Unity バッチモードで実行しています。
 
 |プラットフォーム|総数|成功|失敗|スキップ|
 |---|---:|---:|---:|---:|
-|EditMode|793|791|0|2|
+|EditMode|797|795|0|2|
 |PlayMode|8|8|0|0|
-|**合計**|**801**|**799**|**0**|**2**|
+|**合計**|**805**|**803**|**0**|**2**|
 
 スキップされた2件は `Explicit` 属性を付与した手動実行専用のアセット検証テストであり、不具合ではありません。詳細な内訳・分類・再実行手順は [TEST_BASELINE.md](TEST_BASELINE.md) に記録しています。
 
@@ -242,7 +242,7 @@ Build Settings には `Title.unity` → `SampleScene.unity` の順でシーン�
 |`BalanceExpansionDefinitionTests` の2件が自動実行から除外|Editorツールによるアセット生成が前提のため `Explicit` 指定。バッチ実行では検証されない|仕様。Test Runner から手動実行で確認可能|
 |倉庫容量判定 `ProgressionManager.CanStore()` が依存 null 時に `true` を返す（fail-open）|参照解決に失敗した構成で容量制限が無効化されうる|課題として特定済み（`ProgressionManager.cs:99-104`）。改善計画に記載|
 
-UI層の責務集中は段階的リファクタリングで改善済みです。`SimpleMercenaryHireUI` は 19→10 partial・合計約7,800行（本体1,459行）まで縮小し、View/Presenter を10クラス抽出しました（詳細は [handoff/UI_REFACTOR_HANDOFF.md](handoff/UI_REFACTOR_HANDOFF.md)）。セーブ書き込みも一時ファイル経由の原子的置換（`.tmp`→`File.Replace`、既存は `.bak` 退避）へ改善済みです。
+UI層の責務集中は段階的リファクタリングで**解消済み**です。`SimpleMercenaryHireUI` は **19本・8,627行から5本・2,985行（65%減）**まで縮小し、**19のView/Presenterクラス**を抽出しました。抽出クラスは元クラスへの参照・`FindObjectOfType` を持たず、依存はコンストラクタ注入のみです。主要Presenterのコンストラクタも責務別の依存束へ再編し、最大53引数から**3〜5引数**に整理しています（詳細は [handoff/UI_REFACTOR_HANDOFF.md](handoff/UI_REFACTOR_HANDOFF.md)）。セーブ書き込みも一時ファイル経由の原子的置換（`.tmp`→`File.Replace`、既存は `.bak` 退避）へ改善済みです。
 
 なお、ドロップ装備と装備特殊能力については、セーブデータ整合性の監査を実施済みです。`ItemDataSO` 217件すべてに `persistentId` が設定され重複がないこと、特殊能力がマスタ側（`ItemDataSO.equipmentEffects`）に保持されるため個体データの保存形式変更を伴わないこと、`GameSaveData.CurrentVersion = 37` と `SaveDataMigrator` の整合が取れていることを確認しており、**セーブ・再起動・ロードによる装備や特殊能力の消失リスクはありません**。
 
@@ -252,13 +252,18 @@ UI層の責務集中は段階的リファクタリングで改善済みです。
 
 機能拡張を重ねた結果、一部のクラスに責務が集中しています。これらを場当たり的に書き換えるのではなく、静的解析と実コードの根拠に基づいて課題を洗い出し、優先度と工数を評価したうえで、既存の自動テストで挙動を維持しながら段階的に改善する計画を策定しました。
 
-着手順（費用対効果で優先度付け）:
+完了済み:
+
+- ~~`SimpleMercenaryHireUI` の Presenter/View 分割~~ → **完了**（19本8,627行 → 5本2,985行、19クラス抽出）
+- ~~セーブの原子的書き込み~~ → **完了**（`.tmp`→`File.Replace`、`.bak` 退避）
+- `FindObjectOfType` の削減 → **一部完了**（134→101箇所。保存経路の全走査を除去し、`??` によるfake-null素通りを全廃）
+
+残る着手順（費用対効果で優先度付け）:
 
 1. 倉庫容量判定の fail-open 修正（依存欠落時に容量制限が無効化される箇所）
-2. セーブの原子的書き込みと破損時の復旧経路の追加
-3. Bootstrap の初期化順・イベント購読タイミングの固定
-4. `SimpleMercenaryHireUI` の Presenter/View 分割（1画面ずつ段階適用）
-5. `FindObjectOfType` による依存解決の Composition Root への集約
+2. Bootstrap の初期化順・イベント購読タイミングの固定
+3. `FindObjectOfType` の Composition Root への完全集約（残101箇所）
+4. Domain アセンブリの拡大（現在は最小実証の2ファイルのみ）
 
 その他の予定:
 

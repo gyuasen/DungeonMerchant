@@ -1,6 +1,6 @@
 # テスト実行基準記録（TEST_BASELINE）
 
-- **測定日**: 2026-07-31（初回測定: 2026-07-22）
+- **測定日**: 2026-08-04（初回測定: 2026-07-22）
 - **Unity バージョン**: 2022.3.62f3
 - **実行方法**: Unity バッチモード（`-batchmode -runTests`）
 - **実行環境**: Windows 11 / プロジェクトの非破壊クローン上で実行
@@ -12,20 +12,20 @@
 
 | プラットフォーム | 総数 | 成功 | 失敗 | スキップ | 結果 |
 |---|---:|---:|---:|---:|---|
-| EditMode | 793 | 791 | **0** | 2 | Passed |
+| EditMode | 797 | 795 | **0** | 2 | Passed |
 | PlayMode | 8 | 8 | **0** | 0 | Passed |
-| **合計** | **801** | **799** | **0** | **2** | **Passed** |
+| **合計** | **805** | **803** | **0** | **2** | **Passed** |
 
 テストアセンブリ:
 
-- `DungeonMerchant.EditModeTests.dll` — 793 件
+- `DungeonMerchant.EditModeTests.dll` — 797 件
 - `DungeonMerchant.PlayModeTests.dll` — 8 件
 
 **失敗しているテストは存在しない。**
 
 推移: 初回測定（2026-07-22）は EditMode 559 件。その後の改善作業で
 EconomyController（+22）・CharacterEquipmentController（+28）・
-TownTravelController（+30）などUI層のテストを拡充し、793 件となった。
+TownTravelController（+30）などUI層のテストを拡充し、797 件となった。
 スキップ2件は `BalanceExpansionDefinitionTests` の既知の2件で初回から変化なし。
 
 ---

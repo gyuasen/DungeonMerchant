@@ -13,8 +13,10 @@
 |---|---|---|
 | EditModeテスト | 713 | **794**（失敗0） |
 | PlayModeテスト | 8（未検証） | **8**（失敗0・実証済み） |
-| `SimpleMercenaryHireUI` partial数 | 19 | **12** |
-| 同クラス合計行数 | 10,406 | **9,548** |
+| `SimpleMercenaryHireUI` partial数 | 19 | **5** |
+| 同クラス合計行数 | 10,406 | **2,985**（初回8,627行から65%減） |
+| 抽出View/Presenter | 0 | **19クラス** |
+| 主要Presenterのctor引数 | — | **3〜5**（最大53から整理） |
 | 共有フィールド | 317 → 162 | **153** |
 | `FindObjectOfType` | 134 | **101** |
 | 抽出View/Presenterクラス | 0 | **10クラス / 1,561行** |
@@ -28,7 +30,10 @@
 | セーブ設計 | B+ | B+ |
 | パフォーマンス対応 | B | B+ |
 | 依存関係管理 | C | **B−** |
-| **UI層の構造** | **D** | **B−〜B** |
+| **UI層の構造** | **D** | **A−** |
+
+> UI層は第三者監査（Codex Sol）による5回の独立判定を経て **D → C+ → B → B+ → A−** に到達。
+> 総合は「純粋な構造品質A− / ポートフォリオとして強いA−」。**このリファクタリング系列は完了と判断された。**
 
 評価根拠の全文は [../docs/ARCHITECTURE_ASSESSMENT.md](../docs/ARCHITECTURE_ASSESSMENT.md)。
 
@@ -49,6 +54,15 @@
 | `.RemoteSale.cs` | `RemoteSaleOverlayView` |
 | `.Story.cs` | `StoryOverlayView`（表示のみ） |
 | `.DailyResult.cs` | `DailyResultOverlayView`（表示のみ） |
+| `.Expedition.cs` | `ExpeditionOverlayPresenter` |
+| `.MerchantQuest.cs` | `MerchantQuestOverlayPresenter` |
+| `.CharacterEquipment.cs` | `CharacterEquipmentOverlayPresenter` |
+| `.Economy.cs` | `EconomyPresenter`（3段階） |
+| `.HireParty.cs` | `HirePartyPresenter`（3段階） |
+| `.BattleDungeon.cs` | `BattleDungeonPresenter`（3段階・313行残置） |
+| `.Map.cs` | `MapPresenter`（3段階・52行残置） |
+
+**500行を超えるpartialは3段階に分けること。** 1,031行の一括変換を試みて失敗した実績がある。各段階でコンパイルと全テスト通過を確認してからコミットする。
 
 ### その他
 
@@ -85,31 +99,46 @@
 
 ---
 
-## 4. 残作業（優先順）
+## 4. 現在の構成と、残作業の扱い
 
-### 残りのpartial（12本の内訳）
+### partial 5本の内訳（すべて意図した状態）
 
-| partial | 行数 | 難度・注意点 |
+| partial | 行数 | 性質 |
 |---|---|---|
-| `.Map.cs` | 956 | 最大。町マップ・地域選択・移動導線が集中 |
-| `.HireParty.cs` | 978 | 雇用と編成。`ShowContractDetails` を呼ぶ |
-| `.CharacterEquipment.cs` | 1,330 | 最大級。専用Controllerあり |
-| `.BattleDungeon.cs` | 1,209 | 戦闘とダンジョン。コルーチン多数 |
-| `.Economy.cs` | 1,030 | 市場・鍛冶・倉庫。`EconomyController` あり |
-| `.MerchantQuest.cs` | 527 | 依頼。`questView` グループ済み |
-| `.Expedition.cs` | 389 | 別動隊 |
-| `.UIFactory.cs` | 520 | UI生成ヘルパー。他partialが依存 |
-| `.ScrollHelpers.cs` | 70 | 小。他partialが使うヘルパー |
-| `.cs`（本体） | — | facade・配線・フィールド |
+| `.cs`（本体） | 2,033 | composition root（依存解決・Presenter生成・BuildUI・イベント購読・facade） |
+| `.UIFactory.cs` | 523 | UI生成ヘルパー |
+| `.BattleDungeon.cs` | **313** | **意図した境界**（コルーチン4本・pending状態・イベント調停） |
+| `.ScrollHelpers.cs` | 70 | 補助ヘルパー |
+| `.Map.cs` | **52** | **意図した境界**（コルーチン・Unlock同期・facade） |
 
-**次に着手するなら `.MerchantQuest.cs`（527行）か `.Expedition.cs`（389行）** — 中規模で結合が比較的浅い。
-`.UIFactory.cs` と `.ScrollHelpers.cs` は他partialから使われるヘルパー群なので、
-`SimpleMercenaryHireUIFactory` への統合を検討する価値があるが、依存の洗い出しが先。
+**`BattleDungeon.cs` と `Map.cs` の365行は「未完の抽出」ではない。** 残るのは非MonoBehaviourのPresenterへ移せないもの（`StartCoroutine`、Unity擬似nullを扱う探索、`Debug.LogWarning(..., this)`）で、監査でも「MonoBehaviourと非MonoBehaviourの意図した境界」「薄いAdapter/Facadeとして成立」と評価されている。**これ以上削るべきではない。**
 
-### B評価を確定させるための残り
+### 変換完了した機能（全13本）
 
-- **行数基準（8,000行以下）が未達**（現在9,548行）。あと1,500行の削減が必要
-- 中規模partial 2〜3本の変換で到達見込み
+Tutorial / ContractDetails / FacilityGreeting / MonsterCodex / Onboarding / TrainingGround / RemoteSale / Story / DailyResult / Expedition / MerchantQuest / CharacterEquipment / Economy / HireParty / BattleDungeon / Map
+
+### 依存束パターン（後続作業で従うこと）
+
+Presenterの依存が増えすぎた際は、責務別の依存束へ再編する。`MapPresenter` が最も素直な実装例。
+
+```
+XxxViewDependencies    … factory / 各page / 参照コンテナ / Func<T>プロバイダ
+XxxDomainDependencies  … Manager・Controller類
+XxxCallbacks           … 生成物を本体へ戻すsetter
+XxxNavigation          … ページ遷移・refresh・その他Action
+```
+
+主要4Presenterのctorは **3〜5引数**（整理前は最大53）。**束にPresenter自身の公開メソッドを入れないこと**（循環参照になる）。
+
+### 監査の結論
+
+> 「このリファクタリング系列は**完了と判断してよい**。これ以上、評価を上げる目的だけで本体を分割する費用対効果は低い。次に優先すべきは追加リファクタリングではなく、ポートフォリオで改善過程を説明すること」
+
+**機能追加で自然に必要になった場合のみ**、以下を検討すればよい。
+
+- 移動確認UIが成長したら `TravelConfirmationPresenter` を抽出
+- 本体130フィールドを機能別モジュールへ分ける
+- 依存束をコンストラクタ＋read-onlyプロパティ化する
 
 ### アセンブリ分割の続き（任意）
 

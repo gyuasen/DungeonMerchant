@@ -643,3 +643,45 @@
 
 - EditMode **794件**（passed 792 / failed 0 / skipped 2）、PlayMode **8件**（failed 0）。
 - 9本の変換すべてでEditMode+PlayModeを実行し、失敗0を維持したままコミットした。
+
+---
+
+## 2026-07-31〜08-04 UI層partial解体の完遂（Opus統括 + Codex Sol/Terra）
+
+**このリファクタリング系列は完了。** 再開時は `handoff/UI_REFACTOR_HANDOFF.md` を読むこと。
+
+### 成果
+
+| 指標 | 開始 | 完了 |
+|---|---|---|
+| partial | 19本・8,627行 | **5本・2,985行**（65%減） |
+| 抽出クラス | 0 | **19** |
+| 主要Presenterのctor | 最大53引数 | **3〜5引数** |
+| UI層評価 | D | **A−** |
+
+変換完了16機能: Tutorial / ContractDetails / FacilityGreeting / MonsterCodex / Onboarding / TrainingGround / RemoteSale / Story / DailyResult / Expedition / MerchantQuest / CharacterEquipment / Economy / HireParty / BattleDungeon / Map
+
+### 開発プロセス上の学び
+
+- **500行超のpartialは3段階に分ける**。Economy(1,031行)の一括変換が失敗し、以降は分割方式に切り替えて全て成功した。各段階でコンパイルと全テスト通過を確認してからコミットする。
+- **初期化順の事故が5回発生**。Presenter生成は`BuildUI()`の`BindPageLayout()`直後だが、その時点で未確定のUI要素（`statusText`、タブボタン、`startBattleButton`、`audioFeedbackService`）を値渡しするとctorのnullガードがUI構築全体を中断させる。`Func<T>`で遅延解決する。**事前に洗い出せば防げる** — HireParty以降はSolに事前特定させて事故ゼロ。
+- **これらの事故はすべてPlayModeでのみ検出された**。EditModeは通る。両方を毎回回すこと。
+- **Presenter自身の公開メソッドをctor引数に要求すると循環参照になる**（BattleDungeonで発生）。ラムダで包むか、そもそも渡さない設計にする。
+- **抽出を進めると別の問題が生まれる**。BattleDungeonPresenterが53引数、HirePartyPresenterが47引数になり監査で指摘された。責務別の依存束（View/Domain/Callbacks/Navigation）へ再編して3〜5引数に整理。ロジックを触らないパラメータ再構成なので3件とも一発通過した。
+- **消せる行を消さない判断も必要**。`BattleDungeon.cs`(313行)と`Map.cs`(52行)はコルーチン・pending状態・イベント調停で、非MonoBehaviourへは移せない。監査でも「意図した境界」と評価された。
+
+### サブエージェント運用で捕捉した問題
+
+Codexは Unity を実行できないため、コンパイルとテストの検証は必ず依頼元がクローン環境で行う。実際に以下を検出した。
+
+- ファイル先頭へのシェル出力混入（`Exit code:` 等3行）でコンパイルエラー
+- `#if false` による移設済みコードの残置（約410行）→ 物理削除させた
+- `Action`→`UnityAction` の型不一致（`CreateActionButton` は `UnityAction` を取る）
+- bool返却メソッドを `Action` に渡す誤り（`TryUnlockHiddenIsland`）
+- ローカル変数によるフィールド遮蔽（`quest` → `questView` に改名して回避）
+- フィールド宣言の漏れ・私自身のsedによる無関係な3行の誤削除
+
+### 検証
+
+- 全工程で EditMode **797件** / PlayMode **8件**、失敗0を維持。
+- 各partial変換ごとに両プラットフォームを実行してからコミットした。
