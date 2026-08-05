@@ -10,6 +10,10 @@
 /tmp/
 # セーブデータのバックアップ（個人のプレイ記録なのでリポジトリに含めない）
 /savebackup/
+# 過去の復旧用スナップショット（プロジェクトの重複コピー）
+/_recovery_snapshot_*/
+# 誤ってネストしたUnity生成物（本来 /Library/ 等で除外される想定のもの）
+/DungeonMerchant/
 *.json.savebak
 game-save*.json
 /[Ll]ibrary/
