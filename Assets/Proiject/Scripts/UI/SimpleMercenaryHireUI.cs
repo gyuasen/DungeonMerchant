@@ -167,6 +167,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private EconomyPresenter economyPresenter;
     private HirePartyPresenter hirePartyPresenter;
     private BattleDungeonPresenter battleDungeonPresenter;
+    private MapPresenter mapPresenter;
     private CharacterEquipmentController characterEquipmentController;
     private CharacterEquipmentOverlayPresenter characterEquipmentOverlayPresenter;
     private MerchantStatusAndQuestController merchantStatusAndQuestController;
@@ -240,6 +241,9 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private void HandlePricesChanged() => economyPresenter.HandlePricesChanged();
 
     private void ShowMarketPage() => economyPresenter.ShowMarketPage();
+
+    private void BuildGlobalMapPage() => mapPresenter.BuildGlobalMapPage();
+    private void BuildWorldMapPage() => mapPresenter.BuildWorldMapPage();
 
     private void ShowBlacksmithPage() => economyPresenter.ShowBlacksmithPage();
 
@@ -1364,6 +1368,59 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
         }
 
         BindPageLayout(view, panel);
+
+        mapPresenter = new MapPresenter(
+            new MapViewDependencies
+            {
+                uiFactory = uiFactory,
+                activeView = activeView,
+                pageRouter = pageRouter,
+                overlayRoot = overlayRoot,
+                globalMapPage = globalMapPage,
+                worldMapPage = worldMapPage,
+                townMapPage = townMapPage,
+                travelConfirmation = travelConfirmation,
+                roadBattle = roadBattle,
+                getStatusText = () => statusText,
+                getMapButton = () => mapButton,
+                getTownMapButton = () => townMapButton
+            },
+            new MapDomainDependencies
+            {
+                townProgressState = townProgressState,
+                townTravelController = townTravelController,
+                dungeonRunManager = dungeonRunManager,
+                dungeonBattleController = dungeonBattleController,
+                merchantInventory = merchantInventory,
+                mercenaryHireManager = hireManager,
+                roadCargoSession = roadCargoSession,
+                marketPriceManager = marketPriceManager
+            },
+            new MapNavigationActions
+            {
+                showWorldMap = ShowWorldMap,
+                showGlobalMap = ShowGlobalMap,
+                refreshGlobalMapPage = RefreshGlobalMapPage,
+                refreshWorldMapPage = RefreshWorldMapPage,
+                setVisibleRegionMap = SetVisibleRegionMap,
+                refreshTownMapButtons = RefreshTownMapButtons,
+                addRegionMapPage = page => regionMapPages.Add(page),
+                addTownMapButton = button => townMapButtons.Add(button),
+                setHiddenIslandRegionButton = button => hiddenIslandRegionButton = button
+            },
+            new MapFacilityActions
+            {
+                openFacilityWithGreeting = OpenFacilityWithGreeting,
+                showHirePage = ShowHirePage,
+                showCompanyPage = ShowCompanyPage,
+                showMarketPage = ShowMarketPage,
+                showBlacksmithPage = ShowBlacksmithPage,
+                showInventoryPage = ShowInventoryPage,
+                showHealPage = ShowHealPage,
+                showJobChangePage = ShowJobChangePage,
+                showTrainingGroundPage = ShowTrainingGroundPage
+            },
+            new MapUnlockActions { tryUnlockHiddenIsland = TryUnlockHiddenIsland });
 
         hirePartyPresenter = new HirePartyPresenter(
             uiFactory, activeView, pageRouter, hireAndPartyController, hireManager,
