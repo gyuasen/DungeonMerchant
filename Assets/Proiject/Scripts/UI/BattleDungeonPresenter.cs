@@ -5,6 +5,72 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+public sealed class BattleDungeonViewDependencies
+{
+    public SimpleMercenaryHireUIFactory factory;
+    public SimpleMercenaryHireUIView activeView;
+    public UIPageRouter pageRouter;
+    public RectTransform battlePage;
+    public RectTransform roadBattlePage;
+    public RectTransform dungeonPage;
+    public Font uiFont;
+    public Font uiBodyFont;
+    public SimpleMercenaryHireUIView.BattleViewReferences battleView;
+    public SimpleMercenaryHireUIView.RoadBattleReferences roadBattle;
+    public SimpleMercenaryHireUIView.DungeonViewReferences dungeonView;
+    public Func<Text> statusTextProvider;
+    public Func<Button> startBattleButtonProvider;
+    public Func<Button> startDungeonButtonProvider;
+    public Func<Button> firstDungeonEventButtonProvider;
+    public Func<Button> secondDungeonEventButtonProvider;
+    public Func<Button> thirdDungeonEventButtonProvider;
+    public Func<BattleVisualController> battleVisualControllerProvider;
+    public Func<Button> battleTabButtonProvider;
+    public Func<Button> dungeonTabButtonProvider;
+    public Func<Button> mapButtonProvider;
+    public Func<Button> townMapButtonProvider;
+}
+
+public sealed class BattleDungeonDomainDependencies
+{
+    public BattleManager battleManager;
+    public DungeonRunManager dungeonRunManager;
+    public MercenaryPartyManager partyManager;
+    public TownProgressState townProgressState;
+    public ProgressionManager progressionManager;
+    public DungeonBattleController dungeonBattleController;
+    public TownTravelController townTravelController;
+}
+
+public sealed class BattleDungeonCallbacks
+{
+    public Action<Button> setStartBattleButton;
+    public Action<Button> setStartDungeonButton;
+    public Action<Button> setFirstDungeonEventButton;
+    public Action<Button> setSecondDungeonEventButton;
+    public Action<Button> setThirdDungeonEventButton;
+    public Action<BattleVisualController> bindBattleVisualController;
+}
+
+public sealed class BattleDungeonNavigation
+{
+    public UnityAction refreshBattlePage;
+    public UnityAction refreshRoadBattlePage;
+    public UnityAction refreshDungeonPage;
+    public UnityAction continueToNextDungeonFloor;
+    public UnityAction returnToTownAfterDungeon;
+    public Func<DungeonDataSO, bool> canShowExpeditionAction;
+    public Func<DungeonDataSO, bool> hasExpedition;
+    public Action<DungeonDataSO> showExpeditionForDungeon;
+    public Action<RectTransform> refreshPage;
+    public Func<AudioFeedbackService> audioFeedbackServiceProvider;
+    public Action<RectTransform, Button> switchToPage;
+    public Action showTownMap;
+    public Action refreshUI;
+    public Func<bool> isProgressionLocked;
+    public Func<bool> hasPendingRoadBattleOutcome;
+}
+
 public sealed class BattleDungeonPresenter
 {
     private static readonly Color ParchmentMutedColor = UITheme.ParchmentMutedColor;
@@ -68,129 +134,87 @@ public sealed class BattleDungeonPresenter
     private int displayedRoadDestinationTownIndex = -1;
 
     public BattleDungeonPresenter(
-        SimpleMercenaryHireUIFactory factory,
-        SimpleMercenaryHireUIView activeView,
-        UIPageRouter pageRouter,
-        RectTransform battlePage,
-        RectTransform roadBattlePage,
-        RectTransform dungeonPage,
-        Font uiFont,
-        Font uiBodyFont,
-        BattleManager battleManager,
-        DungeonRunManager dungeonRunManager,
-        MercenaryPartyManager partyManager,
-        TownProgressState townProgressState,
-        ProgressionManager progressionManager,
-        DungeonBattleController dungeonBattleController,
-        TownTravelController townTravelController,
-        SimpleMercenaryHireUIView.BattleViewReferences battleView,
-        SimpleMercenaryHireUIView.RoadBattleReferences roadBattle,
-        SimpleMercenaryHireUIView.DungeonViewReferences dungeonView,
-        Func<Text> statusTextProvider,
-        Func<Button> startBattleButtonProvider,
-        Func<Button> startDungeonButtonProvider,
-        Func<Button> firstDungeonEventButtonProvider,
-        Func<Button> secondDungeonEventButtonProvider,
-        Func<Button> thirdDungeonEventButtonProvider,
-        Func<BattleVisualController> battleVisualControllerProvider,
-        Func<Button> battleTabButtonProvider,
-        Func<Button> dungeonTabButtonProvider,
-        Action<Button> setStartBattleButton,
-        Action<Button> setStartDungeonButton,
-        Action<Button> setFirstDungeonEventButton,
-        Action<Button> setSecondDungeonEventButton,
-        Action<Button> setThirdDungeonEventButton,
-        Action<BattleVisualController> bindBattleVisualController,
-        UnityAction refreshBattlePage,
-        UnityAction refreshRoadBattlePage,
-        UnityAction refreshDungeonPage,
-        UnityAction continueToNextDungeonFloor,
-        UnityAction returnToTownAfterDungeon,
-        Func<DungeonDataSO, bool> canShowExpeditionAction,
-        Func<DungeonDataSO, bool> hasExpedition,
-        Action<DungeonDataSO> showExpeditionForDungeon,
-        Action<RectTransform> refreshPage,
-        Func<AudioFeedbackService> audioFeedbackServiceProvider,
-        Action<RectTransform, Button> switchToPage,
-        Action showTownMap,
-        Action refreshUI,
-        Func<bool> isProgressionLocked,
-        Func<bool> hasPendingRoadBattleOutcome,
-        Func<Button> mapButtonProvider,
-        Func<Button> townMapButtonProvider)
+        BattleDungeonViewDependencies view,
+        BattleDungeonDomainDependencies domain,
+        BattleDungeonCallbacks callbacks,
+        BattleDungeonNavigation navigation)
     {
-        this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
-        if (activeView == null) throw new ArgumentNullException(nameof(activeView));
-        if (pageRouter == null) throw new ArgumentNullException(nameof(pageRouter));
-        if (battlePage == null) throw new ArgumentNullException(nameof(battlePage));
-        if (roadBattlePage == null) throw new ArgumentNullException(nameof(roadBattlePage));
-        if (dungeonPage == null) throw new ArgumentNullException(nameof(dungeonPage));
-        if (uiFont == null) throw new ArgumentNullException(nameof(uiFont));
-        if (uiBodyFont == null) throw new ArgumentNullException(nameof(uiBodyFont));
-        if (battleManager == null) throw new ArgumentNullException(nameof(battleManager));
-        if (dungeonRunManager == null) throw new ArgumentNullException(nameof(dungeonRunManager));
-        if (partyManager == null) throw new ArgumentNullException(nameof(partyManager));
-        if (townProgressState == null) throw new ArgumentNullException(nameof(townProgressState));
-        if (progressionManager == null) throw new ArgumentNullException(nameof(progressionManager));
-        if (dungeonBattleController == null) throw new ArgumentNullException(nameof(dungeonBattleController));
-        if (townTravelController == null) throw new ArgumentNullException(nameof(townTravelController));
-        this.battleView = battleView ?? throw new ArgumentNullException(nameof(battleView));
-        this.roadBattle = roadBattle ?? throw new ArgumentNullException(nameof(roadBattle));
-        this.dungeonView = dungeonView ?? throw new ArgumentNullException(nameof(dungeonView));
-        if (statusTextProvider == null) throw new ArgumentNullException(nameof(statusTextProvider));
-        if (startBattleButtonProvider == null) throw new ArgumentNullException(nameof(startBattleButtonProvider));
-        if (startDungeonButtonProvider == null) throw new ArgumentNullException(nameof(startDungeonButtonProvider));
-        if (firstDungeonEventButtonProvider == null) throw new ArgumentNullException(nameof(firstDungeonEventButtonProvider));
-        if (secondDungeonEventButtonProvider == null) throw new ArgumentNullException(nameof(secondDungeonEventButtonProvider));
-        if (thirdDungeonEventButtonProvider == null) throw new ArgumentNullException(nameof(thirdDungeonEventButtonProvider));
-        if (battleVisualControllerProvider == null) throw new ArgumentNullException(nameof(battleVisualControllerProvider));
-        if (battleTabButtonProvider == null) throw new ArgumentNullException(nameof(battleTabButtonProvider));
-        if (dungeonTabButtonProvider == null) throw new ArgumentNullException(nameof(dungeonTabButtonProvider));
-        this.pageRouter = pageRouter;
-        this.battlePage = battlePage;
-        this.roadBattlePage = roadBattlePage;
-        this.dungeonPage = dungeonPage;
-        this.uiFont = uiFont;
-        this.uiBodyFont = uiBodyFont;
-        this.dungeonRunManager = dungeonRunManager;
-        this.battleManager = battleManager;
-        this.partyManager = partyManager;
-        this.townProgressState = townProgressState;
-        this.dungeonBattleController = dungeonBattleController;
-        this.townTravelController = townTravelController;
-        this.statusTextProvider = statusTextProvider;
-        this.startBattleButtonProvider = startBattleButtonProvider;
-        this.startDungeonButtonProvider = startDungeonButtonProvider;
-        this.firstDungeonEventButtonProvider = firstDungeonEventButtonProvider;
-        this.secondDungeonEventButtonProvider = secondDungeonEventButtonProvider;
-        this.thirdDungeonEventButtonProvider = thirdDungeonEventButtonProvider;
-        this.battleVisualControllerProvider = battleVisualControllerProvider;
-        this.battleTabButtonProvider = battleTabButtonProvider;
-        this.dungeonTabButtonProvider = dungeonTabButtonProvider;
-        this.setStartBattleButton = setStartBattleButton ?? throw new ArgumentNullException(nameof(setStartBattleButton));
-        this.setStartDungeonButton = setStartDungeonButton ?? throw new ArgumentNullException(nameof(setStartDungeonButton));
-        this.setFirstDungeonEventButton = setFirstDungeonEventButton ?? throw new ArgumentNullException(nameof(setFirstDungeonEventButton));
-        this.setSecondDungeonEventButton = setSecondDungeonEventButton ?? throw new ArgumentNullException(nameof(setSecondDungeonEventButton));
-        this.setThirdDungeonEventButton = setThirdDungeonEventButton ?? throw new ArgumentNullException(nameof(setThirdDungeonEventButton));
-        this.bindBattleVisualController = bindBattleVisualController ?? throw new ArgumentNullException(nameof(bindBattleVisualController));
-        this.refreshBattlePage = refreshBattlePage ?? throw new ArgumentNullException(nameof(refreshBattlePage));
-        this.refreshRoadBattlePage = refreshRoadBattlePage ?? throw new ArgumentNullException(nameof(refreshRoadBattlePage));
-        this.refreshDungeonPage = refreshDungeonPage ?? throw new ArgumentNullException(nameof(refreshDungeonPage));
-        this.continueToNextDungeonFloor = continueToNextDungeonFloor ?? throw new ArgumentNullException(nameof(continueToNextDungeonFloor));
-        this.returnToTownAfterDungeon = returnToTownAfterDungeon ?? throw new ArgumentNullException(nameof(returnToTownAfterDungeon));
-        this.canShowExpeditionAction = canShowExpeditionAction ?? throw new ArgumentNullException(nameof(canShowExpeditionAction));
-        this.hasExpedition = hasExpedition ?? throw new ArgumentNullException(nameof(hasExpedition));
-        this.showExpeditionForDungeon = showExpeditionForDungeon ?? throw new ArgumentNullException(nameof(showExpeditionForDungeon));
-        this.refreshPage = refreshPage ?? throw new ArgumentNullException(nameof(refreshPage));
-        if (audioFeedbackServiceProvider == null) throw new ArgumentNullException(nameof(audioFeedbackServiceProvider));
-        this.audioFeedbackServiceProvider = audioFeedbackServiceProvider;
-        this.switchToPage = switchToPage ?? throw new ArgumentNullException(nameof(switchToPage));
-        this.showTownMap = showTownMap ?? throw new ArgumentNullException(nameof(showTownMap));
-        this.refreshUI = refreshUI ?? throw new ArgumentNullException(nameof(refreshUI));
-        this.isProgressionLocked = isProgressionLocked ?? throw new ArgumentNullException(nameof(isProgressionLocked));
-        this.hasPendingRoadBattleOutcome = hasPendingRoadBattleOutcome ?? throw new ArgumentNullException(nameof(hasPendingRoadBattleOutcome));
-        this.mapButtonProvider = mapButtonProvider ?? throw new ArgumentNullException(nameof(mapButtonProvider));
-        this.townMapButtonProvider = townMapButtonProvider ?? throw new ArgumentNullException(nameof(townMapButtonProvider));
+        if (view == null) throw new ArgumentNullException(nameof(view));
+        if (domain == null) throw new ArgumentNullException(nameof(domain));
+        if (callbacks == null) throw new ArgumentNullException(nameof(callbacks));
+        if (navigation == null) throw new ArgumentNullException(nameof(navigation));
+        this.factory = view.factory ?? throw new ArgumentNullException(nameof(view.factory));
+        if (view.activeView == null) throw new ArgumentNullException(nameof(view.activeView));
+        if (view.pageRouter == null) throw new ArgumentNullException(nameof(view.pageRouter));
+        if (view.battlePage == null) throw new ArgumentNullException(nameof(view.battlePage));
+        if (view.roadBattlePage == null) throw new ArgumentNullException(nameof(view.roadBattlePage));
+        if (view.dungeonPage == null) throw new ArgumentNullException(nameof(view.dungeonPage));
+        if (view.uiFont == null) throw new ArgumentNullException(nameof(view.uiFont));
+        if (view.uiBodyFont == null) throw new ArgumentNullException(nameof(view.uiBodyFont));
+        if (domain.battleManager == null) throw new ArgumentNullException(nameof(domain.battleManager));
+        if (domain.dungeonRunManager == null) throw new ArgumentNullException(nameof(domain.dungeonRunManager));
+        if (domain.partyManager == null) throw new ArgumentNullException(nameof(domain.partyManager));
+        if (domain.townProgressState == null) throw new ArgumentNullException(nameof(domain.townProgressState));
+        if (domain.progressionManager == null) throw new ArgumentNullException(nameof(domain.progressionManager));
+        if (domain.dungeonBattleController == null) throw new ArgumentNullException(nameof(domain.dungeonBattleController));
+        if (domain.townTravelController == null) throw new ArgumentNullException(nameof(domain.townTravelController));
+        this.battleView = view.battleView ?? throw new ArgumentNullException(nameof(view.battleView));
+        this.roadBattle = view.roadBattle ?? throw new ArgumentNullException(nameof(view.roadBattle));
+        this.dungeonView = view.dungeonView ?? throw new ArgumentNullException(nameof(view.dungeonView));
+        if (view.statusTextProvider == null) throw new ArgumentNullException(nameof(view.statusTextProvider));
+        if (view.startBattleButtonProvider == null) throw new ArgumentNullException(nameof(view.startBattleButtonProvider));
+        if (view.startDungeonButtonProvider == null) throw new ArgumentNullException(nameof(view.startDungeonButtonProvider));
+        if (view.firstDungeonEventButtonProvider == null) throw new ArgumentNullException(nameof(view.firstDungeonEventButtonProvider));
+        if (view.secondDungeonEventButtonProvider == null) throw new ArgumentNullException(nameof(view.secondDungeonEventButtonProvider));
+        if (view.thirdDungeonEventButtonProvider == null) throw new ArgumentNullException(nameof(view.thirdDungeonEventButtonProvider));
+        if (view.battleVisualControllerProvider == null) throw new ArgumentNullException(nameof(view.battleVisualControllerProvider));
+        if (view.battleTabButtonProvider == null) throw new ArgumentNullException(nameof(view.battleTabButtonProvider));
+        if (view.dungeonTabButtonProvider == null) throw new ArgumentNullException(nameof(view.dungeonTabButtonProvider));
+        this.pageRouter = view.pageRouter;
+        this.battlePage = view.battlePage;
+        this.roadBattlePage = view.roadBattlePage;
+        this.dungeonPage = view.dungeonPage;
+        this.uiFont = view.uiFont;
+        this.uiBodyFont = view.uiBodyFont;
+        this.dungeonRunManager = domain.dungeonRunManager;
+        this.battleManager = domain.battleManager;
+        this.partyManager = domain.partyManager;
+        this.townProgressState = domain.townProgressState;
+        this.dungeonBattleController = domain.dungeonBattleController;
+        this.townTravelController = domain.townTravelController;
+        this.statusTextProvider = view.statusTextProvider;
+        this.startBattleButtonProvider = view.startBattleButtonProvider;
+        this.startDungeonButtonProvider = view.startDungeonButtonProvider;
+        this.firstDungeonEventButtonProvider = view.firstDungeonEventButtonProvider;
+        this.secondDungeonEventButtonProvider = view.secondDungeonEventButtonProvider;
+        this.thirdDungeonEventButtonProvider = view.thirdDungeonEventButtonProvider;
+        this.battleVisualControllerProvider = view.battleVisualControllerProvider;
+        this.battleTabButtonProvider = view.battleTabButtonProvider;
+        this.dungeonTabButtonProvider = view.dungeonTabButtonProvider;
+        this.setStartBattleButton = callbacks.setStartBattleButton ?? throw new ArgumentNullException(nameof(callbacks.setStartBattleButton));
+        this.setStartDungeonButton = callbacks.setStartDungeonButton ?? throw new ArgumentNullException(nameof(callbacks.setStartDungeonButton));
+        this.setFirstDungeonEventButton = callbacks.setFirstDungeonEventButton ?? throw new ArgumentNullException(nameof(callbacks.setFirstDungeonEventButton));
+        this.setSecondDungeonEventButton = callbacks.setSecondDungeonEventButton ?? throw new ArgumentNullException(nameof(callbacks.setSecondDungeonEventButton));
+        this.setThirdDungeonEventButton = callbacks.setThirdDungeonEventButton ?? throw new ArgumentNullException(nameof(callbacks.setThirdDungeonEventButton));
+        this.bindBattleVisualController = callbacks.bindBattleVisualController ?? throw new ArgumentNullException(nameof(callbacks.bindBattleVisualController));
+        this.refreshBattlePage = navigation.refreshBattlePage ?? throw new ArgumentNullException(nameof(navigation.refreshBattlePage));
+        this.refreshRoadBattlePage = navigation.refreshRoadBattlePage ?? throw new ArgumentNullException(nameof(navigation.refreshRoadBattlePage));
+        this.refreshDungeonPage = navigation.refreshDungeonPage ?? throw new ArgumentNullException(nameof(navigation.refreshDungeonPage));
+        this.continueToNextDungeonFloor = navigation.continueToNextDungeonFloor ?? throw new ArgumentNullException(nameof(navigation.continueToNextDungeonFloor));
+        this.returnToTownAfterDungeon = navigation.returnToTownAfterDungeon ?? throw new ArgumentNullException(nameof(navigation.returnToTownAfterDungeon));
+        this.canShowExpeditionAction = navigation.canShowExpeditionAction ?? throw new ArgumentNullException(nameof(navigation.canShowExpeditionAction));
+        this.hasExpedition = navigation.hasExpedition ?? throw new ArgumentNullException(nameof(navigation.hasExpedition));
+        this.showExpeditionForDungeon = navigation.showExpeditionForDungeon ?? throw new ArgumentNullException(nameof(navigation.showExpeditionForDungeon));
+        this.refreshPage = navigation.refreshPage ?? throw new ArgumentNullException(nameof(navigation.refreshPage));
+        if (navigation.audioFeedbackServiceProvider == null) throw new ArgumentNullException(nameof(navigation.audioFeedbackServiceProvider));
+        this.audioFeedbackServiceProvider = navigation.audioFeedbackServiceProvider;
+        this.switchToPage = navigation.switchToPage ?? throw new ArgumentNullException(nameof(navigation.switchToPage));
+        this.showTownMap = navigation.showTownMap ?? throw new ArgumentNullException(nameof(navigation.showTownMap));
+        this.refreshUI = navigation.refreshUI ?? throw new ArgumentNullException(nameof(navigation.refreshUI));
+        this.isProgressionLocked = navigation.isProgressionLocked ?? throw new ArgumentNullException(nameof(navigation.isProgressionLocked));
+        this.hasPendingRoadBattleOutcome = navigation.hasPendingRoadBattleOutcome ?? throw new ArgumentNullException(nameof(navigation.hasPendingRoadBattleOutcome));
+        this.mapButtonProvider = view.mapButtonProvider ?? throw new ArgumentNullException(nameof(view.mapButtonProvider));
+        this.townMapButtonProvider = view.townMapButtonProvider ?? throw new ArgumentNullException(nameof(view.townMapButtonProvider));
     }
 
     public void BuildBattlePage()

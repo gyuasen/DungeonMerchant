@@ -1419,32 +1419,60 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
             () => TryUnlockHiddenIsland());
 
         battleDungeonPresenter = new BattleDungeonPresenter(
-            uiFactory, activeView, pageRouter, battlePage, roadBattlePage,
-            dungeonPage, uiFont, uiBodyFont, battleManager, dungeonRunManager,
-            partyManager, townProgressState, progressionManager,
-            dungeonBattleController, townTravelController,
-            battleView, roadBattle, dungeonView, () => statusText,
-            () => startBattleButton, () => startDungeonButton,
-            () => firstDungeonEventButton, () => secondDungeonEventButton,
-            () => thirdDungeonEventButton, () => battleVisualController,
-            () => battleTabButton, () => dungeonTabButton,
-            button => startBattleButton = button,
-            button => startDungeonButton = button,
-            button => firstDungeonEventButton = button,
-            button => secondDungeonEventButton = button,
-            button => thirdDungeonEventButton = button,
-            BindBattleVisualController,
-            RefreshBattlePage, RefreshRoadBattlePage, RefreshDungeonPage,
-            // この2つはPresenter自身の公開メソッド。ctor引数として自分を
-            // 参照するため、生成完了後に解決されるようラムダで包む。
-            () => battleDungeonPresenter.ContinueToNextDungeonFloor(),
-            () => battleDungeonPresenter.ReturnToTownAfterDungeon(),
-            CanShowExpeditionAction, HasExpedition,
-            ShowExpeditionForDungeon, RefreshPage, () => audioFeedbackService,
-            (targetPage, activeTab) => SwitchToPage(targetPage, activeTab),
-            ShowTownMap, RefreshUI, () => IsProgressionLocked,
-            () => hasPendingRoadBattleOutcome, () => mapButton,
-            () => townMapButton);
+            new BattleDungeonViewDependencies
+            {
+                factory = uiFactory, activeView = activeView, pageRouter = pageRouter,
+                battlePage = battlePage, roadBattlePage = roadBattlePage, dungeonPage = dungeonPage,
+                uiFont = uiFont, uiBodyFont = uiBodyFont,
+                battleView = battleView, roadBattle = roadBattle, dungeonView = dungeonView,
+                statusTextProvider = () => statusText,
+                startBattleButtonProvider = () => startBattleButton,
+                startDungeonButtonProvider = () => startDungeonButton,
+                firstDungeonEventButtonProvider = () => firstDungeonEventButton,
+                secondDungeonEventButtonProvider = () => secondDungeonEventButton,
+                thirdDungeonEventButtonProvider = () => thirdDungeonEventButton,
+                battleVisualControllerProvider = () => battleVisualController,
+                battleTabButtonProvider = () => battleTabButton,
+                dungeonTabButtonProvider = () => dungeonTabButton,
+                mapButtonProvider = () => mapButton,
+                townMapButtonProvider = () => townMapButton
+            },
+            new BattleDungeonDomainDependencies
+            {
+                battleManager = battleManager, dungeonRunManager = dungeonRunManager,
+                partyManager = partyManager, townProgressState = townProgressState,
+                progressionManager = progressionManager, dungeonBattleController = dungeonBattleController,
+                townTravelController = townTravelController
+            },
+            new BattleDungeonCallbacks
+            {
+                setStartBattleButton = button => startBattleButton = button,
+                setStartDungeonButton = button => startDungeonButton = button,
+                setFirstDungeonEventButton = button => firstDungeonEventButton = button,
+                setSecondDungeonEventButton = button => secondDungeonEventButton = button,
+                setThirdDungeonEventButton = button => thirdDungeonEventButton = button,
+                bindBattleVisualController = BindBattleVisualController
+            },
+            new BattleDungeonNavigation
+            {
+                refreshBattlePage = RefreshBattlePage,
+                refreshRoadBattlePage = RefreshRoadBattlePage,
+                refreshDungeonPage = RefreshDungeonPage,
+                // この2つはPresenter自身の公開メソッド。ctor引数として自分を
+                // 参照するため、生成完了後に解決されるようラムダで包む。
+                continueToNextDungeonFloor = () => battleDungeonPresenter.ContinueToNextDungeonFloor(),
+                returnToTownAfterDungeon = () => battleDungeonPresenter.ReturnToTownAfterDungeon(),
+                canShowExpeditionAction = CanShowExpeditionAction,
+                hasExpedition = HasExpedition,
+                showExpeditionForDungeon = ShowExpeditionForDungeon,
+                refreshPage = RefreshPage,
+                audioFeedbackServiceProvider = () => audioFeedbackService,
+                switchToPage = (targetPage, activeTab) => SwitchToPage(targetPage, activeTab),
+                showTownMap = ShowTownMap,
+                refreshUI = RefreshUI,
+                isProgressionLocked = () => IsProgressionLocked,
+                hasPendingRoadBattleOutcome = () => hasPendingRoadBattleOutcome
+            });
 
         economyPresenter = new EconomyPresenter(
             uiFactory,
