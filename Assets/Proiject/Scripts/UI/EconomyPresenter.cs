@@ -4,6 +4,50 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 
+public sealed class EconomyViewDependencies
+{
+    public SimpleMercenaryHireUIFactory factory;
+    public RectTransform overlayRoot;
+    public RectTransform inventoryPage;
+    public RectTransform marketPage;
+    public RectTransform blacksmithPage;
+    public Font uiBodyFont;
+    public Func<Button> inventoryTabButtonProvider;
+    public Func<Button> marketTabButtonProvider;
+    public Func<Button> blacksmithTabButtonProvider;
+    public SimpleMercenaryHireUIView.SellQuantityReferences sellQuantity;
+    public SimpleMercenaryHireUIView.SellOnlyConfirmationReferences sellOnlyConfirmation;
+    public SimpleMercenaryHireUIView.StorageUpgradeReferences storageUpgrade;
+}
+
+public sealed class EconomyDomainDependencies
+{
+    public EconomyController economyController;
+    public MerchantInventory merchantInventory;
+    public MerchantData merchantData;
+    public MarketStockManager marketStockManager;
+    public BlacksmithManager blacksmithManager;
+    public MarketPriceManager marketPriceManager;
+    public TownProgressState townProgressState;
+    public DayManager dayManager;
+    public ProgressionManager progressionManager;
+    public MerchantStatusAndQuestController merchantStatusAndQuestController;
+    public DailyResultController dailyResultController;
+}
+
+public sealed class EconomyNavigation
+{
+    public Action<RectTransform, Button> switchToPage;
+    public Action<RectTransform> refreshPage;
+    public Action refreshUI;
+    public Action tryUnlockHiddenIsland;
+    public Action showEquipmentCollection;
+    public Action<ItemDataSO> useConsumable;
+    public Action<EquipmentInstance> showEquipmentDetails;
+    public Action<RectTransform> registerPage;
+    public Action<string> setStatusText;
+}
+
 public sealed class EconomyPresenter
 {
     private static readonly Color ImportantButtonColor = UITheme.ImportantButtonColor;
@@ -56,11 +100,8 @@ public sealed class EconomyPresenter
     private readonly List<Button> marketSidebarButtons = new List<Button>();
     private readonly List<Button> blacksmithSidebarButtons = new List<Button>();
     private Text marketInfoText;
-    private readonly SimpleMercenaryHireUIView.SellQuantityReferences sellQuantity =
-        new SimpleMercenaryHireUIView.SellQuantityReferences();
-    private readonly SimpleMercenaryHireUIView.SellOnlyConfirmationReferences
-        sellOnlyConfirmation =
-            new SimpleMercenaryHireUIView.SellOnlyConfirmationReferences();
+    private readonly SimpleMercenaryHireUIView.SellQuantityReferences sellQuantity;
+    private readonly SimpleMercenaryHireUIView.SellOnlyConfirmationReferences sellOnlyConfirmation;
     private RectTransform itemDetailOverlay;
     private Image itemDetailImage;
     private Text itemDetailImagePlaceholder;
@@ -69,87 +110,66 @@ public sealed class EconomyPresenter
     private Text itemDetailTransactionText;
     private Button itemDetailActionButton;
     private Action itemDetailAction;
-    private readonly SimpleMercenaryHireUIView.StorageUpgradeReferences storageUpgrade =
-        new SimpleMercenaryHireUIView.StorageUpgradeReferences();
+    private readonly SimpleMercenaryHireUIView.StorageUpgradeReferences storageUpgrade;
 
     public EconomyPresenter(
-        SimpleMercenaryHireUIFactory factory,
-        RectTransform overlayRoot,
-        EconomyController economyController,
-        MerchantInventory merchantInventory,
-        MerchantData merchantData,
-        MarketStockManager marketStockManager,
-        BlacksmithManager blacksmithManager,
-        RectTransform inventoryPage,
-        RectTransform marketPage,
-        RectTransform blacksmithPage,
-        Font uiBodyFont,
-        MarketPriceManager marketPriceManager,
-        TownProgressState townProgressState,
-        DayManager dayManager,
-        ProgressionManager progressionManager,
-        MerchantStatusAndQuestController merchantStatusAndQuestController,
-        DailyResultController dailyResultController,
-        Func<Button> inventoryTabButtonProvider,
-        Func<Button> marketTabButtonProvider,
-        Func<Button> blacksmithTabButtonProvider,
-        Action<RectTransform, Button> switchToPage,
-        Action<RectTransform> refreshPage,
-        Action refreshUI,
-        Action tryUnlockHiddenIsland,
-        Action showEquipmentCollection,
-        Action<ItemDataSO> useConsumable,
-        Action<EquipmentInstance> showEquipmentDetails,
-        Action<RectTransform> registerPage,
-        Action<string> setStatusText)
+        EconomyViewDependencies view,
+        EconomyDomainDependencies domain,
+        EconomyNavigation navigation)
     {
-        this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
-        if (overlayRoot == null) throw new ArgumentNullException(nameof(overlayRoot));
-        this.economyController = economyController ??
-            throw new ArgumentNullException(nameof(economyController));
-        if (merchantInventory == null) throw new ArgumentNullException(nameof(merchantInventory));
-        if (merchantData == null) throw new ArgumentNullException(nameof(merchantData));
-        if (marketStockManager == null) throw new ArgumentNullException(nameof(marketStockManager));
-        if (blacksmithManager == null) throw new ArgumentNullException(nameof(blacksmithManager));
-        if (inventoryPage == null) throw new ArgumentNullException(nameof(inventoryPage));
-        if (marketPage == null) throw new ArgumentNullException(nameof(marketPage));
-        if (blacksmithPage == null) throw new ArgumentNullException(nameof(blacksmithPage));
-        if (uiBodyFont == null) throw new ArgumentNullException(nameof(uiBodyFont));
-        if (marketPriceManager == null) throw new ArgumentNullException(nameof(marketPriceManager));
-        if (townProgressState == null) throw new ArgumentNullException(nameof(townProgressState));
-        if (dayManager == null) throw new ArgumentNullException(nameof(dayManager));
-        if (merchantStatusAndQuestController == null) throw new ArgumentNullException(nameof(merchantStatusAndQuestController));
-        if (dailyResultController == null) throw new ArgumentNullException(nameof(dailyResultController));
-        if (inventoryTabButtonProvider == null) throw new ArgumentNullException(nameof(inventoryTabButtonProvider));
-        if (marketTabButtonProvider == null) throw new ArgumentNullException(nameof(marketTabButtonProvider));
-        if (blacksmithTabButtonProvider == null) throw new ArgumentNullException(nameof(blacksmithTabButtonProvider));
-        this.overlayRoot = overlayRoot;
-        this.merchantInventory = merchantInventory;
-        this.merchantData = merchantData;
-        this.marketStockManager = marketStockManager;
-        this.blacksmithManager = blacksmithManager;
-        this.inventoryPage = inventoryPage;
-        this.marketPage = marketPage;
-        this.blacksmithPage = blacksmithPage;
-        this.uiBodyFont = uiBodyFont;
-        this.marketPriceManager = marketPriceManager;
-        this.townProgressState = townProgressState;
-        this.dayManager = dayManager;
-        this.progressionManager = progressionManager;
-        this.merchantStatusAndQuestController = merchantStatusAndQuestController;
-        this.dailyResultController = dailyResultController;
-        this.inventoryTabButtonProvider = inventoryTabButtonProvider;
-        this.marketTabButtonProvider = marketTabButtonProvider;
-        this.blacksmithTabButtonProvider = blacksmithTabButtonProvider;
-        this.switchToPage = switchToPage ?? throw new ArgumentNullException(nameof(switchToPage));
-        this.refreshPage = refreshPage ?? throw new ArgumentNullException(nameof(refreshPage));
-        this.refreshUI = refreshUI ?? throw new ArgumentNullException(nameof(refreshUI));
-        this.tryUnlockHiddenIsland = tryUnlockHiddenIsland ?? throw new ArgumentNullException(nameof(tryUnlockHiddenIsland));
-        this.showEquipmentCollection = showEquipmentCollection ?? throw new ArgumentNullException(nameof(showEquipmentCollection));
-        this.useConsumable = useConsumable ?? throw new ArgumentNullException(nameof(useConsumable));
-        this.showEquipmentDetails = showEquipmentDetails ?? throw new ArgumentNullException(nameof(showEquipmentDetails));
-        this.registerPage = registerPage ?? throw new ArgumentNullException(nameof(registerPage));
-        this.setStatusText = setStatusText ?? throw new ArgumentNullException(nameof(setStatusText));
+        if (view == null) throw new ArgumentNullException(nameof(view));
+        if (domain == null) throw new ArgumentNullException(nameof(domain));
+        if (navigation == null) throw new ArgumentNullException(nameof(navigation));
+        this.factory = view.factory ?? throw new ArgumentNullException(nameof(view.factory));
+        if (view.overlayRoot == null) throw new ArgumentNullException(nameof(view.overlayRoot));
+        this.economyController = domain.economyController ??
+            throw new ArgumentNullException(nameof(domain.economyController));
+        if (domain.merchantInventory == null) throw new ArgumentNullException(nameof(domain.merchantInventory));
+        if (domain.merchantData == null) throw new ArgumentNullException(nameof(domain.merchantData));
+        if (domain.marketStockManager == null) throw new ArgumentNullException(nameof(domain.marketStockManager));
+        if (domain.blacksmithManager == null) throw new ArgumentNullException(nameof(domain.blacksmithManager));
+        if (view.inventoryPage == null) throw new ArgumentNullException(nameof(view.inventoryPage));
+        if (view.marketPage == null) throw new ArgumentNullException(nameof(view.marketPage));
+        if (view.blacksmithPage == null) throw new ArgumentNullException(nameof(view.blacksmithPage));
+        if (view.uiBodyFont == null) throw new ArgumentNullException(nameof(view.uiBodyFont));
+        if (domain.marketPriceManager == null) throw new ArgumentNullException(nameof(domain.marketPriceManager));
+        if (domain.townProgressState == null) throw new ArgumentNullException(nameof(domain.townProgressState));
+        if (domain.dayManager == null) throw new ArgumentNullException(nameof(domain.dayManager));
+        if (domain.merchantStatusAndQuestController == null) throw new ArgumentNullException(nameof(domain.merchantStatusAndQuestController));
+        if (domain.dailyResultController == null) throw new ArgumentNullException(nameof(domain.dailyResultController));
+        if (view.inventoryTabButtonProvider == null) throw new ArgumentNullException(nameof(view.inventoryTabButtonProvider));
+        if (view.marketTabButtonProvider == null) throw new ArgumentNullException(nameof(view.marketTabButtonProvider));
+        if (view.blacksmithTabButtonProvider == null) throw new ArgumentNullException(nameof(view.blacksmithTabButtonProvider));
+        this.overlayRoot = view.overlayRoot;
+        this.merchantInventory = domain.merchantInventory;
+        this.merchantData = domain.merchantData;
+        this.marketStockManager = domain.marketStockManager;
+        this.blacksmithManager = domain.blacksmithManager;
+        this.inventoryPage = view.inventoryPage;
+        this.marketPage = view.marketPage;
+        this.blacksmithPage = view.blacksmithPage;
+        this.uiBodyFont = view.uiBodyFont;
+        this.marketPriceManager = domain.marketPriceManager;
+        this.townProgressState = domain.townProgressState;
+        this.dayManager = domain.dayManager;
+        this.progressionManager = domain.progressionManager;
+        this.merchantStatusAndQuestController = domain.merchantStatusAndQuestController;
+        this.dailyResultController = domain.dailyResultController;
+        this.inventoryTabButtonProvider = view.inventoryTabButtonProvider;
+        this.marketTabButtonProvider = view.marketTabButtonProvider;
+        this.blacksmithTabButtonProvider = view.blacksmithTabButtonProvider;
+        this.sellQuantity = view.sellQuantity ?? throw new ArgumentNullException(nameof(view.sellQuantity));
+        this.sellOnlyConfirmation = view.sellOnlyConfirmation ?? throw new ArgumentNullException(nameof(view.sellOnlyConfirmation));
+        this.storageUpgrade = view.storageUpgrade ?? throw new ArgumentNullException(nameof(view.storageUpgrade));
+        this.switchToPage = navigation.switchToPage ?? throw new ArgumentNullException(nameof(navigation.switchToPage));
+        this.refreshPage = navigation.refreshPage ?? throw new ArgumentNullException(nameof(navigation.refreshPage));
+        this.refreshUI = navigation.refreshUI ?? throw new ArgumentNullException(nameof(navigation.refreshUI));
+        this.tryUnlockHiddenIsland = navigation.tryUnlockHiddenIsland ?? throw new ArgumentNullException(nameof(navigation.tryUnlockHiddenIsland));
+        this.showEquipmentCollection = navigation.showEquipmentCollection ?? throw new ArgumentNullException(nameof(navigation.showEquipmentCollection));
+        this.useConsumable = navigation.useConsumable ?? throw new ArgumentNullException(nameof(navigation.useConsumable));
+        this.showEquipmentDetails = navigation.showEquipmentDetails ?? throw new ArgumentNullException(nameof(navigation.showEquipmentDetails));
+        this.registerPage = navigation.registerPage ?? throw new ArgumentNullException(nameof(navigation.registerPage));
+        this.setStatusText = navigation.setStatusText ?? throw new ArgumentNullException(nameof(navigation.setStatusText));
     }
 
     public void BuildItemDetailOverlay()

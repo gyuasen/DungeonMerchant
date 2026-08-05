@@ -1506,38 +1506,43 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
             });
 
         economyPresenter = new EconomyPresenter(
-            uiFactory,
-            overlayRoot,
-            economyController,
-            merchantInventory,
-            merchantData,
-            marketStockManager,
-            blacksmithManager,
-            inventoryPage,
-            marketPage,
-            blacksmithPage,
-            uiBodyFont,
-            marketPriceManager,
-            townProgressState,
-            dayManager,
-            progressionManager,
-            merchantStatusAndQuestController,
-            dailyResultController,
-            // タブボタンは本Presenterの生成後に作られるため遅延解決する。
-            () => inventoryTabButton,
-            () => marketTabButton,
-            () => blacksmithTabButton,
-            (targetPage, activeTab) => SwitchToPage(targetPage, activeTab),
-            RefreshPage,
-            RefreshUI,
-            // TryUnlockHiddenIsland は bool を返すため Action へ直接渡せない。
-            // 戻り値は既存経路でも使っていないので破棄する。
-            () => TryUnlockHiddenIsland(),
-            ShowEquipmentCollection,
-            characterEquipmentController.UseConsumable,
-            characterEquipmentController.ShowEquipmentDetails,
-            pageRouter.Register,
-            message => statusText.text = message);
+            new EconomyViewDependencies
+            {
+                factory = uiFactory, overlayRoot = overlayRoot,
+                inventoryPage = inventoryPage, marketPage = marketPage, blacksmithPage = blacksmithPage,
+                uiBodyFont = uiBodyFont,
+                // タブボタンは本Presenterの生成後に作られるため遅延解決する。
+                inventoryTabButtonProvider = () => inventoryTabButton,
+                marketTabButtonProvider = () => marketTabButton,
+                blacksmithTabButtonProvider = () => blacksmithTabButton,
+                sellQuantity = new SimpleMercenaryHireUIView.SellQuantityReferences(),
+                sellOnlyConfirmation = new SimpleMercenaryHireUIView.SellOnlyConfirmationReferences(),
+                storageUpgrade = new SimpleMercenaryHireUIView.StorageUpgradeReferences()
+            },
+            new EconomyDomainDependencies
+            {
+                economyController = economyController, merchantInventory = merchantInventory,
+                merchantData = merchantData, marketStockManager = marketStockManager,
+                blacksmithManager = blacksmithManager, marketPriceManager = marketPriceManager,
+                townProgressState = townProgressState, dayManager = dayManager,
+                progressionManager = progressionManager,
+                merchantStatusAndQuestController = merchantStatusAndQuestController,
+                dailyResultController = dailyResultController
+            },
+            new EconomyNavigation
+            {
+                switchToPage = (targetPage, activeTab) => SwitchToPage(targetPage, activeTab),
+                refreshPage = RefreshPage,
+                refreshUI = RefreshUI,
+                // TryUnlockHiddenIsland は bool を返すため Action へ直接渡せない。
+                // 戻り値は既存経路でも使っていないので破棄する。
+                tryUnlockHiddenIsland = () => TryUnlockHiddenIsland(),
+                showEquipmentCollection = ShowEquipmentCollection,
+                useConsumable = characterEquipmentController.UseConsumable,
+                showEquipmentDetails = characterEquipmentController.ShowEquipmentDetails,
+                registerPage = pageRouter.Register,
+                setStatusText = message => statusText.text = message
+            });
 
         expeditionOverlayPresenter = new ExpeditionOverlayPresenter(
             uiFactory, expeditionView, overlayRoot,
