@@ -58,7 +58,9 @@ public sealed class MapUnlockActions
 public sealed class MapPresenter
 {
     private readonly SimpleMercenaryHireUIFactory uiFactory;
+    private readonly SimpleMercenaryHireUIView activeView;
     private readonly UIPageRouter pageRouter;
+    private readonly RectTransform overlayRoot;
     private readonly RectTransform globalMapPage;
     private readonly RectTransform worldMapPage;
     private readonly RectTransform townMapPage;
@@ -70,6 +72,11 @@ public sealed class MapPresenter
     private readonly MapFacilityActions facilities;
     private readonly MapUnlockActions unlocks;
     private readonly SimpleMercenaryHireUIView.RoadBattleReferences roadBattle;
+    private readonly SimpleMercenaryHireUIView.TravelConfirmationReferences travelConfirmation;
+    private readonly MerchantInventory merchantInventory;
+    private readonly MercenaryHireManager mercenaryHireManager;
+    private readonly RoadCargoSession roadCargoSession;
+    private readonly MarketPriceManager marketPriceManager;
     private readonly Func<Text> getStatusText;
     private readonly Func<Button> getMapButton;
     private readonly Func<Button> getTownMapButton;
@@ -92,9 +99,11 @@ public sealed class MapPresenter
         if (view.uiFactory == null) throw new ArgumentNullException(nameof(view.uiFactory));
         if (view.activeView == null) throw new ArgumentNullException(nameof(view.activeView));
         if (view.pageRouter == null) throw new ArgumentNullException(nameof(view.pageRouter));
+        if (view.overlayRoot == null) throw new ArgumentNullException(nameof(view.overlayRoot));
         if (view.globalMapPage == null) throw new ArgumentNullException(nameof(view.globalMapPage));
         if (view.worldMapPage == null) throw new ArgumentNullException(nameof(view.worldMapPage));
         if (view.townMapPage == null) throw new ArgumentNullException(nameof(view.townMapPage));
+        if (view.travelConfirmation == null) throw new ArgumentNullException(nameof(view.travelConfirmation));
         if (view.roadBattle == null) throw new ArgumentNullException(nameof(view.roadBattle));
         if (view.getStatusText == null) throw new ArgumentNullException(nameof(view.getStatusText));
         if (view.getMapButton == null) throw new ArgumentNullException(nameof(view.getMapButton));
@@ -107,7 +116,9 @@ public sealed class MapPresenter
         if (facilities.openFacilityWithGreeting == null) throw new ArgumentNullException(nameof(facilities.openFacilityWithGreeting));
         if (unlocks.tryUnlockHiddenIsland == null) throw new ArgumentNullException(nameof(unlocks.tryUnlockHiddenIsland));
         uiFactory = view.uiFactory;
+        activeView = view.activeView;
         pageRouter = view.pageRouter;
+        overlayRoot = view.overlayRoot;
         globalMapPage = view.globalMapPage;
         worldMapPage = view.worldMapPage;
         townMapPage = view.townMapPage;
@@ -119,9 +130,197 @@ public sealed class MapPresenter
         this.facilities = facilities;
         this.unlocks = unlocks;
         roadBattle = view.roadBattle;
+        travelConfirmation = view.travelConfirmation;
+        merchantInventory = domain.merchantInventory;
+        mercenaryHireManager = domain.mercenaryHireManager;
+        roadCargoSession = domain.roadCargoSession;
+        marketPriceManager = domain.marketPriceManager;
         getStatusText = view.getStatusText;
         getMapButton = view.getMapButton;
         getTownMapButton = view.getTownMapButton;
+    }
+
+    public void BuildTravelConfirmationOverlay()
+    {
+        RectTransform prefabOverlay = activeView.GetOverlay(SimpleMercenaryHireOverlaySlot.TravelConfirmation);
+        travelConfirmation.overlay = prefabOverlay != null
+            ? prefabOverlay
+            : CreateUIObject("Travel Confirmation Overlay", overlayRoot);
+        travelConfirmation.overlay.gameObject.SetActive(false);
+        travelConfirmation.overlay.anchorMin = Vector2.zero;
+        travelConfirmation.overlay.anchorMax = Vector2.one;
+        travelConfirmation.overlay.offsetMin = Vector2.zero;
+        travelConfirmation.overlay.offsetMax = Vector2.zero;
+        travelConfirmation.overlay.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.84f);
+
+        RectTransform window = CreateUIObject("Travel Confirmation Window", travelConfirmation.overlay);
+        window.anchorMin = window.anchorMax = window.pivot = new Vector2(0.5f, 0.5f);
+        window.sizeDelta = new Vector2(780f, 650f);
+        SimpleMercenaryHireUIFactory.ApplyParchmentPanel(window.gameObject.AddComponent<Image>());
+        CreateText(window, "町を移動しますか？", 28, FontStyle.Bold, TextAnchor.MiddleCenter, new Vector2(24f, -58f), new Vector2(-24f, -16f), UITheme.ParchmentTextColor);
+        travelConfirmation.text = CreateText(window, string.Empty, 18, FontStyle.Normal, TextAnchor.MiddleCenter, new Vector2(36f, -116f), new Vector2(-36f, -64f), UITheme.ParchmentMutedColor);
+        travelConfirmation.cargoSummaryText = CreateText(window, string.Empty, 17, FontStyle.Bold, TextAnchor.MiddleLeft, new Vector2(36f, -154f), new Vector2(-36f, -120f), UITheme.ParchmentTextColor);
+        travelConfirmation.cargoContent = CreateScrollableContent(window, "Travel Cargo Viewport", "Travel Cargo Content", new Vector2(36f, 96f), new Vector2(-36f, -170f));
+
+        Button confirmButton = CreateActionButton(window, "移動する", ConfirmTownTravelWithCargo);
+        RectTransform confirmRect = confirmButton.GetComponent<RectTransform>();
+        confirmRect.anchorMin = confirmRect.anchorMax = confirmRect.pivot = new Vector2(0.5f, 0f);
+        confirmRect.sizeDelta = new Vector2(180f, 48f);
+        confirmRect.anchoredPosition = new Vector2(-105f, 28f);
+        confirmButton.targetGraphic.color = UITheme.AccentColor;
+        Button cancelButton = CreateActionButton(window, "キャンセル", HideTravelConfirmation);
+        RectTransform cancelRect = cancelButton.GetComponent<RectTransform>();
+        cancelRect.anchorMin = cancelRect.anchorMax = cancelRect.pivot = new Vector2(0.5f, 0f);
+        cancelRect.sizeDelta = new Vector2(180f, 48f);
+        cancelRect.anchoredPosition = new Vector2(105f, 28f);
+        travelConfirmation.overlay.gameObject.SetActive(false);
+    }
+
+    public void ShowTravelConfirmation(string message)
+    {
+        travelConfirmation.text.text = message;
+        travelConfirmation.selectedCargo.Clear();
+        travelConfirmation.selectedCompanions.Clear();
+        RefreshTravelCargoSelection();
+        travelConfirmation.overlay.SetAsLastSibling();
+        travelConfirmation.overlay.gameObject.SetActive(true);
+    }
+
+    public void RefreshTravelCargoSelection()
+    {
+        if (travelConfirmation.cargoContent == null) return;
+        for (int i = travelConfirmation.cargoContent.childCount - 1; i >= 0; i--)
+        {
+            UnityEngine.Object.Destroy(travelConfirmation.cargoContent.GetChild(i).gameObject);
+        }
+        int origin = townTravelController.ConfirmationOriginTownIndex;
+        int destination = townTravelController.ConfirmationDestinationTownIndex;
+        int used = 0;
+        foreach (int amount in travelConfirmation.selectedCargo.Values) used += amount;
+        int capacity = roadCargoSession != null ? roadCargoSession.Capacity : 0;
+        travelConfirmation.cargoSummaryText.text = $"積載量 {used} / {capacity}　同行傭兵 {travelConfirmation.selectedCompanions.Count}人";
+        float top = -10f;
+        bool hasCargo = false;
+        foreach (InventoryItemStack stack in merchantInventory.GetItemsIn(origin))
+        {
+            ItemDataSO item = stack?.Item;
+            if (item == null || (item.itemType != ItemType.Material && item.itemType != ItemType.Consumable)) continue;
+            hasCargo = true;
+            travelConfirmation.selectedCargo.TryGetValue(item, out int selected);
+            int currentPrice = GetTravelSellPrice(origin, item);
+            int destinationPrice = GetTravelSellPrice(destination, item);
+            CreateTravelCargoRow(item, stack.Amount, selected, currentPrice, destinationPrice, destinationPrice - currentPrice, ref top);
+        }
+        if (!hasCargo) CreateScrollLabel(travelConfirmation.cargoContent, "積める素材・消耗品はありません。", ref top);
+        top -= 12f;
+        CreateScrollLabel(travelConfirmation.cargoContent, "同行する傭兵", ref top);
+        bool hasCompanion = false;
+        foreach (MercenaryInstance mercenary in mercenaryHireManager.HiredMercenaries)
+        {
+            if (!CanTravelWithCompanion(mercenary, origin)) continue;
+            hasCompanion = true;
+            CreateTravelCompanionRow(mercenary, ref top);
+        }
+        if (!hasCompanion) CreateScrollLabel(travelConfirmation.cargoContent, "同行できる非編成傭兵はいません。", ref top);
+        travelConfirmation.cargoContent.sizeDelta = new Vector2(0f, Mathf.Max(260f, -top + 12f));
+    }
+
+    public void HideTravelConfirmation()
+    {
+        if (travelConfirmation.overlay != null) travelConfirmation.overlay.gameObject.SetActive(false);
+        travelConfirmation.selectedCargo.Clear();
+        travelConfirmation.selectedCompanions.Clear();
+        townTravelController.ClearTravelConfirmation();
+    }
+
+    private void ConfirmTownTravelWithCargo()
+    {
+        List<RoadCargoEntry> cargo = new List<RoadCargoEntry>();
+        foreach (KeyValuePair<ItemDataSO, int> entry in travelConfirmation.selectedCargo)
+            if (entry.Key != null && entry.Value > 0) cargo.Add(new RoadCargoEntry(entry.Key, entry.Value));
+        townTravelController.ConfirmTownTravel(cargo, new List<string>(travelConfirmation.selectedCompanions));
+    }
+
+    private static bool CanTravelWithCompanion(MercenaryInstance mercenary, int origin) =>
+        mercenary != null && mercenary.IsContractActive && mercenary.CurrentTownIndex == origin && !MercenaryDutyService.IsOnDuty(mercenary.InstanceId);
+
+    private void CreateTravelCompanionRow(MercenaryInstance mercenary, ref float top)
+    {
+        bool selected = travelConfirmation.selectedCompanions.Contains(mercenary.InstanceId);
+        CreateScrollLabel(travelConfirmation.cargoContent, mercenary.MercenaryName + (mercenary.IsIncapacitated ? "（戦闘不能）" : ""), ref top);
+        Button toggle = CreateActionButton(travelConfirmation.cargoContent, selected ? "解除" : "同行", () => ToggleTravelCompanion(mercenary.InstanceId));
+        ConfigureTravelCargoStepButton(toggle, new Vector2(-18f, top + 18f));
+        top -= 8f;
+    }
+
+    private void ToggleTravelCompanion(string instanceId)
+    {
+        if (string.IsNullOrWhiteSpace(instanceId)) return;
+        if (!travelConfirmation.selectedCompanions.Add(instanceId)) travelConfirmation.selectedCompanions.Remove(instanceId);
+        RefreshTravelCargoSelection();
+    }
+
+    private void CreateTravelCargoRow(ItemDataSO item, int owned, int selected, int currentPrice, int destinationPrice, int difference, ref float top)
+    {
+        string differenceText = difference >= 0 ? $"+{difference}" : difference.ToString();
+        Text label = CreateText(travelConfirmation.cargoContent, $"{JapaneseDisplayText.GetItemName(item)} 所持 {owned} / 積載 {selected}\n売値 {currentPrice}G → {destinationPrice}G （差額 {differenceText}G）", 14, FontStyle.Normal, TextAnchor.MiddleLeft, new Vector2(12f, top - 50f), new Vector2(-130f, top), UITheme.ParchmentMutedColor);
+        label.horizontalOverflow = HorizontalWrapMode.Wrap;
+        Button minus = CreateActionButton(travelConfirmation.cargoContent, "－", () => ChangeTravelCargo(item, -1));
+        ConfigureTravelCargoStepButton(minus, new Vector2(-112f, top - 30f));
+        Button plus = CreateActionButton(travelConfirmation.cargoContent, "＋", () => ChangeTravelCargo(item, 1));
+        ConfigureTravelCargoStepButton(plus, new Vector2(-56f, top - 30f));
+        top -= 58f;
+    }
+
+    private static void ConfigureTravelCargoStepButton(Button button, Vector2 position)
+    {
+        RectTransform rect = button.GetComponent<RectTransform>();
+        rect.anchorMin = rect.anchorMax = new Vector2(1f, 1f);
+        rect.pivot = new Vector2(1f, 1f);
+        rect.sizeDelta = new Vector2(48f, 32f);
+        rect.anchoredPosition = position;
+    }
+
+    private void ChangeTravelCargo(ItemDataSO item, int delta)
+    {
+        if (item == null || delta == 0) return;
+        travelConfirmation.selectedCargo.TryGetValue(item, out int selected);
+        int owned = merchantInventory.GetItemAmountIn(townTravelController.ConfirmationOriginTownIndex, item);
+        int used = 0;
+        foreach (int amount in travelConfirmation.selectedCargo.Values) used += amount;
+        int capacity = roadCargoSession != null ? roadCargoSession.Capacity : 0;
+        if (delta > 0 && (selected >= owned || used >= capacity)) return;
+        selected = Mathf.Clamp(selected + delta, 0, owned);
+        if (selected == 0) travelConfirmation.selectedCargo.Remove(item);
+        else travelConfirmation.selectedCargo[item] = selected;
+        RefreshTravelCargoSelection();
+    }
+
+    private int GetTravelSellPrice(int townIndex, ItemDataSO item)
+    {
+        int basePrice = marketPriceManager != null
+            ? marketPriceManager.GetSellPrice(item)
+            : item.basePrice;
+        return Mathf.Max(1, Mathf.RoundToInt(basePrice * WorldMapService.GetTownDemandMultiplier(townIndex, item)));
+    }
+
+    private RectTransform CreateScrollableContent(RectTransform parent, string viewportName, string contentName, Vector2 offsetMin, Vector2 offsetMax)
+    {
+        RectTransform viewport = CreateUIObject(viewportName, parent);
+        viewport.anchorMin = Vector2.zero; viewport.anchorMax = Vector2.one; viewport.offsetMin = offsetMin; viewport.offsetMax = offsetMax;
+        viewport.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.1f);
+        Mask mask = viewport.gameObject.AddComponent<Mask>(); mask.showMaskGraphic = false;
+        RectTransform content = CreateUIObject(contentName, viewport);
+        content.anchorMin = new Vector2(0f, 1f); content.anchorMax = new Vector2(1f, 1f); content.pivot = new Vector2(0.5f, 1f);
+        ScrollRect scroll = viewport.gameObject.AddComponent<ScrollRect>();
+        scroll.content = content; scroll.viewport = viewport; scroll.horizontal = false; scroll.vertical = true; scroll.movementType = ScrollRect.MovementType.Clamped; scroll.scrollSensitivity = 28f;
+        return content;
+    }
+
+    private void CreateScrollLabel(RectTransform content, string text, ref float top)
+    {
+        CreateText(content, text, 15, FontStyle.Normal, TextAnchor.MiddleLeft, new Vector2(22f, top - 28f), new Vector2(-22f, top), UITheme.ParchmentMutedColor);
+        top -= 32f;
     }
 
     public void BuildGlobalMapPage()
@@ -353,5 +552,6 @@ public sealed class MapPresenter
     }
 
     private Text CreateText(RectTransform parent, string content, int fontSize, FontStyle fontStyle, TextAnchor alignment, Vector2 offsetMin, Vector2 offsetMax, Color color) => uiFactory.CreateText(parent, content, fontSize, fontStyle, alignment, offsetMin, offsetMax, color);
+    private Button CreateActionButton(RectTransform parent, string label, UnityAction action) => uiFactory.CreateActionButton(parent, label, action);
     private static RectTransform CreateUIObject(string objectName, Transform parent) => SimpleMercenaryHireUIFactory.CreateUIObject(objectName, parent);
 }

@@ -232,18 +232,10 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
 
     private void ShowMarketPage() => economyPresenter.ShowMarketPage();
 
-    private void BuildGlobalMapPage() => mapPresenter.BuildGlobalMapPage();
-    private void BuildWorldMapPage() => mapPresenter.BuildWorldMapPage();
-    private void BuildTownMapPage() => mapPresenter.BuildTownMapPage();
-    private void ShowGlobalMap() => mapPresenter.ShowGlobalMap();
-    private void ShowWorldMap() => mapPresenter.ShowWorldMap();
-    private void ShowWorldMap(int worldMapIndex) => mapPresenter.ShowWorldMap(worldMapIndex);
-    private void ShowTownMap() => mapPresenter.ShowTownMap();
-    private void RefreshGlobalMapPage() => mapPresenter.RefreshGlobalMapPage();
-    private void RefreshWorldMapPage() => mapPresenter.RefreshWorldMapPage();
-    private void RefreshTownMapPage() => mapPresenter.RefreshTownMapPage();
-    private void SetMapHeaderButtons(bool showTownMapButton) => mapPresenter.SetMapHeaderButtons(showTownMapButton);
-    private void RefreshTownMapButtons() => mapPresenter.RefreshTownMapButtons();
+    private void BuildTravelConfirmationOverlay() => mapPresenter.BuildTravelConfirmationOverlay();
+    private void RefreshTravelCargoSelection() => mapPresenter.RefreshTravelCargoSelection();
+    private void HideTravelConfirmation() => mapPresenter.HideTravelConfirmation();
+    private void ShowTravelConfirmation(string message) => mapPresenter.ShowTravelConfirmation(message);
 
     private void ShowBlacksmithPage() => economyPresenter.ShowBlacksmithPage();
 
@@ -691,15 +683,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
             message => statusText.text = message,
             ShowTownMap,
             ShowWorldMap,
-            message =>
-            {
-                travelConfirmation.text.text = message;
-                travelConfirmation.selectedCargo.Clear();
-                travelConfirmation.selectedCompanions.Clear();
-                RefreshTravelCargoSelection();
-                travelConfirmation.overlay.SetAsLastSibling();
-                travelConfirmation.overlay.gameObject.SetActive(true);
-            },
+            ShowTravelConfirmation,
             HideTravelConfirmation,
             ResetBattleLog,
             ShowRoadBattlePage,
