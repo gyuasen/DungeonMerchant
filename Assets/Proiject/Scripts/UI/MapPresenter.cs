@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -33,15 +34,7 @@ public sealed class MapDomainDependencies
 
 public sealed class MapNavigationActions
 {
-    public Action<int> showWorldMap;
-    public Action showGlobalMap;
-    public Action refreshGlobalMapPage;
-    public Action refreshWorldMapPage;
-    public Action<int> setVisibleRegionMap;
-    public Action refreshTownMapButtons;
-    public Action<RectTransform> addRegionMapPage;
-    public Action<Button> addTownMapButton;
-    public Action<Button> setHiddenIslandRegionButton;
+    public Action<RectTransform, bool> switchToMapPage;
 }
 
 public sealed class MapFacilityActions
@@ -68,10 +61,26 @@ public sealed class MapPresenter
     private readonly UIPageRouter pageRouter;
     private readonly RectTransform globalMapPage;
     private readonly RectTransform worldMapPage;
+    private readonly RectTransform townMapPage;
     private readonly TownProgressState townProgressState;
     private readonly TownTravelController townTravelController;
     private readonly DungeonRunManager dungeonRunManager;
+    private readonly DungeonBattleController dungeonBattleController;
     private readonly MapNavigationActions navigation;
+    private readonly MapFacilityActions facilities;
+    private readonly MapUnlockActions unlocks;
+    private readonly SimpleMercenaryHireUIView.RoadBattleReferences roadBattle;
+    private readonly Func<Text> getStatusText;
+    private readonly Func<Button> getMapButton;
+    private readonly Func<Button> getTownMapButton;
+    private readonly List<Button> townMapButtons = new List<Button>();
+    private readonly List<RectTransform> regionMapPages = new List<RectTransform>();
+    private readonly List<Button> standardTownFacilityButtons = new List<Button>();
+    private RawImage townMapBackgroundImage;
+    private Button hiddenIslandRegionButton;
+    private Button hireFacilityButton;
+    private Button jobFacilityButton;
+    private Button trainingGroundFacilityButton;
 
     public MapPresenter(MapViewDependencies view, MapDomainDependencies domain, MapNavigationActions navigation, MapFacilityActions facilities, MapUnlockActions unlocks)
     {
@@ -85,44 +94,52 @@ public sealed class MapPresenter
         if (view.pageRouter == null) throw new ArgumentNullException(nameof(view.pageRouter));
         if (view.globalMapPage == null) throw new ArgumentNullException(nameof(view.globalMapPage));
         if (view.worldMapPage == null) throw new ArgumentNullException(nameof(view.worldMapPage));
+        if (view.townMapPage == null) throw new ArgumentNullException(nameof(view.townMapPage));
+        if (view.roadBattle == null) throw new ArgumentNullException(nameof(view.roadBattle));
+        if (view.getStatusText == null) throw new ArgumentNullException(nameof(view.getStatusText));
+        if (view.getMapButton == null) throw new ArgumentNullException(nameof(view.getMapButton));
+        if (view.getTownMapButton == null) throw new ArgumentNullException(nameof(view.getTownMapButton));
         if (domain.townProgressState == null) throw new ArgumentNullException(nameof(domain.townProgressState));
         if (domain.townTravelController == null) throw new ArgumentNullException(nameof(domain.townTravelController));
         if (domain.dungeonRunManager == null) throw new ArgumentNullException(nameof(domain.dungeonRunManager));
-        if (navigation.showWorldMap == null) throw new ArgumentNullException(nameof(navigation.showWorldMap));
-        if (navigation.showGlobalMap == null) throw new ArgumentNullException(nameof(navigation.showGlobalMap));
-        if (navigation.refreshGlobalMapPage == null) throw new ArgumentNullException(nameof(navigation.refreshGlobalMapPage));
-        if (navigation.refreshWorldMapPage == null) throw new ArgumentNullException(nameof(navigation.refreshWorldMapPage));
-        if (navigation.setVisibleRegionMap == null) throw new ArgumentNullException(nameof(navigation.setVisibleRegionMap));
-        if (navigation.refreshTownMapButtons == null) throw new ArgumentNullException(nameof(navigation.refreshTownMapButtons));
-        if (navigation.addRegionMapPage == null) throw new ArgumentNullException(nameof(navigation.addRegionMapPage));
-        if (navigation.addTownMapButton == null) throw new ArgumentNullException(nameof(navigation.addTownMapButton));
-        if (navigation.setHiddenIslandRegionButton == null) throw new ArgumentNullException(nameof(navigation.setHiddenIslandRegionButton));
+        if (domain.dungeonBattleController == null) throw new ArgumentNullException(nameof(domain.dungeonBattleController));
+        if (navigation.switchToMapPage == null) throw new ArgumentNullException(nameof(navigation.switchToMapPage));
+        if (facilities.openFacilityWithGreeting == null) throw new ArgumentNullException(nameof(facilities.openFacilityWithGreeting));
+        if (unlocks.tryUnlockHiddenIsland == null) throw new ArgumentNullException(nameof(unlocks.tryUnlockHiddenIsland));
         uiFactory = view.uiFactory;
         pageRouter = view.pageRouter;
         globalMapPage = view.globalMapPage;
         worldMapPage = view.worldMapPage;
+        townMapPage = view.townMapPage;
         townProgressState = domain.townProgressState;
         townTravelController = domain.townTravelController;
         dungeonRunManager = domain.dungeonRunManager;
+        dungeonBattleController = domain.dungeonBattleController;
         this.navigation = navigation;
+        this.facilities = facilities;
+        this.unlocks = unlocks;
+        roadBattle = view.roadBattle;
+        getStatusText = view.getStatusText;
+        getMapButton = view.getMapButton;
+        getTownMapButton = view.getTownMapButton;
     }
 
     public void BuildGlobalMapPage()
     {
         AddMapBackground(globalMapPage, "Maps/WorldMap", "Maps/ContinentMap");
-        Button currentContinentButton = CreateWorldRegionButton(globalMapPage, "東方平原地域\n低級～中級", new Vector2(225f, -5f), new Vector2(390f, 390f), () => navigation.showWorldMap(0));
+        Button currentContinentButton = CreateWorldRegionButton(globalMapPage, "東方平原地域\n低級～中級", new Vector2(225f, -5f), new Vector2(390f, 390f), () => ShowWorldMap(0));
         ConfigureWorldRegionHover(currentContinentButton, new Color(0.08f, 0.7f, 0.35f, 0.28f));
-        Button secondContinentButton = CreateWorldRegionButton(globalMapPage, "北西山岳森林地域\n上級", new Vector2(-225f, 120f), new Vector2(360f, 220f), () => navigation.showWorldMap(1));
+        Button secondContinentButton = CreateWorldRegionButton(globalMapPage, "北西山岳森林地域\n上級", new Vector2(-225f, 120f), new Vector2(360f, 220f), () => ShowWorldMap(1));
         ConfigureWorldRegionHover(secondContinentButton, new Color(0.7f, 0.52f, 0.18f, 0.3f));
-        Button thirdContinentButton = CreateWorldRegionButton(globalMapPage, "南西黒土地域\n最上級", new Vector2(-225f, -125f), new Vector2(360f, 245f), () => navigation.showWorldMap(2));
+        Button thirdContinentButton = CreateWorldRegionButton(globalMapPage, "南西黒土地域\n最上級", new Vector2(-225f, -125f), new Vector2(360f, 245f), () => ShowWorldMap(2));
         ConfigureWorldRegionHover(thirdContinentButton, new Color(0.55f, 0.12f, 0.16f, 0.32f));
-        Button hiddenIslandRegionButton = CreateWorldRegionButton(globalMapPage, "中央島アステラ\nRank 10", new Vector2(0f, -5f), new Vector2(155f, 135f), () => navigation.showWorldMap(WorldMapService.HiddenIslandWorldMapIndex));
-        navigation.setHiddenIslandRegionButton(hiddenIslandRegionButton);
+        Button hiddenIslandRegionButton = CreateWorldRegionButton(globalMapPage, "中央島アステラ\nRank 10", new Vector2(0f, -5f), new Vector2(155f, 135f), () => ShowWorldMap(WorldMapService.HiddenIslandWorldMapIndex));
+        this.hiddenIslandRegionButton = hiddenIslandRegionButton;
         ConfigureWorldRegionHover(hiddenIslandRegionButton, new Color(0.38f, 0.72f, 0.95f, 0.38f));
         hiddenIslandRegionButton.gameObject.SetActive(false);
         CreateText(globalMapPage, "探索する大陸を選択してください。", 16, FontStyle.Bold, TextAnchor.MiddleLeft, new Vector2(14f, -34f), new Vector2(-14f, -4f), Color.white);
         GlobalMapPageUI pageUI = globalMapPage.GetComponent<GlobalMapPageUI>() ?? globalMapPage.gameObject.AddComponent<GlobalMapPageUI>();
-        pageUI.Configure(() => navigation.refreshGlobalMapPage());
+        pageUI.Configure(RefreshGlobalMapPage);
         pageRouter.Register(globalMapPage);
     }
 
@@ -133,11 +150,121 @@ public sealed class MapPresenter
         CreateRegionMapPage(2, "Maps/BlackSoilRegionMap", new[] { 5, 6 }, new[] { new Vector2(-235f, 80f), new Vector2(215f, -95f) }, new[] { new Vector2(-80f, 5f), new Vector2(95f, -145f) });
         CreateRegionMapPage(WorldMapService.HiddenIslandWorldMapIndex, "Maps/WorldMap", new[] { WorldMapService.HiddenIslandTownIndex }, new[] { new Vector2(-90f, 35f) }, new[] { new Vector2(145f, -45f) });
         townProgressState.ViewedWorldMapIndex = townProgressState.CurrentWorldMapIndex;
-        navigation.setVisibleRegionMap(townProgressState.ViewedWorldMapIndex);
-        navigation.refreshTownMapButtons();
+        SetVisibleRegionMap(townProgressState.ViewedWorldMapIndex);
+        RefreshTownMapButtons();
         WorldMapPageUI pageUI = worldMapPage.GetComponent<WorldMapPageUI>() ?? worldMapPage.gameObject.AddComponent<WorldMapPageUI>();
-        pageUI.Configure(() => navigation.refreshWorldMapPage());
+        pageUI.Configure(RefreshWorldMapPage);
         pageRouter.Register(worldMapPage);
+    }
+
+    public void BuildTownMapPage()
+    {
+        townMapBackgroundImage = AddMapBackground(townMapPage, "Maps/TownMap");
+        standardTownFacilityButtons.Clear();
+        hireFacilityButton = CreateMapButton(townMapPage, "酒場\n雇用", new Vector2(-255f, 105f), new Vector2(110f, 54f), () => facilities.openFacilityWithGreeting(FacilityGreetingController.TavernKey, facilities.showHirePage));
+        standardTownFacilityButtons.Add(hireFacilityButton);
+        standardTownFacilityButtons.Add(CreateMapButton(townMapPage, "商会組合", new Vector2(0f, 135f), new Vector2(110f, 48f), () => facilities.openFacilityWithGreeting(FacilityGreetingController.GuildKey, facilities.showCompanyPage)));
+        standardTownFacilityButtons.Add(CreateMapButton(townMapPage, "市場", new Vector2(175f, 105f), new Vector2(100f, 48f), () => facilities.openFacilityWithGreeting(FacilityGreetingController.MarketKey, facilities.showMarketPage)));
+        CreateMapButton(townMapPage, "鍛冶屋", new Vector2(290f, 75f), new Vector2(100f, 48f), () => facilities.openFacilityWithGreeting(FacilityGreetingController.BlacksmithKey, facilities.showBlacksmithPage));
+        standardTownFacilityButtons.Add(CreateMapButton(townMapPage, "倉庫", new Vector2(-260f, -45f), new Vector2(100f, 48f), () => facilities.openFacilityWithGreeting(FacilityGreetingController.WarehouseKey, facilities.showInventoryPage)));
+        standardTownFacilityButtons.Add(CreateMapButton(townMapPage, "治療院", new Vector2(235f, -42f), new Vector2(100f, 48f), () => facilities.openFacilityWithGreeting(FacilityGreetingController.ClinicKey, facilities.showHealPage)));
+        CreateMapButton(townMapPage, "近隣ダンジョン", new Vector2(0f, -172f), new Vector2(150f, 52f), () => dungeonBattleController.OpenNearbyDungeon());
+        jobFacilityButton = CreateMapButton(townMapPage, "転職神殿", new Vector2(105f, -105f), new Vector2(110f, 48f), () => facilities.openFacilityWithGreeting(FacilityGreetingController.TempleKey, facilities.showJobChangePage));
+        standardTownFacilityButtons.Add(jobFacilityButton);
+        trainingGroundFacilityButton = CreateMapButton(townMapPage, "修練場", new Vector2(-105f, -105f), new Vector2(110f, 48f), () => facilities.openFacilityWithGreeting(FacilityGreetingController.TrainingGroundKey, facilities.showTrainingGroundPage));
+        standardTownFacilityButtons.Add(trainingGroundFacilityButton);
+        roadBattle.cargoReceiveButton = CreateMapButton(townMapPage, "街道荷物\n受取", new Vector2(285f, -172f), new Vector2(118f, 52f), () => townTravelController.TryReceivePendingRoadCargo());
+        roadBattle.cargoReceiveButton.targetGraphic.color = UITheme.AccentColor;
+        roadBattle.cargoReceiveButton.gameObject.SetActive(false);
+        Button continentButton = CreateMapButton(townMapPage, "← 地域マップへ", new Vector2(-300f, -172f), new Vector2(142f, 52f), ShowWorldMap);
+        continentButton.targetGraphic.color = new Color(0.12f, 0.32f, 0.52f, 0.96f);
+        ColorBlock continentColors = continentButton.colors;
+        continentColors.normalColor = Color.white; continentColors.highlightedColor = new Color(1.15f, 1.15f, 1.15f, 1f); continentColors.pressedColor = new Color(0.78f, 0.86f, 0.95f, 1f); continentButton.colors = continentColors;
+        Outline continentOutline = continentButton.gameObject.AddComponent<Outline>();
+        continentOutline.effectColor = new Color(0.35f, 0.72f, 1f, 0.9f); continentOutline.effectDistance = new Vector2(2f, -2f);
+        TownMapPageUI pageUI = townMapPage.GetComponent<TownMapPageUI>() ?? townMapPage.gameObject.AddComponent<TownMapPageUI>();
+        pageUI.Configure(RefreshTownMapPage);
+        pageRouter.Register(townMapPage);
+    }
+
+    public void ShowGlobalMap() => navigation.switchToMapPage(globalMapPage, false);
+    public void ShowWorldMap() => ShowWorldMap(townProgressState.CurrentWorldMapIndex);
+    public void ShowTownMap() => navigation.switchToMapPage(townMapPage, false);
+
+    public void ShowWorldMap(int worldMapIndex)
+    {
+        worldMapIndex = Mathf.Clamp(worldMapIndex, 0, WorldMapService.WorldRegionNames.Length - 1);
+        if (!townTravelController.CanEnterWorldRegion(worldMapIndex))
+        {
+            int gateTownIndex = WorldMapService.GetGateTownIndexForWorldRegion(worldMapIndex);
+            DungeonDataSO gateDungeon = dungeonRunManager.GetHighestGradeDungeonNearTown(gateTownIndex);
+            getStatusText().text = gateDungeon != null ? $"{WorldMapService.WorldRegionNames[worldMapIndex]}へ進むには、【{gateDungeon.dungeonName}】の攻略達成が必要です。" : $"{WorldMapService.WorldRegionNames[worldMapIndex]}はまだ解放されていません。";
+            return;
+        }
+        townProgressState.ViewedWorldMapIndex = worldMapIndex;
+        dungeonRunManager.SetCurrentWorldMapIndex(worldMapIndex);
+        navigation.switchToMapPage(worldMapPage, false);
+    }
+
+    public void SetVisibleRegionMap(int worldMapIndex)
+    {
+        for (int i = 0; i < regionMapPages.Count; i++) if (regionMapPages[i] != null) regionMapPages[i].gameObject.SetActive(i == worldMapIndex);
+    }
+
+    public void RefreshGlobalMapPage()
+    {
+        bool newlyUnlocked = unlocks.tryUnlockHiddenIsland();
+        if (hiddenIslandRegionButton != null) hiddenIslandRegionButton.gameObject.SetActive(townProgressState.IsTownUnlocked(WorldMapService.HiddenIslandTownIndex));
+        getStatusText().text = newlyUnlocked ? "全条件を達成しました。中央島アステラへの航路が出現しました。" : $"現在地: {WorldMapService.TownNames[townProgressState.CurrentTownIndex]}  |  大陸を選択";
+    }
+
+    public void RefreshWorldMapPage()
+    {
+        int worldMapIndex = townProgressState.ViewedWorldMapIndex;
+        SetVisibleRegionMap(worldMapIndex); RefreshTownMapButtons();
+        getStatusText().text = $"現在地: {WorldMapService.TownNames[townProgressState.CurrentTownIndex]}  |  {WorldMapService.WorldRegionNames[worldMapIndex]}";
+    }
+
+    public void RefreshTownMapPage()
+    {
+        UpdateTownMapBackground(); bool hiddenIsland = TownServicePolicy.IsHiddenIslandTown(townProgressState.CurrentTownIndex);
+        getStatusText().text = hiddenIsland ? $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}  |  鍛冶屋と深層ダンジョンのみ利用可能" : $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}  |  利用する施設を選択";
+        foreach (Button facilityButton in standardTownFacilityButtons) if (facilityButton != null) facilityButton.gameObject.SetActive(!hiddenIsland);
+        if (roadBattle.cargoReceiveButton != null) roadBattle.cargoReceiveButton.gameObject.SetActive(townTravelController.CanReceivePendingRoadCargo());
+        if (hiddenIsland) return;
+        if (jobFacilityButton != null) jobFacilityButton.gameObject.SetActive(TownServicePolicy.IsJobChangeAvailable(townProgressState.CurrentTownIndex));
+        if (hireFacilityButton != null) hireFacilityButton.gameObject.SetActive(TownServicePolicy.IsHiringAvailable(townProgressState.CurrentTownIndex));
+        if (trainingGroundFacilityButton != null) trainingGroundFacilityButton.gameObject.SetActive(TownServicePolicy.IsTrainingGroundAvailable(townProgressState.CurrentTownIndex));
+    }
+
+    public void SetMapHeaderButtons(bool showTownMapButton)
+    {
+        Button mapButton = getMapButton(); if (mapButton != null) mapButton.gameObject.SetActive(true);
+        Button townMapButton = getTownMapButton(); if (townMapButton != null) townMapButton.gameObject.SetActive(showTownMapButton);
+    }
+
+    public void RefreshTownMapButtons()
+    {
+        for (int i = 0; i < townMapButtons.Count && i < WorldMapService.TownNames.Length; i++)
+        {
+            Button button = townMapButtons[i]; if (button == null) continue;
+            bool unlocked = townProgressState.IsTownUnlocked(i);
+            if (i == WorldMapService.HiddenIslandTownIndex) { button.gameObject.SetActive(unlocked); if (!unlocked) continue; }
+            bool reachable = i == townProgressState.CurrentTownIndex || WorldMapService.AreTownsAdjacent(i, townProgressState.CurrentTownIndex);
+            Text label = button.GetComponentInChildren<Text>();
+            if (label != null) { string state = i == townProgressState.CurrentTownIndex ? "\n【現在地】" : !reachable ? "\n【要経由】" : unlocked ? string.Empty : "\n【未解放】"; label.text = WorldMapService.TownNames[i] + state; label.color = unlocked && reachable ? Color.white : new Color(0.38f, 0.4f, 0.42f, 1f); }
+            button.interactable = reachable; button.targetGraphic.color = unlocked && reachable ? new Color(0.04f, 0.05f, 0.06f, 0.76f) : new Color(0.005f, 0.005f, 0.008f, 0.97f);
+            foreach (RawImage markerImage in button.GetComponentsInChildren<RawImage>()) markerImage.color = unlocked && reachable ? Color.white : new Color(0.035f, 0.035f, 0.04f, 1f);
+        }
+    }
+
+    private void UpdateTownMapBackground()
+    {
+        if (townMapBackgroundImage == null) return;
+        string townImagePath = WorldMapService.GetTownMapImageResourcePath(townProgressState.CurrentTownIndex);
+        Texture2D texture = string.IsNullOrEmpty(townImagePath) ? null : Resources.Load<Texture2D>(townImagePath);
+        if (texture == null) texture = Resources.Load<Texture2D>("Maps/TownMap");
+        townMapBackgroundImage.texture = texture; townMapBackgroundImage.color = texture != null ? Color.white : UITheme.RowColor;
     }
 
     private static void ConfigureWorldRegionHover(Button button, Color hoverColor)
@@ -165,16 +292,16 @@ public sealed class MapPresenter
     {
         RectTransform regionPage = CreateUIObject($"Region Map {worldMapIndex}", worldMapPage);
         regionPage.anchorMin = Vector2.zero; regionPage.anchorMax = Vector2.one; regionPage.offsetMin = Vector2.zero; regionPage.offsetMax = Vector2.zero;
-        navigation.addRegionMapPage(regionPage);
+        regionMapPages.Add(regionPage);
         AddMapBackground(regionPage, mapResourcePath, "Maps/Map");
         for (int i = 1; i < townPositions.Length; i++) CreateMapRoad(regionPage, townPositions[i - 1], townPositions[i]);
         foreach (int townIndex in townIndices)
         {
             int localIndex = Array.IndexOf(townIndices, townIndex);
-            navigation.addTownMapButton(CreateTownMapButton(regionPage, WorldMapService.TownNames[townIndex], townPositions[localIndex], () => townTravelController.TravelToTown(townIndex)));
+            townMapButtons.Add(CreateTownMapButton(regionPage, WorldMapService.TownNames[townIndex], townPositions[localIndex], () => townTravelController.TravelToTown(townIndex)));
             CreateMapButton(regionPage, GetNearbyDungeonMapLabel(townIndex), dungeonPositions[localIndex], new Vector2(112f, 42f), () => townTravelController.TravelToDungeon(townIndex));
         }
-        Button globalMapButton = CreateMapButton(regionPage, "← 全体マップへ", new Vector2(-315f, -185f), new Vector2(150f, 46f), () => navigation.showGlobalMap());
+        Button globalMapButton = CreateMapButton(regionPage, "← 全体マップへ", new Vector2(-315f, -185f), new Vector2(150f, 46f), () => ShowGlobalMap());
         globalMapButton.targetGraphic.color = new Color(0.12f, 0.32f, 0.52f, 0.96f);
         CreateText(regionPage, $"{WorldMapService.WorldRegionNames[worldMapIndex]}  |  " + "未解放の町は街道戦闘に勝利すると解放されます。", 14, FontStyle.Bold, TextAnchor.MiddleLeft, new Vector2(14f, -34f), new Vector2(-14f, -4f), Color.white);
     }

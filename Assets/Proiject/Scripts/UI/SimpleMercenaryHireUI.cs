@@ -37,11 +37,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     [Header("Hire Candidates")]
     [SerializeField] private List<MercenaryDataSO> candidates = new List<MercenaryDataSO>();
 
-    private readonly List<Button> townMapButtons = new List<Button>();
-    private readonly List<RectTransform> regionMapPages =
-        new List<RectTransform>();
-    private readonly List<Button> standardTownFacilityButtons =
-        new List<Button>();
     private readonly HashSet<RectTransform> dirtyPages =
         new HashSet<RectTransform>();
 
@@ -88,7 +83,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private RectTransform globalMapPage;
     private RectTransform worldMapPage;
     private RectTransform townMapPage;
-    private RawImage townMapBackgroundImage;
     private RectTransform hireList;
     private RectTransform companyPage;
     private RectTransform partyPage;
@@ -105,8 +99,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private RectTransform inventoryPage;
     private RectTransform jobChangePage;
     private RectTransform trainingGroundPage;
-    private Button jobFacilityButton;
-    private Button trainingGroundFacilityButton;
     private RectTransform companyScrollContent;
     private RectTransform companyList;
     private RectTransform partyList;
@@ -121,8 +113,6 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
     private Button marketTabButton = null;
     private Button blacksmithTabButton = null;
     private Button inventoryTabButton = null;
-    private Button hireFacilityButton;
-    private Button hiddenIslandRegionButton;
     private Button startBattleButton;
     private Button startDungeonButton;
     private Button firstDungeonEventButton;
@@ -244,6 +234,16 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
 
     private void BuildGlobalMapPage() => mapPresenter.BuildGlobalMapPage();
     private void BuildWorldMapPage() => mapPresenter.BuildWorldMapPage();
+    private void BuildTownMapPage() => mapPresenter.BuildTownMapPage();
+    private void ShowGlobalMap() => mapPresenter.ShowGlobalMap();
+    private void ShowWorldMap() => mapPresenter.ShowWorldMap();
+    private void ShowWorldMap(int worldMapIndex) => mapPresenter.ShowWorldMap(worldMapIndex);
+    private void ShowTownMap() => mapPresenter.ShowTownMap();
+    private void RefreshGlobalMapPage() => mapPresenter.RefreshGlobalMapPage();
+    private void RefreshWorldMapPage() => mapPresenter.RefreshWorldMapPage();
+    private void RefreshTownMapPage() => mapPresenter.RefreshTownMapPage();
+    private void SetMapHeaderButtons(bool showTownMapButton) => mapPresenter.SetMapHeaderButtons(showTownMapButton);
+    private void RefreshTownMapButtons() => mapPresenter.RefreshTownMapButtons();
 
     private void ShowBlacksmithPage() => economyPresenter.ShowBlacksmithPage();
 
@@ -1398,15 +1398,7 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
             },
             new MapNavigationActions
             {
-                showWorldMap = ShowWorldMap,
-                showGlobalMap = ShowGlobalMap,
-                refreshGlobalMapPage = RefreshGlobalMapPage,
-                refreshWorldMapPage = RefreshWorldMapPage,
-                setVisibleRegionMap = SetVisibleRegionMap,
-                refreshTownMapButtons = RefreshTownMapButtons,
-                addRegionMapPage = page => regionMapPages.Add(page),
-                addTownMapButton = button => townMapButtons.Add(button),
-                setHiddenIslandRegionButton = button => hiddenIslandRegionButton = button
+                switchToMapPage = SwitchToMapPage
             },
             new MapFacilityActions
             {
@@ -1912,38 +1904,9 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
         HandleRemoteSaleChanged();
     }
 
-    private void ShowWorldMap(int worldMapIndex)
-    {
-        worldMapIndex = Mathf.Clamp(
-            worldMapIndex, 0, WorldMapService.WorldRegionNames.Length - 1);
-        if (!townTravelController.CanEnterWorldRegion(worldMapIndex))
-        {
-            int gateTownIndex =
-                WorldMapService.GetGateTownIndexForWorldRegion(worldMapIndex);
-            DungeonDataSO gateDungeon =
-                dungeonRunManager.GetHighestGradeDungeonNearTown(
-                    gateTownIndex);
-            statusText.text = gateDungeon != null
-                ? $"{WorldMapService.WorldRegionNames[worldMapIndex]}へ進むには、" +
-                  $"「{gateDungeon.dungeonName}」の完全攻略が必要です。"
-                : $"{WorldMapService.WorldRegionNames[worldMapIndex]}はまだ解放されていません。";
-            return;
-        }
 
-        townProgressState.ViewedWorldMapIndex = worldMapIndex;
-        dungeonRunManager.SetCurrentWorldMapIndex(worldMapIndex);
-        SwitchToMapPage(worldMapPage, false);
-    }
 
-    private void RefreshWorldMapPage()
-    {
-        int worldMapIndex = townProgressState.ViewedWorldMapIndex;
-        SetVisibleRegionMap(worldMapIndex);
-        RefreshTownMapButtons();
-        statusText.text =
-            $"現在地: {WorldMapService.TownNames[townProgressState.CurrentTownIndex]}  |  " +
-            $"{WorldMapService.WorldRegionNames[worldMapIndex]}";
-    }
+
 
     private void BuildHirePage() => hirePartyPresenter.BuildHirePage();
     private void BuildCompanyPage() => hirePartyPresenter.BuildCompanyPage();

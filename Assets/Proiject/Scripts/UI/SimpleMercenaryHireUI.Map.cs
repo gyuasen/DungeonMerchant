@@ -299,197 +299,23 @@ public partial class SimpleMercenaryHireUI
             WorldMapService.GetTownDemandMultiplier(townIndex, item)));
     }
 
-    private void BuildTownMapPage()
-    {
-        townMapBackgroundImage = mapPresenter.AddMapBackground(townMapPage, "Maps/TownMap");
 
-        standardTownFacilityButtons.Clear();
-        hireFacilityButton = mapPresenter.CreateMapButton(
-            townMapPage, "酒場\n雇用", new Vector2(-255f, 105f),
-            new Vector2(110f, 54f),
-            () => OpenFacilityWithGreeting(FacilityGreetingController.TavernKey, ShowHirePage));
-        standardTownFacilityButtons.Add(hireFacilityButton);
-        standardTownFacilityButtons.Add(mapPresenter.CreateMapButton(
-            townMapPage, "商会組合", new Vector2(0f, 135f),
-            new Vector2(110f, 48f),
-            () => OpenFacilityWithGreeting(FacilityGreetingController.GuildKey, ShowCompanyPage)));
-        standardTownFacilityButtons.Add(mapPresenter.CreateMapButton(
-            townMapPage, "市場", new Vector2(175f, 105f),
-            new Vector2(100f, 48f),
-            () => OpenFacilityWithGreeting(FacilityGreetingController.MarketKey, ShowMarketPage)));
-        mapPresenter.CreateMapButton(
-            townMapPage, "鍛冶屋", new Vector2(290f, 75f),
-            new Vector2(100f, 48f),
-            () => OpenFacilityWithGreeting(FacilityGreetingController.BlacksmithKey, ShowBlacksmithPage));
-        standardTownFacilityButtons.Add(mapPresenter.CreateMapButton(
-            townMapPage, "倉庫", new Vector2(-260f, -45f),
-            new Vector2(100f, 48f),
-            () => OpenFacilityWithGreeting(FacilityGreetingController.WarehouseKey, ShowInventoryPage)));
-        standardTownFacilityButtons.Add(mapPresenter.CreateMapButton(
-            townMapPage, "治療院", new Vector2(235f, -42f),
-            new Vector2(100f, 48f),
-            () => OpenFacilityWithGreeting(FacilityGreetingController.ClinicKey, ShowHealPage)));
-        mapPresenter.CreateMapButton(
-            townMapPage, "近隣ダンジョン", new Vector2(0f, -172f),
-            new Vector2(150f, 52f),
-            () => dungeonBattleController.OpenNearbyDungeon());
-        jobFacilityButton = mapPresenter.CreateMapButton(
-            townMapPage, "転職神殿", new Vector2(105f, -105f),
-            new Vector2(110f, 48f),
-            () => OpenFacilityWithGreeting(FacilityGreetingController.TempleKey, ShowJobChangePage));
-        standardTownFacilityButtons.Add(jobFacilityButton);
-        trainingGroundFacilityButton = mapPresenter.CreateMapButton(
-            townMapPage, "修練場", new Vector2(-105f, -105f),
-            new Vector2(110f, 48f),
-            () => OpenFacilityWithGreeting(
-                FacilityGreetingController.TrainingGroundKey,
-                ShowTrainingGroundPage));
-        standardTownFacilityButtons.Add(trainingGroundFacilityButton);
-        roadBattle.cargoReceiveButton = mapPresenter.CreateMapButton(
-            townMapPage,
-            "街道荷物\n受取",
-            new Vector2(285f, -172f),
-            new Vector2(118f, 52f),
-            () => townTravelController.TryReceivePendingRoadCargo());
-        roadBattle.cargoReceiveButton.targetGraphic.color = AccentColor;
-        roadBattle.cargoReceiveButton.gameObject.SetActive(false);
-        Button continentButton = mapPresenter.CreateMapButton(
-            townMapPage, "← 地域マップへ", new Vector2(-300f, -172f),
-            new Vector2(142f, 52f), ShowWorldMap);
-        continentButton.targetGraphic.color =
-            new Color(0.12f, 0.32f, 0.52f, 0.96f);
-        ColorBlock continentColors = continentButton.colors;
-        continentColors.normalColor = Color.white;
-        continentColors.highlightedColor = new Color(1.15f, 1.15f, 1.15f, 1f);
-        continentColors.pressedColor = new Color(0.78f, 0.86f, 0.95f, 1f);
-        continentButton.colors = continentColors;
-
-        Outline continentOutline =
-            continentButton.gameObject.AddComponent<Outline>();
-        continentOutline.effectColor = new Color(0.35f, 0.72f, 1f, 0.9f);
-        continentOutline.effectDistance = new Vector2(2f, -2f);
-
-        TownMapPageUI pageUI =
-            townMapPage.GetComponent<TownMapPageUI>() ??
-            townMapPage.gameObject.AddComponent<TownMapPageUI>();
-        pageUI.Configure(RefreshTownMapPage);
-        pageRouter.Register(townMapPage);
-    }
 
     // Swaps the town map background to the current town's dedicated image,
     // falling back to the shared TownMap when a town image is missing.
-    private void UpdateTownMapBackground()
-    {
-        if (townMapBackgroundImage == null)
-        {
-            return;
-        }
 
-        string townImagePath = WorldMapService.GetTownMapImageResourcePath(
-            townProgressState.CurrentTownIndex);
-        Texture2D texture = string.IsNullOrEmpty(townImagePath)
-            ? null
-            : Resources.Load<Texture2D>(townImagePath);
-        if (texture == null)
-        {
-            texture = Resources.Load<Texture2D>("Maps/TownMap");
-        }
-        townMapBackgroundImage.texture = texture;
-        townMapBackgroundImage.color = texture != null ? Color.white : RowColor;
-    }
 
-    private void ShowGlobalMap()
-    {
-        SwitchToMapPage(globalMapPage, false);
-    }
 
-    private void RefreshGlobalMapPage()
-    {
-        bool newlyUnlocked = TryUnlockHiddenIsland();
-        if (hiddenIslandRegionButton != null)
-        {
-            hiddenIslandRegionButton.gameObject.SetActive(
-                townProgressState.IsTownUnlocked(
-                    WorldMapService.HiddenIslandTownIndex));
-        }
-        statusText.text =
-            newlyUnlocked
-                ? "全条件を達成しました。中央島アステラへの航路が出現しました。"
-                : $"現在地: {WorldMapService.TownNames[townProgressState.CurrentTownIndex]}  |  大陸を選択";
-    }
 
-    private void ShowWorldMap()
-    {
-        ShowWorldMap(townProgressState.CurrentWorldMapIndex);
-    }
 
-    private void SetVisibleRegionMap(int worldMapIndex)
-    {
-        for (int i = 0; i < regionMapPages.Count; i++)
-        {
-            if (regionMapPages[i] != null)
-            {
-                regionMapPages[i].gameObject.SetActive(i == worldMapIndex);
-            }
-        }
-    }
 
-    private void ShowTownMap()
-    {
-        SwitchToMapPage(townMapPage, false);
-    }
 
-    private void RefreshTownMapPage()
-    {
-        UpdateTownMapBackground();
-        bool hiddenIsland = TownServicePolicy.IsHiddenIslandTown(
-            townProgressState.CurrentTownIndex);
-        statusText.text =
-            hiddenIsland
-                ? $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}  |  鍛冶屋と深層ダンジョンのみ利用可能"
-                : $"{WorldMapService.TownNames[townProgressState.CurrentTownIndex]}  |  利用する施設を選択";
-        foreach (Button facilityButton in standardTownFacilityButtons)
-        {
-            if (facilityButton != null)
-            {
-                facilityButton.gameObject.SetActive(!hiddenIsland);
-            }
-        }
 
-        if (hiddenIsland)
-        {
-            if (roadBattle.cargoReceiveButton != null)
-            {
-                roadBattle.cargoReceiveButton.gameObject.SetActive(
-                    townTravelController.CanReceivePendingRoadCargo());
-            }
-            return;
-        }
 
-        if (roadBattle.cargoReceiveButton != null)
-        {
-            roadBattle.cargoReceiveButton.gameObject.SetActive(
-                townTravelController.CanReceivePendingRoadCargo());
-        }
 
-        if (jobFacilityButton != null)
-        {
-            jobFacilityButton.gameObject.SetActive(
-                TownServicePolicy.IsJobChangeAvailable(
-                    townProgressState.CurrentTownIndex));
-        }
-        if (hireFacilityButton != null)
-        {
-            hireFacilityButton.gameObject.SetActive(
-                TownServicePolicy.IsHiringAvailable(townProgressState.CurrentTownIndex));
-        }
-        if (trainingGroundFacilityButton != null)
-        {
-            trainingGroundFacilityButton.gameObject.SetActive(
-                TownServicePolicy.IsTrainingGroundAvailable(
-                    townProgressState.CurrentTownIndex));
-        }
-    }
+
+
+
 
     private void HideTravelConfirmation()
     {
@@ -506,71 +332,9 @@ public partial class SimpleMercenaryHireUI
         townTravelController.StartNextTravelEncounter();
     }
 
-    private void SetMapHeaderButtons(bool showTownMapButton)
-    {
-        if (mapButton != null)
-        {
-            mapButton.gameObject.SetActive(true);
-        }
 
-        if (townMapButton != null)
-        {
-            townMapButton.gameObject.SetActive(showTownMapButton);
-        }
-    }
 
-    private void RefreshTownMapButtons()
-    {
-        for (int i = 0; i < townMapButtons.Count && i < WorldMapService.TownNames.Length; i++)
-        {
-            Button button = townMapButtons[i];
-            if (button == null)
-            {
-                continue;
-            }
 
-            bool unlocked = townProgressState.IsTownUnlocked(i);
-            if (i == WorldMapService.HiddenIslandTownIndex)
-            {
-                button.gameObject.SetActive(unlocked);
-                if (!unlocked)
-                {
-                    continue;
-                }
-            }
-            bool reachable =
-                i == townProgressState.CurrentTownIndex ||
-                WorldMapService.AreTownsAdjacent(i, townProgressState.CurrentTownIndex);
-            Text label = button.GetComponentInChildren<Text>();
-            if (label != null)
-            {
-                string state = i == townProgressState.CurrentTownIndex
-                    ? "\n【現在地】"
-                    : !reachable
-                        ? "\n【要経由】"
-                        : unlocked
-                        ? string.Empty
-                        : "\n【未解放】";
-                label.text = WorldMapService.TownNames[i] + state;
-                label.color = unlocked && reachable
-                    ? Color.white
-                    : new Color(0.38f, 0.4f, 0.42f, 1f);
-            }
-
-            button.interactable = reachable;
-            button.targetGraphic.color = unlocked && reachable
-                ? new Color(0.04f, 0.05f, 0.06f, 0.76f)
-                : new Color(0.005f, 0.005f, 0.008f, 0.97f);
-
-            RawImage[] markerImages = button.GetComponentsInChildren<RawImage>();
-            foreach (RawImage markerImage in markerImages)
-            {
-                markerImage.color = unlocked && reachable
-                    ? Color.white
-                    : new Color(0.035f, 0.035f, 0.04f, 1f);
-            }
-        }
-    }
 
     private void SyncDungeonUnlocks()
     {
