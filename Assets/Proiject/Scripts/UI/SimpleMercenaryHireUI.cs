@@ -1399,24 +1399,55 @@ public partial class SimpleMercenaryHireUI : MonoBehaviour, IEquipmentDetailView
             new MapUnlockActions { tryUnlockHiddenIsland = TryUnlockHiddenIsland });
 
         hirePartyPresenter = new HirePartyPresenter(
-            uiFactory, activeView, pageRouter, hireAndPartyController, hireManager,
-            partyManager, mercenaryGenerator, healingManager, merchantInventory, merchantData,
-            merchantStatusAndQuestController, hirePage, companyPage, partyPage,
-            healPage, jobChangePage, overlayRoot, uiFont, uiBodyFont,
-            () => statusText, () => hireTabButton, () => companyTabButton,
-            () => partyTabButton, () => healTabButton, () => startBattleButton,
-            ShowContractDetails, ShowContractDetails, ShowCharacterDetails,
-            ShowQuestOverlay, ShowTransportOverlay, ShowExpeditionOverlay,
-            ShowRemoteSaleOverlay, ShowContractChangeConfirmation,
-            CanOpenContractChangeConfirmation, ShowReleaseConfirmation,
-            new SimpleMercenaryHireUIView.ReleaseConfirmationReferences(),
-            new SimpleMercenaryHireUIView.ContractChangeReferences(),
-            button => contractSelectButton = button, RefreshPage,
-            townProgressState, dailyResultController, battleManager,
-            new SimpleMercenaryHireUIView.PromotionPreviewReferences(),
-            (targetPage, activeTab) => SwitchToPage(targetPage, activeTab),
-            ShowTownMap, ShowExpeditionManagementOverlay, RefreshUI,
-            () => TryUnlockHiddenIsland());
+            new HirePartyViewDependencies
+            {
+                factory = uiFactory, activeView = activeView, pageRouter = pageRouter,
+                hirePage = hirePage, companyPage = companyPage, partyPage = partyPage,
+                healPage = healPage, jobChangePage = jobChangePage, overlayRoot = overlayRoot,
+                uiFont = uiFont, uiBodyFont = uiBodyFont,
+                statusTextProvider = () => statusText,
+                hireTabButtonProvider = () => hireTabButton,
+                companyTabButtonProvider = () => companyTabButton,
+                partyTabButtonProvider = () => partyTabButton,
+                healTabButtonProvider = () => healTabButton,
+                startBattleButtonProvider = () => startBattleButton,
+                releaseConfirmation = new SimpleMercenaryHireUIView.ReleaseConfirmationReferences(),
+                contractChange = new SimpleMercenaryHireUIView.ContractChangeReferences(),
+                promotionPreview = new SimpleMercenaryHireUIView.PromotionPreviewReferences()
+            },
+            new HirePartyDomainDependencies
+            {
+                hireAndPartyController = hireAndPartyController, hireManager = hireManager,
+                partyManager = partyManager, mercenaryGenerator = mercenaryGenerator,
+                healingManager = healingManager, merchantInventory = merchantInventory,
+                merchantData = merchantData,
+                merchantStatusAndQuestController = merchantStatusAndQuestController,
+                townProgressState = townProgressState,
+                dailyResultController = dailyResultController, battleManager = battleManager
+            },
+            new HirePartyCallbacks
+            {
+                setContractSelectButton = button => contractSelectButton = button
+            },
+            new HirePartyNavigation
+            {
+                showFixedContractDetails = ShowContractDetails,
+                showGeneratedContractDetails = ShowContractDetails,
+                showCharacterDetails = ShowCharacterDetails,
+                showQuestOverlay = ShowQuestOverlay,
+                showTransportOverlay = ShowTransportOverlay,
+                showExpeditionOverlay = ShowExpeditionOverlay,
+                showRemoteSaleOverlay = ShowRemoteSaleOverlay,
+                requestShowContractChangeConfirmation = ShowContractChangeConfirmation,
+                requestCanOpenContractChangeConfirmation = CanOpenContractChangeConfirmation,
+                requestShowReleaseConfirmation = ShowReleaseConfirmation,
+                refreshPage = RefreshPage,
+                switchToPage = (targetPage, activeTab) => SwitchToPage(targetPage, activeTab),
+                showTownMap = ShowTownMap,
+                showExpeditionManagementOverlay = ShowExpeditionManagementOverlay,
+                refreshUI = RefreshUI,
+                tryUnlockHiddenIsland = () => TryUnlockHiddenIsland()
+            });
 
         battleDungeonPresenter = new BattleDungeonPresenter(
             new BattleDungeonViewDependencies

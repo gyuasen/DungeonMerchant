@@ -3,6 +3,70 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
+public sealed class HirePartyViewDependencies
+{
+    public SimpleMercenaryHireUIFactory factory;
+    public SimpleMercenaryHireUIView activeView;
+    public UIPageRouter pageRouter;
+    public RectTransform hirePage;
+    public RectTransform companyPage;
+    public RectTransform partyPage;
+    public RectTransform healPage;
+    public RectTransform jobChangePage;
+    public RectTransform overlayRoot;
+    public Font uiFont;
+    public Font uiBodyFont;
+    public Func<Text> statusTextProvider;
+    public Func<Button> hireTabButtonProvider;
+    public Func<Button> companyTabButtonProvider;
+    public Func<Button> partyTabButtonProvider;
+    public Func<Button> healTabButtonProvider;
+    public Func<Button> startBattleButtonProvider;
+    public SimpleMercenaryHireUIView.ReleaseConfirmationReferences releaseConfirmation;
+    public SimpleMercenaryHireUIView.ContractChangeReferences contractChange;
+    public SimpleMercenaryHireUIView.PromotionPreviewReferences promotionPreview;
+}
+
+public sealed class HirePartyDomainDependencies
+{
+    public HireAndPartyController hireAndPartyController;
+    public MercenaryHireManager hireManager;
+    public MercenaryPartyManager partyManager;
+    public MercenaryGenerator mercenaryGenerator;
+    public HealingManager healingManager;
+    public MerchantInventory merchantInventory;
+    public MerchantData merchantData;
+    public MerchantStatusAndQuestController merchantStatusAndQuestController;
+    public TownProgressState townProgressState;
+    public DailyResultController dailyResultController;
+    public BattleManager battleManager;
+}
+
+public sealed class HirePartyCallbacks
+{
+    public Action<Button> setContractSelectButton;
+}
+
+public sealed class HirePartyNavigation
+{
+    public Action<MercenaryDataSO> showFixedContractDetails;
+    public Action<MercenaryInstance> showGeneratedContractDetails;
+    public Action<MercenaryInstance> showCharacterDetails;
+    public UnityAction showQuestOverlay;
+    public UnityAction showTransportOverlay;
+    public UnityAction showExpeditionOverlay;
+    public UnityAction showRemoteSaleOverlay;
+    public Action<MercenaryInstance> requestShowContractChangeConfirmation;
+    public Func<MercenaryInstance, bool> requestCanOpenContractChangeConfirmation;
+    public Action<MercenaryInstance> requestShowReleaseConfirmation;
+    public Action<RectTransform> refreshPage;
+    public Action<RectTransform, Button> switchToPage;
+    public Action showTownMap;
+    public Action showExpeditionManagementOverlay;
+    public Action refreshUI;
+    public Action tryUnlockHiddenIsland;
+}
+
 public sealed class HirePartyPresenter
 {
     private static readonly Color ParchmentMutedColor = UITheme.ParchmentMutedColor;
@@ -64,130 +128,90 @@ public sealed class HirePartyPresenter
     private readonly Action tryUnlockHiddenIsland;
 
     public HirePartyPresenter(
-        SimpleMercenaryHireUIFactory factory,
-        SimpleMercenaryHireUIView activeView,
-        UIPageRouter pageRouter,
-        HireAndPartyController hireAndPartyController,
-        MercenaryHireManager hireManager,
-        MercenaryPartyManager partyManager,
-        MercenaryGenerator mercenaryGenerator,
-        HealingManager healingManager,
-        MerchantInventory merchantInventory,
-        MerchantData merchantData,
-        MerchantStatusAndQuestController merchantStatusAndQuestController,
-        RectTransform hirePage,
-        RectTransform companyPage,
-        RectTransform partyPage,
-        RectTransform healPage,
-        RectTransform jobChangePage,
-        RectTransform overlayRoot,
-        Font uiFont,
-        Font uiBodyFont,
-        Func<Text> statusTextProvider,
-        Func<Button> hireTabButtonProvider,
-        Func<Button> companyTabButtonProvider,
-        Func<Button> partyTabButtonProvider,
-        Func<Button> healTabButtonProvider,
-        Func<Button> startBattleButtonProvider,
-        Action<MercenaryDataSO> showFixedContractDetails,
-        Action<MercenaryInstance> showGeneratedContractDetails,
-        Action<MercenaryInstance> showCharacterDetails,
-        UnityAction showQuestOverlay,
-        UnityAction showTransportOverlay,
-        UnityAction showExpeditionOverlay,
-        UnityAction showRemoteSaleOverlay,
-        Action<MercenaryInstance> requestShowContractChangeConfirmation,
-        Func<MercenaryInstance, bool> requestCanOpenContractChangeConfirmation,
-        Action<MercenaryInstance> requestShowReleaseConfirmation,
-        SimpleMercenaryHireUIView.ReleaseConfirmationReferences releaseConfirmation,
-        SimpleMercenaryHireUIView.ContractChangeReferences contractChange,
-        Action<Button> setContractSelectButton,
-        Action<RectTransform> refreshPage,
-        TownProgressState townProgressState,
-        DailyResultController dailyResultController,
-        BattleManager battleManager,
-        SimpleMercenaryHireUIView.PromotionPreviewReferences promotionPreview,
-        Action<RectTransform, Button> switchToPage,
-        Action showTownMap,
-        Action showExpeditionManagementOverlay,
-        Action refreshUI,
-        Action tryUnlockHiddenIsland)
+        HirePartyViewDependencies view,
+        HirePartyDomainDependencies domain,
+        HirePartyCallbacks callbacks,
+        HirePartyNavigation navigation)
     {
-        this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
-        if (activeView == null) throw new ArgumentNullException(nameof(activeView));
-        if (pageRouter == null) throw new ArgumentNullException(nameof(pageRouter));
-        this.hireAndPartyController = hireAndPartyController ?? throw new ArgumentNullException(nameof(hireAndPartyController));
-        if (hireManager == null) throw new ArgumentNullException(nameof(hireManager));
-        if (partyManager == null) throw new ArgumentNullException(nameof(partyManager));
-        if (mercenaryGenerator == null) throw new ArgumentNullException(nameof(mercenaryGenerator));
-        if (healingManager == null) throw new ArgumentNullException(nameof(healingManager));
-        if (merchantInventory == null) throw new ArgumentNullException(nameof(merchantInventory));
-        if (merchantData == null) throw new ArgumentNullException(nameof(merchantData));
-        this.merchantStatusAndQuestController = merchantStatusAndQuestController ?? throw new ArgumentNullException(nameof(merchantStatusAndQuestController));
-        if (hirePage == null) throw new ArgumentNullException(nameof(hirePage));
-        if (companyPage == null) throw new ArgumentNullException(nameof(companyPage));
-        if (partyPage == null) throw new ArgumentNullException(nameof(partyPage));
-        if (healPage == null) throw new ArgumentNullException(nameof(healPage));
-        if (jobChangePage == null) throw new ArgumentNullException(nameof(jobChangePage));
-        if (overlayRoot == null) throw new ArgumentNullException(nameof(overlayRoot));
-        if (uiFont == null) throw new ArgumentNullException(nameof(uiFont));
-        if (uiBodyFont == null) throw new ArgumentNullException(nameof(uiBodyFont));
+        if (view == null) throw new ArgumentNullException(nameof(view));
+        if (domain == null) throw new ArgumentNullException(nameof(domain));
+        if (callbacks == null) throw new ArgumentNullException(nameof(callbacks));
+        if (navigation == null) throw new ArgumentNullException(nameof(navigation));
+        this.factory = view.factory ?? throw new ArgumentNullException(nameof(view.factory));
+        if (view.activeView == null) throw new ArgumentNullException(nameof(view.activeView));
+        if (view.pageRouter == null) throw new ArgumentNullException(nameof(view.pageRouter));
+        this.hireAndPartyController = domain.hireAndPartyController ?? throw new ArgumentNullException(nameof(domain.hireAndPartyController));
+        if (domain.hireManager == null) throw new ArgumentNullException(nameof(domain.hireManager));
+        if (domain.partyManager == null) throw new ArgumentNullException(nameof(domain.partyManager));
+        if (domain.mercenaryGenerator == null) throw new ArgumentNullException(nameof(domain.mercenaryGenerator));
+        if (domain.healingManager == null) throw new ArgumentNullException(nameof(domain.healingManager));
+        if (domain.merchantInventory == null) throw new ArgumentNullException(nameof(domain.merchantInventory));
+        if (domain.merchantData == null) throw new ArgumentNullException(nameof(domain.merchantData));
+        this.merchantStatusAndQuestController = domain.merchantStatusAndQuestController ?? throw new ArgumentNullException(nameof(domain.merchantStatusAndQuestController));
+        if (view.hirePage == null) throw new ArgumentNullException(nameof(view.hirePage));
+        if (view.companyPage == null) throw new ArgumentNullException(nameof(view.companyPage));
+        if (view.partyPage == null) throw new ArgumentNullException(nameof(view.partyPage));
+        if (view.healPage == null) throw new ArgumentNullException(nameof(view.healPage));
+        if (view.jobChangePage == null) throw new ArgumentNullException(nameof(view.jobChangePage));
+        if (view.overlayRoot == null) throw new ArgumentNullException(nameof(view.overlayRoot));
+        if (view.uiFont == null) throw new ArgumentNullException(nameof(view.uiFont));
+        if (view.uiBodyFont == null) throw new ArgumentNullException(nameof(view.uiBodyFont));
         // These UI elements are created later in BuildUI. Validate providers,
         // but never invoke them during presenter construction.
-        if (statusTextProvider == null) throw new ArgumentNullException(nameof(statusTextProvider));
-        if (hireTabButtonProvider == null) throw new ArgumentNullException(nameof(hireTabButtonProvider));
-        if (companyTabButtonProvider == null) throw new ArgumentNullException(nameof(companyTabButtonProvider));
-        if (partyTabButtonProvider == null) throw new ArgumentNullException(nameof(partyTabButtonProvider));
-        if (healTabButtonProvider == null) throw new ArgumentNullException(nameof(healTabButtonProvider));
-        if (startBattleButtonProvider == null) throw new ArgumentNullException(nameof(startBattleButtonProvider));
-        this.activeView = activeView;
-        this.pageRouter = pageRouter;
-        this.hireManager = hireManager;
-        this.partyManager = partyManager;
-        this.mercenaryGenerator = mercenaryGenerator;
-        this.healingManager = healingManager;
-        this.merchantInventory = merchantInventory;
-        this.merchantData = merchantData;
-        this.hirePage = hirePage;
-        this.companyPage = companyPage;
-        this.partyPage = partyPage;
-        this.healPage = healPage;
-        this.jobChangePage = jobChangePage;
-        this.overlayRoot = overlayRoot;
-        this.uiFont = uiFont;
-        this.uiBodyFont = uiBodyFont;
-        this.statusTextProvider = statusTextProvider;
-        this.hireTabButtonProvider = hireTabButtonProvider;
-        this.companyTabButtonProvider = companyTabButtonProvider;
-        this.partyTabButtonProvider = partyTabButtonProvider;
-        this.healTabButtonProvider = healTabButtonProvider;
-        this.startBattleButtonProvider = startBattleButtonProvider;
-        this.showFixedContractDetails = showFixedContractDetails ?? throw new ArgumentNullException(nameof(showFixedContractDetails));
-        this.showGeneratedContractDetails = showGeneratedContractDetails ?? throw new ArgumentNullException(nameof(showGeneratedContractDetails));
-        this.showCharacterDetails = showCharacterDetails ?? throw new ArgumentNullException(nameof(showCharacterDetails));
-        this.showQuestOverlay = showQuestOverlay ?? throw new ArgumentNullException(nameof(showQuestOverlay));
-        this.showTransportOverlay = showTransportOverlay ?? throw new ArgumentNullException(nameof(showTransportOverlay));
-        this.showExpeditionOverlay = showExpeditionOverlay ?? throw new ArgumentNullException(nameof(showExpeditionOverlay));
-        this.showRemoteSaleOverlay = showRemoteSaleOverlay ?? throw new ArgumentNullException(nameof(showRemoteSaleOverlay));
-        this.requestShowContractChangeConfirmation = requestShowContractChangeConfirmation ?? throw new ArgumentNullException(nameof(requestShowContractChangeConfirmation));
-        this.requestCanOpenContractChangeConfirmation = requestCanOpenContractChangeConfirmation ?? throw new ArgumentNullException(nameof(requestCanOpenContractChangeConfirmation));
-        this.requestShowReleaseConfirmation = requestShowReleaseConfirmation ?? throw new ArgumentNullException(nameof(requestShowReleaseConfirmation));
-        this.releaseConfirmation = releaseConfirmation ?? throw new ArgumentNullException(nameof(releaseConfirmation));
-        this.contractChange = contractChange ?? throw new ArgumentNullException(nameof(contractChange));
-        this.setContractSelectButton = setContractSelectButton ?? throw new ArgumentNullException(nameof(setContractSelectButton));
-        this.refreshPage = refreshPage ?? throw new ArgumentNullException(nameof(refreshPage));
-        if (townProgressState == null) throw new ArgumentNullException(nameof(townProgressState));
-        if (dailyResultController == null) throw new ArgumentNullException(nameof(dailyResultController));
-        if (battleManager == null) throw new ArgumentNullException(nameof(battleManager));
-        this.townProgressState = townProgressState;
-        this.dailyResultController = dailyResultController;
-        this.battleManager = battleManager;
-        this.promotionPreview = promotionPreview ?? throw new ArgumentNullException(nameof(promotionPreview));
-        this.switchToPage = switchToPage ?? throw new ArgumentNullException(nameof(switchToPage));
-        this.showTownMap = showTownMap ?? throw new ArgumentNullException(nameof(showTownMap));
-        this.showExpeditionManagementOverlay = showExpeditionManagementOverlay ?? throw new ArgumentNullException(nameof(showExpeditionManagementOverlay));
-        this.refreshUI = refreshUI ?? throw new ArgumentNullException(nameof(refreshUI));
-        this.tryUnlockHiddenIsland = tryUnlockHiddenIsland ?? throw new ArgumentNullException(nameof(tryUnlockHiddenIsland));
+        if (view.statusTextProvider == null) throw new ArgumentNullException(nameof(view.statusTextProvider));
+        if (view.hireTabButtonProvider == null) throw new ArgumentNullException(nameof(view.hireTabButtonProvider));
+        if (view.companyTabButtonProvider == null) throw new ArgumentNullException(nameof(view.companyTabButtonProvider));
+        if (view.partyTabButtonProvider == null) throw new ArgumentNullException(nameof(view.partyTabButtonProvider));
+        if (view.healTabButtonProvider == null) throw new ArgumentNullException(nameof(view.healTabButtonProvider));
+        if (view.startBattleButtonProvider == null) throw new ArgumentNullException(nameof(view.startBattleButtonProvider));
+        this.activeView = view.activeView;
+        this.pageRouter = view.pageRouter;
+        this.hireManager = domain.hireManager;
+        this.partyManager = domain.partyManager;
+        this.mercenaryGenerator = domain.mercenaryGenerator;
+        this.healingManager = domain.healingManager;
+        this.merchantInventory = domain.merchantInventory;
+        this.merchantData = domain.merchantData;
+        this.hirePage = view.hirePage;
+        this.companyPage = view.companyPage;
+        this.partyPage = view.partyPage;
+        this.healPage = view.healPage;
+        this.jobChangePage = view.jobChangePage;
+        this.overlayRoot = view.overlayRoot;
+        this.uiFont = view.uiFont;
+        this.uiBodyFont = view.uiBodyFont;
+        this.statusTextProvider = view.statusTextProvider;
+        this.hireTabButtonProvider = view.hireTabButtonProvider;
+        this.companyTabButtonProvider = view.companyTabButtonProvider;
+        this.partyTabButtonProvider = view.partyTabButtonProvider;
+        this.healTabButtonProvider = view.healTabButtonProvider;
+        this.startBattleButtonProvider = view.startBattleButtonProvider;
+        this.showFixedContractDetails = navigation.showFixedContractDetails ?? throw new ArgumentNullException(nameof(navigation.showFixedContractDetails));
+        this.showGeneratedContractDetails = navigation.showGeneratedContractDetails ?? throw new ArgumentNullException(nameof(navigation.showGeneratedContractDetails));
+        this.showCharacterDetails = navigation.showCharacterDetails ?? throw new ArgumentNullException(nameof(navigation.showCharacterDetails));
+        this.showQuestOverlay = navigation.showQuestOverlay ?? throw new ArgumentNullException(nameof(navigation.showQuestOverlay));
+        this.showTransportOverlay = navigation.showTransportOverlay ?? throw new ArgumentNullException(nameof(navigation.showTransportOverlay));
+        this.showExpeditionOverlay = navigation.showExpeditionOverlay ?? throw new ArgumentNullException(nameof(navigation.showExpeditionOverlay));
+        this.showRemoteSaleOverlay = navigation.showRemoteSaleOverlay ?? throw new ArgumentNullException(nameof(navigation.showRemoteSaleOverlay));
+        this.requestShowContractChangeConfirmation = navigation.requestShowContractChangeConfirmation ?? throw new ArgumentNullException(nameof(navigation.requestShowContractChangeConfirmation));
+        this.requestCanOpenContractChangeConfirmation = navigation.requestCanOpenContractChangeConfirmation ?? throw new ArgumentNullException(nameof(navigation.requestCanOpenContractChangeConfirmation));
+        this.requestShowReleaseConfirmation = navigation.requestShowReleaseConfirmation ?? throw new ArgumentNullException(nameof(navigation.requestShowReleaseConfirmation));
+        this.releaseConfirmation = view.releaseConfirmation ?? throw new ArgumentNullException(nameof(view.releaseConfirmation));
+        this.contractChange = view.contractChange ?? throw new ArgumentNullException(nameof(view.contractChange));
+        this.setContractSelectButton = callbacks.setContractSelectButton ?? throw new ArgumentNullException(nameof(callbacks.setContractSelectButton));
+        this.refreshPage = navigation.refreshPage ?? throw new ArgumentNullException(nameof(navigation.refreshPage));
+        if (domain.townProgressState == null) throw new ArgumentNullException(nameof(domain.townProgressState));
+        if (domain.dailyResultController == null) throw new ArgumentNullException(nameof(domain.dailyResultController));
+        if (domain.battleManager == null) throw new ArgumentNullException(nameof(domain.battleManager));
+        this.townProgressState = domain.townProgressState;
+        this.dailyResultController = domain.dailyResultController;
+        this.battleManager = domain.battleManager;
+        this.promotionPreview = view.promotionPreview ?? throw new ArgumentNullException(nameof(view.promotionPreview));
+        this.switchToPage = navigation.switchToPage ?? throw new ArgumentNullException(nameof(navigation.switchToPage));
+        this.showTownMap = navigation.showTownMap ?? throw new ArgumentNullException(nameof(navigation.showTownMap));
+        this.showExpeditionManagementOverlay = navigation.showExpeditionManagementOverlay ?? throw new ArgumentNullException(nameof(navigation.showExpeditionManagementOverlay));
+        this.refreshUI = navigation.refreshUI ?? throw new ArgumentNullException(nameof(navigation.refreshUI));
+        this.tryUnlockHiddenIsland = navigation.tryUnlockHiddenIsland ?? throw new ArgumentNullException(nameof(navigation.tryUnlockHiddenIsland));
     }
 
     public void BuildHirePage()
