@@ -119,8 +119,11 @@ public sealed class EndingSceneController : MonoBehaviour
         viewport.anchorMax = new Vector2(1f, 1f);
         viewport.offsetMin = new Vector2(70f, 88f);
         viewport.offsetMax = new Vector2(-54f, -75f);
+        // Mask はマスク画像のアルファがしきい値未満のピクセルを切り抜くため、
+        // 透明にしすぎると内側のテキストごと消える。他画面のビューポートと
+        // 同じ 0.01f に揃える。
         Image viewportImage = viewport.gameObject.AddComponent<Image>();
-        viewportImage.color = new Color(1f, 1f, 1f, 0.001f);
+        viewportImage.color = new Color(0f, 0f, 0f, 0.01f);
         viewport.gameObject.AddComponent<Mask>().showMaskGraphic = false;
 
         RectTransform contentRoot = CreateRect("Letter Content", viewport);
