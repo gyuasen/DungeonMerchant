@@ -68,6 +68,15 @@ Windowsは Win+Shift+S で範囲キャプチャ、Unityのゲームビューを�
 - **セーブ・マイグレーション**: 永続IDによる参照解決と、旧形式セーブデータを移行する `SaveDataMigrator` を実装しています
 - **AI支援リファクタリングの記録**: `handoff/CLAUDE_WORK_LOG.md` に、AIエージェントと協働した設計判断・リファクタリングの経緯を全て記録しています
 
+### スクリプト解説
+
+全158スクリプトについて、各ファイルの責務を1件ずつ解説した資料です。
+
+| 資料 | 内容 |
+|---|---|
+| [SCRIPT_REFERENCE_CORE.md](docs/SCRIPT_REFERENCE_CORE.md) | ゲームロジック層 86ファイル（Core / Item / Mercenary / Merchant / Battle / Dungeon ほか） |
+| [SCRIPT_REFERENCE_UI.md](docs/SCRIPT_REFERENCE_UI.md) | UI層 72ファイル（composition root / Controller / Presenter / View / 基盤） |
+
 ## セーブデータの保存先
 
 プレイ内容は以下の場所にJSON形式で保存されます。新規プレイの場合は初回起動時に自動生成されます。
