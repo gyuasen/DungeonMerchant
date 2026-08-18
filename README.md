@@ -77,6 +77,7 @@ Windowsは Win+Shift+S で範囲キャプチャ、Unityのゲームビューを�
 | [SCRIPT_REFERENCE_CORE.md](docs/SCRIPT_REFERENCE_CORE.md) | ゲームロジック層 86ファイル（Core / Item / Mercenary / Merchant / Battle / Dungeon ほか） |
 | [SCRIPT_REFERENCE_UI.md](docs/SCRIPT_REFERENCE_UI.md) | UI層 72ファイル（composition root / Controller / Presenter / View / 基盤） |
 | [CODE_WALKTHROUGH.md](docs/CODE_WALKTHROUGH.md) | 処理の流れで追う解説。起動 → 基本状態 → 傭兵 → 戦闘 → UI の順に、設計判断の理由まで掘り下げる |
+| [SYSTEM_TOUR.md](docs/SYSTEM_TOUR.md) | システムの要点。時間・借金・市場・戦闘・ゴールドの5箇所で全体構造を説明する |
 
 ## セーブデータの保存先
 
