@@ -196,8 +196,6 @@ Editorだけで落ちてバッチで通る場合は、この種のテスト間�
 | ファイル | 内容 |
 |---|---|
 | [../docs/ARCHITECTURE_ASSESSMENT.md](../docs/ARCHITECTURE_ASSESSMENT.md) | 構造評価。良い点と問題点を実測で評価。改訂履歴あり |
-| [../docs/UI_IMPROVEMENT_PLAN.md](../docs/UI_IMPROVEMENT_PLAN.md) | UI改善計画と実施記録。優先順位の判断根拠 |
-| [../docs/REBUILD_RETROSPECTIVE.md](../docs/REBUILD_RETROSPECTIVE.md) | ゼロから作り直す場合の改善案 |
 | [../TEST_BASELINE.md](../TEST_BASELINE.md) | テスト実行基準記録 |
 
 ---

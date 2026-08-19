@@ -29,7 +29,7 @@
 
 ### 承認済み改善計画
 
-計画全文は `C:\Users\yuga0\.claude\plans\vivid-puzzling-catmull.md`（Claude Code の個人環境内、Windowsユーザープロファイル配下）にあります。**このパスは家のPC・Claude Codeセッション固有のローカルパスであり、学校/教室環境や他のAIからは参照できません。** 以下は他環境からも読めるよう、計画の要点をこのファイルへ転記したものです。
+計画全文は Claude Code の個人環境内（ユーザープロファイル配下）にあります。**これは家のPC・Claude Codeセッション固有のローカル領域であり、学校/教室環境や他のAIからは参照できません。** 以下は他環境からも読めるよう、計画の要点をこのファイルへ転記したものです。
 
 前提: 開発中で実プレイヤーのセーブデータは存在しないため、セーブ形式の破壊的変更は許容する方針。`SimpleMercenaryHireUI`の分割は機能領域ごとの段階分割で進める方針。
 
@@ -183,7 +183,7 @@
 | C-2 | `BattleManager`分割（約1,480行）: 段階抽出。(1)`BattleRewardService`（報酬/ドロップ/経験値、`DungeonRewardService`が手本）→(2)`BattleLogFormatter`（ログ文字列生成、静的クラス化候補）→(3)`BattleSkillResolver`（14敵スキル+6職スキルの解決、最難関）→(4)`BattleStatusEffectService`。各段階でEditModeガード節テスト+C-1のPlayModeテストが緑を維持 | 各段階1コミット。`BattleManager`残存はターン進行コルーチンと参照解決のみ | 実装完了・Unity再確認待ち（2026-07-13: 4サービスを抽出し、`BattleManager`を1480行から602行へ縮小。各EditModeテスト追加、`dotnet build DungeonMerchant.sln`警告0・エラー0） |
 | C-3 | `DungeonRunManager`分割（約870行）: (1)フロア進行保存/復元（`PlayerPrefs`+永続ID解決）を`DungeonProgressStore`へ→(2)イベント提示状態（EventTitle等のUI向けプロパティ群）の整理。`DungeonRunManagerTests`の往復テストが回帰ガード | 各段階1コミット、Test Runner全緑 | 実装完了・Unity再確認待ち（2026-07-13: `DungeonProgressStore`と`DungeonEventState`を追加。公開API・永続ID/旧名互換・通知順を維持。対応EditModeテスト追加、全sln build警告0・エラー0） |
 
-**フェーズA/S完了確認（2026-07-12）**: A-1〜A-6（A-6=S-2）およびS-1〜S-5のエージェント作業がすべて完了し、**ユーザーがUnity上で動作確認済み**（ダンジョンタブ表示修正・チュートリアル・テスト含む）。残るユーザー作業は S-4のサンプルセーブ配置（配置後READMEの「同梱予定です」→「同梱しています」へ変更）と S-6（面接想定問答、エージェントによる下書き支援可）のみ。
+**フェーズA/S完了確認（2026-07-12）**: A-1〜A-6（A-6=S-2）およびS-1〜S-5のエージェント作業がすべて完了し、**ユーザーがUnity上で動作確認済み**（ダンジョンタブ表示修正・チュートリアル・テスト含む）。残るユーザー作業は S-4のサンプルセーブ配置（配置後READMEの「同梱予定です」→「同梱しています」へ変更）と S-6（設計意図の整理、エージェントによる下書き支援可）のみ。
 
 **フェーズB完了確認（2026-07-13）**: B-1〜B-3すべて完了（B-3はSonnetが引き継ぎ実施、JobChangePageUIのタイトル文字サイズ回帰を作業中に発見・修正済み）。Runtime/EditModeTests両build 0エラー。**Playモードでの見た目確認（雇用/転職/在庫/装備詳細画面）は未実施 — ユーザー確認待ち**。
 
@@ -191,9 +191,9 @@
 
 **フェーズC後の再調査（2026-07-16、Claude Code）**: 7/15〜7/16にCodexが静止画戦闘演出基盤（`BattleVisualController`、`BattlePresentationEvent`等）を追加した結果、`BattleManager.cs`は602行から928行へ、`DungeonRunManager.cs`も774行へ再増加した。ソースを読んで確認した結果、**構造の劣化ではない**：増加分の大半は`RaisePresentation`（構造化演出イベント発行）呼び出しで、ダメージ計算・報酬・ログ整形・スキル解決・状態異常・フロア進行・進捗保存は引き続き`BattleRewardService`/`BattleLogFormatter`/`BattleSkillResolver`/`BattleStatusEffectService`/`DungeonProgressStore`/`DungeonEventState`/`DungeonRewardService`に分離されたまま。C-2/C-3の分割方針は維持されており、追加の分割作業は不要と判断。Unity Test RunnerはEditMode 338/338、PlayMode 8/8（2026-07-16、ユーザー確認済み）で、フェーズCは実質的に完了扱いとしてよい。
 
-### フェーズS — 提出前仕上げ（就活ポートフォリオ提出前に完了させる。A/B/Cとは独立、最優先扱い可）
+### フェーズS — 提出前仕上げ（ポートフォリオ提出前に完了させる。A/B/Cとは独立、最優先扱い可）
 
-背景: 本作は就活用ポートフォリオ。2026-07-12にメインセッションで提出前リスク評価を実施した。権利面の結論: マップ・羊皮紙画像はChatGPT(OpenAI)での画像生成と確認済み（権利はユーザー帰属、商用可、法的問題なし）。フォントは同梱がZen Kurenaido（SIL OFL、`Assets/Proiject/Fonts/`にOFL.txt有り）のみで、游明朝等はOSフォントの実行時読込のため再配布に非該当。残る対応は「申告の整合性」と「品質印象」。
+背景: 本作はポートフォリオ。2026-07-12にメインセッションで提出前リスク評価を実施した。権利面の結論: マップ・羊皮紙画像はChatGPT(OpenAI)での画像生成と確認済み（権利はユーザー帰属、商用可、法的問題なし）。フォントは同梱がZen Kurenaido（SIL OFL、`Assets/Proiject/Fonts/`にOFL.txt有り）のみで、游明朝等はOSフォントの実行時読込のため再配布に非該当。残る対応は「申告の整合性」と「品質印象」。
 
 | # | 内容 | 完了条件 | 状態 |
 |---|---|---|---|
@@ -202,7 +202,7 @@
 | S-3 | タイポ・文字化け・体裁（=A-4/A-5+α）: ファイル名2件、`MercenaryContractType.cs`文字化け、`ProjectSettings`のcompanyName（DefaultCompany→個人名等） | Unity再起動後にMissing Script警告ゼロ | 完了（2026-07-12、別エージェント実施・本行は後追い記入）: ファイル2件リネーム（`EnemyDataSO.cs`/`MercenaryDataSO.cs`、.meta同時移動でGUID保持）+csproj更新+`MercenaryContractType.cs`文字化け修正+companyName=YugaSen。Unity再起動でのMissing Script警告ゼロ確認は未実施（ユーザー確認待ち） |
 | S-4 | 審査者向け導線: READMEに「5〜10分で見るポイントと手順」を追記し、進行済み`game-save.json`のサンプルを同梱（配置場所と読込手順も記載） | 初見のレビュアーが10分で主要システム（雇用→戦闘→ダンジョン→経済）に触れられる | 完了（2026-07-12）: READMEゲームサイクル直後に「採用ご担当者様へ：10分で見るポイント」を追加（プレイルート/コードの見どころ/サンプルセーブ配置先`%USERPROFILE%\AppData\LocalLow\YugaSen\DungeonMerchant\game-save.json`）。サンプルセーブファイル自体はユーザーが後日配置（README内にTODOコメント有り） |
 | S-5 | ビルド配布時のライセンス表記: ビルドフォルダに`LICENSES.txt`（Zen Kurenaido OFL全文+画像はAI生成の旨）を同梱する運用をREADMEに記載 | ビルドzipにLICENSES.txtが含まれる | 完了（2026-07-12）: リポジトリ直下に`LICENSES.txt`作成（OFL 1.1全文をOFL.txtから逐語コピー+画像出所の注記）、READMEアセットの出所欄に同梱運用を1行追記 |
-| S-6 | 面接想定問答の整理（コード変更なし）: `FindObjectOfType`残存/神クラス/AI活用ワークフローについて、本ファイルの記録を基に自分の言葉で説明できる想定問答メモを作る（ユーザー自身の作業。エージェントは下書き支援可） | ユーザーが主要設計判断を説明できる状態 | 未着手 |
+| S-6 | 設計意図の整理（コード変更なし）: `FindObjectOfType`残存/神クラス/AI活用ワークフローについて、本ファイルの記録を基に自分の言葉で説明できる想定問答メモを作る（ユーザー自身の作業。エージェントは下書き支援可） | ユーザーが主要設計判断を説明できる状態 | 未着手 |
 
 注意: `Assets/Proiject`フォルダ名のタイポは全アセットパスに影響するため修正しない（READMEで自己申告済みの扱いとするか、ユーザー判断）。
 

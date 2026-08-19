@@ -44,6 +44,9 @@ game-save*.json
 # Jetbrains Rider personal-layer settings
 *.DotSettings.user
 
+# Visual Studio / VS Code のローカル設定
+.vscode/
+
 # Visual Studio cache directory
 .vs/
 
@@ -115,11 +118,20 @@ InitTestScene*.unity*
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
 
-# 就活用の内部資料（手元には残すがリポジトリには含めない）
-# ES回答案・応募文面・面接対策は提出先に見せるものではないため除外する
+# 個人用の内部資料（手元には残すがリポジトリには含めない）
+# 応募関連の下書きは公開対象ではないため除外する
 /docs/ES_CYBERAGENT.md
 /docs/ENTRY_FORM.md
 /docs/ENTRY_SHEET.md
 /docs/PROJECT_COMPARISON.md
 /docs/INTERVIEW_QA.md
 /.instructions.md
+
+# 個人用の準備メモ（手元には残すがリポジトリには含めない）
+# 説明用の下書きや提出前チェックは公開対象ではないため除外する
+/docs/SYSTEM_TOUR.md
+/docs/CODE_WALKTHROUGH.md
+/docs/TECH_STACK.md
+/docs/REBUILD_RETROSPECTIVE.md
+/handoff/SUBMISSION_CHECKLIST.md
+/docs/UI_IMPROVEMENT_PLAN.md
