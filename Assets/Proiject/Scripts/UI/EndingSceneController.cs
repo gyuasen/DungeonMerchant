@@ -14,7 +14,7 @@ public sealed class EndingSceneController : MonoBehaviour
         "目を覚ました時、医師からすべてを聞いた。商会は潰れ、お前に五千万もの負債が残されたと。剣も握れぬお前が、たった一人で魔大陸へ渡ったと聞いて、私たちがどれほど胸を痛めたか——けれど、それ以上に誇らしかった。\n\n" +
         "お前は、私たちが最も大切にしてきたものを受け継いでいた。人、物、金、時間、そして信用。そのすべてに責任を持って向き合う、商人の心だ。\n\n" +
         "商会はもう、私たちのものではない。お前が自らの手で築き直した、お前の商会だ。\n\n" +
-        "よく帰ってきてくれた。おかえり。\n\n" +
+        "よく頑張った。おかえり。\n\n" +
         "——父と母より";
     private const string CreditsBody =
         "五千万Gの負債は返済された。\n\n" +
@@ -118,7 +118,7 @@ public sealed class EndingSceneController : MonoBehaviour
         viewport.anchorMin = new Vector2(0f, 0f);
         viewport.anchorMax = new Vector2(1f, 1f);
         viewport.offsetMin = new Vector2(70f, 88f);
-        viewport.offsetMax = new Vector2(-54f, -75f);
+        viewport.offsetMax = new Vector2(-54f, -40f);
         // Mask はマスク画像のアルファがしきい値未満のピクセルを切り抜くため、
         // 透明にしすぎると内側のテキストごと消える。他画面のビューポートと
         // 同じ 0.01f に揃える。
@@ -130,8 +130,8 @@ public sealed class EndingSceneController : MonoBehaviour
         contentRoot.anchorMin = new Vector2(0f, 1f);
         contentRoot.anchorMax = new Vector2(1f, 1f);
         contentRoot.pivot = new Vector2(0.5f, 1f);
-        contentRoot.sizeDelta = new Vector2(0f, 1120f);
-        Text letter = CreateText(content, contentRoot, bodyFont, 20, FontStyle.Normal,
+        contentRoot.sizeDelta = new Vector2(0f, 1320f);
+        Text letter = CreateText(content, contentRoot, bodyFont, 23, FontStyle.Normal,
             alignment, UITheme.ParchmentTextColor);
         Stretch(letter.rectTransform);
         letter.horizontalOverflow = HorizontalWrapMode.Wrap;
