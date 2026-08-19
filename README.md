@@ -12,21 +12,15 @@ DungeonMerchantは、**商人として傭兵団を運営し、交易・育成・
 
 # スクリーンショット
 
-<!--
-TODO: docs/images/ に実際のスクリーンショットを配置し、下の各行のパスに対応させてください。
-撮影のおすすめ画面: 町マップ / 自動戦闘 / 倉庫または鍛冶屋のUI / ダンジョン探索 / 日次リザルト。
-Windowsは Win+Shift+S で範囲キャプチャ、Unityのゲームビューを最大化してから撮ると綺麗です。
-数秒のGIF(戦闘や町移動)を1枚入れるとさらに伝わります(ScreenToGif等の無料ツール)。
-画像を配置したら、この TODO コメントと各行の「(未配置)」注記を削除してください。
--->
-
-| 町マップ | 自動戦闘 |
+| 町マップ | ダンジョン戦闘 |
 |---|---|
-| ![町マップ](docs/images/town.png)<br>（未配置: docs/images/town.png） | ![自動戦闘](docs/images/battle.png)<br>（未配置: docs/images/battle.png） |
+| ![町マップ](docs/images/town.png) | ![ダンジョン戦闘](docs/images/battle.png) |
+| 施設を選んで行動を決める。移動・探索はすべて日数を消費する | 自動進行。速度変更・一時停止・結果までスキップに対応 |
 
-| 倉庫・経済 | ダンジョン探索 |
-|---|---|
-| ![倉庫](docs/images/inventory.png)<br>（未配置: docs/images/inventory.png） | ![ダンジョン](docs/images/dungeon.png)<br>（未配置: docs/images/dungeon.png） |
+| 倉庫・経済 |
+|---|
+| ![倉庫](docs/images/inventory.png) |
+| 売却価格は日ごとに変動する（基準550G→本日839G/139%）。価格は保存せず日付から算出している |
 
 ---
 
